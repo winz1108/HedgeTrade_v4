@@ -74,7 +74,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const candleGap = 2;
   const minVolumeHeight = 80;
   const maxVolumeHeight = 300;
-  const baseHeight = isMaximized ? window.innerHeight - 120 : 520;
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const baseHeight = isMaximized
+    ? (isMobile ? window.innerWidth : window.innerHeight - 120)
+    : 520;
   const priceChartHeight = Math.floor(baseHeight * 0.58);
   const macdChartHeight = Math.floor(baseHeight * 0.18);
   const rsiChartHeight = Math.floor(baseHeight * 0.16);
@@ -553,8 +557,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   };
 
   const chartContent = (
-    <div className={`bg-[#161a1e] rounded-lg shadow-2xl overflow-hidden border border-slate-800 ${isMaximized ? 'h-screen' : ''}`}>
-      <div className="bg-[#1e2329] px-3 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-800 gap-2 sm:gap-0">
+    <div className={`bg-[#161a1e] shadow-2xl overflow-hidden border border-slate-800 ${isMaximized ? 'h-screen w-screen fixed inset-0 z-50 sm:landscape:rotate-0' : 'rounded-lg'}`} style={isMaximized && isMobile ? { transform: 'rotate(90deg)', transformOrigin: 'center center', width: '100vh', height: '100vw', position: 'fixed', top: '50%', left: '50%', marginLeft: '-50vh', marginTop: '-50vw' } : {}}>
+      <div className="bg-[#1e2329] px-3 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-800 gap-2 sm:gap-0 overflow-x-auto">
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <h2 className="text-sm sm:text-base font-bold text-white">BTC/USDC</h2>
@@ -570,7 +574,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-3 flex-nowrap">
           <div className="hidden sm:flex items-center gap-2 text-[10px] bg-[#2b3139]/50 px-2 py-1 rounded">
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-orange-500 rounded"></div>
@@ -632,9 +636,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
       <div
         ref={containerRef}
-        className="relative bg-[#0b0e11] select-none flex-shrink-0"
+        className="relative bg-[#0b0e11] select-none flex-shrink-0 overflow-x-auto"
         style={{
-          height: `${chartHeight}px`,
+          height: isMaximized ? (isMobile ? 'calc(100vw - 60px)' : 'calc(100vh - 60px)') : `${chartHeight}px`,
           overflow: 'visible',
           touchAction: 'pan-x pan-y',
           overscrollBehavior: 'contain',
@@ -1341,12 +1345,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   return (
     <>
       {renderTooltip()}
-      {isMaximized ? createPortal(
-        <div className="fixed inset-0 z-50 bg-slate-950 overflow-auto">
-          {chartContent}
-        </div>,
-        document.body
-      ) : chartContent}
+      {chartContent}
     </>
   );
 };
