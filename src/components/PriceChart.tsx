@@ -945,7 +945,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </svg>
             )}
 
-            <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, overflow: 'hidden', zIndex: 20 }}>
+            <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, overflow: 'visible', zIndex: 20 }}>
             {(() => {
               const allTrades: Array<TradeEvent & { isPaired: boolean }> = [];
 
@@ -983,6 +983,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 if (timeframeMinutes === 1) {
                   candleIndex = visibleCandles.findIndex(c => Math.abs(c.timestamp - trade.timestamp) < 60000);
 
+                  // If not found in 1m, find the nearest candle
                   if (candleIndex === -1) {
                     let minDiff = Infinity;
                     visibleCandles.forEach((c, i) => {
@@ -1000,6 +1001,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     return candlePeriod === tradePeriod;
                   });
 
+                  // If not found, find the nearest candle in the same timeframe period
                   if (candleIndex === -1) {
                     let minDiff = Infinity;
                     visibleCandles.forEach((c, i) => {
@@ -1015,9 +1017,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 if (candleIndex === -1 || visibleCandles.length === 0) return null;
 
                 const x = candleIndex * (candleWidth + candleGap) + candleWidth / 2;
-
-                if (x < -50) return null;
-
                 const y = priceToY(trade.price);
                 const isHovered = hoveredTrade?.timestamp === trade.timestamp;
 
