@@ -2,9 +2,11 @@ import { DashboardData } from '../types/dashboard';
 
 export const fetchDashboardData = async (mode: 'realtime' | 'simulation'): Promise<DashboardData> => {
   const endpoint = mode === 'simulation' ? '/api/sim_data' : '/api/dashboard';
-  const response = await fetch(`http://localhost:54321${endpoint}`, {
-    mode: 'cors',
+  const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/oracle-proxy?endpoint=${endpoint}`;
+
+  const response = await fetch(apiUrl, {
     headers: {
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
     },
   });
