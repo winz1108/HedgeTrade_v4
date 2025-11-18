@@ -74,11 +74,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const candleGap = 2;
   const minVolumeHeight = 80;
   const maxVolumeHeight = 300;
-
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-  const baseHeight = isMaximized
-    ? (isMobile ? window.innerWidth : window.innerHeight - 120)
-    : 520;
+  const baseHeight = isMaximized ? window.innerHeight - 120 : 520;
   const priceChartHeight = Math.floor(baseHeight * 0.58);
   const macdChartHeight = Math.floor(baseHeight * 0.18);
   const rsiChartHeight = Math.floor(baseHeight * 0.16);
@@ -364,7 +360,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
     return createPortal(
       <div
-        className="fixed bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-3 sm:p-4 whitespace-nowrap shadow-2xl pointer-events-none min-w-[240px] sm:min-w-[280px] max-w-[90vw]"
+        className="fixed bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 whitespace-nowrap shadow-2xl pointer-events-none min-w-[280px]"
         style={{
           left: tooltipLeft ? `${x + 40}px` : 'auto',
           right: tooltipLeft ? 'auto' : `${window.innerWidth - x + 40}px`,
@@ -390,8 +386,22 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     </div>
                     <div className="flex justify-between gap-6">
                       <span className="text-slate-400">현재 익절확률</span>
-                      <span className="text-[#0ecb81] font-semibold">{data.holding.currentTakeProfitProb ? (data.holding.currentTakeProfitProb * 100).toFixed(1) : (trade.prediction.takeProfitProb * 100).toFixed(1)}%</span>
+                      <span className="text-[#0ecb81] font-semibold">
+                        {data.currentPrediction?.takeProfitProb
+                          ? (data.currentPrediction.takeProfitProb * 100).toFixed(1)
+                          : data.holding.currentTakeProfitProb
+                            ? (data.holding.currentTakeProfitProb * 100).toFixed(1)
+                            : (trade.prediction.takeProfitProb * 100).toFixed(1)}%
+                      </span>
                     </div>
+                    {data.lastPredictionUpdateTime && (
+                      <div className="flex justify-between gap-6">
+                        <span className="text-slate-400">익절확률 업데이트</span>
+                        <span className="text-slate-300 text-[10px]">
+                          {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between gap-6">
                       <span className="text-slate-400">예상 익절가</span>
                       <span className="text-white font-semibold">${trade.prediction.expectedTakeProfitPrice.toFixed(2)}</span>
@@ -420,6 +430,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <span className="text-slate-400">경과 시간</span>
                       <span className="text-slate-300 text-[10px]">
                         {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-6">
+                      <span className="text-slate-400">마지막 업데이트</span>
+                      <span className="text-slate-300 text-[10px]">
+                        {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     </div>
                     {data.currentPrice >= trade.prediction.expectedTakeProfitPrice ? (
@@ -519,6 +535,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                 </span>
               </div>
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">마지막 업데이트</span>
+                <span className="text-slate-300 text-[10px]">
+                  {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </span>
+              </div>
             </div>
 
             {trade.prediction && (
@@ -534,9 +556,19 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <span className="text-[#0ecb81]">
                       {data.currentPrediction && data.currentPrediction.takeProfitProb !== undefined
                         ? (data.currentPrediction.takeProfitProb * 100).toFixed(1)
-                        : (trade.prediction.takeProfitProb * 100).toFixed(1)}%
+                        : data.holding.currentTakeProfitProb
+                          ? (data.holding.currentTakeProfitProb * 100).toFixed(1)
+                          : (trade.prediction.takeProfitProb * 100).toFixed(1)}%
                     </span>
                   </div>
+                  {data.lastPredictionUpdateTime && (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-slate-400">업데이트</span>
+                      <span className="text-slate-300 text-[9px]">
+                        {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -557,14 +589,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   };
 
   const chartContent = (
-    <div className={`bg-[#161a1e] shadow-2xl overflow-hidden border border-slate-800 ${isMaximized ? 'h-screen w-screen fixed inset-0 z-50 sm:landscape:rotate-0' : 'rounded-lg'}`} style={isMaximized && isMobile ? { transform: 'rotate(90deg)', transformOrigin: 'center center', width: '100vh', height: '100vw', position: 'fixed', top: '50%', left: '50%', marginLeft: '-50vh', marginTop: '-50vw' } : {}}>
-      <div className="bg-[#1e2329] px-3 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-800 gap-2 sm:gap-0 overflow-x-auto">
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+    <div className={`bg-[#161a1e] rounded-lg shadow-2xl overflow-hidden border border-slate-800 ${isMaximized ? 'h-screen' : ''}`}>
+      <div className="bg-[#1e2329] px-4 py-2 flex items-center justify-between border-b border-slate-800">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm sm:text-base font-bold text-white">BTC/USDC</h2>
+            <h2 className="text-base font-bold text-white">BTC/USDC</h2>
             {latestCandle && (
               <>
-                <div className="text-base sm:text-lg font-bold text-white">
+                <div className="text-lg font-bold text-white">
                   ${latestCandle.close.toFixed(2)}
                 </div>
                 <div className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceChange >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
@@ -574,8 +606,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 flex-nowrap">
-          <div className="hidden sm:flex items-center gap-2 text-[10px] bg-[#2b3139]/50 px-2 py-1 rounded">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-[10px] bg-[#2b3139]/50 px-2 py-1 rounded">
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-orange-500 rounded"></div>
               <span className="text-slate-400">EMA20</span>
@@ -589,13 +621,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               <span className="text-slate-400">BB</span>
             </div>
           </div>
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5">
             {(['1m', '5m', '15m', '1h'] as const).map((tf) => (
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf)}
-                className={`px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-medium rounded transition-all ${
+                className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
                   timeframe === tf
                     ? 'bg-slate-600 text-white shadow-inner'
                     : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
@@ -607,14 +639,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
           <button
             onClick={handleZoomOut}
-            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors hidden sm:block"
+            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors"
             title="Zoom Out (Ctrl + Scroll)"
           >
             <ZoomOut className="w-3 h-3 text-slate-400" />
           </button>
           <button
             onClick={handleZoomIn}
-            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors hidden sm:block"
+            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors"
             title="Zoom In (Ctrl + Scroll)"
           >
             <ZoomIn className="w-3 h-3 text-slate-400" />
@@ -638,8 +670,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         ref={containerRef}
         className="relative bg-[#0b0e11] select-none flex-shrink-0"
         style={{
-          height: isMaximized ? 'calc(100vh - 60px)' : `${chartHeight}px`,
-          overflow: 'hidden',
+          height: `${chartHeight}px`,
+          overflow: 'visible',
           touchAction: 'pan-x pan-y',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch'
@@ -1345,7 +1377,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   return (
     <>
       {renderTooltip()}
-      {chartContent}
+      {isMaximized ? createPortal(
+        <div className="fixed inset-0 z-50 bg-slate-950 overflow-auto">
+          {chartContent}
+        </div>,
+        document.body
+      ) : chartContent}
     </>
   );
 };

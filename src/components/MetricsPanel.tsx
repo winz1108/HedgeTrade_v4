@@ -31,7 +31,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
   if (position === 'left') {
     return (
-      <div className="flex flex-row xl:flex-col gap-2">
+      <div className="flex flex-col gap-2">
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-cyan-500/10 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-white">Current Status</h3>
@@ -99,7 +99,16 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-emerald-500/10 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-white">Take Profit Probability</h3>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-white">Take Profit Probability</h3>
+              <div className="text-[9px] text-slate-500 mt-0.5">
+                Updated: {new Date(data.lastPredictionUpdateTime || data.currentTime).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                })}
+              </div>
+            </div>
             <div className="p-1 bg-emerald-500/20 rounded-lg">
               <TrendingUp className="w-3 h-3 text-emerald-400" />
             </div>
@@ -125,20 +134,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               )}
 
               <div className="bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="text-[10px] text-slate-400 font-semibold">
-                    {data.holding.isHolding ? 'Current' : 'Current Prediction'}
-                  </div>
-                  {data.currentPrediction.timestamp && (
-                    <div className="text-[9px] text-slate-500">
-                      {new Date(data.currentPrediction.timestamp).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
-                  )}
+                <div className="text-[10px] text-slate-400 mb-1 font-semibold">
+                  {data.holding.isHolding ? 'Current' : 'Current Prediction'}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
@@ -171,11 +168,50 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 </div>
               )}
 
+              {data.holding.isHolding && (data.currentPrediction.expectedTakeProfitTime || data.currentPrediction.expectedStopLossTime) && (
+                <div className="bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
+                  <div className="text-[10px] text-slate-400 mb-1.5 font-semibold">Expected Exit Time</div>
+                  <div className="space-y-1">
+                    {data.currentPrediction.expectedTakeProfitTime && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-emerald-400">Take Profit</span>
+                        <span className="text-[10px] font-semibold text-white">
+                          ~{Math.round((data.currentPrediction.expectedTakeProfitTime - data.currentTime) / 60000)}분 후
+                        </span>
+                      </div>
+                    )}
+                    {data.currentPrediction.expectedStopLossTime && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-rose-400">Stop Loss</span>
+                        <span className="text-[10px] font-semibold text-white">
+                          ~{Math.round((data.currentPrediction.expectedStopLossTime - data.currentTime) / 60000)}분 후
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {!data.holding.isHolding && (
                 <div className="text-[10px] text-slate-500 text-center">
                   No active position
                 </div>
               )}
+
+              <div className="border-t border-slate-700 pt-2 mt-2">
+                <div className="flex items-center justify-between text-[9px] text-slate-500">
+                  <span>Last Updated</span>
+                  <span className="font-mono">
+                    {new Date(data.currentTime).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })}
+                  </span>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center h-20 text-slate-500 text-xs">
@@ -191,7 +227,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     const recentTrades = [...data.trades].reverse().slice(0, 4);
 
     return (
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-purple-500/10 transition-all duration-300 h-full min-h-[200px] xl:min-h-0">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-purple-500/10 transition-all duration-300 h-full">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-white">Recent Trades</h3>
           <div className="p-1 bg-purple-500/20 rounded-lg">
@@ -243,7 +279,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   }
 
   return (
-    <div className="flex flex-row xl:flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-amber-500/10 transition-all duration-300">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-white">Performance</h3>

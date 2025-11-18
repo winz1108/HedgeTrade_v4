@@ -118,18 +118,7 @@ function App() {
               <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                 HedgeTrade Dashboard
               </h1>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-500 font-mono">v4.0.0.1</span>
-                <span className="text-[9px] text-slate-600">|</span>
-                <span className="text-[9px] text-slate-500">
-                  Last update: {data.currentTime ? new Date(data.currentTime).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }) : 'N/A'}
-                </span>
-              </div>
+              <span className="text-[10px] text-slate-500 font-mono">v4.0.0.1</span>
             </div>
             <div className="flex items-center gap-2 lg:gap-3 mt-2 flex-wrap">
               <div className="flex gap-1 bg-slate-800/70 p-1 rounded-lg border border-slate-600">
@@ -175,14 +164,14 @@ function App() {
           </div>
         </div>
 
-        <div className="flex flex-col xl:grid xl:grid-cols-[280px,1fr,280px] gap-2">
-          <div className="flex flex-col gap-2 order-2 xl:order-1">
+        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
+          <div className="flex flex-col gap-2 order-2 lg:order-1">
             <MetricsPanel data={data} position="left" />
           </div>
-          <div className="flex-shrink-0 order-1 xl:order-2">
+          <div className="flex-shrink-0 order-1 lg:order-2">
             <PriceChart data={data} onTradeHover={setHoveredTrade} />
           </div>
-          <div className="flex flex-col gap-2 order-3 xl:order-3">
+          <div className="flex flex-col gap-2 order-3 lg:order-3">
             <MetricsPanel data={data} position="right" />
             <MetricsPanel data={data} position="trades" />
           </div>
