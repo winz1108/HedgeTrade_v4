@@ -24,7 +24,7 @@ GET /oracle/state
 {
   currentAsset: number;           // Current portfolio value in USD
   initialAsset: number;           // Starting portfolio value in USD
-  currentTime: number;            // REQUIRED: Current timestamp in milliseconds (Unix epoch) - 1분마다 업데이트
+  currentTime: number;            // REQUIRED: 새로운 분봉이 업데이트된 시간 (Unix timestamp ms)
   currentPrice: number;           // Current BTC price in USD
 
   priceHistory1m: Candle[];       // 1-minute candle data (required)
@@ -147,12 +147,12 @@ GET /oracle/state
 
 프론트엔드는 **1분마다** 이 API를 호출합니다:
 
-- `currentTime`: 매 응답마다 현재 시간으로 업데이트
-- `lastPredictionUpdateTime`: 예측을 재계산할 때마다 업데이트
+- `currentTime`: 새로운 분봉 데이터가 업데이트된 시간
+- `lastPredictionUpdateTime`: 익절확률을 예측한 시간
 - `currentPrediction`: 최신 예측값으로 업데이트
 
 **업데이트 주기:**
-- `currentTime`: 1분마다 자동 업데이트 (API 호출 시점)
+- `currentTime`: 새로운 1분봉이 생성될 때 업데이트 (분봉 데이터 갱신 시점)
 - `lastPredictionUpdateTime`: 모델이 새로운 예측을 생성할 때 업데이트
 - 둘의 차이가 크면 (예: 1시간 이상) UI에 경고 표시 고려
 
