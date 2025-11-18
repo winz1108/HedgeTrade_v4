@@ -118,7 +118,18 @@ function App() {
               <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                 HedgeTrade Dashboard
               </h1>
-              <span className="text-[10px] text-slate-500 font-mono">v4.0.0.1</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-500 font-mono">v4.0.0.1</span>
+                <span className="text-[9px] text-slate-600">|</span>
+                <span className="text-[9px] text-slate-500">
+                  Last update: {data.currentTime ? new Date(data.currentTime).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }) : 'N/A'}
+                </span>
+              </div>
             </div>
             <div className="flex items-center gap-2 lg:gap-3 mt-2 flex-wrap">
               <div className="flex gap-1 bg-slate-800/70 p-1 rounded-lg border border-slate-600">
