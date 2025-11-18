@@ -34,6 +34,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const oracleUrl = `${ORACLE_VM_URL}${endpoint}`;
+    console.log("Fetching from Oracle VM:", oracleUrl);
+    
     const response = await fetch(oracleUrl, {
       method: "GET",
       headers: {
@@ -41,11 +43,16 @@ Deno.serve(async (req: Request) => {
       },
     });
 
+    console.log("Oracle VM response status:", response.status);
+
     if (!response.ok) {
-      throw new Error(`Oracle VM responded with status ${response.status}`);
+      const errorText = await response.text();
+      console.error("Oracle VM error response:", errorText);
+      throw new Error(`Oracle VM responded with status ${response.status}: ${errorText}`);
     }
 
     const data = await response.json();
+    console.log("Successfully fetched data from Oracle VM");
 
     return new Response(JSON.stringify(data), {
       headers: {
@@ -57,7 +64,8 @@ Deno.serve(async (req: Request) => {
     console.error("Error proxying to Oracle VM:", error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Failed to proxy request" 
+        error: error instanceof Error ? error.message : "Failed to proxy request",
+        oracleVmUrl: ORACLE_VM_URL
       }),
       {
         status: 500,
