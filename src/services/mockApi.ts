@@ -2,11 +2,11 @@ import { DashboardData } from '../types/dashboard';
 
 export const fetchDashboardData = async (mode: 'realtime' | 'simulation'): Promise<DashboardData> => {
   const endpoint = mode === 'simulation' ? '/api/sim_data' : '/api/dashboard';
-  const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/oracle-proxy?endpoint=${endpoint}`;
+  const apiUrl = `${import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL}/functions/v1/oracle-proxy?endpoint=${endpoint}`;
 
   const response = await fetch(apiUrl, {
     headers: {
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
     },
   });

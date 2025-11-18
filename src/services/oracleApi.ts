@@ -1,7 +1,7 @@
 import { DashboardData } from '../types/dashboard';
 
 const getEdgeFunctionUrl = () => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL;
   return `${supabaseUrl}/functions/v1/oracle-proxy`;
 };
 
@@ -11,7 +11,7 @@ export const fetchDashboardData = async (mode: 'realtime' | 'simulation'): Promi
 
   const response = await fetch(url, {
     headers: {
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
     },
   });
