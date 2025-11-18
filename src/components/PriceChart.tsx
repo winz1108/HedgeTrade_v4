@@ -636,10 +636,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
       <div
         ref={containerRef}
-        className="relative bg-[#0b0e11] select-none flex-shrink-0 overflow-x-auto"
+        className="relative bg-[#0b0e11] select-none flex-shrink-0"
         style={{
-          height: isMaximized ? (isMobile ? 'calc(100vw - 60px)' : 'calc(100vh - 60px)') : `${chartHeight}px`,
-          overflow: 'visible',
+          height: isMaximized ? 'calc(100vh - 60px)' : `${chartHeight}px`,
+          overflow: 'hidden',
           touchAction: 'pan-x pan-y',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch'
