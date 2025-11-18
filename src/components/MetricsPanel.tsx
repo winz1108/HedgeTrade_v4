@@ -31,7 +31,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
   if (position === 'left') {
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-row xl:flex-col gap-2">
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-cyan-500/10 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-white">Current Status</h3>
@@ -179,7 +179,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     const recentTrades = [...data.trades].reverse().slice(0, 4);
 
     return (
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-purple-500/10 transition-all duration-300 h-full">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-purple-500/10 transition-all duration-300 h-full min-h-[200px] xl:min-h-0">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-white">Recent Trades</h3>
           <div className="p-1 bg-purple-500/20 rounded-lg">
@@ -231,7 +231,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-row xl:flex-col gap-2">
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-amber-500/10 transition-all duration-300">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-white">Performance</h3>

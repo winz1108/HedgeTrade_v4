@@ -360,7 +360,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
     return createPortal(
       <div
-        className="fixed bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 whitespace-nowrap shadow-2xl pointer-events-none min-w-[280px]"
+        className="fixed bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-3 sm:p-4 whitespace-nowrap shadow-2xl pointer-events-none min-w-[240px] sm:min-w-[280px] max-w-[90vw]"
         style={{
           left: tooltipLeft ? `${x + 40}px` : 'auto',
           right: tooltipLeft ? 'auto' : `${window.innerWidth - x + 40}px`,
@@ -554,13 +554,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
   const chartContent = (
     <div className={`bg-[#161a1e] rounded-lg shadow-2xl overflow-hidden border border-slate-800 ${isMaximized ? 'h-screen' : ''}`}>
-      <div className="bg-[#1e2329] px-4 py-2 flex items-center justify-between border-b border-slate-800">
-        <div className="flex items-center gap-4">
+      <div className="bg-[#1e2329] px-3 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-800 gap-2 sm:gap-0">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-white">BTC/USDC</h2>
+            <h2 className="text-sm sm:text-base font-bold text-white">BTC/USDC</h2>
             {latestCandle && (
               <>
-                <div className="text-lg font-bold text-white">
+                <div className="text-base sm:text-lg font-bold text-white">
                   ${latestCandle.close.toFixed(2)}
                 </div>
                 <div className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceChange >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
@@ -570,8 +570,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-[10px] bg-[#2b3139]/50 px-2 py-1 rounded">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="hidden sm:flex items-center gap-2 text-[10px] bg-[#2b3139]/50 px-2 py-1 rounded">
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-orange-500 rounded"></div>
               <span className="text-slate-400">EMA20</span>
@@ -585,13 +585,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               <span className="text-slate-400">BB</span>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
           <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5">
             {(['1m', '5m', '15m', '1h'] as const).map((tf) => (
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf)}
-                className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
+                className={`px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-medium rounded transition-all ${
                   timeframe === tf
                     ? 'bg-slate-600 text-white shadow-inner'
                     : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
@@ -603,14 +603,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
           <button
             onClick={handleZoomOut}
-            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors"
+            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors hidden sm:block"
             title="Zoom Out (Ctrl + Scroll)"
           >
             <ZoomOut className="w-3 h-3 text-slate-400" />
           </button>
           <button
             onClick={handleZoomIn}
-            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors"
+            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors hidden sm:block"
             title="Zoom In (Ctrl + Scroll)"
           >
             <ZoomIn className="w-3 h-3 text-slate-400" />

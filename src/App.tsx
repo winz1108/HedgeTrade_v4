@@ -164,14 +164,14 @@ function App() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
-          <div className="flex flex-col gap-2 order-2 lg:order-1">
+        <div className="flex flex-col xl:grid xl:grid-cols-[280px,1fr,280px] gap-2">
+          <div className="flex flex-col gap-2 order-2 xl:order-1">
             <MetricsPanel data={data} position="left" />
           </div>
-          <div className="flex-shrink-0 order-1 lg:order-2">
+          <div className="flex-shrink-0 order-1 xl:order-2">
             <PriceChart data={data} onTradeHover={setHoveredTrade} />
           </div>
-          <div className="flex flex-col gap-2 order-3 lg:order-3">
+          <div className="flex flex-col gap-2 order-3 xl:order-3">
             <MetricsPanel data={data} position="right" />
             <MetricsPanel data={data} position="trades" />
           </div>
