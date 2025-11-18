@@ -1,5 +1,14 @@
 # Backend API Specification for HedgeTrade Dashboard
 
+## ⚠️ CRITICAL WARNING
+
+**익절확률 예측(`currentPrediction`)은 매수 결정의 핵심입니다!**
+
+- 익절확률 예측이 없으면 매수할 수 없습니다
+- `currentPrediction`과 `lastPredictionUpdateTime`은 **항상 함께 제공**되어야 합니다
+- 예측이 몇 시간 전 데이터라면 시스템이 작동하지 않습니다
+- 1분마다 업데이트되는 데이터에 최신 예측값이 포함되어야 합니다
+
 ## Overview
 This document defines the exact data structure that the backend Oracle API must provide to the frontend dashboard.
 
@@ -15,7 +24,7 @@ GET /oracle/state
 {
   currentAsset: number;           // Current portfolio value in USD
   initialAsset: number;           // Starting portfolio value in USD
-  currentTime: number;            // Current timestamp in milliseconds (Unix epoch)
+  currentTime: number;            // REQUIRED: Current timestamp in milliseconds (Unix epoch) - 1분마다 업데이트
   currentPrice: number;           // Current BTC price in USD
 
   priceHistory1m: Candle[];       // 1-minute candle data (required)
@@ -29,14 +38,13 @@ GET /oracle/state
 
   holding: HoldingInfo;           // Current position information
 
-  currentPrediction?: {           // Latest prediction from Oracle
+  currentPrediction: {            // ⚠️ REQUIRED - 매수 결정의 핵심!
     takeProfitProb: number;       // REQUIRED: Current take profit probability (0-1)
     stopLossProb: number;         // REQUIRED: Current stop loss probability (0-1)
-    expectedTakeProfitTime?: number;  // REQUIRED: Expected time to reach TP (Unix timestamp ms)
-    expectedStopLossTime?: number;    // REQUIRED: Expected time to reach SL (Unix timestamp ms)
   };
 
-  lastPredictionUpdateTime?: number;  // REQUIRED: When prediction was last updated (Unix timestamp ms)
+  lastPredictionUpdateTime: number;  // ⚠️ REQUIRED: 익절확률을 언제 예측했는지 (Unix timestamp ms)
+                                      // currentPrediction과 항상 함께 업데이트되어야 함
 
   metrics: {
     portfolioReturn: number;      // Portfolio return in percentage
@@ -114,31 +122,57 @@ GET /oracle/state
 
 ## Critical Requirements
 
-### 1. Real-time Updates
-- The API must update `currentTime` with every response
-- `lastPredictionUpdateTime` must be set to the time when the prediction was last calculated
-- These timestamps are displayed to users as "Last Update Time"
+### 1. 익절확률 예측 (Most Important!)
 
-### 2. Prediction Probabilities
-When holding a position, the backend MUST provide:
-- `holding.initialTakeProfitProb` - The probability when the BUY was executed
-- `currentPrediction.takeProfitProb` - The current real-time probability
-- Both values should be between 0 and 1 (0% to 100%)
+⚠️ **이것이 없으면 시스템이 작동하지 않습니다!**
 
-### 3. Expected Exit Times
-When holding a position, the backend SHOULD provide:
-- `currentPrediction.expectedTakeProfitTime` - Unix timestamp (ms) when TP is expected
-- `currentPrediction.expectedStopLossTime` - Unix timestamp (ms) when SL is expected
-- These are displayed as "~X분 후" (in X minutes) in the MetricsPanel
+매 API 호출마다 다음 두 필드를 **반드시 함께** 제공해야 합니다:
+
+```typescript
+{
+  currentPrediction: {
+    takeProfitProb: 0.72,    // 현재 익절 확률
+    stopLossProb: 0.28        // 현재 손절 확률
+  },
+  lastPredictionUpdateTime: 1700000000000  // 이 예측을 언제 계산했는지
+}
+```
+
+**왜 중요한가?**
+- 매수 결정은 `takeProfitProb`를 기반으로 합니다
+- 예측이 오래되면 (몇 시간 전) 잘못된 매수가 발생합니다
+- UI에서 "익절확률이 언제 예측되었는지" 사용자에게 보여줍니다
+
+### 2. Real-time Updates
+
+프론트엔드는 **1분마다** 이 API를 호출합니다:
+
+- `currentTime`: 매 응답마다 현재 시간으로 업데이트
+- `lastPredictionUpdateTime`: 예측을 재계산할 때마다 업데이트
+- `currentPrediction`: 최신 예측값으로 업데이트
+
+**업데이트 주기:**
+- `currentTime`: 1분마다 자동 업데이트 (API 호출 시점)
+- `lastPredictionUpdateTime`: 모델이 새로운 예측을 생성할 때 업데이트
+- 둘의 차이가 크면 (예: 1시간 이상) UI에 경고 표시 고려
+
+### 3. Prediction Probabilities
+
+보유 포지션이 있을 때:
+- `holding.initialTakeProfitProb`: 매수 시점의 익절 확률 (변하지 않음)
+- `currentPrediction.takeProfitProb`: 현재 실시간 익절 확률 (계속 업데이트)
+- 두 값을 비교하여 익절 확률이 얼마나 변했는지 보여줍니다
 
 ### 4. Timestamp Format
-ALL timestamps must be Unix epoch time in **milliseconds** (not seconds)
-```javascript
-// Correct
-timestamp: 1700000000000  // milliseconds
 
-// Incorrect
-timestamp: 1700000000     // seconds (will break date formatting)
+모든 타임스탬프는 **밀리초 단위** Unix epoch time이어야 합니다:
+
+```javascript
+// ✅ 올바름
+timestamp: 1700000000000  // 밀리초 (13자리)
+
+// ❌ 잘못됨
+timestamp: 1700000000     // 초 단위 (10자리) - 날짜 포맷 깨짐
 ```
 
 ## Example Response
@@ -201,11 +235,9 @@ timestamp: 1700000000     // seconds (will break date formatting)
   },
   "currentPrediction": {
     "takeProfitProb": 0.72,
-    "stopLossProb": 0.28,
-    "expectedTakeProfitTime": 1700001200000,
-    "expectedStopLossTime": 1700003600000
+    "stopLossProb": 0.28
   },
-  "lastPredictionUpdateTime": 1700000000000,
+  "lastPredictionUpdateTime": 1699999980000,
   "metrics": {
     "portfolioReturn": 5.0,
     "marketReturn": 3.2,
@@ -218,40 +250,103 @@ timestamp: 1700000000     // seconds (will break date formatting)
 
 ## Update Frequency
 
-The frontend polls this endpoint every **1 second** (1000ms), so:
-- Ensure the API can handle 1 request per second
-- `currentTime` should increment by ~1000ms each call
-- `lastPredictionUpdateTime` should be updated whenever predictions are recalculated
-- Real-time probability updates are critical for user experience
+프론트엔드는 **1분(60초)마다** 이 엔드포인트를 호출합니다:
+
+- API는 초당 1 요청을 처리할 수 있어야 합니다 (실제로는 1분당 1 요청)
+- `currentTime`은 매 호출마다 약 60000ms씩 증가합니다
+- `lastPredictionUpdateTime`은 예측을 재계산할 때만 업데이트됩니다
+
+**권장사항:**
+- 예측 모델이 실시간으로 돌아가면: 매 요청마다 `lastPredictionUpdateTime` 업데이트
+- 예측 모델이 주기적으로 돌아가면: 예측 생성 시점에만 `lastPredictionUpdateTime` 업데이트
+- `currentTime`과 `lastPredictionUpdateTime`의 차이가 5분 이상이면 경고 고려
 
 ## UI Display Locations
 
+### Header (Top)
+- **버전 옆에 현재 시간 표시**: `currentTime` 사용
+- 형식: "HH:MM:SS" (예: "14:35:22")
+- 1분마다 자동 업데이트됨
+
 ### MetricsPanel (Left Side)
-- Shows "Updated: HH:MM:SS" from `lastPredictionUpdateTime`
-- Shows `initialTakeProfitProb` vs `currentPrediction.takeProfitProb`
-- Shows "Expected Exit Time" calculated from `expectedTakeProfitTime` and `expectedStopLossTime`
-- Shows "Last Updated" from `currentTime`
+- **익절확률 예측 시간**: `lastPredictionUpdateTime` 사용
+- 형식: "HH:MM:SS" (예: "14:34:50")
+- 익절확률 바 옆에 작게 표시
+- "Updated: HH:MM:SS" 또는 시간만 표시
 
 ### PriceChart Tooltip (on BUY marker hover)
-- Shows `initialTakeProfitProb` (매수시 익절확률)
-- Shows `currentPrediction.takeProfitProb` (현재 익절확률)
-- Shows "익절확률 업데이트" from `lastPredictionUpdateTime`
-- Shows "마지막 업데이트" from `currentTime`
+- `initialTakeProfitProb`: 매수시 익절확률
+- `currentPrediction.takeProfitProb`: 현재 익절확률
+- `lastPredictionUpdateTime`: 익절확률 업데이트 시간
+- `currentTime`: 마지막 업데이트 시간
 
 ## Testing Checklist
 
-- [ ] All timestamps are in milliseconds (13 digits, not 10)
-- [ ] `currentTime` increments with each API call
-- [ ] `lastPredictionUpdateTime` is set to when prediction was calculated
-- [ ] `initialTakeProfitProb` is set when opening position
-- [ ] `currentTakeProfitProb` matches `currentPrediction.takeProfitProb`
-- [ ] `expectedTakeProfitTime` and `expectedStopLossTime` are set when holding
-- [ ] All probability values are between 0 and 1
-- [ ] Time predictions show reasonable future timestamps
+필수 체크리스트:
+
+- [ ] **`currentPrediction`이 모든 응답에 포함되어 있는가?** (가장 중요!)
+- [ ] **`lastPredictionUpdateTime`이 모든 응답에 포함되어 있는가?**
+- [ ] 모든 타임스탬프가 밀리초 단위인가? (13자리, 10자리 아님)
+- [ ] `currentTime`이 매 API 호출마다 증가하는가?
+- [ ] `lastPredictionUpdateTime`과 `currentTime`의 차이가 합리적인가? (< 5분 권장)
+- [ ] `initialTakeProfitProb`가 포지션 오픈 시 설정되는가?
+- [ ] `currentTakeProfitProb`가 `currentPrediction.takeProfitProb`와 일치하는가?
+- [ ] 모든 확률 값이 0과 1 사이인가?
+
+## Common Issues
+
+### Issue 1: 익절확률이 업데이트되지 않음
+**증상:** `lastPredictionUpdateTime`이 몇 시간 전
+
+**원인:**
+- 예측 모델이 작동하지 않음
+- `lastPredictionUpdateTime` 업데이트 로직 누락
+
+**해결:**
+- 예측 모델이 정상 작동하는지 확인
+- 매 응답에 최신 `lastPredictionUpdateTime` 포함
+
+### Issue 2: 매수가 일어나지 않음
+**증상:** 좋은 시그널인데 매수가 안 됨
+
+**원인:**
+- `currentPrediction`이 누락됨
+- `takeProfitProb`가 0이거나 매우 낮음
+
+**해결:**
+- 모든 응답에 `currentPrediction` 포함
+- 예측 모델이 합리적인 확률을 반환하는지 확인
+
+### Issue 3: 시간 표시가 이상함
+**증상:** 1970년 날짜가 표시됨
+
+**원인:**
+- 타임스탬프를 초 단위로 보냄 (밀리초여야 함)
+
+**해결:**
+```python
+# ❌ 잘못됨
+timestamp = int(time.time())  # 1700000000 (초)
+
+# ✅ 올바름
+timestamp = int(time.time() * 1000)  # 1700000000000 (밀리초)
+```
 
 ## Questions?
 
 If anything is unclear, refer to:
 - `/src/types/dashboard.ts` for TypeScript definitions
 - `/src/components/MetricsPanel.tsx` for MetricsPanel implementation
+- `/src/App.tsx` for header time display
 - `/src/components/PriceChart.tsx` for chart tooltip implementation
+
+## 백엔드 개발자에게
+
+이 스펙을 커서(Cursor)에게 전달할 때:
+
+1. **익절확률 예측의 중요성** 강조
+2. `currentPrediction`과 `lastPredictionUpdateTime`은 항상 함께 제공
+3. 밀리초 단위 타임스탬프 사용
+4. 1분마다 업데이트되는 데이터에 최신 예측 포함
+
+이 API가 제대로 작동해야 대시보드가 작동합니다!

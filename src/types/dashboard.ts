@@ -61,8 +61,6 @@ export interface DashboardData {
   currentPrediction?: {
     takeProfitProb: number;
     stopLossProb: number;
-    expectedTakeProfitTime?: number;
-    expectedStopLossTime?: number;
   };
   lastPredictionUpdateTime?: number;
   metrics: {

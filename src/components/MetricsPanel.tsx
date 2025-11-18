@@ -134,8 +134,19 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               )}
 
               <div className="bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
-                <div className="text-[10px] text-slate-400 mb-1 font-semibold">
-                  {data.holding.isHolding ? 'Current' : 'Current Prediction'}
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-[10px] text-slate-400 font-semibold">
+                    {data.holding.isHolding ? 'Current' : 'Current Prediction'}
+                  </div>
+                  {data.lastPredictionUpdateTime && (
+                    <div className="text-[9px] text-slate-500 font-mono">
+                      {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
@@ -164,30 +175,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                       {((data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb!) * 100) >= 0 ? '+' : ''}
                       {((data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb!) * 100).toFixed(1)}%
                     </span>
-                  </div>
-                </div>
-              )}
-
-              {data.holding.isHolding && (data.currentPrediction.expectedTakeProfitTime || data.currentPrediction.expectedStopLossTime) && (
-                <div className="bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
-                  <div className="text-[10px] text-slate-400 mb-1.5 font-semibold">Expected Exit Time</div>
-                  <div className="space-y-1">
-                    {data.currentPrediction.expectedTakeProfitTime && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] text-emerald-400">Take Profit</span>
-                        <span className="text-[10px] font-semibold text-white">
-                          ~{Math.round((data.currentPrediction.expectedTakeProfitTime - data.currentTime) / 60000)}분 후
-                        </span>
-                      </div>
-                    )}
-                    {data.currentPrediction.expectedStopLossTime && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] text-rose-400">Stop Loss</span>
-                        <span className="text-[10px] font-semibold text-white">
-                          ~{Math.round((data.currentPrediction.expectedStopLossTime - data.currentTime) / 60000)}분 후
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}

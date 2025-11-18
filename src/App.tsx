@@ -119,6 +119,13 @@ function App() {
                 HedgeTrade Dashboard
               </h1>
               <span className="text-[10px] text-slate-500 font-mono">v4.0.0.1</span>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                })}
+              </span>
             </div>
             <div className="flex items-center gap-2 lg:gap-3 mt-2 flex-wrap">
               <div className="flex gap-1 bg-slate-800/70 p-1 rounded-lg border border-slate-600">
