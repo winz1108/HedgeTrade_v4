@@ -184,21 +184,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   No active position
                 </div>
               )}
-
-              <div className="border-t border-slate-700 pt-2 mt-2">
-                <div className="flex items-center justify-between text-[9px] text-slate-500">
-                  <span>Last Updated</span>
-                  <span className="font-mono">
-                    {new Date(data.currentTime).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                    })}
-                  </span>
-                </div>
-              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center h-20 text-slate-500 text-xs">
