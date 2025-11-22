@@ -324,29 +324,62 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     };
   }, []);
 
-  const handleTradeMouseEnter = (trade: TradeEvent, x: number, y: number) => {
-    setHoveredTrade(trade);
-    onTradeHover(trade);
+  const handleTradeClick = (trade: TradeEvent, e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
 
     if (trade.type === 'buy') {
-      const containerRect = containerRef.current?.getBoundingClientRect();
-      if (containerRect) {
-        const pairedTrade = trade.pairId
-          ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
-          : null;
+      const pairedTrade = trade.pairId
+        ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
+        : null;
 
-        setTooltipPosition({
-          x: containerRect.left + x,
-          y: containerRect.top + y,
-          trade,
-          hasPairedSell: pairedTrade?.type === 'sell',
-          pairedTrade: pairedTrade || undefined
-        });
+      const clientX = 'touches' in e ? e.touches[0]?.clientX || 0 : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0]?.clientY || 0 : e.clientY;
+
+      setTooltipPosition({
+        x: clientX,
+        y: clientY,
+        trade,
+        hasPairedSell: pairedTrade?.type === 'sell',
+        pairedTrade: pairedTrade || undefined
+      });
+      setHoveredTrade(trade);
+      onTradeHover(trade);
+    }
+  };
+
+  const handleTradeMouseEnter = (trade: TradeEvent, x: number, y: number) => {
+    if (window.innerWidth >= 768) {
+      setHoveredTrade(trade);
+      onTradeHover(trade);
+
+      if (trade.type === 'buy') {
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+          const pairedTrade = trade.pairId
+            ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
+            : null;
+
+          setTooltipPosition({
+            x: containerRect.left + x,
+            y: containerRect.top + y + window.scrollY,
+            trade,
+            hasPairedSell: pairedTrade?.type === 'sell',
+            pairedTrade: pairedTrade || undefined
+          });
+        }
       }
     }
   };
 
   const handleTradeMouseLeave = () => {
+    if (window.innerWidth >= 768) {
+      setHoveredTrade(null);
+      onTradeHover(null);
+      setTooltipPosition(null);
+    }
+  };
+
+  const handleCloseTooltip = () => {
     setHoveredTrade(null);
     onTradeHover(null);
     setTooltipPosition(null);
@@ -369,10 +402,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     if (isMobileView) {
       return createPortal(
         <div
-          className="fixed left-2 right-2 bottom-4 bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[70vh] overflow-y-auto"
+          className="fixed left-2 right-2 bottom-4 bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto"
           style={{
             zIndex: 999999,
           }}
+          onClick={handleCloseTooltip}
         >
         {!hasPairedSell ? (
           <>
@@ -1310,6 +1344,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                     onMouseEnter={() => handleTradeMouseEnter(trade, x, y)}
                     onMouseLeave={handleTradeMouseLeave}
+                    onClick={(e) => handleTradeClick(trade, e)}
+                    onTouchStart={(e) => handleTradeClick(trade, e)}
                   >
                     {trade.type === 'buy' ? (
                       <div className="relative flex items-center justify-center">
