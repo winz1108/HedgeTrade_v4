@@ -20,6 +20,15 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
+  const formatTime = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   const calculateCurrentProfit = () => {
     if (!data.holding.isHolding || !data.holding.buyPrice) return 0;
     return ((data.currentPrice - data.holding.buyPrice) / data.holding.buyPrice) * 100;
@@ -124,7 +133,14 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             <div className="space-y-2">
               {data.holding.isHolding && data.holding.initialTakeProfitProb !== undefined && (
                 <div className="bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
-                  <div className="text-[10px] text-slate-400 mb-1 font-semibold">Initial (At Buy)</div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-slate-400 font-semibold">Initial (At Buy)</span>
+                    {data.holding.buyTime && (
+                      <span className="text-[9px] text-slate-500 font-mono">
+                        {formatTime(data.holding.buyTime)}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
                       <div
@@ -140,8 +156,15 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               )}
 
               <div className="bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
-                <div className="text-[10px] text-slate-400 font-semibold mb-1">
-                  {data.holding.isHolding ? 'Current' : 'Current Prediction'}
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] text-slate-400 font-semibold">
+                    {data.holding.isHolding ? 'Current' : 'Current Prediction'}
+                  </span>
+                  {data.lastPredictionUpdateTime && (
+                    <span className="text-[9px] text-slate-500 font-mono">
+                      {formatTime(data.lastPredictionUpdateTime)}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
