@@ -7,6 +7,8 @@ import { MetricsPanel } from './components/MetricsPanel';
 
 type ViewMode = 'realtime' | 'simulation';
 
+const APP_VERSION = '4.0.0.1';
+
 function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('realtime');
   const [data, setData] = useState<DashboardData | null>(null);
@@ -118,7 +120,7 @@ function App() {
               <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                 HedgeTrade Dashboard
               </h1>
-              <span className="text-[10px] text-slate-500 font-mono">v4.0.0.1</span>
+              <span className="text-[10px] text-slate-500 font-mono">v{APP_VERSION}</span>
               <span className="text-[10px] text-slate-400 font-mono">
                 {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
                   hour: '2-digit',
