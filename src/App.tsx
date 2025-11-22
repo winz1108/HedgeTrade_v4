@@ -5,12 +5,9 @@ import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
 
-type ViewMode = 'realtime' | 'simulation';
-
 const APP_VERSION = '4.0.0.1';
 
 function App() {
-  const [viewMode, setViewMode] = useState<ViewMode>('realtime');
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +17,7 @@ function App() {
   const loadData = async () => {
     try {
       setError(null);
-      const dashboardData = await fetchDashboardData(viewMode);
+      const dashboardData = await fetchDashboardData();
       console.log('📊 Data updated:', {
         holding: dashboardData.holding.isHolding,
         trades: dashboardData.trades.length,
@@ -44,7 +41,7 @@ function App() {
   useEffect(() => {
     setLoading(true);
     loadData();
-  }, [viewMode]);
+  }, []);
 
   useEffect(() => {
     const now = Date.now();
@@ -62,7 +59,7 @@ function App() {
     }, msUntilNextMinute);
 
     return () => clearTimeout(initialTimeout);
-  }, [viewMode]);
+  }, []);
 
   useEffect(() => {
     const countdownInterval = setInterval(() => {
@@ -130,32 +127,9 @@ function App() {
               </span>
             </div>
             <div className="flex items-center gap-2 lg:gap-3 mt-2 flex-wrap">
-              <div className="flex gap-1 bg-slate-800/70 p-1 rounded-lg border border-slate-600">
-                <button
-                  onClick={() => setViewMode('realtime')}
-                  className={`px-2 lg:px-3 py-1 text-xs font-semibold rounded transition-all duration-200 ${
-                    viewMode === 'realtime'
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Realtime
-                </button>
-                <button
-                  onClick={() => setViewMode('simulation')}
-                  className={`px-2 lg:px-3 py-1 text-xs font-semibold rounded transition-all duration-200 ${
-                    viewMode === 'simulation'
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Simulation
-                </button>
-              </div>
               <p className="text-slate-400 text-xs lg:text-sm flex items-center gap-2">
                 <span className="inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                <span className="hidden sm:inline">{viewMode === 'realtime' ? 'Real-time monitoring' : 'Simulation data'}</span>
-                <span className="sm:hidden">{viewMode === 'realtime' ? 'Real-time' : 'Simulation'}</span>
+                <span>Real-time monitoring</span>
               </p>
             </div>
           </div>
