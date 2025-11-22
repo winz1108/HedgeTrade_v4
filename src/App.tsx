@@ -152,7 +152,7 @@ function App() {
           <div className="flex flex-col gap-2 order-2 lg:order-1">
             <MetricsPanel data={data} position="left" />
           </div>
-          <div className="flex-shrink-0 order-1 lg:order-2">
+          <div className="min-w-0 order-1 lg:order-2">
             <PriceChart data={data} onTradeHover={setHoveredTrade} />
           </div>
           <div className="flex flex-col gap-2 order-3 lg:order-3">

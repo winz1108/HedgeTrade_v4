@@ -596,7 +596,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   };
 
   const chartContent = (
-    <div className={`bg-[#161a1e] rounded-lg shadow-2xl overflow-hidden border border-slate-800 ${isMaximized ? 'h-screen' : ''}`}>
+    <div className={`bg-[#161a1e] rounded-lg shadow-2xl border border-slate-800 w-full ${isMaximized ? 'h-screen' : ''}`}>
       <div className="bg-[#1e2329] px-2 sm:px-4 py-2 flex items-center justify-between border-b border-slate-800 flex-wrap gap-2">
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
@@ -692,7 +692,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         onTouchEnd={handleTouchEnd}
       >
 
-        <div className="absolute inset-0" style={{ overflow: 'visible' }}>
+        <div className="absolute inset-0 overflow-hidden">
           {/* OHLC Display */}
           {hoveredCandle && (
             <div className="absolute left-3 top-3 z-10 flex items-center gap-3 text-xs bg-black/60 backdrop-blur-sm px-3 py-2 rounded border border-slate-700/50">
@@ -823,9 +823,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </svg>
 
           <div
-            className="absolute top-0 left-0 flex cursor-crosshair"
+            className="absolute top-0 left-0 flex cursor-crosshair overflow-visible"
             style={{
               height: `${chartHeight}px`,
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 5,
               pointerEvents: 'auto'
             }}
@@ -899,7 +900,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
           <div
             className="absolute top-0 left-0"
-            style={{ height: `${priceChartHeight}px`, width: '100%', overflow: 'visible', cursor: isDragging.current ? 'grabbing' : 'default', pointerEvents: 'none' }}
+            style={{ height: `${priceChartHeight}px`, width: `${visibleCandles.length * (candleWidth + candleGap)}px`, overflow: 'visible', cursor: isDragging.current ? 'grabbing' : 'default', pointerEvents: 'none' }}
           >
             {hoveredTrade && hoveredTrade.pairId && (() => {
               const pairedTrade = data.trades.find(
@@ -988,7 +989,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </svg>
             )}
 
-            <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, overflow: 'visible', zIndex: 20 }}>
+            <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, width: `${visibleCandles.length * (candleWidth + candleGap)}px`, overflow: 'visible', zIndex: 20 }}>
             {(() => {
               const allTrades: Array<TradeEvent & { isPaired: boolean }> = [];
 
@@ -1125,11 +1126,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             style={{
               top: `${priceChartHeight + 8}px`,
               height: `${volumeChartHeight}px`,
-              width: '100%',
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 1
             }}
           >
-            <div className="absolute left-0 flex px-2 py-1 pointer-events-none" style={{ top: 0, height: '100%' }}>
+            <div className="absolute left-0 flex px-2 py-1 pointer-events-none overflow-hidden" style={{ top: 0, height: '100%', width: '100%' }}>
               {visibleCandles.map((candle, idx) => {
                 const maxVolume = Math.max(...visibleCandles.map(c => c.volume));
                 const topPadding = Math.max(5, volumeChartHeight * 0.15);
@@ -1175,7 +1176,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             style={{
               top: `${priceChartHeight + volumeChartHeight + 16}px`,
               height: `${macdChartHeight}px`,
-              width: '100%',
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 1
             }}
           >
@@ -1305,7 +1306,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             style={{
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 24}px`,
               height: `${rsiChartHeight}px`,
-              width: '100%',
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 1
             }}
           >
