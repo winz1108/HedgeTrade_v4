@@ -1,16 +1,19 @@
 # 대시보드 API 명세서
 
+**버전**: v1.0
+**최종 수정**: 2025-11-22
+**대상**: Oracle VM 백엔드 API (http://130.61.50.101:54321)
+
+---
+
 ## 엔드포인트
 
-### 1. 실시간 데이터 조회
+### 실시간 거래 데이터 조회
 - **URL**: `http://localhost:54321/api/dashboard`
 - **Method**: `GET`
 - **Content-Type**: `application/json`
-
-### 2. 시뮬레이션 데이터 조회
-- **URL**: `http://localhost:54321/api/sim_data`
-- **Method**: `GET`
-- **Content-Type**: `application/json`
+- **업데이트 주기**: 1분마다 프론트엔드가 호출
+- **용도**: 실시간 BTC 가격, 거래 내역, 포지션 상태, 성과 지표
 
 ---
 
@@ -20,6 +23,7 @@
 
 ```typescript
 {
+  version: string;                // API 버전 정보 (예: "v1.0") - 필수
   currentAsset: number;           // 현재 자산 (USD)
   initialAsset: number;           // 초기 자산 (USD)
   currentTime: number;            // 현재 시간 (Unix timestamp, milliseconds)
@@ -31,6 +35,11 @@
   pricePredictions: Candle[];     // 미래 예측 가격 데이터 배열 (필수, 빈 배열 가능)
   trades: TradeEvent[];           // 거래 이벤트 배열 (필수, 빈 배열 가능)
   holding: HoldingInfo;           // 현재 보유 상태 (필수)
+  currentPrediction: {            // 현재 익절 확률 예측 (필수)
+    takeProfitProb: number;       // 익절 확률 (0.0 ~ 1.0)
+    stopLossProb: number;         // 손절 확률 (0.0 ~ 1.0)
+  };
+  lastPredictionUpdateTime: number;  // 익절확률 예측 시간 (Unix timestamp, milliseconds) - 필수
   metrics: {                      // 성과 지표 (필수)
     portfolioReturn: number;      // 포트폴리오 수익률 (%)
     marketReturn: number;         // 시장 수익률 (%)
@@ -227,6 +236,7 @@
 
 ```json
 {
+  "version": "v1.0",
   "currentAsset": 10250.50,
   "initialAsset": 10000.00,
   "currentTime": 1700000000000,
@@ -331,6 +341,11 @@
     "initialTakeProfitProb": 0.65,
     "currentTakeProfitProb": 0.72
   },
+  "currentPrediction": {
+    "takeProfitProb": 0.72,
+    "stopLossProb": 0.28
+  },
+  "lastPredictionUpdateTime": 1699999980000,
   "metrics": {
     "portfolioReturn": 2.51,
     "marketReturn": 1.85,
@@ -348,11 +363,12 @@
 ### ✅ 필수 필드 (반드시 제공해야 함)
 
 **최상위 레벨:**
+- `version` (API 버전)
 - `currentAsset`, `initialAsset`, `currentTime`, `currentPrice`
 - `priceHistory1m` (최소 1개 이상의 Candle)
 - `pricePredictions` (빈 배열 가능)
 - `trades` (빈 배열 가능)
-- `holding`, `metrics`
+- `holding`, `currentPrediction`, `lastPredictionUpdateTime`, `metrics`
 
 **Candle (priceHistory1m 내):**
 - `timestamp`, `open`, `high`, `low`, `close`, `volume`
@@ -468,7 +484,15 @@ app.listen(54321, '127.0.0.1', () => {
 ## 프론트엔드 연결
 
 프론트엔드는 이미 설정되어 있습니다:
-- Realtime 탭: `http://localhost:54321/api/dashboard` 호출
-- Simulation 탭: `http://localhost:54321/api/sim_data` 호출
+- `http://localhost:54321/api/dashboard` 호출 (1분마다 자동 업데이트)
+- Supabase Edge Function이 Oracle VM으로 프록시 처리
 
-백엔드에서 위 두 엔드포인트를 구현하고 명세에 맞게 데이터를 반환하면 자동으로 연결됩니다.
+백엔드에서 `/api/dashboard` 엔드포인트를 구현하고 명세에 맞게 데이터를 반환하면 자동으로 연결됩니다.
+
+---
+
+## 버전 정보 규칙
+
+- **version 필드 필수**: 모든 응답에 `"version": "v1.0"` 포함
+- 헤더 좌측 상단에 표시됨
+- API 명세 변경 시 버전 업데이트 (v1.1, v2.0 등)

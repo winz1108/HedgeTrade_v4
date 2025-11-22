@@ -47,6 +47,7 @@ export interface HoldingInfo {
 }
 
 export interface DashboardData {
+  version?: string;
   currentAsset: number;
   initialAsset: number;
   currentTime: number;

@@ -117,7 +117,10 @@ function App() {
               <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                 HedgeTrade Dashboard
               </h1>
-              <span className="text-[10px] text-slate-500 font-mono">v{APP_VERSION}</span>
+              <span className="text-[10px] text-slate-500 font-mono">UI v{APP_VERSION}</span>
+              {data.version && (
+                <span className="text-[10px] text-emerald-400 font-mono">API {data.version}</span>
+              )}
               <span className="text-[10px] text-slate-400 font-mono">
                 {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
                   hour: '2-digit',

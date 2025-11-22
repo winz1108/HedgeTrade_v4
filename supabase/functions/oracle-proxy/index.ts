@@ -67,6 +67,7 @@ Deno.serve(async (req: Request) => {
 
       // Oracle VM이 응답하지 않으면 모의 데이터 반환
       const mockData = {
+        version: "mock",
         currentAsset: 10000,
         initialAsset: 10000,
         currentTime: Date.now(),
@@ -77,6 +78,11 @@ Deno.serve(async (req: Request) => {
         holding: {
           isHolding: false
         },
+        currentPrediction: {
+          takeProfitProb: 0,
+          stopLossProb: 1.0
+        },
+        lastPredictionUpdateTime: Date.now(),
         metrics: {
           portfolioReturn: 0,
           marketReturn: 0,
