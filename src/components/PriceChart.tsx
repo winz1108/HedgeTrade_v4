@@ -1661,6 +1661,51 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               )}
             </div>
           </div>
+
+          <div
+            className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
+            style={{
+              top: `${priceChartHeight + volumeChartHeight + macdChartHeight + rsiChartHeight + 32}px`,
+              height: '24px',
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
+              zIndex: 1
+            }}
+          >
+            <div className="absolute left-0 flex pointer-events-none" style={{ width: '100%', height: '100%' }}>
+              {visibleCandles.map((candle, idx) => {
+                const showLabel = idx % Math.max(1, Math.floor(20 / candleWidth)) === 0 || idx === hoveredCandleIndex;
+                const isHovered = idx === hoveredCandleIndex;
+
+                if (!showLabel) return null;
+
+                const date = new Date(candle.timestamp);
+                const timeLabel = date.toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                });
+
+                return (
+                  <div
+                    key={idx}
+                    className="absolute text-[10px] font-mono whitespace-nowrap"
+                    style={{
+                      left: `${idx * (candleWidth + candleGap)}px`,
+                      top: '4px',
+                      color: isHovered ? '#ffffff' : '#848e9c',
+                      fontWeight: isHovered ? 'bold' : 'normal',
+                      backgroundColor: isHovered ? 'rgba(14, 203, 129, 0.2)' : 'transparent',
+                      padding: isHovered ? '2px 4px' : '0',
+                      borderRadius: isHovered ? '2px' : '0',
+                    }}
+                  >
+                    {timeLabel}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
