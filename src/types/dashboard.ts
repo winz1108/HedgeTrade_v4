@@ -49,6 +49,8 @@ export interface HoldingInfo {
 export interface DashboardData {
   version?: string;
   currentAsset: number;
+  currentBTC?: number;
+  currentCash?: number;
   initialAsset: number;
   currentTime: number;
   currentPrice: number;
