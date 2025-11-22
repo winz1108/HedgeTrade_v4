@@ -134,19 +134,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               )}
 
               <div className="bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="text-[10px] text-slate-400 font-semibold">
-                    {data.holding.isHolding ? 'Current' : 'Current Prediction'}
-                  </div>
-                  {data.lastPredictionUpdateTime && (
-                    <div className="text-[9px] text-slate-500 font-mono">
-                      {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit'
-                      })}
-                    </div>
-                  )}
+                <div className="text-[10px] text-slate-400 font-semibold mb-1">
+                  {data.holding.isHolding ? 'Current' : 'Current Prediction'}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
