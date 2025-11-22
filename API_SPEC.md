@@ -23,7 +23,7 @@
 
 ```typescript
 {
-  version: string;                // API 버전 정보 (예: "v1.0") - 필수
+  version: string;                // API 버전 정보 (예: "v5.0.0.53") - 필수
   currentAsset: number;           // 현재 자산 (USD)
   initialAsset: number;           // 초기 자산 (USD)
   currentTime: number;            // 현재 시간 (Unix timestamp, milliseconds)
@@ -66,7 +66,7 @@
   volume: number;                 // 거래량 - 필수
   isPrediction?: boolean;         // 예측 데이터 여부 (선택, pricePredictions에서만 true)
 
-  // ⭐ 기술 지표 (선택, 제공하면 차트에 표시됨)
+  // ⭐ 기술 지표 (선택, 제공하면 차트에 표시됨, 매매 판단이 아니라 대시보드에 보여주는 용도, 혼동하지 말 것)
   ema20?: number;                 // 20일 지수이동평균 (주황색 라인)
   ema50?: number;                 // 50일 지수이동평균 (파란색 라인)
   bb_upper?: number;              // 볼린저 밴드 상단 (회색 점선)
@@ -461,7 +461,7 @@ app.use(cors());
 
 ## 백엔드 서버 실행
 
-서버를 `localhost` 또는 `127.0.0.1` 포트 `54321`에서 실행해야 합니다:
+서버를 포트 `54321`에서 실행해야 합니다:
 
 **FastAPI + uvicorn:**
 ```python
