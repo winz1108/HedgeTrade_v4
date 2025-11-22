@@ -46,26 +46,20 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               <div className="text-2xl font-bold text-white mb-2">
                 {formatCurrency(data.currentAsset)}
               </div>
-              {(data.currentBTC !== undefined || data.currentCash !== undefined) && (
-                <div className="space-y-1 pt-2 border-t border-slate-600/50">
-                  {data.currentBTC !== undefined && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-slate-400">BTC Value</span>
-                      <span className="text-xs font-semibold text-amber-400">
-                        {formatCurrency(data.currentBTC)}
-                      </span>
-                    </div>
-                  )}
-                  {data.currentCash !== undefined && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-slate-400">Cash</span>
-                      <span className="text-xs font-semibold text-emerald-400">
-                        {formatCurrency(data.currentCash)}
-                      </span>
-                    </div>
-                  )}
+              <div className="space-y-1 pt-2 border-t border-slate-600/50">
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] text-slate-400">BTC Value</span>
+                  <span className="text-xs font-semibold text-amber-400">
+                    {formatCurrency(data.currentBTC || 0)}
+                  </span>
                 </div>
-              )}
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] text-slate-400">Cash</span>
+                  <span className="text-xs font-semibold text-emerald-400">
+                    {formatCurrency(data.currentCash || 0)}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="border-t border-slate-700 pt-2">
