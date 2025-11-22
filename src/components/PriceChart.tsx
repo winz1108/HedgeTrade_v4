@@ -619,27 +619,41 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       );
     }
 
-    const tooltipLeft = x < window.innerWidth / 2;
-    const tooltipWidth = 280;
+    const tooltipWidth = 300;
     const tooltipMaxHeight = 600;
+    const margin = 20;
 
-    let leftPos = tooltipLeft ? x + 40 : x - tooltipWidth - 40;
-    let topPos = Math.max(10, Math.min(y - 10, window.innerHeight - tooltipMaxHeight - 20));
+    let leftPos: number;
+    let rightPos: number | undefined;
 
-    if (leftPos + tooltipWidth > window.innerWidth - 10) {
-      leftPos = window.innerWidth - tooltipWidth - 10;
+    if (x < window.innerWidth / 2) {
+      leftPos = Math.min(x + 40, window.innerWidth - tooltipWidth - margin);
+      rightPos = undefined;
+    } else {
+      leftPos = Math.max(margin, x - tooltipWidth - 40);
+      rightPos = undefined;
     }
-    if (leftPos < 10) {
-      leftPos = 10;
+
+    if (leftPos < margin) {
+      leftPos = margin;
+    }
+    if (leftPos + tooltipWidth > window.innerWidth - margin) {
+      leftPos = window.innerWidth - tooltipWidth - margin;
+    }
+
+    let topPos = Math.max(margin, y - 10);
+    if (topPos + tooltipMaxHeight > window.innerHeight - margin) {
+      topPos = window.innerHeight - tooltipMaxHeight - margin;
     }
 
     return createPortal(
       <div
-        className="fixed bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 whitespace-nowrap shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto"
+        className="fixed bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto"
         style={{
           left: `${leftPos}px`,
           top: `${topPos}px`,
-          width: `${tooltipWidth}px`,
+          minWidth: `${tooltipWidth}px`,
+          maxWidth: `${Math.min(tooltipWidth, window.innerWidth - 2 * margin)}px`,
           zIndex: 999999,
         }}
       >
