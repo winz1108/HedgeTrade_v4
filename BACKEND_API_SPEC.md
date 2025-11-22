@@ -22,6 +22,7 @@ GET /oracle/state
 ### Complete Response Schema
 ```typescript
 {
+  version: string;                // REQUIRED: API version (format: "v5.0.0.53")
   currentAsset: number;           // Current portfolio value in USD
   initialAsset: number;           // Starting portfolio value in USD
   currentTime: number;            // REQUIRED: 새로운 분봉이 업데이트된 시간 (Unix timestamp ms)

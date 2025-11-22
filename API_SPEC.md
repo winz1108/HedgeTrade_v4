@@ -1,6 +1,6 @@
 # 대시보드 API 명세서
 
-**버전**: v1.0
+**버전**: v5.0.0.53
 **최종 수정**: 2025-11-22
 **대상**: Oracle VM 백엔드 API (http://130.61.50.101:54321)
 
@@ -9,7 +9,7 @@
 ## 엔드포인트
 
 ### 실시간 거래 데이터 조회
-- **URL**: `http://localhost:54321/api/dashboard`
+- **URL**: `/api/dashboard`
 - **Method**: `GET`
 - **Content-Type**: `application/json`
 - **업데이트 주기**: 1분마다 프론트엔드가 호출
@@ -236,7 +236,7 @@
 
 ```json
 {
-  "version": "v1.0",
+  "version": "v5.0.0.53",
   "currentAsset": 10250.50,
   "initialAsset": 10000.00,
   "currentTime": 1700000000000,
@@ -461,30 +461,28 @@ app.use(cors());
 
 ## 백엔드 서버 실행
 
-서버를 포트 `54321`에서 실행해야 합니다:
+서버를 Oracle VM의 포트 `54321`에서 실행해야 합니다:
 
 **FastAPI + uvicorn:**
 ```python
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=54321)
+    uvicorn.run(app, host="0.0.0.0", port=54321)
 ```
 
 **Express:**
 ```javascript
-app.listen(54321, '127.0.0.1', () => {
-  console.log('Server running on http://127.0.0.1:54321');
+app.listen(54321, '0.0.0.0', () => {
+  console.log('Server running on port 54321');
 });
 ```
-
-⚠️ **주의**: `0.0.0.0`으로 실행하면 프론트엔드와 연결이 안 될 수 있습니다.
 
 ---
 
 ## 프론트엔드 연결
 
 프론트엔드는 이미 설정되어 있습니다:
-- `http://localhost:54321/api/dashboard` 호출 (1분마다 자동 업데이트)
+- Oracle VM (`http://130.61.50.101:54321/api/dashboard`) 호출 (1분마다 자동 업데이트)
 - Supabase Edge Function이 Oracle VM으로 프록시 처리
 
 백엔드에서 `/api/dashboard` 엔드포인트를 구현하고 명세에 맞게 데이터를 반환하면 자동으로 연결됩니다.
@@ -493,6 +491,7 @@ app.listen(54321, '127.0.0.1', () => {
 
 ## 버전 정보 규칙
 
-- **version 필드 필수**: 모든 응답에 `"version": "v1.0"` 포함
+- **version 필드 필수**: 모든 응답에 `"version": "v5.0.0.53"` 형식으로 포함
 - 헤더 좌측 상단에 표시됨
-- API 명세 변경 시 버전 업데이트 (v1.1, v2.0 등)
+- 버전 형식: `v메이저.마이너.패치.빌드` (예: v5.0.0.53)
+- API 명세 변경 시 버전 업데이트
