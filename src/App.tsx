@@ -5,7 +5,6 @@ import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
 
-const APP_VERSION = '4.0.0.1';
 
 function App() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -117,9 +116,8 @@ function App() {
               <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                 HedgeTrade Dashboard
               </h1>
-              <span className="text-[10px] text-slate-500 font-mono">UI v{APP_VERSION}</span>
               {data.version && (
-                <span className="text-[10px] text-emerald-400 font-mono">API {data.version}</span>
+                <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
               )}
               <span className="text-[10px] text-slate-400 font-mono">
                 {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
