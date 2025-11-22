@@ -45,7 +45,7 @@ function App() {
   useEffect(() => {
     const now = Date.now();
     const nextMinute = Math.ceil(now / 60000) * 60000;
-    const msUntilNextMinute = nextMinute - now;
+    const msUntilNextMinute = nextMinute - now + 4000;
 
     const initialTimeout = setTimeout(() => {
       loadData();
