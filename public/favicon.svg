@@ -1,26 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
-    </linearGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Black background -->
+  <rect width="64" height="64" fill="#000000" rx="8"/>
 
-  <!-- Background circle -->
-  <circle cx="32" cy="32" r="30" fill="#0f172a"/>
-
-  <!-- Bitcoin symbol with gradient -->
-  <path d="M 32 12 L 32 52 M 24 12 L 24 52 M 40 12 L 40 52" stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round"/>
-
-  <!-- Upper curve -->
-  <path d="M 24 22 L 38 22 C 42 22 44 24 44 28 C 44 32 42 34 38 34 L 24 34"
-        stroke="url(#grad1)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- Lower curve -->
-  <path d="M 24 34 L 40 34 C 44 34 46 36 46 40 C 46 44 44 46 40 46 L 24 46"
-        stroke="url(#grad1)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- Trend arrow -->
-  <path d="M 48 18 L 54 18 L 54 12" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <path d="M 42 24 L 54 12" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Bitcoin official logo in white -->
+  <path fill="#FFFFFF" d="M 32 8 C 18.745 8 8 18.745 8 32 C 8 45.255 18.745 56 32 56 C 45.255 56 56 45.255 56 32 C 56 18.745 45.255 8 32 8 Z M 32 10 C 44.15 10 54 19.85 54 32 C 54 44.15 44.15 54 32 54 C 19.85 54 10 44.15 10 32 C 10 19.85 19.85 10 32 10 Z M 28.5 18 L 28.5 21 L 26.5 21 L 26.5 24 L 28.5 24 L 28.5 40 L 26.5 40 L 26.5 43 L 28.5 43 L 28.5 46 L 31.5 46 L 31.5 43 L 34.5 43 L 34.5 46 L 37.5 46 L 37.5 43 C 40.5 42.8 43 40.8 43 37.5 C 43 35.2 41.8 33.3 39.8 32.5 C 41.2 31.5 42 30 42 28 C 42 25 39.8 23 37 22.8 L 37 21 L 34.5 21 L 34.5 18 L 31.5 18 L 31.5 21 L 28.5 21 L 28.5 18 Z M 31.5 24 L 36 24 C 37.7 24 39 25.3 39 27 C 39 28.7 37.7 30 36 30 L 31.5 30 L 31.5 24 Z M 31.5 33 L 36.5 33 C 38.4 33 40 34.6 40 36.5 C 40 38.4 38.4 40 36.5 40 L 31.5 40 L 31.5 33 Z"/>
 </svg>
