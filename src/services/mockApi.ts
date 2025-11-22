@@ -4,34 +4,38 @@ export const generateMockData = (): DashboardData => {
   const now = Date.now();
   const basePrice = 95000;
 
-  const priceHistory1m = Array.from({ length: 60 }, (_, i) => ({
-    timestamp: now - (59 - i) * 60000,
-    price: basePrice + Math.sin(i / 10) * 1000 + Math.random() * 500
-  }));
+  const priceHistory1m = Array.from({ length: 60 }, (_, i) => {
+    const price = basePrice + Math.sin(i / 10) * 1000 + Math.random() * 500;
+    return {
+      timestamp: now - (59 - i) * 60000,
+      open: price - 50,
+      high: price + 100,
+      low: price - 100,
+      close: price,
+      volume: 1000 + Math.random() * 500
+    };
+  });
 
   return {
+    currentAsset: 10000,
+    initialAsset: 10000,
     currentTime: now,
-    currentPrice: priceHistory1m[priceHistory1m.length - 1].price,
+    currentPrice: priceHistory1m[priceHistory1m.length - 1].close,
     priceHistory1m,
     pricePredictions: [],
     currentPrediction: {
       takeProfitProb: 0.65,
-      stopLossProb: 0.35,
-      timestamp: now
+      stopLossProb: 0.35
     },
     lastPredictionUpdateTime: now,
     holding: {
-      isHolding: false,
-      entryPrice: null,
-      entryTime: null,
-      initialTakeProfitProb: null
+      isHolding: false
     },
     trades: [],
     metrics: {
-      totalTrades: 0,
-      winRate: 0,
       portfolioReturn: 0,
-      currentBalance: 10000,
+      marketReturn: 0,
+      avgTradeReturn: 0,
       takeProfitCount: 0,
       stopLossCount: 0
     }
