@@ -74,7 +74,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const candleGap = 2;
   const minVolumeHeight = 80;
   const maxVolumeHeight = 300;
-  const baseHeight = isMaximized ? window.innerHeight - 120 : 520;
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const baseHeight = isMaximized
+    ? window.innerHeight - 120
+    : isMobile
+      ? Math.min(window.innerHeight * 0.6, 450)
+      : 520;
+
   const priceChartHeight = Math.floor(baseHeight * 0.58);
   const macdChartHeight = Math.floor(baseHeight * 0.18);
   const rsiChartHeight = Math.floor(baseHeight * 0.16);
@@ -106,7 +113,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     console.log('📊 First candle:', selectedCandles[0]);
     console.log('📊 Last candle:', selectedCandles[selectedCandles.length - 1]);
 
-    const chartWidth = containerRef.current?.offsetWidth || 1200;
+    const chartWidth = containerRef.current?.offsetWidth || (isMobile ? window.innerWidth - 16 : 1200);
     const visibleCount = Math.floor(chartWidth / (candleWidth + candleGap));
     const startIndex = Math.max(0, selectedCandles.length - visibleCount - scrollOffset);
     const endIndex = Math.min(selectedCandles.length, startIndex + visibleCount);
@@ -590,13 +597,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
   const chartContent = (
     <div className={`bg-[#161a1e] rounded-lg shadow-2xl overflow-hidden border border-slate-800 ${isMaximized ? 'h-screen' : ''}`}>
-      <div className="bg-[#1e2329] px-4 py-2 flex items-center justify-between border-b border-slate-800">
-        <div className="flex items-center gap-4">
+      <div className="bg-[#1e2329] px-2 sm:px-4 py-2 flex items-center justify-between border-b border-slate-800 flex-wrap gap-2">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-white">BTC/USDC</h2>
+            <h2 className="text-sm sm:text-base font-bold text-white">BTC/USDC</h2>
             {latestCandle && (
               <>
-                <div className="text-lg font-bold text-white">
+                <div className="text-base sm:text-lg font-bold text-white">
                   ${latestCandle.close.toFixed(2)}
                 </div>
                 <div className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceChange >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
@@ -606,8 +613,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-[10px] bg-[#2b3139]/50 px-2 py-1 rounded">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="hidden sm:flex items-center gap-2 text-[10px] bg-[#2b3139]/50 px-2 py-1 rounded">
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-orange-500 rounded"></div>
               <span className="text-slate-400">EMA20</span>
@@ -668,10 +675,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
       <div
         ref={containerRef}
-        className="relative bg-[#0b0e11] select-none flex-shrink-0"
+        className="relative bg-[#0b0e11] select-none flex-shrink-0 w-full"
         style={{
           height: `${chartHeight}px`,
-          overflow: 'visible',
+          overflow: 'hidden',
           touchAction: 'pan-x pan-y',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch'
