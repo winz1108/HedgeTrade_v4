@@ -99,16 +99,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-emerald-500/10 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-white">Take Profit Probability</h3>
-              <div className="text-[9px] text-slate-500 mt-0.5">
-                Updated: {new Date(data.lastPredictionUpdateTime || data.currentTime).toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                })}
-              </div>
-            </div>
+            <h3 className="text-sm font-bold text-white">Take Profit Probability</h3>
             <div className="p-1 bg-emerald-500/20 rounded-lg">
               <TrendingUp className="w-3 h-3 text-emerald-400" />
             </div>
@@ -134,8 +125,19 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               )}
 
               <div className="bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
-                <div className="text-[10px] text-slate-400 font-semibold mb-1">
-                  {data.holding.isHolding ? 'Current' : 'Current Prediction'}
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-[10px] text-slate-400 font-semibold">
+                    {data.holding.isHolding ? 'Current' : 'Current Prediction'}
+                  </div>
+                  {data.lastPredictionUpdateTime && (
+                    <div className="text-[9px] text-slate-500 font-mono">
+                      {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
