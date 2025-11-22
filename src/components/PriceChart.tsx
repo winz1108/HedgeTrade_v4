@@ -363,15 +363,249 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     if (!tooltipPosition) return null;
 
     const { x, y, trade, hasPairedSell, pairedTrade } = tooltipPosition;
+
+    const isMobileView = window.innerWidth < 768;
+
+    if (isMobileView) {
+      return createPortal(
+        <div
+          className="fixed left-2 right-2 bottom-4 bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[70vh] overflow-y-auto"
+          style={{
+            zIndex: 999999,
+          }}
+        >
+        {!hasPairedSell ? (
+          <>
+            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
+              <div className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+              BUY Signal at ${trade.price.toFixed(2)}
+            </div>
+
+            {trade.prediction ? (
+              <>
+                <div className="mb-3">
+                  <div className="text-slate-500 text-[10px] mb-2 font-semibold">익절 확률 (Take Profit Probability)</div>
+                  <div className="space-y-1.5 bg-slate-800/50 p-2 rounded">
+                    <div className="flex justify-between gap-6">
+                      <span className="text-slate-400">매수시 익절확률</span>
+                      <span className="text-[#0ecb81] font-semibold">{data.holding.initialTakeProfitProb ? (data.holding.initialTakeProfitProb * 100).toFixed(1) : (trade.prediction.takeProfitProb * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between gap-6">
+                      <span className="text-slate-400">현재 익절확률</span>
+                      <span className="text-[#0ecb81] font-semibold">
+                        {data.currentPrediction?.takeProfitProb
+                          ? (data.currentPrediction.takeProfitProb * 100).toFixed(1)
+                          : data.holding.currentTakeProfitProb
+                            ? (data.holding.currentTakeProfitProb * 100).toFixed(1)
+                            : (trade.prediction.takeProfitProb * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    {data.lastPredictionUpdateTime && (
+                      <div className="flex justify-between gap-6">
+                        <span className="text-slate-400">익절확률 업데이트</span>
+                        <span className="text-slate-300 text-[10px]">
+                          {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between gap-6">
+                      <span className="text-slate-400">예상 익절가</span>
+                      <span className="text-white font-semibold">${trade.prediction.expectedTakeProfitPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between gap-6">
+                      <span className="text-slate-400">예상 손절가</span>
+                      <span className="text-white font-semibold">${trade.prediction.expectedStopLossPrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-slate-500 text-[10px] mb-2 font-semibold">현재 결과 (Current)</div>
+                  <div className="space-y-1.5 bg-slate-800/50 p-2 rounded">
+                    <div className="flex justify-between gap-6">
+                      <span className="text-slate-400">현재가</span>
+                      <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between gap-6">
+                      <span className="text-slate-400">수익률</span>
+                      <span className={`font-semibold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
+                        {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-6">
+                      <span className="text-slate-400">경과 시간</span>
+                      <span className="text-slate-300 text-[10px]">
+                        {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-6">
+                      <span className="text-slate-400">마지막 업데이트</span>
+                      <span className="text-slate-300 text-[10px]">
+                        {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                    </div>
+                    {data.currentPrice >= trade.prediction.expectedTakeProfitPrice ? (
+                      <div className="text-[#0ecb81] text-center py-1 bg-[#0ecb81]/10 rounded mt-2 font-semibold">
+                        ✓ 익절 달성
+                      </div>
+                    ) : data.currentPrice <= trade.prediction.expectedStopLossPrice ? (
+                      <div className="text-[#f6465d] text-center py-1 bg-[#f6465d]/10 rounded mt-2 font-semibold">
+                        ✗ 손절 발생
+                      </div>
+                    ) : (
+                      <div className="text-slate-400 text-center py-1 bg-slate-700/30 rounded mt-2 text-[10px]">
+                        진행 중
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div className="space-y-1.5 bg-slate-800/50 p-2 rounded">
+                  <div className="flex justify-between gap-6">
+                    <span className="text-slate-400">현재가</span>
+                    <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <span className="text-slate-400">현재 수익률</span>
+                    <span className={`font-semibold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
+                      {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <span className="text-slate-400">보유 시간</span>
+                    <span className="text-slate-300 text-[10px]">
+                      {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        ) : pairedTrade ? (
+          <>
+            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
+              <div className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+              거래 완료
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">매수가</span>
+                <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">매도가</span>
+                <span className="text-white font-semibold">${pairedTrade!.price.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">수익률</span>
+                <span className={`font-bold ${((pairedTrade!.price - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
+                  {((pairedTrade!.price - trade.price) / trade.price * 100).toFixed(2)}%
+                </span>
+              </div>
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">보유 시간</span>
+                <span className="text-slate-300 text-[10px]">
+                  {Math.floor((pairedTrade!.timestamp - trade.timestamp) / 60000)}분
+                </span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
+              <div className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+              보유 중
+            </div>
+
+            <div className="space-y-2 mb-3">
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">매수가</span>
+                <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">현재가</span>
+                <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">현재 수익률</span>
+                <span className={`font-bold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
+                  {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
+                </span>
+              </div>
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">보유 시간</span>
+                <span className="text-slate-300 text-[10px]">
+                  {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
+                </span>
+              </div>
+              <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
+                <span className="text-slate-400">마지막 업데이트</span>
+                <span className="text-slate-300 text-[10px]">
+                  {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </span>
+              </div>
+            </div>
+
+            {trade.prediction && (
+              <div>
+                <div className="text-slate-500 text-[10px] mb-2 font-semibold">익절 확률</div>
+                <div className="space-y-1.5 bg-slate-800/50 p-2 rounded text-[10px]">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-slate-400">매수시</span>
+                    <span className="text-[#0ecb81]">{data.holding.initialTakeProfitProb ? (data.holding.initialTakeProfitProb * 100).toFixed(1) : (trade.prediction.takeProfitProb * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-slate-400">현재</span>
+                    <span className="text-[#0ecb81]">
+                      {data.currentPrediction && data.currentPrediction.takeProfitProb !== undefined
+                        ? (data.currentPrediction.takeProfitProb * 100).toFixed(1)
+                        : data.holding.currentTakeProfitProb
+                          ? (data.holding.currentTakeProfitProb * 100).toFixed(1)
+                          : (trade.prediction.takeProfitProb * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  {data.lastPredictionUpdateTime && (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-slate-400">업데이트</span>
+                      <span className="text-slate-300 text-[9px]">
+                        {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+        </div>,
+        document.body
+      );
+    }
+
     const tooltipLeft = x < window.innerWidth / 2;
+    const tooltipWidth = 280;
+    const tooltipMaxHeight = 600;
+
+    let leftPos = tooltipLeft ? x + 40 : x - tooltipWidth - 40;
+    let topPos = Math.max(10, Math.min(y - 10, window.innerHeight - tooltipMaxHeight - 20));
+
+    if (leftPos + tooltipWidth > window.innerWidth - 10) {
+      leftPos = window.innerWidth - tooltipWidth - 10;
+    }
+    if (leftPos < 10) {
+      leftPos = 10;
+    }
 
     return createPortal(
       <div
-        className="fixed bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 whitespace-nowrap shadow-2xl pointer-events-none min-w-[280px]"
+        className="fixed bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 whitespace-nowrap shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto"
         style={{
-          left: tooltipLeft ? `${x + 40}px` : 'auto',
-          right: tooltipLeft ? 'auto' : `${window.innerWidth - x + 40}px`,
-          top: `${Math.max(10, y - 10)}px`,
+          left: `${leftPos}px`,
+          top: `${topPos}px`,
+          width: `${tooltipWidth}px`,
           zIndex: 999999,
         }}
       >
