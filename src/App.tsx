@@ -10,7 +10,7 @@ function App() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(60);
+  const [countdown, setCountdown] = useState(3);
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
 
   const loadData = async () => {
@@ -25,10 +25,7 @@ function App() {
         return: dashboardData.metrics.portfolioReturn.toFixed(2) + '%'
       });
       setData(dashboardData);
-      const now = Date.now();
-      const nextMinute = Math.ceil(now / 60000) * 60000;
-      const secondsUntilNextMinute = Math.round((nextMinute - now) / 1000);
-      setCountdown(secondsUntilNextMinute);
+      setCountdown(3);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
@@ -43,30 +40,18 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const now = Date.now();
-    const nextMinute = Math.ceil(now / 60000) * 60000;
-    const msUntilNextMinute = nextMinute - now + 4000;
-
-    const initialTimeout = setTimeout(() => {
+    const interval = setInterval(() => {
       loadData();
+    }, 3000);
 
-      const interval = setInterval(() => {
-        loadData();
-      }, 60000);
-
-      return () => clearInterval(interval);
-    }, msUntilNextMinute);
-
-    return () => clearTimeout(initialTimeout);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          const now = Date.now();
-          const nextMinute = Math.ceil(now / 60000) * 60000;
-          return Math.round((nextMinute - now) / 1000);
+          return 3;
         }
         return prev - 1;
       });
