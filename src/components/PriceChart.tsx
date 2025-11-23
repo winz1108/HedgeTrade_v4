@@ -72,6 +72,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const minCandleWidth = 4;
   const maxCandleWidth = 30;
   const candleGap = 2;
+  const pricePadding = 20;
   const minVolumeHeight = 80;
   const maxVolumeHeight = 300;
 
