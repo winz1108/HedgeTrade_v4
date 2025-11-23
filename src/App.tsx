@@ -81,9 +81,9 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl gap-3 lg:gap-0">
-          <div className="w-full lg:w-auto">
-            <div className="flex items-center gap-2 lg:gap-3 flex-wrap">
+        <div className="flex flex-col mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                 HedgeTrade Dashboard
               </h1>
@@ -98,58 +98,62 @@ function App() {
                 })}
               </span>
             </div>
-            <div className="flex items-center gap-2 lg:gap-3 mt-2 flex-wrap">
-              <p className="text-slate-400 text-xs lg:text-sm flex items-center gap-2">
-                <span className="inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                <span>Real-time monitoring</span>
-              </p>
+            <div className="flex items-center gap-1">
+              <span className="inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+              <span className="text-slate-400 text-[10px]">Live</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
-            <div className="flex items-center gap-1.5 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
-              <span className="text-xs text-slate-400 mr-1">Market:</span>
-              {[
-                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0 },
-                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0 },
-                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0 },
-                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0 },
-                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0 }
-              ].map((state) => {
-                const isActive = state.value > 0.5;
-                return (
-                  <div
-                    key={state.key}
-                    className={`text-[10px] px-2 py-0.5 rounded transition-all ${
-                      isActive
-                        ? 'bg-cyan-500 text-white font-bold'
-                        : 'bg-slate-700/50 text-slate-400'
-                    }`}
-                  >
-                    {state.label}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex items-center gap-1.5 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
-              <span className="text-xs text-slate-400">Experts:</span>
-              {(data.gateWeights && data.gateWeights.length > 0) ? (
-                data.gateWeights.map((weight, idx) => {
-                  const isHighest = weight === Math.max(...data.gateWeights!);
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex items-center gap-1 bg-slate-800/70 px-2 py-1.5 rounded-lg border border-slate-600 overflow-x-auto">
+              <span className="text-[10px] text-slate-400 mr-1 whitespace-nowrap">Market:</span>
+              <div className="flex gap-1">
+                {[
+                  { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0 },
+                  { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0 },
+                  { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0 },
+                  { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0 },
+                  { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0 }
+                ].map((state) => {
+                  const isActive = state.value > 0.5;
                   return (
                     <div
-                      key={idx}
-                      className={`text-xs font-mono px-1.5 py-0.5 rounded ${
-                        isHighest ? 'bg-cyan-500/20 text-cyan-400 font-bold' : 'text-slate-400'
+                      key={state.key}
+                      className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap ${
+                        isActive
+                          ? 'bg-cyan-500 text-white font-bold'
+                          : 'bg-slate-700/50 text-slate-400'
                       }`}
-                      title={`Expert ${idx + 1}: ${(weight * 100).toFixed(1)}%`}
                     >
-                      {(weight * 100).toFixed(0)}%
+                      {state.label}
                     </div>
                   );
-                })
-              ) : (
-                <span className="text-xs text-slate-500 italic">Loading...</span>
-              )}
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 bg-slate-800/70 px-2 py-1.5 rounded-lg border border-slate-600 overflow-x-auto">
+              <span className="text-[10px] text-slate-400 whitespace-nowrap">Experts:</span>
+              <div className="flex gap-1">
+                {(data.gateWeights && data.gateWeights.length > 0) ? (
+                  data.gateWeights.map((weight, idx) => {
+                    const isHighest = weight === Math.max(...data.gateWeights!);
+                    return (
+                      <div
+                        key={idx}
+                        className={`text-[9px] font-mono px-1.5 py-0.5 rounded whitespace-nowrap ${
+                          isHighest ? 'bg-cyan-500/20 text-cyan-400 font-bold' : 'text-slate-400'
+                        }`}
+                        title={`Expert ${idx + 1}: ${(weight * 100).toFixed(1)}%`}
+                      >
+                        {(weight * 100).toFixed(0)}%
+                      </div>
+                    );
+                  })
+                ) : (
+                  <span className="text-[9px] text-slate-500 italic">Loading...</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
