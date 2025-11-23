@@ -106,36 +106,34 @@ function App() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
-            {data.marketState && (
-              <div className="flex items-center gap-1.5 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
-                <span className="text-xs text-slate-400 mr-1">Market:</span>
-                {[
-                  { key: 'bullDiv', label: 'Bull Div', value: data.marketState.bullDiv },
-                  { key: 'bullConv', label: 'Bull Conv', value: data.marketState.bullConv },
-                  { key: 'bearDiv', label: 'Bear Div', value: data.marketState.bearDiv },
-                  { key: 'bearConv', label: 'Bear Conv', value: data.marketState.bearConv },
-                  { key: 'sideways', label: 'Sideways', value: data.marketState.sideways }
-                ].map((state) => {
-                  const isActive = state.value > 0.5;
-                  return (
-                    <div
-                      key={state.key}
-                      className={`text-[10px] px-2 py-0.5 rounded transition-all ${
-                        isActive
-                          ? 'bg-cyan-500 text-white font-bold'
-                          : 'bg-slate-700/50 text-slate-400'
-                      }`}
-                    >
-                      {state.label}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            {data.gateWeights && data.gateWeights.length > 0 && (
-              <div className="flex items-center gap-1.5 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
-                <span className="text-xs text-slate-400">Experts:</span>
-                {data.gateWeights.map((weight, idx) => {
+            <div className="flex items-center gap-1.5 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
+              <span className="text-xs text-slate-400 mr-1">Market:</span>
+              {[
+                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0 },
+                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0 },
+                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0 },
+                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0 },
+                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0 }
+              ].map((state) => {
+                const isActive = state.value > 0.5;
+                return (
+                  <div
+                    key={state.key}
+                    className={`text-[10px] px-2 py-0.5 rounded transition-all ${
+                      isActive
+                        ? 'bg-cyan-500 text-white font-bold'
+                        : 'bg-slate-700/50 text-slate-400'
+                    }`}
+                  >
+                    {state.label}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-1.5 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
+              <span className="text-xs text-slate-400">Experts:</span>
+              {(data.gateWeights && data.gateWeights.length > 0) ? (
+                data.gateWeights.map((weight, idx) => {
                   const isHighest = weight === Math.max(...data.gateWeights!);
                   return (
                     <div
@@ -148,9 +146,11 @@ function App() {
                       {(weight * 100).toFixed(0)}%
                     </div>
                   );
-                })}
-              </div>
-            )}
+                })
+              ) : (
+                <span className="text-xs text-slate-500 italic">Loading...</span>
+              )}
+            </div>
           </div>
         </div>
 
