@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ZoomIn, ZoomOut, Maximize2, Minimize2, TrendingUp, BarChart3, Activity, Clock } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from '../types/dashboard';
 
 interface PriceChartProps {
@@ -1003,23 +1003,19 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
           <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5">
-            {(['1m', '5m', '15m', '1h'] as const).map((tf) => {
-              const Icon = tf === '1m' ? Activity : tf === '5m' ? TrendingUp : tf === '15m' ? BarChart3 : Clock;
-              return (
-                <button
-                  key={tf}
-                  onClick={() => setTimeframe(tf)}
-                  className={`flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
-                    timeframe === tf
-                      ? 'bg-slate-600 text-white shadow-inner'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                  }`}
-                >
-                  <Icon className="w-3 h-3" />
-                  {tf}
-                </button>
-              );
-            })}
+            {(['1m', '5m', '15m', '1h'] as const).map((tf) => (
+              <button
+                key={tf}
+                onClick={() => setTimeframe(tf)}
+                className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
+                  timeframe === tf
+                    ? 'bg-slate-600 text-white shadow-inner'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                }`}
+              >
+                {tf}
+              </button>
+            ))}
           </div>
           <button
             onClick={handleZoomOut}
