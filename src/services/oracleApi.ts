@@ -21,6 +21,13 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
   const data = await response.json();
 
+  console.log('📡 API Response:', {
+    hasMarketState: !!data.marketState,
+    hasGateWeights: !!data.gateWeights,
+    marketState: data.marketState,
+    gateWeights: data.gateWeights
+  });
+
   if (data.error) {
     throw new Error(`Oracle VM error: ${data.error}`);
   }

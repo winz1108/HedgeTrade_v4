@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { RefreshCw, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
@@ -107,23 +107,29 @@ function App() {
           </div>
           <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
             {data.marketState && (
-              <div className="flex items-center gap-2 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
-                <span className="text-xs text-slate-400">Market:</span>
-                <div className="flex items-center gap-1">
-                  {data.marketState.activeState.includes('Bull') ? (
-                    <TrendingUp className="w-3.5 h-3.5 text-green-400" />
-                  ) : data.marketState.activeState.includes('Bear') ? (
-                    <TrendingDown className="w-3.5 h-3.5 text-red-400" />
-                  ) : (
-                    <Minus className="w-3.5 h-3.5 text-yellow-400" />
-                  )}
-                  <span className={`text-xs font-semibold ${
-                    data.marketState.activeState.includes('Bull') ? 'text-green-400' :
-                    data.marketState.activeState.includes('Bear') ? 'text-red-400' : 'text-yellow-400'
-                  }`}>
-                    {data.marketState.activeState}
-                  </span>
-                </div>
+              <div className="flex items-center gap-1.5 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
+                <span className="text-xs text-slate-400 mr-1">Market:</span>
+                {[
+                  { key: 'bullDiv', label: 'Bull Div', value: data.marketState.bullDiv },
+                  { key: 'bullConv', label: 'Bull Conv', value: data.marketState.bullConv },
+                  { key: 'bearDiv', label: 'Bear Div', value: data.marketState.bearDiv },
+                  { key: 'bearConv', label: 'Bear Conv', value: data.marketState.bearConv },
+                  { key: 'sideways', label: 'Sideways', value: data.marketState.sideways }
+                ].map((state) => {
+                  const isActive = state.value > 0.5;
+                  return (
+                    <div
+                      key={state.key}
+                      className={`text-[10px] px-2 py-0.5 rounded transition-all ${
+                        isActive
+                          ? 'bg-cyan-500 text-white font-bold'
+                          : 'bg-slate-700/50 text-slate-400'
+                      }`}
+                    >
+                      {state.label}
+                    </div>
+                  );
+                })}
               </div>
             )}
             {data.gateWeights && data.gateWeights.length > 0 && (
