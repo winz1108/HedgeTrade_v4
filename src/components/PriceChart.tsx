@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Minimize2, TrendingUp, BarChart3, Activity, Clock } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from '../types/dashboard';
 
 interface PriceChartProps {
@@ -132,9 +132,19 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       return vals;
     });
 
-    if (prices.length === 0) {
-      return { minPrice: 0, maxPrice: 100, visibleCandles, visibleStartIndex: startIndex, maxScroll: Math.max(0, selectedCandles.length - visibleCount) };
+    if (data.holding.buyPrice) {
+      prices.push(data.holding.buyPrice);
     }
+    if (data.holding.takeProfitPrice) {
+      prices.push(data.holding.takeProfitPrice);
+    }
+    if (data.holding.stopLossPrice) {
+      prices.push(data.holding.stopLossPrice);
+    }
+
+    data.trades.forEach(trade => {
+      prices.push(trade.price);
+    });
 
     const priceRange = Math.max(...prices) - Math.min(...prices);
     const minPrice = Math.min(...prices) - priceRange * 0.1;
@@ -1003,19 +1013,23 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
           <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5">
-            {(['1m', '5m', '15m', '1h'] as const).map((tf) => (
-              <button
-                key={tf}
-                onClick={() => setTimeframe(tf)}
-                className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
-                  timeframe === tf
-                    ? 'bg-slate-600 text-white shadow-inner'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-              >
-                {tf}
-              </button>
-            ))}
+            {(['1m', '5m', '15m', '1h'] as const).map((tf) => {
+              const Icon = tf === '1m' ? Activity : tf === '5m' ? TrendingUp : tf === '15m' ? BarChart3 : Clock;
+              return (
+                <button
+                  key={tf}
+                  onClick={() => setTimeframe(tf)}
+                  className={`flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
+                    timeframe === tf
+                      ? 'bg-slate-600 text-white shadow-inner'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }`}
+                >
+                  <Icon className="w-3 h-3" />
+                  {tf}
+                </button>
+              );
+            })}
           </div>
           <button
             onClick={handleZoomOut}
@@ -1398,21 +1412,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 end: visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0
               };
 
-              console.log('💰 Trade Markers Debug:', {
-                allTradesCount: allTrades.length,
-                visibleCandlesCount: visibleCandles.length,
-                timeframe,
-                visibleTimeRange: {
-                  start: new Date(visibleTimeRange.start).toLocaleTimeString(),
-                  end: new Date(visibleTimeRange.end).toLocaleTimeString()
-                },
-                trades: allTrades.map(t => ({
-                  type: t.type,
-                  price: t.price,
-                  time: new Date(t.timestamp).toLocaleTimeString()
-                }))
-              });
-
               return allTrades.map((trade, idx) => {
                 if (visibleCandles.length === 0) return null;
 
@@ -1488,29 +1487,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   }
                 }
 
-                if (candleIndex === -1) {
-                  console.log('❌ Trade marker skipped:', {
-                    type: trade.type,
-                    price: trade.price,
-                    time: new Date(trade.timestamp).toLocaleTimeString(),
-                    reason: 'candleIndex not found'
-                  });
-                  return null;
-                }
+                if (candleIndex === -1) return null;
 
                 const x = candleIndex * (candleWidth + candleGap) + candleWidth / 2;
                 const rawY = priceToY(trade.price);
                 const y = rawY;
                 const isHovered = hoveredTrade?.timestamp === trade.timestamp;
-
-                console.log('✅ Trade marker rendered:', {
-                  type: trade.type,
-                  price: trade.price,
-                  time: new Date(trade.timestamp).toLocaleTimeString(),
-                  candleIndex,
-                  x,
-                  y
-                });
 
                 return (
                   <div
