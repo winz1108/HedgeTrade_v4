@@ -1308,12 +1308,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               };
 
               return allTrades.map((trade, idx) => {
+                if (visibleCandles.length === 0) return null;
+
                 let candleIndex = -1;
 
                 if (timeframeMinutes === 1) {
                   candleIndex = visibleCandles.findIndex(c => Math.abs(c.timestamp - trade.timestamp) < 60000);
 
-                  // If not found in 1m, find the nearest candle
                   if (candleIndex === -1) {
                     let minDiff = Infinity;
                     visibleCandles.forEach((c, i) => {
@@ -1331,7 +1332,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     return candlePeriod === tradePeriod;
                   });
 
-                  // If not found, find the nearest candle in the same timeframe period
                   if (candleIndex === -1) {
                     let minDiff = Infinity;
                     visibleCandles.forEach((c, i) => {
@@ -1344,42 +1344,35 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   }
                 }
 
-                if (visibleCandles.length === 0) return null;
+                if (candleIndex === -1) {
+                  if (trade.type === 'buy') {
+                    const pairedSellTrade = trade.isPaired
+                      ? data.trades.find(t => t.pairId === trade.pairId && t.type === 'sell')
+                      : null;
 
-                const isTradeInRange = trade.timestamp >= visibleTimeRange.start && trade.timestamp <= visibleTimeRange.end;
-
-                if (trade.type === 'buy') {
-                  const pairedSellTrade = trade.isPaired
-                    ? data.trades.find(t => t.pairId === trade.pairId && t.type === 'sell')
-                    : null;
-
-                  if (!isTradeInRange) {
                     if (data.holding.isHolding && Math.abs(trade.timestamp - (data.holding.buyTime || 0)) < 5000) {
                       return null;
                     }
+
                     if (pairedSellTrade) {
-                      const isSellInRange = pairedSellTrade.timestamp >= visibleTimeRange.start && pairedSellTrade.timestamp <= visibleTimeRange.end;
-                      if (!isSellInRange) {
+                      let sellCandleIndex = -1;
+                      if (timeframeMinutes === 1) {
+                        sellCandleIndex = visibleCandles.findIndex(c => Math.abs(c.timestamp - pairedSellTrade.timestamp) < 60000);
+                      } else {
+                        sellCandleIndex = visibleCandles.findIndex(c => {
+                          const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
+                          const tradePeriod = Math.floor(pairedSellTrade.timestamp / timeframeMs) * timeframeMs;
+                          return candlePeriod === tradePeriod;
+                        });
+                      }
+                      if (sellCandleIndex === -1) {
                         return null;
                       }
                     } else {
                       return null;
                     }
-                  }
-                } else if (trade.type === 'sell') {
-                  const pairedBuyTrade = trade.pairId
-                    ? data.trades.find(t => t.pairId === trade.pairId && t.type === 'buy')
-                    : null;
-
-                  if (!isTradeInRange) {
+                  } else {
                     return null;
-                  }
-
-                  if (pairedBuyTrade) {
-                    const isBuyInRange = pairedBuyTrade.timestamp >= visibleTimeRange.start && pairedBuyTrade.timestamp <= visibleTimeRange.end;
-                    if (!isBuyInRange) {
-                      return null;
-                    }
                   }
                 }
 
