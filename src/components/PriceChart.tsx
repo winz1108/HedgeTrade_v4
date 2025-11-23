@@ -146,7 +146,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     console.log('💰 Price range:', { minPrice, maxPrice });
 
     return { minPrice, maxPrice, visibleCandles, visibleStartIndex: startIndex, maxScroll };
-  }, [selectedCandles, scrollOffset, candleWidth, resetScroll]);
+  }, [selectedCandles, scrollOffset, candleWidth, resetScroll, timeframe]);
 
   const priceToY = (price: number) => {
     return ((maxPrice - price) / (maxPrice - minPrice)) * priceChartHeight;
