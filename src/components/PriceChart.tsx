@@ -1413,20 +1413,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     });
                   }
                 } else {
+                  const tradePeriod = Math.floor(trade.timestamp / timeframeMs) * timeframeMs;
+
                   candleIndex = visibleCandles.findIndex(c => {
                     const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
-                    const tradePeriod = Math.floor(trade.timestamp / timeframeMs) * timeframeMs;
                     return candlePeriod === tradePeriod;
                   });
 
                   if (candleIndex === -1) {
-                    let minDiff = Infinity;
-                    visibleCandles.forEach((c, i) => {
-                      const diff = Math.abs(c.timestamp - trade.timestamp);
-                      if (diff < minDiff) {
-                        minDiff = diff;
-                        candleIndex = i;
-                      }
+                    candleIndex = visibleCandles.findIndex(c => {
+                      const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
+                      return trade.timestamp >= candlePeriod && trade.timestamp < candlePeriod + timeframeMs;
                     });
                   }
                 }
