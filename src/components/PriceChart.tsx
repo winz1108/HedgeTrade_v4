@@ -132,6 +132,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       return vals;
     });
 
+    if (data.holding.buyPrice) {
+      prices.push(data.holding.buyPrice);
+    }
+    if (data.holding.takeProfitPrice) {
+      prices.push(data.holding.takeProfitPrice);
+    }
+    if (data.holding.stopLossPrice) {
+      prices.push(data.holding.stopLossPrice);
+    }
+
+    data.trades.forEach(trade => {
+      prices.push(trade.price);
+    });
+
     const priceRange = Math.max(...prices) - Math.min(...prices);
     const minPrice = Math.min(...prices) - priceRange * 0.1;
     const maxPrice = Math.max(...prices) + priceRange * 0.1;
@@ -1464,7 +1478,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
                 const x = candleIndex * (candleWidth + candleGap) + candleWidth / 2;
                 const rawY = priceToY(trade.price);
-                const y = Math.max(pricePadding, Math.min(priceChartHeight - pricePadding, rawY));
+                const y = rawY;
                 const isHovered = hoveredTrade?.timestamp === trade.timestamp;
 
                 return (
