@@ -46,6 +46,15 @@ export interface HoldingInfo {
   };
 }
 
+export interface MarketState {
+  bullDiv: number;
+  bullConv: number;
+  bearDiv: number;
+  bearConv: number;
+  sideways: number;
+  activeState: string;
+}
+
 export interface DashboardData {
   version?: string;
   currentAsset: number;
@@ -66,6 +75,8 @@ export interface DashboardData {
     stopLossProb: number;
   };
   lastPredictionUpdateTime?: number;
+  marketState?: MarketState;
+  gateWeights?: number[];
   metrics: {
     portfolioReturn: number;
     marketReturn: number;

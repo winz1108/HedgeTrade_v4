@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
@@ -10,7 +10,6 @@ function App() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(3);
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
 
   const loadData = async () => {
@@ -25,7 +24,6 @@ function App() {
         return: dashboardData.metrics.portfolioReturn.toFixed(2) + '%'
       });
       setData(dashboardData);
-      setCountdown(3);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
@@ -47,18 +45,6 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const countdownInterval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          return 3;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(countdownInterval);
-  }, []);
 
   if (loading) {
     return (
@@ -119,17 +105,46 @@ function App() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 lg:gap-3 w-full lg:w-auto">
-            <div className="text-xs text-slate-400 bg-slate-700/50 px-2 lg:px-3 py-1.5 rounded-lg border border-slate-600 flex-1 lg:flex-none text-center">
-              Next <span className="font-bold text-cyan-400">{countdown}s</span>
-            </div>
-            <button
-              onClick={loadData}
-              className="flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 font-semibold flex-1 lg:flex-none"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
+          <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
+            {data.marketState && (
+              <div className="flex items-center gap-2 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
+                <span className="text-xs text-slate-400">Market:</span>
+                <div className="flex items-center gap-1">
+                  {data.marketState.activeState.includes('Bull') ? (
+                    <TrendingUp className="w-3.5 h-3.5 text-green-400" />
+                  ) : data.marketState.activeState.includes('Bear') ? (
+                    <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+                  ) : (
+                    <Minus className="w-3.5 h-3.5 text-yellow-400" />
+                  )}
+                  <span className={`text-xs font-semibold ${
+                    data.marketState.activeState.includes('Bull') ? 'text-green-400' :
+                    data.marketState.activeState.includes('Bear') ? 'text-red-400' : 'text-yellow-400'
+                  }`}>
+                    {data.marketState.activeState}
+                  </span>
+                </div>
+              </div>
+            )}
+            {data.gateWeights && data.gateWeights.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-slate-800/70 px-3 py-1.5 rounded-lg border border-slate-600">
+                <span className="text-xs text-slate-400">Experts:</span>
+                {data.gateWeights.map((weight, idx) => {
+                  const isHighest = weight === Math.max(...data.gateWeights!);
+                  return (
+                    <div
+                      key={idx}
+                      className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+                        isHighest ? 'bg-cyan-500/20 text-cyan-400 font-bold' : 'text-slate-400'
+                      }`}
+                      title={`Expert ${idx + 1}: ${(weight * 100).toFixed(1)}%`}
+                    >
+                      {(weight * 100).toFixed(0)}%
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
