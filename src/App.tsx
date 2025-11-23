@@ -98,7 +98,7 @@ function App() {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl gap-3 lg:gap-0">
           <div className="w-full lg:w-auto">
             <div className="flex items-center gap-2 lg:gap-3 flex-wrap">
-              <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+              <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent" style={{ fontFamily: "'Fredoka One', cursive" }}>
                 HedgeTrade Dashboard
               </h1>
               {data.version && (
