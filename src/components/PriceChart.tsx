@@ -1379,7 +1379,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 if (candleIndex === -1) return null;
 
                 const x = candleIndex * (candleWidth + candleGap) + candleWidth / 2;
-                const y = priceToY(trade.price);
+                const rawY = priceToY(trade.price);
+                const y = Math.max(pricePadding, Math.min(priceChartHeight - pricePadding, rawY));
                 const isHovered = hoveredTrade?.timestamp === trade.timestamp;
 
                 return (
