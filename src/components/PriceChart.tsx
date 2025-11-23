@@ -971,7 +971,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   };
 
   const chartContent = (
-    <div className={`bg-[#161a1e] rounded-lg shadow-2xl border border-slate-800 w-full ${isMaximized ? 'h-screen' : ''}`}>
+    <div className={`bg-[#161a1e] rounded-lg shadow-2xl border border-slate-800 w-full ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
       <div className="bg-[#1e2329] px-2 sm:px-4 py-2 flex items-center justify-between border-b border-slate-800 flex-wrap gap-2">
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
@@ -1038,7 +1038,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             <ZoomIn className="w-3 h-3 text-slate-400" />
           </button>
           <button
-            onClick={() => setIsMaximized(!isMaximized)}
+            onClick={() => {
+              setIsMaximized(!isMaximized);
+              setScrollOffset(0);
+              setResetScroll(prev => prev + 1);
+            }}
             className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors"
             title={isMaximized ? "Exit Fullscreen" : "Fullscreen"}
           >
