@@ -1408,6 +1408,21 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 end: visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0
               };
 
+              console.log('💰 Trade Markers Debug:', {
+                allTradesCount: allTrades.length,
+                visibleCandlesCount: visibleCandles.length,
+                timeframe,
+                visibleTimeRange: {
+                  start: new Date(visibleTimeRange.start).toLocaleTimeString(),
+                  end: new Date(visibleTimeRange.end).toLocaleTimeString()
+                },
+                trades: allTrades.map(t => ({
+                  type: t.type,
+                  price: t.price,
+                  time: new Date(t.timestamp).toLocaleTimeString()
+                }))
+              });
+
               return allTrades.map((trade, idx) => {
                 if (visibleCandles.length === 0) return null;
 
@@ -1483,12 +1498,29 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   }
                 }
 
-                if (candleIndex === -1) return null;
+                if (candleIndex === -1) {
+                  console.log('❌ Trade marker skipped:', {
+                    type: trade.type,
+                    price: trade.price,
+                    time: new Date(trade.timestamp).toLocaleTimeString(),
+                    reason: 'candleIndex not found'
+                  });
+                  return null;
+                }
 
                 const x = candleIndex * (candleWidth + candleGap) + candleWidth / 2;
                 const rawY = priceToY(trade.price);
                 const y = rawY;
                 const isHovered = hoveredTrade?.timestamp === trade.timestamp;
+
+                console.log('✅ Trade marker rendered:', {
+                  type: trade.type,
+                  price: trade.price,
+                  time: new Date(trade.timestamp).toLocaleTimeString(),
+                  candleIndex,
+                  x,
+                  y
+                });
 
                 return (
                   <div
