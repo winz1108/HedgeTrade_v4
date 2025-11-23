@@ -1443,14 +1443,23 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 }
 
                 if (candleIndex === -1) {
-                  if (trade.type === 'buy') {
+                  const isCurrentHolding = data.holding.isHolding &&
+                    trade.type === 'buy' &&
+                    Math.abs(trade.timestamp - (data.holding.buyTime || 0)) < 5000;
+
+                  if (isCurrentHolding) {
+                    let minDiff = Infinity;
+                    visibleCandles.forEach((c, i) => {
+                      const diff = Math.abs(c.timestamp - trade.timestamp);
+                      if (diff < minDiff) {
+                        minDiff = diff;
+                        candleIndex = i;
+                      }
+                    });
+                  } else if (trade.type === 'buy') {
                     const pairedSellTrade = trade.isPaired
                       ? data.trades.find(t => t.pairId === trade.pairId && t.type === 'sell')
                       : null;
-
-                    if (data.holding.isHolding && Math.abs(trade.timestamp - (data.holding.buyTime || 0)) < 5000) {
-                      return null;
-                    }
 
                     if (pairedSellTrade) {
                       let sellCandleIndex = -1;
