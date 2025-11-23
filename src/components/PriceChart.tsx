@@ -132,41 +132,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       return vals;
     });
 
-    const visibleTimestamps = new Set(visibleCandles.map(c => c.timestamp));
-    const timeframeMinutes = getTimeframeMinutes(timeframe);
-    const timeframeMs = timeframeMinutes * 60000;
-
-    if (data.holding.buyPrice && data.holding.buyTime) {
-      const isVisible = visibleCandles.some(c => {
-        if (timeframeMinutes === 1) {
-          return Math.abs(c.timestamp - data.holding.buyTime!) < 60000;
-        } else {
-          const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
-          const tradePeriod = Math.floor(data.holding.buyTime! / timeframeMs) * timeframeMs;
-          return candlePeriod === tradePeriod;
-        }
-      });
-      if (isVisible) {
-        prices.push(data.holding.buyPrice);
-        if (data.holding.takeProfitPrice) prices.push(data.holding.takeProfitPrice);
-        if (data.holding.stopLossPrice) prices.push(data.holding.stopLossPrice);
-      }
+    if (prices.length === 0) {
+      return { minPrice: 0, maxPrice: 100, visibleCandles, visibleStartIndex: startIndex, maxScroll: Math.max(0, selectedCandles.length - visibleCount) };
     }
-
-    data.trades.forEach(trade => {
-      const isVisible = visibleCandles.some(c => {
-        if (timeframeMinutes === 1) {
-          return Math.abs(c.timestamp - trade.timestamp) < 60000;
-        } else {
-          const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
-          const tradePeriod = Math.floor(trade.timestamp / timeframeMs) * timeframeMs;
-          return candlePeriod === tradePeriod;
-        }
-      });
-      if (isVisible) {
-        prices.push(trade.price);
-      }
-    });
 
     const priceRange = Math.max(...prices) - Math.min(...prices);
     const minPrice = Math.min(...prices) - priceRange * 0.1;
@@ -176,7 +144,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     console.log('💰 Price range:', { minPrice, maxPrice });
 
     return { minPrice, maxPrice, visibleCandles, visibleStartIndex: startIndex, maxScroll };
-  }, [selectedCandles, scrollOffset, candleWidth, timeframe, data.holding, data.trades]);
+  }, [selectedCandles, scrollOffset, candleWidth]);
 
   const priceToY = (price: number) => {
     return ((maxPrice - price) / (maxPrice - minPrice)) * priceChartHeight;
