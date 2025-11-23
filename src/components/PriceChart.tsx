@@ -49,6 +49,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [hoveredCandle, setHoveredCandle] = useState<Candle | null>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
+  const [resetScroll, setResetScroll] = useState(0);
   const [candleWidth, setCandleWidth] = useState(10);
   const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [volumeHeight, setVolumeHeight] = useState(60);
@@ -122,6 +123,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
     console.log('👀 Visible candles count:', visibleCandles.length);
     console.log('👀 startIndex:', startIndex, 'endIndex:', endIndex);
+    console.log('🔄 resetScroll value:', resetScroll);
 
     const prices = visibleCandles.flatMap(c => {
       const vals = [c.high, c.low];
@@ -144,7 +146,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     console.log('💰 Price range:', { minPrice, maxPrice });
 
     return { minPrice, maxPrice, visibleCandles, visibleStartIndex: startIndex, maxScroll };
-  }, [selectedCandles, scrollOffset, candleWidth]);
+  }, [selectedCandles, scrollOffset, candleWidth, resetScroll]);
 
   const priceToY = (price: number) => {
     return ((maxPrice - price) / (maxPrice - minPrice)) * priceChartHeight;
@@ -1006,7 +1008,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             {(['1m', '5m', '15m', '1h'] as const).map((tf) => (
               <button
                 key={tf}
-                onClick={() => setTimeframe(tf)}
+                onClick={() => {
+                  setTimeframe(tf);
+                  setScrollOffset(0);
+                  setResetScroll(prev => prev + 1);
+                }}
                 className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
                   timeframe === tf
                     ? 'bg-slate-600 text-white shadow-inner'
@@ -1393,18 +1399,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
               const timeframeMinutes = getTimeframeMinutes(timeframe);
               const timeframeMs = timeframeMinutes * 60000;
-              const visibleTimeRange = {
-                start: visibleCandles.length > 0 ? visibleCandles[0].timestamp : 0,
-                end: visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0
-              };
+              const visibleTimeRangeStart = visibleCandles.length > 0 ? visibleCandles[0].timestamp : 0;
+              const visibleTimeRangeEnd = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0;
 
               console.log('💰 Trade Markers Debug:', {
                 allTradesCount: allTrades.length,
                 visibleCandlesCount: visibleCandles.length,
                 timeframe,
                 visibleTimeRange: {
-                  start: new Date(visibleTimeRange.start).toLocaleTimeString(),
-                  end: new Date(visibleTimeRange.end).toLocaleTimeString()
+                  start: new Date(visibleTimeRangeStart).toLocaleTimeString(),
+                  end: new Date(visibleTimeRangeEnd).toLocaleTimeString()
                 },
                 trades: allTrades.map(t => ({
                   type: t.type,
@@ -1415,6 +1419,36 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
               return allTrades.map((trade, idx) => {
                 if (visibleCandles.length === 0) return null;
+
+                const isTradeInVisibleRange = trade.timestamp >= visibleTimeRangeStart && trade.timestamp <= visibleTimeRangeEnd;
+
+                if (!isTradeInVisibleRange && trade.type === 'buy') {
+                  const pairedSellTrade = trade.isPaired
+                    ? data.trades.find(t => t.pairId === trade.pairId && t.type === 'sell')
+                    : null;
+
+                  const isSellInRange = pairedSellTrade && pairedSellTrade.timestamp >= visibleTimeRangeStart && pairedSellTrade.timestamp <= visibleTimeRangeEnd;
+
+                  if (!isSellInRange) {
+                    console.log('🚫 Trade marker hidden (out of visible range):', {
+                      type: trade.type,
+                      price: trade.price,
+                      time: new Date(trade.timestamp).toLocaleTimeString(),
+                      reason: 'Trade timestamp outside visible range'
+                    });
+                    return null;
+                  }
+                }
+
+                if (!isTradeInVisibleRange && trade.type === 'sell') {
+                  console.log('🚫 Trade marker hidden (out of visible range):', {
+                    type: trade.type,
+                    price: trade.price,
+                    time: new Date(trade.timestamp).toLocaleTimeString(),
+                    reason: 'Sell trade timestamp outside visible range'
+                  });
+                  return null;
+                }
 
                 let candleIndex = -1;
 
