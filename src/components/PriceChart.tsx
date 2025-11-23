@@ -1458,17 +1458,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
                 if (timeframeMinutes === 1) {
                   candleIndex = visibleCandles.findIndex(c => Math.abs(c.timestamp - trade.timestamp) < 60000);
-
-                  if (candleIndex === -1) {
-                    let minDiff = Infinity;
-                    visibleCandles.forEach((c, i) => {
-                      const diff = Math.abs(c.timestamp - trade.timestamp);
-                      if (diff < minDiff) {
-                        minDiff = diff;
-                        candleIndex = i;
-                      }
-                    });
-                  }
                 } else {
                   const tradePeriod = Math.floor(trade.timestamp / timeframeMs) * timeframeMs;
 
@@ -1486,44 +1475,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 }
 
                 if (candleIndex === -1) {
-                  const isCurrentHolding = data.holding.isHolding &&
-                    trade.type === 'buy' &&
-                    Math.abs(trade.timestamp - (data.holding.buyTime || 0)) < 5000;
-
-                  if (isCurrentHolding) {
-                    let minDiff = Infinity;
-                    visibleCandles.forEach((c, i) => {
-                      const diff = Math.abs(c.timestamp - trade.timestamp);
-                      if (diff < minDiff) {
-                        minDiff = diff;
-                        candleIndex = i;
-                      }
-                    });
-                  } else if (trade.type === 'buy') {
-                    const pairedSellTrade = trade.isPaired
-                      ? data.trades.find(t => t.pairId === trade.pairId && t.type === 'sell')
-                      : null;
-
-                    if (pairedSellTrade) {
-                      let sellCandleIndex = -1;
-                      if (timeframeMinutes === 1) {
-                        sellCandleIndex = visibleCandles.findIndex(c => Math.abs(c.timestamp - pairedSellTrade.timestamp) < 60000);
-                      } else {
-                        sellCandleIndex = visibleCandles.findIndex(c => {
-                          const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
-                          const tradePeriod = Math.floor(pairedSellTrade.timestamp / timeframeMs) * timeframeMs;
-                          return candlePeriod === tradePeriod;
-                        });
-                      }
-                      if (sellCandleIndex === -1) {
-                        return null;
-                      }
-                    } else {
-                      return null;
-                    }
-                  } else {
-                    return null;
-                  }
+                  return null;
                 }
 
                 if (candleIndex === -1) {
