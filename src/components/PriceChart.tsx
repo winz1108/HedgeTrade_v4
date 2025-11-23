@@ -1536,6 +1536,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   return null;
                 }
 
+                const finalTradeInRange = trade.timestamp >= visibleTimeRangeStart && trade.timestamp <= visibleTimeRangeEnd;
+                if (!finalTradeInRange) {
+                  console.log('🚫 Trade marker hidden (final check - out of range):', {
+                    type: trade.type,
+                    price: trade.price,
+                    time: new Date(trade.timestamp).toLocaleTimeString(),
+                    candleIndex
+                  });
+                  return null;
+                }
+
                 const x = candleIndex * (candleWidth + candleGap) + candleWidth / 2;
                 const rawY = priceToY(trade.price);
                 const y = rawY;
