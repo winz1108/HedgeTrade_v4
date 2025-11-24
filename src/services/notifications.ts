@@ -16,21 +16,24 @@ export const setNotificationCallback = (callback: NotificationCallback) => {
 
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (!('Notification' in window)) {
-    return true;
+    return false;
   }
 
   if (Notification.permission === 'granted') {
     return true;
   }
 
-  if (Notification.permission !== 'denied') {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      return true;
-    }
+  if (Notification.permission === 'denied') {
+    return false;
   }
 
-  return true;
+  try {
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  } catch (error) {
+    console.error('Failed to request notification permission:', error);
+    return false;
+  }
 };
 
 const sendInAppNotification = (notification: InAppNotification) => {

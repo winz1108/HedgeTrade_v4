@@ -77,11 +77,9 @@ function App() {
     setLoading(true);
     loadData();
 
-    const initNotifications = async () => {
-      const granted = await requestNotificationPermission();
-      setNotificationsEnabled(granted);
-    };
-    initNotifications();
+    if (Notification.permission === 'granted') {
+      setNotificationsEnabled(true);
+    }
 
     setNotificationCallback((notification) => {
       setNotifications(prev => [...prev, notification]);
@@ -163,11 +161,14 @@ function App() {
       </div>
       <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
         <div className="flex flex-col mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl gap-3">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                 HedgeTrade Dashboard
               </h1>
+              {data.version && (
+                <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
+              )}
               {data.holding.isHolding && (
                 <div className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-bold border-2 border-emerald-500/50 animate-pulse shadow-lg shadow-emerald-500/30">
                   🟢 HOLDING BTC
@@ -175,9 +176,6 @@ function App() {
               )}
             </div>
             <div className="flex items-center gap-2 ml-auto">
-              {data.version && (
-                <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
-              )}
               <span className="text-[10px] text-slate-400 font-mono">
                 {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
                   hour: '2-digit',
