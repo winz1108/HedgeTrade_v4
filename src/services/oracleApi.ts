@@ -23,7 +23,12 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
   console.log('📡 API Response:', {
     hasMarketState: !!data.marketState,
-    marketState: data.marketState
+    marketState: data.marketState,
+    priceHistory1m: data.priceHistory1m?.length || 0,
+    currentPrice: data.currentPrice,
+    currentAsset: data.currentAsset,
+    holding: data.holding,
+    metrics: data.metrics
   });
 
   if (data.error) {
@@ -37,6 +42,12 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   if (!data.pricePredictions) {
     data.pricePredictions = [];
   }
+
+  console.log('📊 Final data being returned:', {
+    priceHistory1m: data.priceHistory1m.length,
+    currentPrice: data.currentPrice,
+    version: data.version
+  });
 
   return data;
 };

@@ -91,7 +91,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const chartHeight = priceChartHeight + macdChartHeight + rsiChartHeight + volumeChartHeight + 32;
 
   const candlesByTimeframe = useMemo(() => {
-    const base1m = [...data.priceHistory1m, ...data.pricePredictions];
+    console.log('🎨 PriceChart - Computing candlesByTimeframe');
+    console.log('📊 data.priceHistory1m length:', data.priceHistory1m?.length || 0);
+    console.log('📊 data.pricePredictions length:', data.pricePredictions?.length || 0);
+
+    const base1m = [...(data.priceHistory1m || []), ...(data.pricePredictions || [])];
+    console.log('📊 base1m combined length:', base1m.length);
 
     return {
       '1m': base1m,
