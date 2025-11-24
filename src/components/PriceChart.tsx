@@ -91,28 +91,39 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const chartHeight = priceChartHeight + macdChartHeight + rsiChartHeight + volumeChartHeight + 32;
 
   const candlesByTimeframe = useMemo(() => {
-    const base1m = [...(data.priceHistory1m || []), ...(data.pricePredictions || [])];
+    const base1m = [...data.priceHistory1m, ...data.pricePredictions];
 
     return {
       '1m': base1m,
-      '5m': data.priceHistory5m ? [...data.priceHistory5m, ...(data.pricePredictions || [])] : aggregateCandlesToTimeframe(base1m, 5),
-      '15m': data.priceHistory15m ? [...data.priceHistory15m, ...(data.pricePredictions || [])] : aggregateCandlesToTimeframe(base1m, 15),
-      '1h': data.priceHistory1h ? [...data.priceHistory1h, ...(data.pricePredictions || [])] : aggregateCandlesToTimeframe(base1m, 60),
+      '5m': data.priceHistory5m ? [...data.priceHistory5m, ...data.pricePredictions] : aggregateCandlesToTimeframe(base1m, 5),
+      '15m': data.priceHistory15m ? [...data.priceHistory15m, ...data.pricePredictions] : aggregateCandlesToTimeframe(base1m, 15),
+      '1h': data.priceHistory1h ? [...data.priceHistory1h, ...data.pricePredictions] : aggregateCandlesToTimeframe(base1m, 60),
     };
   }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory1h, data.pricePredictions]);
 
   const selectedCandles = candlesByTimeframe[timeframe];
 
   const { minPrice, maxPrice, visibleCandles, visibleStartIndex, maxScroll } = useMemo(() => {
+    console.log('🎯 PriceChart useMemo triggered');
+    console.log('📊 selectedCandles.length:', selectedCandles.length);
+
     if (selectedCandles.length === 0) {
+      console.log('⚠️ No candles available!');
       return { minPrice: 0, maxPrice: 100, visibleCandles: [], visibleStartIndex: 0, maxScroll: 0 };
     }
+
+    console.log('📊 First candle:', selectedCandles[0]);
+    console.log('📊 Last candle:', selectedCandles[selectedCandles.length - 1]);
 
     const chartWidth = containerRef.current?.offsetWidth || (isMobile ? window.innerWidth - 16 : 1200);
     const visibleCount = Math.floor(chartWidth / (candleWidth + candleGap));
     const startIndex = Math.max(0, selectedCandles.length - visibleCount - scrollOffset);
     const endIndex = Math.min(selectedCandles.length, startIndex + visibleCount);
     const visibleCandles = selectedCandles.slice(startIndex, endIndex);
+
+    console.log('👀 Visible candles count:', visibleCandles.length);
+    console.log('👀 startIndex:', startIndex, 'endIndex:', endIndex);
+    console.log('🔄 resetScroll value:', resetScroll);
 
     const prices = visibleCandles.flatMap(c => {
       const vals = [c.high, c.low];

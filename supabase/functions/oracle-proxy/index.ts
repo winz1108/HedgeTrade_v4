@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
         headers: {
           "Content-Type": "application/json",
         },
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(5000), // 5초 타임아웃
       });
 
       console.log("Oracle VM response status:", response.status);
@@ -54,49 +54,9 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      console.log("Successfully fetched data from Oracle VM", JSON.stringify(data).substring(0, 200));
+      console.log("Successfully fetched data from Oracle VM");
 
-      // Transform Oracle VM response to match frontend expectations
-      const transformedData = {
-        version: data.version || "unknown",
-        currentAsset: data.asset?.currentAsset || 0,
-        currentBTC: data.asset?.currentBTC || 0,
-        currentCash: data.asset?.currentCash || 0,
-        initialAsset: data.asset?.initialAsset || 0,
-        currentTime: data.currentTime || Date.now(),
-        currentPrice: data.currentPrice || 0,
-        priceHistory1m: data.priceHistory?.["1m"] || [],
-        priceHistory5m: data.priceHistory?.["5m"] || [],
-        priceHistory15m: data.priceHistory?.["15m"] || [],
-        priceHistory1h: data.priceHistory?.["1h"] || [],
-        pricePredictions: data.pricePredictions || [],
-        trades: data.trades || [],
-        holding: {
-          isHolding: data.holding?.isHolding || false,
-          buyPrice: data.holding?.buyPrice || undefined,
-          buyTime: data.holding?.buyTime || undefined,
-          currentProfit: data.holding?.currentProfit || undefined,
-          takeProfitPrice: data.holding?.takeProfitPrice || undefined,
-          stopLossPrice: data.holding?.stopLossPrice || undefined,
-          initialTakeProfitProb: data.holding?.initialTakeProfitProb || undefined,
-          currentTakeProfitProb: data.holding?.currentTakeProfitProb || undefined
-        },
-        currentPrediction: data.currentPrediction ? {
-          takeProfitProb: data.currentPrediction.takeProfitProb || 0,
-          stopLossProb: data.currentPrediction.stopLossProb || 0
-        } : undefined,
-        lastPredictionUpdateTime: data.currentPrediction?.lastUpdateTime || undefined,
-        marketState: data.marketState,
-        metrics: {
-          portfolioReturn: data.metrics?.portfolioReturn || 0,
-          marketReturn: data.metrics?.marketReturn || 0,
-          avgTradeReturn: data.metrics?.avgTradeReturn || 0,
-          takeProfitCount: data.metrics?.takeProfitCount || 0,
-          stopLossCount: data.metrics?.stopLossCount || 0
-        }
-      };
-
-      return new Response(JSON.stringify(transformedData), {
+      return new Response(JSON.stringify(data), {
         headers: {
           ...corsHeaders,
           "Content-Type": "application/json",
@@ -105,6 +65,7 @@ Deno.serve(async (req: Request) => {
     } catch (fetchError) {
       console.error("Oracle VM unreachable, returning mock data:", fetchError);
 
+      // Oracle VM이 응답하지 않으면 모의 데이터 반환
       const mockData = {
         version: "mock",
         currentAsset: 10000,
@@ -155,7 +116,7 @@ Deno.serve(async (req: Request) => {
       }
     );
   }
-});
+}
 
 function generateMockCandles(count: number) {
   const candles = [];
@@ -183,3 +144,4 @@ function generateMockCandles(count: number) {
 
   return candles;
 }
+});
