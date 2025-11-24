@@ -79,6 +79,7 @@ export interface DashboardData {
   gateWeights?: number[];
   metrics: {
     portfolioReturn: number;
+    portfolioReturnWithCommission?: number;
     marketReturn: number;
     avgTradeReturn: number;
     takeProfitCount: number;

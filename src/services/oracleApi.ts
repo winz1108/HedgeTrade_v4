@@ -71,6 +71,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       gateWeights: rawData.gateWeights,
       metrics: {
         portfolioReturn: rawData.metrics?.portfolioReturn ?? 0,
+        portfolioReturnWithCommission: rawData.metrics?.portfolioReturnWithCommission,
         marketReturn: rawData.metrics?.marketReturn ?? 0,
         avgTradeReturn: rawData.metrics?.avgTradeReturn ?? 0,
         takeProfitCount: rawData.metrics?.takeProfitCount ?? 0,

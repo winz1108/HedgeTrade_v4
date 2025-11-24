@@ -297,6 +297,18 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               {formatPercent(data.metrics.portfolioReturn)}
             </span>
           </div>
+          {data.metrics.portfolioReturnWithCommission !== undefined && (
+            <div className="flex justify-between items-center bg-slate-700/30 p-2 rounded-lg border border-slate-600/50">
+              <span className="text-[10px] text-slate-400 font-semibold">Portfolio Return (w/ fee)</span>
+              <span
+                className={`text-sm font-bold ${
+                  data.metrics.portfolioReturnWithCommission >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                {formatPercent(data.metrics.portfolioReturnWithCommission)}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between items-center bg-slate-700/30 p-2 rounded-lg border border-slate-600/50">
             <span className="text-[10px] text-slate-400 font-semibold">Market Return</span>
             <span
