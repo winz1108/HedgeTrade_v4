@@ -77,12 +77,7 @@ function App() {
     setLoading(true);
     loadData();
 
-    const checkNotificationPermission = async () => {
-      if ('Notification' in window) {
-        setNotificationsEnabled(Notification.permission === 'granted');
-      }
-    };
-    checkNotificationPermission();
+    setNotificationsEnabled(true);
 
     setNotificationCallback((notification) => {
       setNotifications(prev => [...prev, notification]);
@@ -176,22 +171,17 @@ function App() {
               )}
             </div>
             <button
-              onClick={async () => {
-                if (!notificationsEnabled) {
-                  const granted = await requestNotificationPermission();
-                  setNotificationsEnabled(granted);
-                } else {
-                  alert('Notifications are already enabled. To disable, go to your browser settings.');
-                }
+              onClick={() => {
+                setNotificationsEnabled(!notificationsEnabled);
               }}
-              className={`p-2 rounded-lg transition-all duration-200 border ${
+              className={`p-1.5 rounded transition-all duration-200 ${
                 notificationsEnabled
-                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                  : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:bg-slate-700 hover:border-slate-500'
+                  ? 'text-emerald-400 hover:bg-emerald-500/10'
+                  : 'text-slate-500 hover:bg-slate-700/50'
               }`}
-              title={notificationsEnabled ? 'Notifications enabled' : 'Enable notifications'}
+              title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
             >
-              {notificationsEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+              {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
             </button>
             {data.version && (
               <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
