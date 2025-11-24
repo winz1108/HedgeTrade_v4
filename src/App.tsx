@@ -82,26 +82,20 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
         <div className="flex flex-col mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl gap-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                HedgeTrade Dashboard
-              </h1>
-              {data.version && (
-                <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
-              )}
-              <span className="text-[10px] text-slate-400 font-mono">
-                {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit'
-                })}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-              <span className="text-slate-400 text-[10px]">Live</span>
-            </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+              HedgeTrade Dashboard
+            </h1>
+            {data.version && (
+              <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
+            )}
+            <span className="text-[10px] text-slate-400 font-mono">
+              {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              })}
+            </span>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
@@ -109,20 +103,20 @@ function App() {
               <span className="text-[10px] text-slate-400 mr-1 whitespace-nowrap">Market:</span>
               <div className="flex gap-1">
                 {[
-                  { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0 },
-                  { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0 },
-                  { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0 },
-                  { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0 },
-                  { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0 }
+                  { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-600 text-white border-emerald-400', inactive: 'bg-emerald-950/40 text-emerald-700/50 border-emerald-900/50' } },
+                  { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-300', inactive: 'bg-emerald-950/30 text-emerald-700/40 border-emerald-900/40' } },
+                  { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-500 text-white border-amber-300', inactive: 'bg-amber-950/30 text-amber-700/40 border-amber-900/40' } },
+                  { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-rose-500 text-white border-rose-300', inactive: 'bg-rose-950/30 text-rose-700/40 border-rose-900/40' } },
+                  { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-600 text-white border-rose-400', inactive: 'bg-rose-950/40 text-rose-700/50 border-rose-900/50' } }
                 ].map((state) => {
                   const isActive = state.value > 0.5;
                   return (
                     <div
                       key={state.key}
-                      className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap ${
+                      className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
                         isActive
-                          ? 'bg-cyan-500 text-white font-bold'
-                          : 'bg-slate-700/50 text-slate-400'
+                          ? `${state.colors.active} font-bold shadow-lg`
+                          : state.colors.inactive
                       }`}
                     >
                       {state.label}
