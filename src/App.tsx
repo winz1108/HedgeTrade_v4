@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { RefreshCw, Bell, BellOff } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
+import { requestNotificationPermission, sendBuyNotification, sendSellNotification } from './services/notifications';
 
 
 function App() {
@@ -11,6 +12,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const previousHoldingState = useRef<boolean>(false);
+  const lastTradeCount = useRef<number>(0);
 
   const loadData = async () => {
     try {
@@ -21,6 +25,33 @@ function App() {
         throw new Error('Invalid data structure received from API');
       }
 
+      if (data && notificationsEnabled) {
+        if (!previousHoldingState.current && dashboardData.holding.isHolding) {
+          sendBuyNotification(
+            dashboardData.holding.buyPrice || dashboardData.currentPrice,
+            dashboardData.holding.initialTakeProfitProb || 0
+          );
+        }
+
+        if (previousHoldingState.current && !dashboardData.holding.isHolding) {
+          const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
+          if (latestTrade && latestTrade.type === 'sell' && lastTradeCount.current < dashboardData.trades.length) {
+            const previousTrade = dashboardData.trades[dashboardData.trades.length - 2];
+            if (previousTrade && previousTrade.type === 'buy') {
+              const profit = ((latestTrade.price - previousTrade.price) / previousTrade.price) * 100;
+              sendSellNotification(
+                profit >= 0 ? 'profit' : 'loss',
+                latestTrade.price,
+                profit
+              );
+            }
+          }
+        }
+
+        lastTradeCount.current = dashboardData.trades.length;
+      }
+
+      previousHoldingState.current = dashboardData.holding.isHolding;
       setData(dashboardData);
 
       console.log('📊 Data loaded:', {
@@ -44,6 +75,13 @@ function App() {
   useEffect(() => {
     setLoading(true);
     loadData();
+
+    const checkNotificationPermission = async () => {
+      if ('Notification' in window) {
+        setNotificationsEnabled(Notification.permission === 'granted');
+      }
+    };
+    checkNotificationPermission();
   }, []);
 
   useEffect(() => {
@@ -92,9 +130,34 @@ function App() {
       <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
         <div className="flex flex-col mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-              HedgeTrade Dashboard
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                HedgeTrade Dashboard
+              </h1>
+              {data.holding.isHolding && (
+                <div className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-bold border-2 border-emerald-500/50 animate-pulse shadow-lg shadow-emerald-500/30">
+                  🟢 HOLDING BTC
+                </div>
+              )}
+            </div>
+            <button
+              onClick={async () => {
+                if (!notificationsEnabled) {
+                  const granted = await requestNotificationPermission();
+                  setNotificationsEnabled(granted);
+                } else {
+                  alert('Notifications are already enabled. To disable, go to your browser settings.');
+                }
+              }}
+              className={`p-2 rounded-lg transition-all duration-200 border ${
+                notificationsEnabled
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                  : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:bg-slate-700 hover:border-slate-500'
+              }`}
+              title={notificationsEnabled ? 'Notifications enabled' : 'Enable notifications'}
+            >
+              {notificationsEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+            </button>
             {data.version && (
               <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
             )}
