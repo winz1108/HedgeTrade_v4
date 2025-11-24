@@ -219,23 +219,23 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   }
 
   if (position === 'trades') {
-    const recentTrades = [...data.trades].reverse().slice(0, 4);
+    const recentTrades = [...data.trades].reverse().slice(0, 10);
 
     return (
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-purple-500/10 transition-all duration-300 h-full">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold text-white">Recent Trades</h3>
-          <div className="p-1 bg-purple-500/20 rounded-lg">
-            <History className="w-3 h-3 text-purple-400" />
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300 h-full">
+        <div className="flex items-center justify-between mb-1.5">
+          <h3 className="text-xs font-bold text-white">Recent Trades</h3>
+          <div className="p-0.5 bg-purple-500/20 rounded">
+            <History className="w-2.5 h-2.5 text-purple-400" />
           </div>
         </div>
 
-        <div className="space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: 'calc(100% - 40px)' }}>
+        <div className="space-y-0.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: 'calc(100% - 32px)' }}>
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, idx) => (
               <div
                 key={idx}
-                className={`flex items-center justify-between p-1.5 rounded-lg border ${
+                className={`flex items-center justify-between p-1 rounded border ${
                   trade.type === 'buy'
                     ? 'bg-emerald-500/10 border-emerald-500/20'
                     : 'bg-rose-500/10 border-rose-500/20'
@@ -243,13 +243,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               >
                 <div className="flex flex-col">
                   <span
-                    className={`text-[10px] font-bold uppercase ${
+                    className={`text-[9px] font-bold uppercase ${
                       trade.type === 'buy' ? 'text-emerald-400' : 'text-rose-400'
                     }`}
                   >
                     {trade.type}
                   </span>
-                  <span className="text-[9px] text-slate-500">
+                  <span className="text-[8px] text-slate-500">
                     {new Date(trade.timestamp).toLocaleString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -258,7 +258,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     })}
                   </span>
                 </div>
-                <span className="text-[10px] font-bold text-white">
+                <span className="text-[9px] font-bold text-white">
                   {formatCurrency(trade.price)}
                 </span>
               </div>
