@@ -91,19 +91,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const chartHeight = priceChartHeight + macdChartHeight + rsiChartHeight + volumeChartHeight + 32;
 
   const candlesByTimeframe = useMemo(() => {
-    console.log('🔄 Recalculating candlesByTimeframe:', {
-      priceHistory1m_length: data.priceHistory1m?.length || 0,
-      pricePredictions_length: data.pricePredictions?.length || 0,
-      priceHistory5m_length: data.priceHistory5m?.length || 0,
-      priceHistory15m_length: data.priceHistory15m?.length || 0,
-      priceHistory1h_length: data.priceHistory1h?.length || 0
-    });
-
     const validHistory1m = Array.isArray(data.priceHistory1m) ? data.priceHistory1m : [];
     const validPredictions = Array.isArray(data.pricePredictions) ? data.pricePredictions : [];
     const base1m = [...validHistory1m, ...validPredictions];
-
-    console.log('📊 base1m length:', base1m.length);
 
     return {
       '1m': base1m,
@@ -116,26 +106,15 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const selectedCandles = candlesByTimeframe[timeframe];
 
   const { minPrice, maxPrice, visibleCandles, visibleStartIndex, maxScroll } = useMemo(() => {
-    console.log('🎯 PriceChart useMemo triggered');
-    console.log('📊 selectedCandles.length:', selectedCandles.length);
-
     if (selectedCandles.length === 0) {
-      console.log('⚠️ No candles available!');
       return { minPrice: 0, maxPrice: 100, visibleCandles: [], visibleStartIndex: 0, maxScroll: 0 };
     }
-
-    console.log('📊 First candle:', selectedCandles[0]);
-    console.log('📊 Last candle:', selectedCandles[selectedCandles.length - 1]);
 
     const chartWidth = containerRef.current?.offsetWidth || (isMobile ? window.innerWidth - 16 : 1200);
     const visibleCount = Math.floor(chartWidth / (candleWidth + candleGap));
     const startIndex = Math.max(0, selectedCandles.length - visibleCount - scrollOffset);
     const endIndex = Math.min(selectedCandles.length, startIndex + visibleCount);
     const visibleCandles = selectedCandles.slice(startIndex, endIndex);
-
-    console.log('👀 Visible candles count:', visibleCandles.length);
-    console.log('👀 startIndex:', startIndex, 'endIndex:', endIndex);
-    console.log('🔄 resetScroll value:', resetScroll);
 
     const prices = visibleCandles.flatMap(c => {
       const vals = [c.high, c.low];
@@ -1418,20 +1397,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               const visibleTimeRangeStart = visibleCandles.length > 0 ? visibleCandles[0].timestamp : 0;
               const visibleTimeRangeEnd = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0;
 
-              console.log('💰 Trade Markers Debug:', {
-                allTradesCount: allTrades.length,
-                visibleCandlesCount: visibleCandles.length,
-                timeframe,
-                visibleTimeRange: {
-                  start: new Date(visibleTimeRangeStart).toLocaleTimeString(),
-                  end: new Date(visibleTimeRangeEnd).toLocaleTimeString()
-                },
-                trades: allTrades.map(t => ({
-                  type: t.type,
-                  price: t.price,
-                  time: new Date(t.timestamp).toLocaleTimeString()
-                }))
-              });
 
               return allTrades.map((trade, idx) => {
                 if (visibleCandles.length === 0) return null;

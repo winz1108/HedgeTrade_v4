@@ -22,9 +22,13 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
   const rawData = await response.json();
 
-  console.log('📡 Raw API Response Keys:', Object.keys(rawData));
-  console.log('📡 priceHistory structure:', rawData.priceHistory);
-  console.log('📡 Full Raw API Response:', rawData);
+  console.log('📡 priceHistory:', {
+    '1m': rawData.priceHistory?.['1m']?.length || 0,
+    '5m': rawData.priceHistory?.['5m']?.length || 0,
+    '15m': rawData.priceHistory?.['15m']?.length || 0,
+    '1h': rawData.priceHistory?.['1h']?.length || 0,
+    cacheStatus: rawData.cacheStatus
+  });
 
   if (rawData.error) {
     throw new Error(`Oracle VM error: ${rawData.error}`);
@@ -69,24 +73,6 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       }
     };
 
-    console.log('✅ Transformation successful');
-    console.log('📊 Transformed Data:', {
-      priceHistory1m: data.priceHistory1m.length,
-      priceHistory5m: data.priceHistory5m?.length || 0,
-      priceHistory15m: data.priceHistory15m?.length || 0,
-      priceHistory1h: data.priceHistory1h?.length || 0,
-      hasCurrentPrediction: !!data.currentPrediction,
-      currentPrediction: data.currentPrediction,
-      lastPredictionUpdateTime: data.lastPredictionUpdateTime,
-      metrics: data.metrics,
-      holding: {
-        isHolding: data.holding.isHolding,
-        hasInitialProb: data.holding.initialTakeProfitProb !== undefined,
-        hasCurrentProb: data.holding.currentTakeProfitProb !== undefined,
-        initialTakeProfitProb: data.holding.initialTakeProfitProb,
-        currentTakeProfitProb: data.holding.currentTakeProfitProb
-      }
-    });
     return data;
   } catch (error) {
     console.error('❌ Transformation error:', error);
