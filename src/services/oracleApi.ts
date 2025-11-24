@@ -22,12 +22,17 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
   const rawData = await response.json();
 
-  console.log('📡 priceHistory:', {
-    '1m': rawData.priceHistory?.['1m']?.length || 0,
-    '5m': rawData.priceHistory?.['5m']?.length || 0,
-    '15m': rawData.priceHistory?.['15m']?.length || 0,
-    '1h': rawData.priceHistory?.['1h']?.length || 0,
-    cacheStatus: rawData.cacheStatus
+  console.log('📡 API Response:', {
+    cacheStatus: rawData.cacheStatus,
+    priceHistory: {
+      '1m': rawData.priceHistory?.['1m']?.length || 0,
+      '5m': rawData.priceHistory?.['5m']?.length || 0,
+      '15m': rawData.priceHistory?.['15m']?.length || 0,
+      '1h': rawData.priceHistory?.['1h']?.length || 0
+    },
+    sample1m: rawData.priceHistory?.['1m']?.[0] || 'none',
+    hasPriceHistory: !!rawData.priceHistory,
+    priceHistoryKeys: rawData.priceHistory ? Object.keys(rawData.priceHistory) : []
   });
 
   if (rawData.error) {

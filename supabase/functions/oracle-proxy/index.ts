@@ -61,7 +61,12 @@ Deno.serve(async (req: Request) => {
     }
 
     const data = await response.json();
-    console.log("Successfully fetched data from Oracle VM");
+    console.log("Oracle VM Response:", {
+      hasPriceHistory: !!data.priceHistory,
+      priceHistoryKeys: data.priceHistory ? Object.keys(data.priceHistory) : [],
+      priceHistory1mLength: data.priceHistory?.['1m']?.length || 0,
+      cacheStatus: data.cacheStatus
+    });
 
     return new Response(JSON.stringify(data), {
       headers: {
