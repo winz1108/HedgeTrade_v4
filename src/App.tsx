@@ -21,6 +21,8 @@ function App() {
         throw new Error('Invalid data structure received from API');
       }
 
+      setData(dashboardData);
+
       console.log('📊 Data updated:', {
         holding: dashboardData.holding?.isHolding ?? false,
         trades: dashboardData.trades?.length ?? 0,
@@ -30,7 +32,6 @@ function App() {
           ? dashboardData.metrics.portfolioReturn.toFixed(2) + '%'
           : '0.00%'
       });
-      setData(dashboardData);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
