@@ -23,14 +23,18 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   const rawData = await response.json();
 
   console.log('📡 Raw API Response:', {
-    hasPriceHistory: !!rawData.priceHistory,
-    priceHistoryKeys: rawData.priceHistory ? Object.keys(rawData.priceHistory) : [],
     version: rawData.version,
-    hasAsset: !!rawData.asset,
+    currentAsset: rawData.currentAsset,
+    initialAsset: rawData.initialAsset,
+    currentPrice: rawData.currentPrice,
+    priceHistory1m_length: rawData.priceHistory1m?.length,
     hasMetrics: !!rawData.metrics,
+    metrics: rawData.metrics,
     hasCurrentPrediction: !!rawData.currentPrediction,
+    currentPrediction: rawData.currentPrediction,
     hasHolding: !!rawData.holding,
-    rawDataKeys: Object.keys(rawData)
+    holding: rawData.holding,
+    lastPredictionUpdateTime: rawData.lastPredictionUpdateTime
   });
 
   if (rawData.error) {
@@ -39,20 +43,20 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
   const data: DashboardData = {
     version: rawData.version,
-    currentAsset: rawData.asset?.currentAsset || 0,
-    currentBTC: rawData.asset?.currentBTC,
-    currentCash: rawData.asset?.currentCash,
-    initialAsset: rawData.asset?.initialAsset || 0,
-    currentTime: rawData.currentTime || Date.now(),
-    currentPrice: rawData.currentPrice || 0,
-    priceHistory1m: rawData.priceHistory?.['1m'] || [],
-    priceHistory5m: rawData.priceHistory?.['5m'] || [],
-    priceHistory15m: rawData.priceHistory?.['15m'] || [],
-    priceHistory1h: rawData.priceHistory?.['1h'] || [],
+    currentAsset: rawData.currentAsset ?? 0,
+    currentBTC: rawData.currentBTC,
+    currentCash: rawData.currentCash,
+    initialAsset: rawData.initialAsset ?? 0,
+    currentTime: rawData.currentTime ?? Date.now(),
+    currentPrice: rawData.currentPrice ?? 0,
+    priceHistory1m: rawData.priceHistory1m || [],
+    priceHistory5m: rawData.priceHistory5m || [],
+    priceHistory15m: rawData.priceHistory15m || [],
+    priceHistory1h: rawData.priceHistory1h || [],
     pricePredictions: rawData.pricePredictions || [],
     trades: rawData.trades || [],
     holding: {
-      isHolding: rawData.holding?.isHolding || false,
+      isHolding: rawData.holding?.isHolding ?? false,
       buyPrice: rawData.holding?.buyPrice,
       buyTime: rawData.holding?.buyTime,
       currentProfit: rawData.holding?.currentProfit,
@@ -63,7 +67,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       latestPrediction: rawData.holding?.latestPrediction
     },
     currentPrediction: rawData.currentPrediction,
-    lastPredictionUpdateTime: rawData.lastPredictionUpdateTime || rawData.currentPrediction?.lastUpdateTime,
+    lastPredictionUpdateTime: rawData.lastPredictionUpdateTime,
     marketState: rawData.marketState,
     gateWeights: rawData.gateWeights,
     metrics: {
