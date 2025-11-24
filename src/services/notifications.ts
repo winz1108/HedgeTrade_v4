@@ -1,7 +1,22 @@
+export interface InAppNotification {
+  id: string;
+  type: 'buy' | 'sell-profit' | 'sell-loss';
+  title: string;
+  message: string;
+  timestamp: number;
+}
+
+type NotificationCallback = (notification: InAppNotification) => void;
+
+let notificationCallback: NotificationCallback | null = null;
+
+export const setNotificationCallback = (callback: NotificationCallback) => {
+  notificationCallback = callback;
+};
+
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (!('Notification' in window)) {
-    console.log('This browser does not support notifications');
-    return false;
+    return true;
   }
 
   if (Notification.permission === 'granted') {
@@ -10,48 +25,74 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
 
   if (Notification.permission !== 'denied') {
     const permission = await Notification.requestPermission();
-    return permission === 'granted';
+    if (permission === 'granted') {
+      return true;
+    }
   }
 
-  return false;
+  return true;
+};
+
+const sendInAppNotification = (notification: InAppNotification) => {
+  if (notificationCallback) {
+    notificationCallback(notification);
+  }
+};
+
+const tryNativeNotification = (title: string, body: string, tag: string, vibrate: number[]) => {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      const notification = new Notification(title, {
+        body,
+        icon: '/favicon.png',
+        badge: '/favicon.png',
+        tag,
+        requireInteraction: false,
+        vibrate,
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    } catch (e) {
+      console.log('Native notification not supported, using in-app only');
+    }
+  }
 };
 
 export const sendBuyNotification = (price: number, takeProfitProb: number) => {
-  if (Notification.permission === 'granted') {
-    const notification = new Notification('🟢 BTC Buy Signal', {
-      body: `Buy at $${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nTake Profit Probability: ${(takeProfitProb * 100).toFixed(1)}%`,
-      icon: '/favicon.png',
-      badge: '/favicon.png',
-      tag: 'buy-signal',
-      requireInteraction: true,
-      vibrate: [200, 100, 200],
-    });
+  const title = '🟢 BTC Buy Signal';
+  const message = `Buy at $${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nTake Profit Probability: ${(takeProfitProb * 100).toFixed(1)}%`;
 
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
-  }
+  sendInAppNotification({
+    id: `buy-${Date.now()}`,
+    type: 'buy',
+    title,
+    message,
+    timestamp: Date.now(),
+  });
+
+  tryNativeNotification(title, message, 'buy-signal', [200, 100, 200]);
 };
 
 export const sendSellNotification = (type: 'profit' | 'loss', price: number, profit: number) => {
-  if (Notification.permission === 'granted') {
-    const isProfit = type === 'profit';
-    const notification = new Notification(
-      isProfit ? '🎯 Take Profit Hit!' : '🛑 Stop Loss Hit',
-      {
-        body: `Sold at $${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nProfit: ${profit >= 0 ? '+' : ''}${profit.toFixed(2)}%`,
-        icon: '/favicon.png',
-        badge: '/favicon.png',
-        tag: 'sell-signal',
-        requireInteraction: true,
-        vibrate: isProfit ? [200, 100, 200, 100, 200] : [300, 100, 300],
-      }
-    );
+  const isProfit = type === 'profit';
+  const title = isProfit ? '🎯 Take Profit Hit!' : '🛑 Stop Loss Hit';
+  const message = `Sold at $${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nProfit: ${profit >= 0 ? '+' : ''}${profit.toFixed(2)}%`;
 
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
-  }
+  sendInAppNotification({
+    id: `sell-${Date.now()}`,
+    type: isProfit ? 'sell-profit' : 'sell-loss',
+    title,
+    message,
+    timestamp: Date.now(),
+  });
+
+  tryNativeNotification(
+    title,
+    message,
+    'sell-signal',
+    isProfit ? [200, 100, 200, 100, 200] : [300, 100, 300]
+  );
 };

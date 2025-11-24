@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
-import { RefreshCw, Bell, BellOff } from 'lucide-react';
+import { RefreshCw, Bell, BellOff, X } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
-import { requestNotificationPermission, sendBuyNotification, sendSellNotification } from './services/notifications';
+import { requestNotificationPermission, sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
 
 
 function App() {
@@ -13,6 +13,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notifications, setNotifications] = useState<InAppNotification[]>([]);
   const previousHoldingState = useRef<boolean>(false);
   const lastTradeCount = useRef<number>(0);
 
@@ -82,6 +83,13 @@ function App() {
       }
     };
     checkNotificationPermission();
+
+    setNotificationCallback((notification) => {
+      setNotifications(prev => [...prev, notification]);
+      setTimeout(() => {
+        setNotifications(prev => prev.filter(n => n.id !== notification.id));
+      }, 5000);
+    });
   }, []);
 
   useEffect(() => {
@@ -127,6 +135,33 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+        {notifications.map((notification) => (
+          <div
+            key={notification.id}
+            className={`p-4 rounded-lg shadow-2xl border-2 animate-slide-in backdrop-blur-sm ${
+              notification.type === 'buy'
+                ? 'bg-emerald-500/90 border-emerald-400 text-white'
+                : notification.type === 'sell-profit'
+                ? 'bg-blue-500/90 border-blue-400 text-white'
+                : 'bg-rose-500/90 border-rose-400 text-white'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                <div className="font-bold text-sm mb-1">{notification.title}</div>
+                <div className="text-xs whitespace-pre-line opacity-90">{notification.message}</div>
+              </div>
+              <button
+                onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
+                className="p-1 hover:bg-white/20 rounded transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
       <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
         <div className="flex flex-col mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl gap-3">
           <div className="flex items-center gap-2 flex-wrap">
