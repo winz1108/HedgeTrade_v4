@@ -222,7 +222,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     const recentTrades = [...data.trades].reverse().slice(0, 10);
 
     return (
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300 h-full">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300">
         <div className="flex items-center justify-between mb-1.5">
           <h3 className="text-xs font-bold text-white">Recent Trades</h3>
           <div className="p-0.5 bg-purple-500/20 rounded">
@@ -230,7 +230,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
         </div>
 
-        <div className="space-y-0.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: 'calc(100% - 32px)' }}>
+        <div className="space-y-0.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: '140px' }}>
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, idx) => (
               <div
