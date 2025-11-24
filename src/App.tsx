@@ -77,7 +77,11 @@ function App() {
     setLoading(true);
     loadData();
 
-    setNotificationsEnabled(true);
+    const initNotifications = async () => {
+      const granted = await requestNotificationPermission();
+      setNotificationsEnabled(granted);
+    };
+    initNotifications();
 
     setNotificationCallback((notification) => {
       setNotifications(prev => [...prev, notification]);
@@ -170,29 +174,36 @@ function App() {
                 </div>
               )}
             </div>
-            <button
-              onClick={() => {
-                setNotificationsEnabled(!notificationsEnabled);
-              }}
-              className={`p-1.5 rounded transition-all duration-200 ${
-                notificationsEnabled
-                  ? 'text-emerald-400 hover:bg-emerald-500/10'
-                  : 'text-slate-500 hover:bg-slate-700/50'
-              }`}
-              title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
-            >
-              {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
-            </button>
-            {data.version && (
-              <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
-            )}
-            <span className="text-[10px] text-slate-400 font-mono">
-              {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-              })}
-            </span>
+            <div className="flex items-center gap-2 ml-auto">
+              {data.version && (
+                <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
+              )}
+              <span className="text-[10px] text-slate-400 font-mono">
+                {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                })}
+              </span>
+              <button
+                onClick={async () => {
+                  if (!notificationsEnabled) {
+                    const granted = await requestNotificationPermission();
+                    setNotificationsEnabled(granted);
+                  } else {
+                    setNotificationsEnabled(false);
+                  }
+                }}
+                className={`p-1.5 rounded transition-all duration-200 ${
+                  notificationsEnabled
+                    ? 'text-emerald-400 hover:bg-emerald-500/10'
+                    : 'text-slate-500 hover:bg-slate-700/50'
+                }`}
+                title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
+              >
+                {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-1 bg-slate-800/70 px-2 py-1.5 rounded-lg border border-slate-600 overflow-x-auto">
