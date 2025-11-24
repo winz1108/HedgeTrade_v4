@@ -23,6 +23,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   const rawData = await response.json();
 
   console.log('📡 Raw API Response Keys:', Object.keys(rawData));
+  console.log('📡 priceHistory structure:', rawData.priceHistory);
   console.log('📡 Full Raw API Response:', rawData);
 
   if (rawData.error) {
