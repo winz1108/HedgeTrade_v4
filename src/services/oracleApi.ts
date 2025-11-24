@@ -25,7 +25,12 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   console.log('📡 Raw API Response:', {
     hasPriceHistory: !!rawData.priceHistory,
     priceHistoryKeys: rawData.priceHistory ? Object.keys(rawData.priceHistory) : [],
-    version: rawData.version
+    version: rawData.version,
+    hasAsset: !!rawData.asset,
+    hasMetrics: !!rawData.metrics,
+    hasCurrentPrediction: !!rawData.currentPrediction,
+    hasHolding: !!rawData.holding,
+    rawDataKeys: Object.keys(rawData)
   });
 
   if (rawData.error) {
@@ -58,15 +63,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       latestPrediction: rawData.holding?.latestPrediction
     },
     currentPrediction: rawData.currentPrediction,
-    lastPredictionUpdateTime: rawData.currentPrediction?.lastUpdateTime,
+    lastPredictionUpdateTime: rawData.lastPredictionUpdateTime || rawData.currentPrediction?.lastUpdateTime,
     marketState: rawData.marketState,
     gateWeights: rawData.gateWeights,
     metrics: {
-      portfolioReturn: rawData.metrics?.portfolioReturn || 0,
-      marketReturn: rawData.metrics?.marketReturn || 0,
-      avgTradeReturn: rawData.metrics?.avgTradeReturn || 0,
-      takeProfitCount: rawData.metrics?.takeProfitCount || 0,
-      stopLossCount: rawData.metrics?.stopLossCount || 0
+      portfolioReturn: rawData.metrics?.portfolioReturn ?? 0,
+      marketReturn: rawData.metrics?.marketReturn ?? 0,
+      avgTradeReturn: rawData.metrics?.avgTradeReturn ?? 0,
+      takeProfitCount: rawData.metrics?.takeProfitCount ?? 0,
+      stopLossCount: rawData.metrics?.stopLossCount ?? 0
     }
   };
 
@@ -74,7 +79,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     priceHistory1m: data.priceHistory1m.length,
     priceHistory5m: data.priceHistory5m?.length || 0,
     priceHistory15m: data.priceHistory15m?.length || 0,
-    priceHistory1h: data.priceHistory1h?.length || 0
+    priceHistory1h: data.priceHistory1h?.length || 0,
+    hasCurrentPrediction: !!data.currentPrediction,
+    lastPredictionUpdateTime: data.lastPredictionUpdateTime,
+    metrics: data.metrics,
+    holding: {
+      isHolding: data.holding.isHolding,
+      hasInitialProb: data.holding.initialTakeProfitProb !== undefined,
+      hasCurrentProb: data.holding.currentTakeProfitProb !== undefined
+    }
   });
 
   return data;
