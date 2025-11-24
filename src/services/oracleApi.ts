@@ -19,34 +19,62 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     throw new Error(`Oracle VM unavailable: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json();
+  const rawData = await response.json();
 
-  console.log('📡 API Response:', {
-    hasMarketState: !!data.marketState,
-    hasGateWeights: !!data.gateWeights,
-    priceHistory1m: data.priceHistory1m?.length || 0,
-    pricePredictions: data.pricePredictions?.length || 0,
-    marketState: data.marketState,
-    gateWeights: data.gateWeights
+  console.log('📡 Raw API Response:', {
+    hasPriceHistory: !!rawData.priceHistory,
+    priceHistoryKeys: rawData.priceHistory ? Object.keys(rawData.priceHistory) : [],
+    version: rawData.version
   });
 
-  if (data.error) {
-    throw new Error(`Oracle VM error: ${data.error}`);
+  if (rawData.error) {
+    throw new Error(`Oracle VM error: ${rawData.error}`);
   }
 
-  if (!data.priceHistory1m || !Array.isArray(data.priceHistory1m)) {
-    console.error('❌ Invalid priceHistory1m:', data.priceHistory1m);
-    data.priceHistory1m = [];
-  }
+  const data: DashboardData = {
+    version: rawData.version,
+    currentAsset: rawData.asset?.currentAsset || 0,
+    currentBTC: rawData.asset?.currentBTC,
+    currentCash: rawData.asset?.currentCash,
+    initialAsset: rawData.asset?.initialAsset || 0,
+    currentTime: rawData.currentTime || Date.now(),
+    currentPrice: rawData.currentPrice || 0,
+    priceHistory1m: rawData.priceHistory?.['1m'] || [],
+    priceHistory5m: rawData.priceHistory?.['5m'] || [],
+    priceHistory15m: rawData.priceHistory?.['15m'] || [],
+    priceHistory1h: rawData.priceHistory?.['1h'] || [],
+    pricePredictions: rawData.pricePredictions || [],
+    trades: rawData.trades || [],
+    holding: {
+      isHolding: rawData.holding?.isHolding || false,
+      buyPrice: rawData.holding?.buyPrice,
+      buyTime: rawData.holding?.buyTime,
+      currentProfit: rawData.holding?.currentProfit,
+      takeProfitPrice: rawData.holding?.takeProfitPrice,
+      stopLossPrice: rawData.holding?.stopLossPrice,
+      initialTakeProfitProb: rawData.holding?.initialTakeProfitProb,
+      currentTakeProfitProb: rawData.holding?.currentTakeProfitProb,
+      latestPrediction: rawData.holding?.latestPrediction
+    },
+    currentPrediction: rawData.currentPrediction,
+    lastPredictionUpdateTime: rawData.currentPrediction?.lastUpdateTime,
+    marketState: rawData.marketState,
+    gateWeights: rawData.gateWeights,
+    metrics: {
+      portfolioReturn: rawData.metrics?.portfolioReturn || 0,
+      marketReturn: rawData.metrics?.marketReturn || 0,
+      avgTradeReturn: rawData.metrics?.avgTradeReturn || 0,
+      takeProfitCount: rawData.metrics?.takeProfitCount || 0,
+      stopLossCount: rawData.metrics?.stopLossCount || 0
+    }
+  };
 
-  if (!data.pricePredictions || !Array.isArray(data.pricePredictions)) {
-    console.error('❌ Invalid pricePredictions:', data.pricePredictions);
-    data.pricePredictions = [];
-  }
-
-  if (data.priceHistory1m.length === 0) {
-    console.warn('⚠️ Empty priceHistory1m received from API');
-  }
+  console.log('📊 Transformed Data:', {
+    priceHistory1m: data.priceHistory1m.length,
+    priceHistory5m: data.priceHistory5m?.length || 0,
+    priceHistory15m: data.priceHistory15m?.length || 0,
+    priceHistory1h: data.priceHistory1h?.length || 0
+  });
 
   return data;
 };
