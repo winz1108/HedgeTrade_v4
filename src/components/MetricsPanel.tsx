@@ -16,7 +16,10 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     }).format(value);
   };
 
-  const formatPercent = (value: number) => {
+  const formatPercent = (value: number | undefined) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.00%';
+    }
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
@@ -345,20 +348,24 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   className="bg-gradient-to-r from-blue-500 to-cyan-400 h-2.5 rounded-full transition-all duration-500 shadow-lg shadow-blue-500/50"
                   style={{
                     width: `${
-                      (data.metrics.takeProfitCount /
-                        (data.metrics.takeProfitCount + data.metrics.stopLossCount)) *
-                      100
+                      data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
+                        ? (data.metrics.takeProfitCount /
+                            (data.metrics.takeProfitCount + data.metrics.stopLossCount)) *
+                          100
+                        : 0
                     }%`,
                   }}
                 />
               </div>
               <span className="text-sm font-bold text-cyan-400 min-w-[45px]">
                 {
-                  (
-                    (data.metrics.takeProfitCount /
-                      (data.metrics.takeProfitCount + data.metrics.stopLossCount)) *
-                    100
-                  ).toFixed(1)
+                  data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
+                    ? (
+                        (data.metrics.takeProfitCount /
+                          (data.metrics.takeProfitCount + data.metrics.stopLossCount)) *
+                        100
+                      ).toFixed(1)
+                    : '0.0'
                 }
                 %
               </span>
