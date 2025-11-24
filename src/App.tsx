@@ -4,7 +4,7 @@ import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
-import { requestNotificationPermission, sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
+import { sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
 
 
 function App() {
@@ -77,9 +77,7 @@ function App() {
     setLoading(true);
     loadData();
 
-    if (Notification.permission === 'granted') {
-      setNotificationsEnabled(true);
-    }
+    setNotificationsEnabled(true);
 
     setNotificationCallback((notification) => {
       setNotifications(prev => [...prev, notification]);
@@ -184,13 +182,8 @@ function App() {
                 })}
               </span>
               <button
-                onClick={async () => {
-                  if (!notificationsEnabled) {
-                    const granted = await requestNotificationPermission();
-                    setNotificationsEnabled(granted);
-                  } else {
-                    setNotificationsEnabled(false);
-                  }
+                onClick={() => {
+                  setNotificationsEnabled(!notificationsEnabled);
                 }}
                 className={`p-1.5 rounded transition-all duration-200 ${
                   notificationsEnabled

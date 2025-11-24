@@ -14,53 +14,9 @@ export const setNotificationCallback = (callback: NotificationCallback) => {
   notificationCallback = callback;
 };
 
-export const requestNotificationPermission = async (): Promise<boolean> => {
-  if (!('Notification' in window)) {
-    return false;
-  }
-
-  if (Notification.permission === 'granted') {
-    return true;
-  }
-
-  if (Notification.permission === 'denied') {
-    return false;
-  }
-
-  try {
-    const permission = await Notification.requestPermission();
-    return permission === 'granted';
-  } catch (error) {
-    console.error('Failed to request notification permission:', error);
-    return false;
-  }
-};
-
 const sendInAppNotification = (notification: InAppNotification) => {
   if (notificationCallback) {
     notificationCallback(notification);
-  }
-};
-
-const tryNativeNotification = (title: string, body: string, tag: string, vibrate: number[]) => {
-  if ('Notification' in window && Notification.permission === 'granted') {
-    try {
-      const notification = new Notification(title, {
-        body,
-        icon: '/favicon.png',
-        badge: '/favicon.png',
-        tag,
-        requireInteraction: false,
-        vibrate,
-      });
-
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
-    } catch (e) {
-      console.log('Native notification not supported, using in-app only');
-    }
   }
 };
 
@@ -75,8 +31,6 @@ export const sendBuyNotification = (price: number, takeProfitProb: number) => {
     message,
     timestamp: Date.now(),
   });
-
-  tryNativeNotification(title, message, 'buy-signal', [200, 100, 200]);
 };
 
 export const sendSellNotification = (type: 'profit' | 'loss', price: number, profit: number) => {
@@ -91,11 +45,4 @@ export const sendSellNotification = (type: 'profit' | 'loss', price: number, pro
     message,
     timestamp: Date.now(),
   });
-
-  tryNativeNotification(
-    title,
-    message,
-    'sell-signal',
-    isProfit ? [200, 100, 200, 100, 200] : [300, 100, 300]
-  );
 };
