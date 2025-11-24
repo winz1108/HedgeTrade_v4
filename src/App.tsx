@@ -16,12 +16,19 @@ function App() {
     try {
       setError(null);
       const dashboardData = await fetchDashboardData();
+
+      if (!dashboardData || !dashboardData.metrics) {
+        throw new Error('Invalid data structure received from API');
+      }
+
       console.log('📊 Data updated:', {
-        holding: dashboardData.holding.isHolding,
-        trades: dashboardData.trades.length,
-        TP: dashboardData.metrics.takeProfitCount,
-        SL: dashboardData.metrics.stopLossCount,
-        return: (dashboardData.metrics.portfolioReturn || 0).toFixed(2) + '%'
+        holding: dashboardData.holding?.isHolding ?? false,
+        trades: dashboardData.trades?.length ?? 0,
+        TP: dashboardData.metrics?.takeProfitCount ?? 0,
+        SL: dashboardData.metrics?.stopLossCount ?? 0,
+        return: typeof dashboardData.metrics?.portfolioReturn === 'number'
+          ? dashboardData.metrics.portfolioReturn.toFixed(2) + '%'
+          : '0.00%'
       });
       setData(dashboardData);
     } catch (error) {
