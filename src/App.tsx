@@ -21,7 +21,7 @@ function App() {
         trades: dashboardData.trades.length,
         TP: dashboardData.metrics.takeProfitCount,
         SL: dashboardData.metrics.stopLossCount,
-        return: dashboardData.metrics.portfolioReturn.toFixed(2) + '%'
+        return: (dashboardData.metrics.portfolioReturn || 0).toFixed(2) + '%'
       });
       setData(dashboardData);
     } catch (error) {

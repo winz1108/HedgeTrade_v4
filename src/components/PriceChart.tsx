@@ -409,7 +409,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const latestCandle = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1] : null;
   const firstCandle = visibleCandles.length > 0 ? visibleCandles[0] : null;
   const priceChange = latestCandle && firstCandle ? latestCandle.close - firstCandle.open : 0;
-  const priceChangePercent = latestCandle && firstCandle ? (priceChange / firstCandle.open) * 100 : 0;
+  const priceChangePercent = latestCandle && firstCandle && firstCandle.open ? (priceChange / firstCandle.open) * 100 : 0;
 
   const renderTooltip = () => {
     if (!tooltipPosition) return null;
