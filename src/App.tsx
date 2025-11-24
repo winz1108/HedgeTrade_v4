@@ -114,7 +114,7 @@ function App() {
                     key={state.key}
                     className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
                       isActive
-                        ? `${state.colors.active} font-bold shadow-lg animate-pulse`
+                        ? `${state.colors.active} font-bold shadow-lg`
                         : state.colors.inactive
                     }`}
                   >
