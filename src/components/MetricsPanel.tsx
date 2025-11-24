@@ -286,48 +286,51 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center bg-slate-700/30 p-2 rounded-lg border border-slate-600/50">
-            <span className="text-[10px] text-slate-400 font-semibold">Portfolio Return</span>
-            <span
-              className={`text-sm font-bold ${
-                data.metrics.portfolioReturn >= 0 ? 'text-emerald-400' : 'text-rose-400'
-              }`}
-            >
-              {formatPercent(data.metrics.portfolioReturn)}
-            </span>
-          </div>
+        <div className="space-y-2">
           {data.metrics.portfolioReturnWithCommission !== undefined && (
-            <div className="flex justify-between items-center bg-slate-700/30 p-2 rounded-lg border border-slate-600/50">
-              <span className="text-[10px] text-slate-400 font-semibold">Portfolio Return (w/ fee)</span>
-              <span
-                className={`text-sm font-bold ${
+            <div className="bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 p-3 rounded-lg border-2 border-emerald-500/50 shadow-lg">
+              <div className="text-[10px] text-emerald-300 font-bold mb-1 tracking-wide">ACTUAL PROFIT</div>
+              <div
+                className={`text-3xl font-black ${
                   data.metrics.portfolioReturnWithCommission >= 0 ? 'text-emerald-400' : 'text-rose-400'
                 }`}
               >
                 {formatPercent(data.metrics.portfolioReturnWithCommission)}
-              </span>
+              </div>
             </div>
           )}
-          <div className="flex justify-between items-center bg-slate-700/30 p-2 rounded-lg border border-slate-600/50">
-            <span className="text-[10px] text-slate-400 font-semibold">Market Return</span>
-            <span
-              className={`text-sm font-bold ${
-                data.metrics.marketReturn >= 0 ? 'text-emerald-400' : 'text-rose-400'
-              }`}
-            >
-              {formatPercent(data.metrics.marketReturn)}
-            </span>
-          </div>
-          <div className="flex justify-between items-center bg-slate-700/30 p-2 rounded-lg border border-slate-600/50">
-            <span className="text-[10px] text-slate-400 font-semibold">Avg Trade Return</span>
-            <span
-              className={`text-sm font-bold ${
-                data.metrics.avgTradeReturn >= 0 ? 'text-emerald-400' : 'text-rose-400'
-              }`}
-            >
-              {formatPercent(data.metrics.avgTradeReturn)}
-            </span>
+
+          <div className="space-y-1">
+            <div className="flex justify-between items-center bg-slate-700/30 p-1.5 rounded-lg border border-slate-600/50">
+              <span className="text-[9px] text-slate-400 font-semibold">Portfolio Return</span>
+              <span
+                className={`text-xs font-bold ${
+                  data.metrics.portfolioReturn >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                {formatPercent(data.metrics.portfolioReturn)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center bg-slate-700/30 p-1.5 rounded-lg border border-slate-600/50">
+              <span className="text-[9px] text-slate-400 font-semibold">Market Change</span>
+              <span
+                className={`text-xs font-bold ${
+                  data.metrics.marketReturn >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                {formatPercent(data.metrics.marketReturn)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center bg-slate-700/30 p-1.5 rounded-lg border border-slate-600/50">
+              <span className="text-[9px] text-slate-400 font-semibold">Avg Trade Return</span>
+              <span
+                className={`text-xs font-bold ${
+                  data.metrics.avgTradeReturn >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                {formatPercent(data.metrics.avgTradeReturn)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
