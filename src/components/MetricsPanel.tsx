@@ -175,28 +175,28 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
                     <div
                       className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-3 rounded-full transition-all duration-500 shadow-lg shadow-emerald-500/50"
-                      style={{ width: `${data.currentPrediction.takeProfitProb * 100}%` }}
+                      style={{ width: `${(data.currentPrediction?.takeProfitProb ?? 0) * 100}%` }}
                     />
                   </div>
                   <span className="text-sm font-bold text-emerald-400 min-w-[50px]">
-                    {(data.currentPrediction.takeProfitProb * 100).toFixed(1)}%
+                    {((data.currentPrediction?.takeProfitProb ?? 0) * 100).toFixed(1)}%
                   </span>
                 </div>
               </div>
 
-              {data.holding.isHolding && data.holding.initialTakeProfitProb !== undefined && (
+              {data.holding.isHolding && data.holding.initialTakeProfitProb !== undefined && data.currentPrediction && (
                 <div className="bg-slate-700/20 rounded-lg p-2 border border-slate-600/30">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-slate-400 font-semibold">Change</span>
                     <span
                       className={`text-sm font-bold ${
-                        (data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb!) >= 0
+                        (data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb) >= 0
                           ? 'text-emerald-400'
                           : 'text-rose-400'
                       }`}
                     >
-                      {((data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb!) * 100) >= 0 ? '+' : ''}
-                      {((data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb!) * 100).toFixed(1)}%
+                      {((data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb) * 100) >= 0 ? '+' : ''}
+                      {((data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb) * 100).toFixed(1)}%
                     </span>
                   </div>
                 </div>
