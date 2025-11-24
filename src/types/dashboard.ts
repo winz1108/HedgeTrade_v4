@@ -76,7 +76,6 @@ export interface DashboardData {
   };
   lastPredictionUpdateTime?: number;
   marketState?: MarketState;
-  gateWeights?: number[];
   metrics: {
     portfolioReturn: number;
     marketReturn: number;
