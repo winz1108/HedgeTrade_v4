@@ -91,13 +91,25 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const chartHeight = priceChartHeight + macdChartHeight + rsiChartHeight + volumeChartHeight + 32;
 
   const candlesByTimeframe = useMemo(() => {
-    const base1m = [...data.priceHistory1m, ...data.pricePredictions];
+    console.log('🔄 Recalculating candlesByTimeframe:', {
+      priceHistory1m_length: data.priceHistory1m?.length || 0,
+      pricePredictions_length: data.pricePredictions?.length || 0,
+      priceHistory5m_length: data.priceHistory5m?.length || 0,
+      priceHistory15m_length: data.priceHistory15m?.length || 0,
+      priceHistory1h_length: data.priceHistory1h?.length || 0
+    });
+
+    const validHistory1m = Array.isArray(data.priceHistory1m) ? data.priceHistory1m : [];
+    const validPredictions = Array.isArray(data.pricePredictions) ? data.pricePredictions : [];
+    const base1m = [...validHistory1m, ...validPredictions];
+
+    console.log('📊 base1m length:', base1m.length);
 
     return {
       '1m': base1m,
-      '5m': data.priceHistory5m ? [...data.priceHistory5m, ...data.pricePredictions] : aggregateCandlesToTimeframe(base1m, 5),
-      '15m': data.priceHistory15m ? [...data.priceHistory15m, ...data.pricePredictions] : aggregateCandlesToTimeframe(base1m, 15),
-      '1h': data.priceHistory1h ? [...data.priceHistory1h, ...data.pricePredictions] : aggregateCandlesToTimeframe(base1m, 60),
+      '5m': data.priceHistory5m ? [...data.priceHistory5m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 5),
+      '15m': data.priceHistory15m ? [...data.priceHistory15m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 15),
+      '1h': data.priceHistory1h ? [...data.priceHistory1h, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 60),
     };
   }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory1h, data.pricePredictions]);
 

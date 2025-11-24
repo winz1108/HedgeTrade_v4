@@ -24,6 +24,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   console.log('📡 API Response:', {
     hasMarketState: !!data.marketState,
     hasGateWeights: !!data.gateWeights,
+    priceHistory1m: data.priceHistory1m?.length || 0,
+    pricePredictions: data.pricePredictions?.length || 0,
     marketState: data.marketState,
     gateWeights: data.gateWeights
   });
@@ -32,12 +34,18 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     throw new Error(`Oracle VM error: ${data.error}`);
   }
 
-  if (!data.priceHistory1m) {
+  if (!data.priceHistory1m || !Array.isArray(data.priceHistory1m)) {
+    console.error('❌ Invalid priceHistory1m:', data.priceHistory1m);
     data.priceHistory1m = [];
   }
 
-  if (!data.pricePredictions) {
+  if (!data.pricePredictions || !Array.isArray(data.pricePredictions)) {
+    console.error('❌ Invalid pricePredictions:', data.pricePredictions);
     data.pricePredictions = [];
+  }
+
+  if (data.priceHistory1m.length === 0) {
+    console.warn('⚠️ Empty priceHistory1m received from API');
   }
 
   return data;

@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
         headers: {
           "Content-Type": "application/json",
         },
-        signal: AbortSignal.timeout(5000), // 5초 타임아웃
+        signal: AbortSignal.timeout(5000),
       });
 
       console.log("Oracle VM response status:", response.status);
@@ -65,7 +65,6 @@ Deno.serve(async (req: Request) => {
     } catch (fetchError) {
       console.error("Oracle VM unreachable, returning mock data:", fetchError);
 
-      // Oracle VM이 응답하지 않으면 모의 데이터 반환
       const mockData = {
         version: "mock",
         currentAsset: 10000,
@@ -116,7 +115,7 @@ Deno.serve(async (req: Request) => {
       }
     );
   }
-}
+});
 
 function generateMockCandles(count: number) {
   const candles = [];
@@ -136,7 +135,15 @@ function generateMockCandles(count: number) {
       high: parseFloat(high.toFixed(2)),
       low: parseFloat(low.toFixed(2)),
       close: parseFloat(close.toFixed(2)),
-      volume: parseFloat((Math.random() * 100 + 50).toFixed(2))
+      volume: parseFloat((Math.random() * 100 + 50).toFixed(2)),
+      ema20: parseFloat((price * (1 + (Math.random() - 0.5) * 0.002)).toFixed(2)),
+      ema50: parseFloat((price * (1 + (Math.random() - 0.5) * 0.003)).toFixed(2)),
+      bb_upper: parseFloat((price * 1.02).toFixed(2)),
+      bb_lower: parseFloat((price * 0.98).toFixed(2)),
+      macd: parseFloat(((Math.random() - 0.5) * 20).toFixed(2)),
+      signal: parseFloat(((Math.random() - 0.5) * 18).toFixed(2)),
+      histogram: parseFloat(((Math.random() - 0.5) * 10).toFixed(2)),
+      rsi: parseFloat((30 + Math.random() * 40).toFixed(1))
     });
 
     price = close;
@@ -144,4 +151,3 @@ function generateMockCandles(count: number) {
 
   return candles;
 }
-});
