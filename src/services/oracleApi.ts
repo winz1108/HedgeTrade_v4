@@ -1,16 +1,17 @@
 import { DashboardData } from '../types/dashboard';
 
-const getEdgeFunctionUrl = () => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL;
-  return `${supabaseUrl}/functions/v1/oracle-proxy`;
+const getProxyUrl = () => {
+  if (import.meta.env.DEV) {
+    return '/.netlify/functions/oracle-proxy';
+  }
+  return '/.netlify/functions/oracle-proxy';
 };
 
 export const fetchDashboardData = async (): Promise<DashboardData> => {
-  const url = `${getEdgeFunctionUrl()}?endpoint=${encodeURIComponent('/api/dashboard')}`;
+  const url = `${getProxyUrl()}?endpoint=${encodeURIComponent('/api/dashboard')}`;
 
   const response = await fetch(url, {
     headers: {
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
     },
   });
