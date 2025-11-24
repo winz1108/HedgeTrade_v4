@@ -102,11 +102,11 @@ function App() {
             <span className="text-[10px] text-slate-400 mr-1 whitespace-nowrap">Market:</span>
             <div className="flex gap-1">
               {[
-                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-600 text-white border-emerald-400', inactive: 'bg-emerald-950/40 text-emerald-700/50 border-emerald-900/50' } },
-                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-300', inactive: 'bg-emerald-950/30 text-emerald-700/40 border-emerald-900/40' } },
-                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-500 text-white border-amber-300', inactive: 'bg-amber-950/30 text-amber-700/40 border-amber-900/40' } },
-                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-rose-500 text-white border-rose-300', inactive: 'bg-rose-950/30 text-rose-700/40 border-rose-900/40' } },
-                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-600 text-white border-rose-400', inactive: 'bg-rose-950/40 text-rose-700/50 border-rose-900/50' } }
+                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/50', inactive: 'bg-slate-700/50 text-emerald-600/60 border-slate-600' } },
+                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-teal-500 text-white border-teal-400 shadow-teal-500/50', inactive: 'bg-slate-700/50 text-teal-600/60 border-slate-600' } },
+                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-500 text-white border-amber-400 shadow-amber-500/50', inactive: 'bg-slate-700/50 text-amber-600/60 border-slate-600' } },
+                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-orange-500 text-white border-orange-400 shadow-orange-500/50', inactive: 'bg-slate-700/50 text-orange-600/60 border-slate-600' } },
+                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-500 text-white border-rose-400 shadow-rose-500/50', inactive: 'bg-slate-700/50 text-rose-600/60 border-slate-600' } }
               ].map((state) => {
                 const isActive = state.value > 0.5;
                 return (
@@ -114,7 +114,7 @@ function App() {
                     key={state.key}
                     className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
                       isActive
-                        ? `${state.colors.active} font-bold shadow-lg`
+                        ? `${state.colors.active} font-bold shadow-lg animate-pulse`
                         : state.colors.inactive
                     }`}
                   >
