@@ -22,6 +22,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
   const rawData = await response.json();
 
+  // 🚨 전체 응답 덤프
+  console.log('🚨 FULL RAW DATA:', JSON.stringify(rawData, null, 2));
+
   console.log('📡 API Response:', {
     cacheStatus: rawData.cacheStatus,
     priceHistory: {
