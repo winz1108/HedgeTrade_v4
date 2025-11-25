@@ -67,6 +67,8 @@ export interface DashboardData {
   priceHistory5m?: Candle[];
   priceHistory15m?: Candle[];
   priceHistory1h?: Candle[];
+  priceHistory4h?: Candle[];
+  priceHistory1d?: Candle[];
   pricePredictions: Candle[];
   trades: TradeEvent[];
   holding: HoldingInfo;

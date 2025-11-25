@@ -60,7 +60,9 @@ function App() {
           '1m': dashboardData.priceHistory1m?.length || 0,
           '5m': dashboardData.priceHistory5m?.length || 0,
           '15m': dashboardData.priceHistory15m?.length || 0,
-          '1h': dashboardData.priceHistory1h?.length || 0
+          '1h': dashboardData.priceHistory1h?.length || 0,
+          '4h': dashboardData.priceHistory4h?.length || 0,
+          '1d': dashboardData.priceHistory1d?.length || 0
         },
         holding: dashboardData.holding?.isHolding ?? false,
         trades: dashboardData.trades?.length ?? 0

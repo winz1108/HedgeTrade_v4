@@ -8,7 +8,7 @@ interface PriceChartProps {
   onTradeHover: (trade: TradeEvent | null) => void;
 }
 
-type Timeframe = '1m' | '5m' | '15m' | '1h';
+type Timeframe = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
 
 function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): Candle[] {
   if (minutes === 1) {
@@ -100,8 +100,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       '5m': data.priceHistory5m ? [...data.priceHistory5m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 5),
       '15m': data.priceHistory15m ? [...data.priceHistory15m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 15),
       '1h': data.priceHistory1h ? [...data.priceHistory1h, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 60),
+      '4h': data.priceHistory4h ? [...data.priceHistory4h, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 240),
+      '1d': data.priceHistory1d ? [...data.priceHistory1d, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 1440),
     };
-  }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory1h, data.pricePredictions]);
+  }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory1h, data.priceHistory4h, data.priceHistory1d, data.pricePredictions]);
 
   const selectedCandles = candlesByTimeframe[timeframe];
 
@@ -996,7 +998,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
           <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5">
-            {(['1m', '5m', '15m', '1h'] as const).map((tf) => (
+            {(['1m', '5m', '15m', '1h', '4h', '1d'] as const).map((tf) => (
               <button
                 key={tf}
                 onClick={() => {
