@@ -51,7 +51,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const [scrollOffset, setScrollOffset] = useState(0);
   const [resetScroll, setResetScroll] = useState(0);
   const [candleWidth, setCandleWidth] = useState(10);
-  const [timeframe, setTimeframe] = useState<Timeframe>('1m');
+  const [timeframe, setTimeframe] = useState<Timeframe>('5m');
   const [volumeHeight, setVolumeHeight] = useState(60);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number; trade: TradeEvent; hasPairedSell: boolean; pairedTrade?: TradeEvent } | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
