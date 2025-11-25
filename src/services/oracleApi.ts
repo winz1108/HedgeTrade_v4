@@ -28,7 +28,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       '1m': rawData.priceHistory?.['1m']?.length || 0,
       '5m': rawData.priceHistory?.['5m']?.length || 0,
       '15m': rawData.priceHistory?.['15m']?.length || 0,
-      '1h': rawData.priceHistory?.['1h']?.length || 0
+      '1h': rawData.priceHistory?.['1h']?.length || 0,
+      '4h': rawData.priceHistory?.['4h']?.length || 0,
+      '1d': rawData.priceHistory?.['1d']?.length || 0
     },
     sample1m: rawData.priceHistory?.['1m']?.[0] || 'none',
     hasPriceHistory: !!rawData.priceHistory,
@@ -52,6 +54,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       priceHistory5m: rawData.priceHistory?.['5m'] || [],
       priceHistory15m: rawData.priceHistory?.['15m'] || [],
       priceHistory1h: rawData.priceHistory?.['1h'] || [],
+      priceHistory4h: rawData.priceHistory?.['4h'] || [],
+      priceHistory1d: rawData.priceHistory?.['1d'] || [],
       pricePredictions: rawData.pricePredictions || [],
       trades: rawData.trades || [],
       holding: {
