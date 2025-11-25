@@ -1595,11 +1595,31 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 if (!showLabel) return null;
 
                 const date = new Date(candle.timestamp);
-                const timeLabel = date.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: false
-                });
+                let timeLabel: string;
+
+                if (timeframe === '1d') {
+                  timeLabel = `${date.getMonth() + 1}-${date.getDate()}`;
+                } else if (timeframe === '4h') {
+                  const totalVisibleWidth = visibleCandles.length * (candleWidth + candleGap);
+                  const chartWidth = containerRef.current?.offsetWidth || 1200;
+                  const zoomLevel = totalVisibleWidth / chartWidth;
+
+                  if (zoomLevel > 2) {
+                    timeLabel = `${date.getMonth() + 1}-${date.getDate()}`;
+                  } else {
+                    timeLabel = date.toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false
+                    });
+                  }
+                } else {
+                  timeLabel = date.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                  });
+                }
 
                 return (
                   <div
