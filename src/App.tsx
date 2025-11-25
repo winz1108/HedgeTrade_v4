@@ -54,9 +54,6 @@ function App() {
 
       previousHoldingState.current = dashboardData.holding.isHolding;
 
-      // 🚨 긴급: 4h/1d 데이터 확인
-      alert(`App.tsx에서 받은 데이터:\n4h: ${dashboardData.priceHistory4h?.length || 0}개\n1d: ${dashboardData.priceHistory1d?.length || 0}개`);
-
       setData(dashboardData);
 
       console.log('📊 Data loaded:', {
