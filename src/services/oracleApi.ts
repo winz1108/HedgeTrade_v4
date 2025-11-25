@@ -37,6 +37,14 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     priceHistoryKeys: rawData.priceHistory ? Object.keys(rawData.priceHistory) : []
   });
 
+  // 🔍 4h와 1d 데이터 상세 확인
+  console.log('🔍 4h 데이터 타입:', typeof rawData.priceHistory?.['4h']);
+  console.log('🔍 4h 데이터 Array.isArray:', Array.isArray(rawData.priceHistory?.['4h']));
+  console.log('🔍 4h 첫 3개:', rawData.priceHistory?.['4h']?.slice(0, 3));
+  console.log('🔍 1d 데이터 타입:', typeof rawData.priceHistory?.['1d']);
+  console.log('🔍 1d 데이터 Array.isArray:', Array.isArray(rawData.priceHistory?.['1d']));
+  console.log('🔍 1d 첫 3개:', rawData.priceHistory?.['1d']?.slice(0, 3));
+
   if (rawData.error) {
     throw new Error(`Oracle VM error: ${rawData.error}`);
   }
