@@ -998,23 +998,27 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
           <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5">
-            {(['1m', '5m', '15m', '1h', '4h', '1d'] as const).map((tf) => (
-              <button
-                key={tf}
-                onClick={() => {
-                  setTimeframe(tf);
-                  setScrollOffset(0);
-                  setResetScroll(prev => prev + 1);
-                }}
-                className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
-                  timeframe === tf
-                    ? 'bg-slate-600 text-white shadow-inner'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-              >
-                {tf}
-              </button>
-            ))}
+            {(['1m', '5m', '15m', '1h', '4h', '1d'] as const).map((tf) => {
+              console.log('🔵 Rendering timeframe button:', tf);
+              return (
+                <button
+                  key={tf}
+                  onClick={() => {
+                    console.log('🔵 Clicked timeframe:', tf);
+                    setTimeframe(tf);
+                    setScrollOffset(0);
+                    setResetScroll(prev => prev + 1);
+                  }}
+                  className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
+                    timeframe === tf
+                      ? 'bg-slate-600 text-white shadow-inner'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }`}
+                >
+                  {tf}
+                </button>
+              );
+            })}
           </div>
           <button
             onClick={handleZoomOut}
