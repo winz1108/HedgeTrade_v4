@@ -28,10 +28,12 @@ GET /oracle/state
   currentTime: number;            // REQUIRED: 새로운 분봉이 업데이트된 시간 (Unix timestamp ms)
   currentPrice: number;           // Current BTC price in USD
 
-  priceHistory1m: Candle[];       // 1-minute candle data (required)
-  priceHistory5m?: Candle[];      // 5-minute candle data (optional)
-  priceHistory15m?: Candle[];     // 15-minute candle data (optional)
-  priceHistory1h?: Candle[];      // 1-hour candle data (optional)
+  priceHistory1m: Candle[];       // 1-minute candle data (required, min 500 candles)
+  priceHistory5m?: Candle[];      // 5-minute candle data (optional, min 500 candles)
+  priceHistory15m?: Candle[];     // 15-minute candle data (optional, min 500 candles)
+  priceHistory1h?: Candle[];      // 1-hour candle data (optional, min 500 candles)
+  priceHistory4h?: Candle[];      // 4-hour candle data (optional, min 500 candles)
+  priceHistory1d?: Candle[];      // 1-day candle data (optional, min 500 candles)
 
   pricePredictions: Candle[];     // Future price predictions (same format as candles)
 
@@ -341,6 +343,141 @@ If anything is unclear, refer to:
 - `/src/App.tsx` for header time display
 - `/src/components/PriceChart.tsx` for chart tooltip implementation
 
+## Historical Data Requirements
+
+### 캔들 데이터 최소 요구사항
+
+각 타임프레임별로 **최소 500개의 캔들**을 제공해야 합니다:
+
+| Timeframe | Min Candles | Time Coverage | Example |
+|-----------|-------------|---------------|---------|
+| 1m | 500 | ~8 hours | 500분 = 8.3시간 |
+| 5m | 500 | ~42 hours | 2,500분 = 1.75일 |
+| 15m | 500 | ~5 days | 7,500분 = 5.2일 |
+| 1h | 500 | ~21 days | 30,000분 = 20.8일 |
+| 4h | 500 | ~83 days | 120,000분 = 83.3일 |
+| 1d | 500 | ~500 days | 720,000분 = 500일 |
+
+### 왜 500개가 필요한가?
+
+- 차트에서 줌 아웃/스크롤 기능을 위해 충분한 히스토리 필요
+- 기술적 지표 계산 (MA, EMA, BB 등)을 위한 충분한 데이터
+- 사용자가 과거 패턴을 분석할 수 있도록
+
+### 데이터 수집 방법
+
+#### 바이낸스 API 사용 예시:
+
+```python
+import requests
+
+def fetch_binance_klines(symbol: str, interval: str, limit: int = 500):
+    """
+    바이낸스에서 캔들 데이터 가져오기
+
+    Args:
+        symbol: "BTCUSDT"
+        interval: "1m", "5m", "15m", "1h", "4h", "1d"
+        limit: 캔들 개수 (최대 1000)
+    """
+    url = "https://api.binance.com/api/v3/klines"
+    params = {
+        "symbol": symbol,
+        "interval": interval,
+        "limit": limit
+    }
+
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+
+    klines = response.json()
+
+    candles = []
+    for k in klines:
+        candles.append({
+            "timestamp": k[0],  # 이미 밀리초 단위
+            "open": float(k[1]),
+            "high": float(k[2]),
+            "low": float(k[3]),
+            "close": float(k[4]),
+            "volume": float(k[5]),
+            # 여기에 기술적 지표 추가 (EMA, BB, MACD, RSI 등)
+        })
+
+    return candles
+
+# 사용 예시
+candles_1m = fetch_binance_klines("BTCUSDT", "1m", 500)
+candles_5m = fetch_binance_klines("BTCUSDT", "5m", 500)
+candles_15m = fetch_binance_klines("BTCUSDT", "15m", 500)
+candles_1h = fetch_binance_klines("BTCUSDT", "1h", 500)
+candles_4h = fetch_binance_klines("BTCUSDT", "4h", 500)
+candles_1d = fetch_binance_klines("BTCUSDT", "1d", 500)
+```
+
+#### 캐싱 전략:
+
+1. **초기 로드**: 서버 시작 시 모든 타임프레임의 500개 캔들 다운로드
+2. **주기적 업데이트**:
+   - 1m: 매 1분마다 새 캔들 추가
+   - 5m, 15m, 1h, 4h, 1d: 해당 타임프레임 완료 시 추가
+3. **메모리 관리**: 항상 최신 500개만 유지 (오래된 것 삭제)
+
+#### 응답 예시 구조:
+
+```json
+{
+  "priceHistory1m": [
+    {
+      "timestamp": 1700000000000,
+      "open": 95100.5,
+      "high": 95150.2,
+      "low": 95080.1,
+      "close": 95120.8,
+      "volume": 125.5,
+      "ema20": 95110.2,
+      "ema50": 95080.5,
+      "bb_upper": 95200.0,
+      "bb_lower": 95000.0,
+      "macd": 12.5,
+      "signal": 10.2,
+      "histogram": 2.3,
+      "rsi": 58.5
+    }
+    // ... 499개 더
+  ],
+  "priceHistory4h": [
+    {
+      "timestamp": 1700000000000,
+      "open": 95000.0,
+      "high": 95500.0,
+      "low": 94800.0,
+      "close": 95120.8,
+      "volume": 30125.5,
+      "ema20": 95050.2,
+      "ema50": 94900.5,
+      "bb_upper": 95600.0,
+      "bb_lower": 94500.0,
+      "macd": 25.5,
+      "signal": 20.2,
+      "histogram": 5.3,
+      "rsi": 62.5
+    }
+    // ... 499개 더
+  ],
+  "priceHistory1d": [
+    // ... 500개 캔들
+  ]
+}
+```
+
+### 주의사항
+
+1. **모든 타임스탬프는 밀리초 단위**: `int(time.time() * 1000)`
+2. **기술적 지표 포함**: MACD, RSI는 차트에 표시되므로 반드시 포함
+3. **메모리 최적화**: 프론트엔드가 필요한 타임프레임만 요청하도록 선택적 제공
+4. **초기 로딩 시간**: 500개 캔들 다운로드는 서버 시작 시 한 번만 수행
+
 ## 백엔드 개발자에게
 
 이 스펙을 커서(Cursor)에게 전달할 때:
@@ -349,5 +486,6 @@ If anything is unclear, refer to:
 2. `currentPrediction`과 `lastPredictionUpdateTime`은 항상 함께 제공
 3. 밀리초 단위 타임스탬프 사용
 4. 1분마다 업데이트되는 데이터에 최신 예측 포함
+5. **각 타임프레임별로 최소 500개 캔들 제공** (특히 4h, 1d)
 
 이 API가 제대로 작동해야 대시보드가 작동합니다!
