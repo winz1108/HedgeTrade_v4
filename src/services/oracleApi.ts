@@ -48,6 +48,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   console.log('🔍 1d 데이터 Array.isArray:', Array.isArray(rawData.priceHistory?.['1d']));
   console.log('🔍 1d 첫 3개:', rawData.priceHistory?.['1d']?.slice(0, 3));
 
+  // 🎯 익절확률 확인
+  console.log('🎯 익절확률 데이터:', {
+    isHolding: rawData.holding?.isHolding,
+    initialTakeProfitProb: rawData.holding?.initialTakeProfitProb,
+    currentTakeProfitProb: rawData.holding?.currentTakeProfitProb,
+    currentPrediction: rawData.currentPrediction,
+    lastPredictionUpdateTime: rawData.lastPredictionUpdateTime
+  });
+
   if (rawData.error) {
     throw new Error(`Oracle VM error: ${rawData.error}`);
   }
