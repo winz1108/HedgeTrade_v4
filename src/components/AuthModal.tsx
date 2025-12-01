@@ -22,6 +22,9 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
+  const [apiKeysSuccess, setApiKeysSuccess] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   if (!isOpen) return null;
 
@@ -29,6 +32,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setLoginSuccess(false);
 
     try {
       const response = await fetch('/.netlify/functions/oracle-proxy?endpoint=' + encodeURIComponent('/api/auth/login'), {
@@ -45,10 +49,17 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       }
 
       if (data.hasApiKeys === false) {
-        setMode('apikeys');
+        setSignupSuccess(true);
+        setTimeout(() => {
+          setMode('apikeys');
+          setSignupSuccess(false);
+        }, 1000);
       } else {
-        onSuccess();
-        onClose();
+        setLoginSuccess(true);
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1000);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -60,6 +71,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSignupSuccess(false);
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -82,7 +94,11 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         throw new Error(data.error || 'Signup failed');
       }
 
-      setMode('apikeys');
+      setSignupSuccess(true);
+      setTimeout(() => {
+        setMode('apikeys');
+        setSignupSuccess(false);
+      }, 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {
@@ -94,6 +110,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setApiKeysSuccess(false);
 
     try {
       const response = await fetch('/.netlify/functions/oracle-proxy?endpoint=' + encodeURIComponent('/api/auth/apikeys'), {
@@ -109,8 +126,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         throw new Error(data.error || 'Failed to save API keys');
       }
 
-      onSuccess();
-      onClose();
+      setApiKeysSuccess(true);
+
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save API keys');
     } finally {
@@ -186,6 +207,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
           {mode === 'login' && (
             <form onSubmit={handleLogin} className="space-y-4">
+              {loginSuccess && (
+                <div className="p-3 bg-green-500/10 border border-green-500/50 rounded text-green-400 text-sm">
+                  ✓ Login successful! Loading dashboard...
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Email
@@ -236,10 +263,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded font-medium transition-colors"
+                disabled={loading || loginSuccess}
+                className={`w-full py-2 text-white rounded font-medium transition-all ${
+                  loginSuccess
+                    ? 'bg-green-600 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700'
+                }`}
               >
-                {loading ? 'Logging in...' : 'Login'}
+                {loginSuccess ? '✓ Success' : loading ? 'Logging in...' : 'Login'}
               </button>
 
               <div className="flex justify-between text-sm text-slate-400">
@@ -266,6 +297,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
           {mode === 'signup' && (
             <form onSubmit={handleSignup} className="space-y-4">
+              {signupSuccess && (
+                <div className="p-3 bg-green-500/10 border border-green-500/50 rounded text-green-400 text-sm">
+                  ✓ Account created! Setting up your profile...
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Email
@@ -318,10 +355,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded font-medium transition-colors"
+                disabled={loading || signupSuccess}
+                className={`w-full py-2 text-white rounded font-medium transition-all ${
+                  signupSuccess
+                    ? 'bg-green-600 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700'
+                }`}
               >
-                {loading ? 'Creating account...' : 'Sign Up'}
+                {signupSuccess ? '✓ Success' : loading ? 'Creating account...' : 'Sign Up'}
               </button>
 
               <div className="text-center text-sm text-slate-400">
@@ -339,9 +380,15 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
           {mode === 'apikeys' && (
             <form onSubmit={handleApiKeys} className="space-y-4">
-              <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/50 rounded text-blue-400 text-sm">
-                Enter your Binance API keys to start trading
-              </div>
+              {apiKeysSuccess ? (
+                <div className="mb-4 p-3 bg-green-500/10 border border-green-500/50 rounded text-green-400 text-sm">
+                  API keys saved successfully! Redirecting to dashboard...
+                </div>
+              ) : (
+                <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/50 rounded text-blue-400 text-sm">
+                  Enter your Binance API keys to start trading
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -391,10 +438,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded font-medium transition-colors"
+                disabled={loading || apiKeysSuccess}
+                className={`w-full py-2 text-white rounded font-medium transition-all ${
+                  apiKeysSuccess
+                    ? 'bg-green-600 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700'
+                }`}
               >
-                {loading ? 'Saving...' : 'Save API Keys'}
+                {apiKeysSuccess ? '✓ Saved Successfully' : loading ? 'Saving...' : 'Save API Keys'}
               </button>
             </form>
           )}
