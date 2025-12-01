@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
-import { RefreshCw, Bell, BellOff, X } from 'lucide-react';
+import { RefreshCw, Bell, BellOff, X, LogIn } from 'lucide-react';
+import { useAuth } from './contexts/AuthContext';
+import { LoginModal } from './components/LoginModal';
 import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
@@ -8,12 +10,14 @@ import { sendBuyNotification, sendSellNotification, setNotificationCallback, InA
 
 
 function App() {
+  const { user, isAuthenticated, isLoading: authLoading, login, logout } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const previousHoldingState = useRef<boolean>(false);
   const lastTradeCount = useRef<number>(0);
 
@@ -99,7 +103,7 @@ function App() {
   }, []);
 
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
         <div className="text-center">
@@ -184,19 +188,37 @@ function App() {
                   second: '2-digit'
                 })}
               </span>
-              <button
-                onClick={() => {
-                  setNotificationsEnabled(!notificationsEnabled);
-                }}
-                className={`p-1.5 rounded transition-all duration-200 ${
-                  notificationsEnabled
-                    ? 'text-emerald-400 hover:bg-emerald-500/10'
-                    : 'text-slate-500 hover:bg-slate-700/50'
-                }`}
-                title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
-              >
-                {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
-              </button>
+              {isAuthenticated && (
+                <button
+                  onClick={() => {
+                    setNotificationsEnabled(!notificationsEnabled);
+                  }}
+                  className={`p-1.5 rounded transition-all duration-200 ${
+                    notificationsEnabled
+                      ? 'text-emerald-400 hover:bg-emerald-500/10'
+                      : 'text-slate-500 hover:bg-slate-700/50'
+                  }`}
+                  title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
+                >
+                  {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
+                </button>
+              )}
+              {isAuthenticated ? (
+                <button
+                  onClick={logout}
+                  className="px-3 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-white rounded transition-colors"
+                >
+                  Logout
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors flex items-center gap-1"
+                >
+                  <LogIn className="w-3 h-3" />
+                  Login
+                </button>
+              )}
             </div>
           </div>
 
@@ -228,19 +250,45 @@ function App() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
-          <div className="flex flex-col gap-2 order-2 lg:order-1">
-            <MetricsPanel data={data} position="left" />
+        {isAuthenticated ? (
+          <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
+            <div className="flex flex-col gap-2 order-2 lg:order-1">
+              <MetricsPanel data={data} position="left" />
+            </div>
+            <div className="min-w-0 order-1 lg:order-2">
+              <PriceChart data={data} onTradeHover={setHoveredTrade} />
+            </div>
+            <div className="flex flex-col gap-2 order-3 lg:order-3">
+              <MetricsPanel data={data} position="right" />
+              <MetricsPanel data={data} position="trades" />
+            </div>
           </div>
-          <div className="min-w-0 order-1 lg:order-2">
-            <PriceChart data={data} onTradeHover={setHoveredTrade} />
+        ) : (
+          <div className="flex flex-col items-center">
+            <div className="w-full max-w-7xl">
+              <PriceChart data={data} onTradeHover={setHoveredTrade} />
+            </div>
+            <div className="mt-8 text-center">
+              <p className="text-slate-400 text-sm mb-4">Login to view detailed trading information and metrics</p>
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 mx-auto"
+              >
+                <LogIn className="w-4 h-4" />
+                Login to View More
+              </button>
+            </div>
           </div>
-          <div className="flex flex-col gap-2 order-3 lg:order-3">
-            <MetricsPanel data={data} position="right" />
-            <MetricsPanel data={data} position="trades" />
-          </div>
-        </div>
+        )}
       </div>
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLogin={async (email, password, autoLogin) => {
+          await login(email, password, autoLogin);
+          setIsLoginModalOpen(false);
+        }}
+      />
     </div>
   );
 }
