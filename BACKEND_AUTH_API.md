@@ -240,8 +240,59 @@ users = {
 
 Return dashboard data with authentication status.
 
+**⚠️ CRITICAL: Each user MUST see their OWN trading data!**
+
 **Request:**
 No body (uses session cookie)
+
+**Backend Flow:**
+```python
+# 1. Get user from session
+session_id = request.cookies.get('session_id')
+user = get_user_from_session(session_id)
+
+if not user:
+    return {
+        "isAuthenticated": False,
+        "hasApiKeys": False,
+        "currentPrice": <market_price>,
+        "currentTime": <timestamp>,
+        # ... only market data, no user-specific data
+    }
+
+# 2. Check if user has API keys
+has_api_keys = user['api_key'] is not None and user['api_key'] != ''
+
+if not has_api_keys:
+    return {
+        "isAuthenticated": True,
+        "hasApiKeys": False,
+        "currentPrice": <market_price>,
+        "currentTime": <timestamp>,
+        # ... only market data, no trading data
+    }
+
+# 3. Get user's trading data using THEIR API keys
+api_key = user['api_key']
+secret_key = decrypt(user['secret_key_encrypted'])
+
+# 4. Call Oracle VM with THIS USER'S API keys
+# The Oracle VM MUST use these API keys to fetch Binance account data
+oracle_response = call_oracle_vm(api_key, secret_key)
+
+# 5. Return user-specific data
+return {
+    "isAuthenticated": True,
+    "hasApiKeys": True,
+    "currentPrice": oracle_response['currentPrice'],
+    "currentTime": oracle_response['currentTime'],
+    "asset": oracle_response['asset'],  # ← THIS USER'S asset
+    "holding": oracle_response['holding'],  # ← THIS USER'S positions
+    "trades": oracle_response['trades'],  # ← THIS USER'S trades
+    "metrics": oracle_response['metrics'],  # ← THIS USER'S metrics
+    # ...
+}
+```
 
 **Response (Success - 200):**
 ```json
@@ -280,6 +331,12 @@ No body (uses session cookie)
 }
 ```
 
+**⚠️ IMPORTANT:**
+- Each user sees ONLY their own trading data
+- Data is fetched using each user's unique Binance API keys
+- NO CACHING between different users
+- Session cookie identifies which user is making the request
+
 **If NOT authenticated:**
 ```json
 {
@@ -295,20 +352,96 @@ No body (uses session cookie)
 }
 ```
 
-**Backend Logic:**
+**Complete Backend Implementation:**
 ```python
-# In /api/dashboard endpoint
-session_id = request.cookies.get('session_id')
-user = get_user_from_session(session_id)
+def get_dashboard(request):
+    # 1. Get session and user
+    session_id = request.cookies.get('session_id')
+    user = get_user_from_session(session_id)
 
-if user:
+    # 2. Get market data (price history, current price) - same for all users
+    market_data = get_market_data()
+
+    # 3. If not authenticated, return only market data
+    if not user:
+        return {
+            **market_data,
+            "isAuthenticated": False,
+            "hasApiKeys": False,
+            "asset": {"currentAsset": 0, "initialAsset": 0},
+            "holding": {"isHolding": False},
+            "trades": [],
+            "metrics": {
+                "portfolioReturn": 0,
+                "marketReturn": 0,
+                "avgTradeReturn": 0,
+                "takeProfitCount": 0,
+                "stopLossCount": 0
+            }
+        }
+
+    # 4. Check if user has API keys
     has_api_keys = user['api_key'] is not None and user['api_key'] != ''
-    response_data['isAuthenticated'] = True
-    response_data['hasApiKeys'] = has_api_keys
-else:
-    response_data['isAuthenticated'] = False
-    response_data['hasApiKeys'] = False
+
+    if not has_api_keys:
+        return {
+            **market_data,
+            "isAuthenticated": True,
+            "hasApiKeys": False,
+            "asset": {"currentAsset": 0, "initialAsset": 0},
+            "holding": {"isHolding": False},
+            "trades": [],
+            "metrics": {
+                "portfolioReturn": 0,
+                "marketReturn": 0,
+                "avgTradeReturn": 0,
+                "takeProfitCount": 0,
+                "stopLossCount": 0
+            }
+        }
+
+    # 5. Get THIS USER'S trading data from Oracle VM
+    api_key = user['api_key']
+    secret_key = decrypt(user['secret_key_encrypted'])
+
+    # ⚠️ CRITICAL: Pass user's API keys to Oracle VM
+    # Oracle VM will use these keys to fetch Binance account data
+    user_trading_data = call_oracle_vm(api_key, secret_key)
+
+    # 6. Return complete data with user's trading info
+    return {
+        **market_data,
+        "isAuthenticated": True,
+        "hasApiKeys": True,
+        "asset": user_trading_data['asset'],  # User's asset
+        "holding": user_trading_data['holding'],  # User's positions
+        "trades": user_trading_data['trades'],  # User's trades
+        "metrics": user_trading_data['metrics'],  # User's metrics
+        "currentPrediction": user_trading_data.get('currentPrediction'),
+        "lastPredictionUpdateTime": user_trading_data.get('lastPredictionUpdateTime')
+    }
+
+def call_oracle_vm(api_key: str, secret_key: str):
+    """
+    Call Oracle VM with user's Binance API keys.
+    Oracle VM will:
+    1. Connect to Binance using these keys
+    2. Fetch account balance, positions, trade history
+    3. Run trading algorithm
+    4. Return user-specific data
+    """
+    response = requests.post('http://oracle-vm:5000/api/dashboard', json={
+        'api_key': api_key,
+        'secret_key': secret_key
+    })
+    return response.json()
 ```
+
+**⚠️ Data Isolation:**
+- User A with API Key 1 → Gets trading data from Binance Account 1
+- User B with API Key 2 → Gets trading data from Binance Account 2
+- NO shared cache between users
+- Each request uses that user's unique API keys
 
 ## Database Schema
 
