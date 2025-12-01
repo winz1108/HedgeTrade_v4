@@ -6,7 +6,8 @@ This document specifies the authentication API endpoints that the backend must i
 
 1. **Sign Up** → **API Keys** → Dashboard with full access
 2. **Login** → Dashboard with full access
-3. **Logout** → Dashboard with chart only
+3. **Password Reset** → Login with new password
+4. **Logout** → Dashboard with chart only
 
 ## Session Management
 
@@ -154,7 +155,60 @@ users = {
 }
 ```
 
-### 5. GET /api/dashboard (Modified)
+### 5. POST /api/auth/reset-password
+
+Reset user password (requires current password verification).
+
+**SECURITY REQUIREMENT:**
+- **NEVER return or access API keys in this endpoint**
+- Only handle email and password fields
+- Verify current password before allowing reset
+
+**Request:**
+```json
+{
+  "email": "user@example.com",
+  "currentPassword": "old_password123",
+  "newPassword": "new_password456"
+}
+```
+
+**Response (Success - 200):**
+```json
+{
+  "success": true,
+  "message": "Password reset successfully"
+}
+```
+
+**Response (Error - 401):**
+```json
+{
+  "error": "Invalid email or current password"
+}
+```
+
+**Response (Error - 400):**
+```json
+{
+  "error": "New password must be at least 8 characters"
+}
+```
+
+**Database Update:**
+```python
+# Only update password_hash, DO NOT touch api_key or secret_key_encrypted
+users = {
+    "id": "uuid",
+    "email": "user@example.com",
+    "password_hash": "new_bcrypt_hash",  # Update only this
+    "api_key": "...",  # DO NOT ACCESS
+    "secret_key_encrypted": "...",  # DO NOT ACCESS
+    "updated_at": "2025-12-01T10:10:00Z"
+}
+```
+
+### 6. GET /api/dashboard (Modified)
 
 Return dashboard data with authentication status.
 
@@ -264,12 +318,18 @@ CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
    - Password minimum length (8+ characters)
    - API key format validation
 
+5. **Password Reset Security:**
+   - **CRITICAL**: Never return or expose API keys during password reset
+   - Only SELECT and UPDATE email and password_hash fields
+   - API keys must remain completely isolated from password operations
+
 ## Python Implementation Example
 
 ```python
 import bcrypt
 from cryptography.fernet import Fernet
 import os
+import secrets
 
 # Password hashing
 def hash_password(password: str) -> str:
@@ -289,10 +349,34 @@ def decrypt_secret(encrypted: str) -> str:
     return cipher.decrypt(encrypted.encode()).decode()
 
 # Session management
-import secrets
-
 def generate_session_id() -> str:
     return secrets.token_urlsafe(32)
+
+# Password reset implementation example
+def reset_password(email: str, current_password: str, new_password: str) -> bool:
+    # ✅ SECURE: Only select email and password_hash
+    user = db.execute(
+        "SELECT id, email, password_hash FROM users WHERE email = ?",
+        (email,)
+    ).fetchone()
+
+    if not user or not verify_password(current_password, user['password_hash']):
+        return False
+
+    # ✅ SECURE: Only update password_hash
+    new_hash = hash_password(new_password)
+    db.execute(
+        "UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?",
+        (new_hash, user['id'])
+    )
+
+    return True
+
+# ❌ INSECURE: Don't do this
+def reset_password_insecure(email: str, current_password: str, new_password: str):
+    # BAD: Selects ALL columns including api_key and secret_key_encrypted
+    user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    # This exposes API keys unnecessarily
 ```
 
 ## Frontend Integration
@@ -301,10 +385,19 @@ The frontend sends these requests:
 
 1. **Login/Signup:** `POST /api/auth/login` or `POST /api/auth/signup`
 2. **Save API Keys:** `POST /api/auth/apikeys`
-3. **Dashboard:** `GET /api/dashboard` (every 3 seconds)
-4. **Logout:** `POST /api/auth/logout`
+3. **Password Reset:** `POST /api/auth/reset-password`
+4. **Dashboard:** `GET /api/dashboard` (every 3 seconds)
+5. **Logout:** `POST /api/auth/logout`
 
 All requests include `credentials: 'include'` to send cookies.
+
+## Proxy Configuration
+
+The frontend uses a Netlify proxy function that:
+- Forwards all HTTP methods (GET, POST, PUT, DELETE)
+- Passes cookies between frontend and backend
+- Forwards request body for POST/PUT requests
+- Returns response cookies via `Set-Cookie` header
 
 ## Testing Checklist
 
@@ -314,6 +407,9 @@ All requests include `credentials: 'include'` to send cookies.
 - [ ] Login with incorrect credentials (should fail)
 - [ ] Save API keys after signup
 - [ ] Save API keys after login
+- [ ] Reset password with correct current password
+- [ ] Reset password with incorrect current password (should fail)
+- [ ] Password reset does not expose API keys
 - [ ] Dashboard shows `isAuthenticated: true` when logged in
 - [ ] Dashboard shows `isAuthenticated: false` when not logged in
 - [ ] Logout clears session

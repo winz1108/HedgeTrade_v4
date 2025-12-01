@@ -8,10 +8,11 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
-  const [mode, setMode] = useState<'login' | 'signup' | 'apikeys'>('login');
+  const [mode, setMode] = useState<'login' | 'signup' | 'apikeys' | 'reset'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [secretKey, setSecretKey] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +20,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [showSecretKey, setShowSecretKey] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   if (!isOpen) return null;
 
@@ -111,6 +113,47 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setResetSuccess(false);
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('/.netlify/functions/oracle-proxy?endpoint=' + encodeURIComponent('/api/auth/reset-password'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, currentPassword: password, newPassword })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reset password');
+      }
+
+      setResetSuccess(true);
+      setTimeout(() => {
+        setMode('login');
+        setResetSuccess(false);
+        setPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-slate-900 rounded-lg border border-slate-700 shadow-2xl max-w-md w-full">
@@ -119,6 +162,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             {mode === 'login' && 'Login'}
             {mode === 'signup' && 'Sign Up'}
             {mode === 'apikeys' && 'Binance API Keys'}
+            {mode === 'reset' && 'Reset Password'}
           </h2>
           <button
             onClick={onClose}
@@ -180,15 +224,24 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                 {loading ? 'Logging in...' : 'Login'}
               </button>
 
-              <div className="text-center text-sm text-slate-400">
-                Don't have an account?{' '}
+              <div className="flex justify-between text-sm text-slate-400">
                 <button
                   type="button"
-                  onClick={() => setMode('signup')}
+                  onClick={() => setMode('reset')}
                   className="text-blue-400 hover:text-blue-300"
                 >
-                  Sign up
+                  Forgot password?
                 </button>
+                <div>
+                  Don't have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setMode('signup')}
+                    className="text-blue-400 hover:text-blue-300"
+                  >
+                    Sign up
+                  </button>
+                </div>
               </div>
             </form>
           )}
@@ -325,6 +378,101 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               >
                 {loading ? 'Saving...' : 'Save API Keys'}
               </button>
+            </form>
+          )}
+
+          {mode === 'reset' && (
+            <form onSubmit={handlePasswordReset} className="space-y-4">
+              {resetSuccess && (
+                <div className="mb-4 p-3 bg-green-500/10 border border-green-500/50 rounded text-green-400 text-sm">
+                  Password reset successfully! Redirecting to login...
+                </div>
+              )}
+
+              <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/50 rounded text-yellow-400 text-sm">
+                Enter your email and current password to reset your password
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Current Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  New Password
+                </label>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  required
+                  minLength={8}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Confirm New Password
+                </label>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  required
+                  minLength={8}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded font-medium transition-colors"
+              >
+                {loading ? 'Resetting...' : 'Reset Password'}
+              </button>
+
+              <div className="text-center text-sm text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => setMode('login')}
+                  className="text-blue-400 hover:text-blue-300"
+                >
+                  Back to login
+                </button>
+              </div>
             </form>
           )}
         </div>

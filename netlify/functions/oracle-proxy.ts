@@ -30,26 +30,39 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     }
 
     const oracleUrl = `${ORACLE_VM_URL}${endpoint}`;
-    console.log("Fetching from Oracle VM:", oracleUrl);
+    console.log("Proxying to Oracle VM:", oracleUrl, "Method:", event.httpMethod);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const response = await fetch(oracleUrl, {
-      method: "GET",
+    const requestOptions: RequestInit = {
+      method: event.httpMethod,
       headers: {
         "Content-Type": "application/json",
+        "Cookie": event.headers.cookie || "",
       },
       signal: controller.signal,
-    });
+    };
+
+    if (event.body && (event.httpMethod === "POST" || event.httpMethod === "PUT")) {
+      requestOptions.body = event.body;
+    }
+
+    const response = await fetch(oracleUrl, requestOptions);
 
     clearTimeout(timeoutId);
+
+    const responseCookies = response.headers.get("set-cookie");
+    const responseHeaders = { ...headers };
+    if (responseCookies) {
+      responseHeaders["set-cookie"] = responseCookies;
+    }
 
     if (!response.ok) {
       console.error(`Oracle VM responded with status ${response.status}`);
       return {
         statusCode: response.status,
-        headers,
+        headers: responseHeaders,
         body: JSON.stringify({
           error: `Oracle VM responded with status ${response.status}`
         }),
@@ -61,7 +74,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
 
     return {
       statusCode: 200,
-      headers,
+      headers: responseHeaders,
       body: JSON.stringify(data),
     };
   } catch (error) {
