@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
-import { RefreshCw, Bell, BellOff, X } from 'lucide-react';
+import { RefreshCw, Bell, BellOff, X, LogIn, LogOut } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
-import { fetchDashboardData } from './services/oracleApi';
+import { fetchDashboardData, logout } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
+import { AuthModal } from './components/AuthModal';
 import { sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
 
 
@@ -14,6 +15,7 @@ function App() {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const previousHoldingState = useRef<boolean>(false);
   const lastTradeCount = useRef<number>(0);
 
@@ -197,6 +199,26 @@ function App() {
               >
                 {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
               </button>
+              {data.isAuthenticated ? (
+                <button
+                  onClick={async () => {
+                    await logout();
+                    loadData();
+                  }}
+                  className="p-1.5 rounded transition-all duration-200 text-rose-400 hover:bg-rose-500/10"
+                  title="Logout"
+                >
+                  <LogOut className="w-3 h-3" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="p-1.5 rounded transition-all duration-200 text-blue-400 hover:bg-blue-500/10"
+                  title="Login"
+                >
+                  <LogIn className="w-3 h-3" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -249,6 +271,12 @@ function App() {
           </div>
         )}
       </div>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => loadData()}
+      />
     </div>
   );
 }

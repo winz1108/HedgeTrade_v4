@@ -7,6 +7,18 @@ const getProxyUrl = () => {
   return '/.netlify/functions/oracle-proxy';
 };
 
+export const logout = async (): Promise<void> => {
+  const url = `${getProxyUrl()}?endpoint=${encodeURIComponent('/api/auth/logout')}`;
+
+  await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+};
+
 export const fetchDashboardData = async (): Promise<DashboardData> => {
   const url = `${getProxyUrl()}?endpoint=${encodeURIComponent('/api/dashboard')}`;
 
