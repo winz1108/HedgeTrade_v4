@@ -14,6 +14,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -100,7 +101,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
         avgTradeReturn: rawData.metrics?.avgTradeReturn ?? 0,
         takeProfitCount: rawData.metrics?.takeProfitCount ?? 0,
         stopLossCount: rawData.metrics?.stopLossCount ?? 0
-      }
+      },
+      isAuthenticated: rawData.isAuthenticated ?? false
     };
 
     return data;

@@ -3,6 +3,7 @@ import { RefreshCw, Bell, BellOff, X } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
+import { MetricsPanel } from './components/MetricsPanel';
 import { sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
 
 
@@ -227,11 +228,26 @@ function App() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center">
-          <div className="w-full">
-            <PriceChart data={data} onTradeHover={setHoveredTrade} />
+        {data.isAuthenticated ? (
+          <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
+            <div className="flex flex-col gap-2 order-2 lg:order-1">
+              <MetricsPanel data={data} position="left" />
+            </div>
+            <div className="min-w-0 order-1 lg:order-2">
+              <PriceChart data={data} onTradeHover={setHoveredTrade} />
+            </div>
+            <div className="flex flex-col gap-2 order-3 lg:order-3">
+              <MetricsPanel data={data} position="right" />
+              <MetricsPanel data={data} position="trades" />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <div className="w-full">
+              <PriceChart data={data} onTradeHover={setHoveredTrade} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

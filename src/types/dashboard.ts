@@ -87,4 +87,5 @@ export interface DashboardData {
     takeProfitCount: number;
     stopLossCount: number;
   };
+  isAuthenticated?: boolean;
 }
