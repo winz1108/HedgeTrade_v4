@@ -1,15 +1,26 @@
-# Backend 500 Error Debugging Guide
+# Backend Connection Error Debugging Guide
 
-## 🚨 Current Error
+## 🚨 Current Errors
 
+### Error 1: 500 Internal Server Error
 ```
 GET /api/dashboard 500 (Internal Server Error)
 Oracle VM unavailable: 500
 ```
 
+### Error 2: 503 Service Unavailable (Timeout)
+```
+GET /api/dashboard 503 (Service Unavailable)
+Oracle VM unavailable: 503 - This operation was aborted
+```
+
+**503 Error means:** The Oracle VM is not responding within 30 seconds (increased from 10 seconds).
+
 ## 🔍 Error Information
 
-The frontend is correctly sending requests with session cookies, but the backend Oracle VM is returning a 500 error.
+The frontend is correctly sending requests with session cookies, but the backend Oracle VM is either:
+1. Returning a 500 error (internal server crash)
+2. Not responding at all (timeout)
 
 ### What the Frontend is Doing (✅ Correct)
 
@@ -17,10 +28,12 @@ The frontend is correctly sending requests with session cookies, but the backend
 2. Includes session cookie: `credentials: 'include'`
 3. Proxy forwards to: `http://130.61.50.101:54321/api/dashboard`
 4. Proxy includes cookie in forwarded request
+5. Waits up to 30 seconds for response
 
 ### What Needs to Be Fixed in Backend
 
-The backend Oracle VM is receiving the request but returning 500 error. This indicates an internal server error in the Oracle VM.
+**Option A: 500 Error** - Oracle VM crashes while processing request
+**Option B: 503 Timeout** - Oracle VM doesn't respond (server not running or stuck)
 
 ---
 
@@ -245,13 +258,46 @@ journalctl -u oracle-app -f
 ### Test Endpoints Manually
 
 ```bash
-# Test without authentication
+# 1. Check if Oracle VM server is running
 curl -v http://130.61.50.101:54321/api/dashboard
 
-# Test with session cookie
+# Expected: Should get SOME response (even if error)
+# If timeout: Server is not running or blocked by firewall
+
+# 2. Test with session cookie
 curl -v -H "Cookie: session_id=YOUR_SESSION_ID" \
   http://130.61.50.101:54321/api/dashboard
+
+# 3. Check server health
+curl -v http://130.61.50.101:54321/health
+# If no /health endpoint, add one!
 ```
+
+### Common Timeout Causes (503 Error)
+
+1. **Server Not Running**
+   ```bash
+   # Check if process is running
+   ps aux | grep python
+   # Or
+   systemctl status oracle-app
+   ```
+
+2. **Server Stuck/Frozen**
+   - Long-running computation blocking the response
+   - Deadlock in database query
+   - Waiting for external API that never responds
+
+3. **Firewall Blocking**
+   ```bash
+   # Check if port is open
+   telnet 130.61.50.101 54321
+   ```
+
+4. **Heavy Processing**
+   - Large dataset causing 30+ second response time
+   - Need to optimize database queries
+   - Need to add caching
 
 ---
 

@@ -33,7 +33,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     console.log("Proxying to Oracle VM:", oracleUrl, "Method:", event.httpMethod);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     const requestOptions: RequestInit = {
       method: event.httpMethod,
@@ -86,12 +86,19 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     };
   } catch (error) {
     console.error("Error connecting to Oracle VM:", error);
+
+    const isTimeout = error instanceof Error && error.name === 'AbortError';
+
     return {
       statusCode: 503,
       headers,
       body: JSON.stringify({
         error: error instanceof Error ? error.message : "Failed to connect to Oracle VM",
-        oracleVmUrl: ORACLE_VM_URL
+        errorType: isTimeout ? "timeout" : "connection_error",
+        oracleVmUrl: ORACLE_VM_URL,
+        suggestion: isTimeout
+          ? "Oracle VM is taking too long to respond. It may be processing data or experiencing high load."
+          : "Cannot reach Oracle VM. Please check if the server is running."
       }),
     };
   }
