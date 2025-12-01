@@ -30,7 +30,18 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   });
 
   if (!response.ok) {
-    throw new Error(`Oracle VM unavailable: ${response.status} ${response.statusText}`);
+    let errorDetails = '';
+    try {
+      const errorData = await response.json();
+      errorDetails = errorData.error || '';
+      if (errorData.details) {
+        console.error('Oracle VM Error Details:', errorData.details);
+        errorDetails += ` - ${JSON.stringify(errorData.details)}`;
+      }
+    } catch (e) {
+      errorDetails = response.statusText;
+    }
+    throw new Error(`Oracle VM unavailable: ${response.status} - ${errorDetails}`);
   }
 
   const rawData = await response.json();

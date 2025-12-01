@@ -59,12 +59,19 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     }
 
     if (!response.ok) {
-      console.error(`Oracle VM responded with status ${response.status}`);
+      let errorBody;
+      try {
+        errorBody = await response.json();
+      } catch {
+        errorBody = await response.text();
+      }
+      console.error(`Oracle VM responded with status ${response.status}:`, errorBody);
       return {
         statusCode: response.status,
         headers: responseHeaders,
         body: JSON.stringify({
-          error: `Oracle VM responded with status ${response.status}`
+          error: `Oracle VM responded with status ${response.status}`,
+          details: errorBody
         }),
       };
     }
