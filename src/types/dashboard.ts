@@ -88,4 +88,5 @@ export interface DashboardData {
     stopLossCount: number;
   };
   isAuthenticated?: boolean;
+  hasApiKeys?: boolean;
 }

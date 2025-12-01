@@ -75,8 +75,24 @@ Log in existing user.
 ```json
 {
   "success": true,
-  "message": "Logged in successfully"
+  "message": "Logged in successfully",
+  "hasApiKeys": true
 }
+```
+
+**Important:**
+- `hasApiKeys = true`: User has already saved Binance API keys
+- `hasApiKeys = false`: User needs to input API keys (frontend will show API key form)
+
+**Database Check:**
+```python
+# Check if user has API keys
+user = db.execute(
+    "SELECT id, api_key FROM users WHERE email = ?",
+    (email,)
+).fetchone()
+
+has_api_keys = user['api_key'] is not None and user['api_key'] != ''
 ```
 
 **Set-Cookie Header:**
@@ -259,7 +275,8 @@ No body (uses session cookie)
     "takeProfitCount": 10,
     "stopLossCount": 3
   },
-  "isAuthenticated": true  // ← ADD THIS FIELD
+  "isAuthenticated": true,  // ← ADD THIS FIELD
+  "hasApiKeys": true  // ← ADD THIS FIELD (check if user has api_key in DB)
 }
 ```
 
@@ -273,8 +290,24 @@ No body (uses session cookie)
   "holding": { ... },
   "trades": [],
   "metrics": { ... },
-  "isAuthenticated": false  // ← User sees chart only
+  "isAuthenticated": false,  // ← User sees chart only
+  "hasApiKeys": false
 }
+```
+
+**Backend Logic:**
+```python
+# In /api/dashboard endpoint
+session_id = request.cookies.get('session_id')
+user = get_user_from_session(session_id)
+
+if user:
+    has_api_keys = user['api_key'] is not None and user['api_key'] != ''
+    response_data['isAuthenticated'] = True
+    response_data['hasApiKeys'] = has_api_keys
+else:
+    response_data['isAuthenticated'] = False
+    response_data['hasApiKeys'] = False
 ```
 
 ## Database Schema
@@ -434,6 +467,13 @@ The frontend sends these requests:
 5. **Logout:** `POST /api/auth/logout`
 
 All requests include `credentials: 'include'` to send cookies.
+
+### API Key Flow
+
+1. **User signs up** → Frontend automatically shows API key input form
+2. **User logs in without API keys** → Backend returns `hasApiKeys: false` → Frontend shows API key input form
+3. **User logs in with API keys** → Backend returns `hasApiKeys: true` → Frontend shows full dashboard
+4. **User closes API key form without saving** → Next login will show API key form again (API keys remain `null` in DB)
 
 ## Proxy Configuration
 

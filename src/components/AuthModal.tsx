@@ -44,8 +44,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         throw new Error(data.error || 'Login failed');
       }
 
-      onSuccess();
-      onClose();
+      if (data.hasApiKeys === false) {
+        setMode('apikeys');
+      } else {
+        onSuccess();
+        onClose();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
