@@ -66,7 +66,8 @@ Log in existing user.
 ```json
 {
   "email": "user@example.com",
-  "password": "password123"
+  "password": "password123",
+  "rememberMe": false
 }
 ```
 
@@ -79,6 +80,13 @@ Log in existing user.
 ```
 
 **Set-Cookie Header:**
+
+If `rememberMe = true` (30 days):
+```
+Set-Cookie: session_id=abc123; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000
+```
+
+If `rememberMe = false` (24 hours):
 ```
 Set-Cookie: session_id=abc123; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400
 ```
@@ -89,6 +97,10 @@ Set-Cookie: session_id=abc123; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Ag
   "error": "Invalid email or password"
 }
 ```
+
+**Session Duration Logic:**
+- `rememberMe = true`: 30 days (2,592,000 seconds)
+- `rememberMe = false`: 24 hours (86,400 seconds)
 
 ### 3. POST /api/auth/logout
 
@@ -351,6 +363,38 @@ def decrypt_secret(encrypted: str) -> str:
 # Session management
 def generate_session_id() -> str:
     return secrets.token_urlsafe(32)
+
+# Login with remember me
+def login(email: str, password: str, remember_me: bool = False) -> dict:
+    user = db.execute(
+        "SELECT id, email, password_hash FROM users WHERE email = ?",
+        (email,)
+    ).fetchone()
+
+    if not user or not verify_password(password, user['password_hash']):
+        return None
+
+    # Create session
+    session_id = generate_session_id()
+
+    # Set expiration based on remember_me
+    if remember_me:
+        max_age = 2592000  # 30 days in seconds
+    else:
+        max_age = 86400  # 24 hours in seconds
+
+    expires_at = datetime.now() + timedelta(seconds=max_age)
+
+    # Save session to database
+    db.execute(
+        "INSERT INTO sessions (session_id, user_id, expires_at) VALUES (?, ?, ?)",
+        (session_id, user['id'], expires_at)
+    )
+
+    return {
+        "session_id": session_id,
+        "max_age": max_age
+    }
 
 # Password reset implementation example
 def reset_password(email: str, current_password: str, new_password: str) -> bool:
