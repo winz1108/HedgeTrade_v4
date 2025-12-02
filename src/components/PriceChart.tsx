@@ -85,7 +85,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       : 520;
 
   const priceChartHeight = Math.floor(baseHeight * 0.58);
-  const probabilityChartHeight = Math.floor(baseHeight * 0.34);
+  const probabilityChartHeight = timeframe === '1m' ? Math.floor(baseHeight * 0.34) : 0;
   const volumeChartHeight = volumeHeight;
   const chartHeight = priceChartHeight + probabilityChartHeight + volumeChartHeight + 24;
 
@@ -1673,15 +1673,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </div>
           </div>
 
-          <div
-            className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
-            style={{
-              top: `${priceChartHeight + volumeChartHeight + 28}px`,
-              height: `${probabilityChartHeight}px`,
-              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-              zIndex: 1
-            }}
-          >
+          {timeframe === '1m' && (
+            <div
+              className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
+              style={{
+                top: `${priceChartHeight + volumeChartHeight + 28}px`,
+                height: `${probabilityChartHeight}px`,
+                width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
+                zIndex: 1
+              }}
+            >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
               {[1, 0.75, 0.5, 0.25, 0].map((value) => {
                 const y = probabilityToY(value);
@@ -1819,6 +1820,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               )}
             </div>
           </div>
+          )}
 
         </div>
       </div>
