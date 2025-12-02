@@ -55,6 +55,12 @@ export interface MarketState {
   activeState: string;
 }
 
+export interface ProbabilityHistory {
+  timestamp: number;
+  takeProfitProb: number;
+  stopLossProb: number;
+}
+
 export interface DashboardData {
   version?: string;
   currentAsset: number;
@@ -70,6 +76,7 @@ export interface DashboardData {
   priceHistory4h?: Candle[];
   priceHistory1d?: Candle[];
   pricePredictions: Candle[];
+  probabilityHistory?: ProbabilityHistory[];
   trades: TradeEvent[];
   holding: HoldingInfo;
   currentPrediction?: {
