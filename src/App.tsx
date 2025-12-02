@@ -4,7 +4,6 @@ import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
-import { ProbabilityChart } from './components/ProbabilityChart';
 import { sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
 
 
@@ -233,14 +232,8 @@ function App() {
           <div className="flex flex-col gap-2 order-2 lg:order-1">
             <MetricsPanel data={data} position="left" />
           </div>
-          <div className="min-w-0 order-1 lg:order-2 flex flex-col gap-2">
+          <div className="min-w-0 order-1 lg:order-2">
             <PriceChart data={data} onTradeHover={setHoveredTrade} />
-            {data.probabilityHistory && data.probabilityHistory.length > 0 && (
-              <ProbabilityChart
-                probabilityHistory={data.probabilityHistory}
-                currentTime={data.currentTime}
-              />
-            )}
           </div>
           <div className="flex flex-col gap-2 order-3 lg:order-3">
             <MetricsPanel data={data} position="right" />
