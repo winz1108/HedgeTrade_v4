@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
-import { RefreshCw, Bell, BellOff, X, LogIn, LogOut } from 'lucide-react';
+import { RefreshCw, Bell, BellOff, X } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
-import { fetchDashboardData, logout } from './services/oracleApi';
+import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
-import { AuthModal } from './components/AuthModal';
 import { sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
 
 
@@ -15,7 +14,6 @@ function App() {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const previousHoldingState = useRef<boolean>(false);
   const lastTradeCount = useRef<number>(0);
 
@@ -199,86 +197,50 @@ function App() {
               >
                 {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
               </button>
-              {data.isAuthenticated ? (
-                <button
-                  onClick={async () => {
-                    await logout();
-                    loadData();
-                  }}
-                  className="p-1.5 rounded transition-all duration-200 text-rose-400 hover:bg-rose-500/10"
-                  title="Logout"
-                >
-                  <LogOut className="w-3 h-3" />
-                </button>
-              ) : (
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="p-1.5 rounded transition-all duration-200 text-blue-400 hover:bg-blue-500/10"
-                  title="Login"
-                >
-                  <LogIn className="w-3 h-3" />
-                </button>
-              )}
             </div>
           </div>
 
-          {data.isAuthenticated && (
-            <div className="flex items-center gap-1 bg-slate-800/70 px-2 py-1.5 rounded-lg border border-slate-600 overflow-x-auto">
-              <span className="text-[10px] text-slate-400 mr-1 whitespace-nowrap">Market:</span>
-              <div className="flex gap-1">
-                {[
-                  { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-300', inactive: 'bg-emerald-950/30 text-emerald-700/40 border-emerald-900/40' } },
-                  { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-600 text-white border-emerald-400', inactive: 'bg-emerald-950/40 text-emerald-700/50 border-emerald-900/50' } },
-                  { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-500 text-white border-amber-300', inactive: 'bg-amber-950/30 text-amber-700/40 border-amber-900/40' } },
-                  { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-600 text-white border-rose-400', inactive: 'bg-rose-950/40 text-rose-700/50 border-rose-900/50' } },
-                  { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-rose-500 text-white border-rose-300', inactive: 'bg-rose-950/30 text-rose-700/40 border-rose-900/40' } }
-                ].map((state) => {
-                  const isActive = state.value > 0.5;
-                  return (
-                    <div
-                      key={state.key}
-                      className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
-                        isActive
-                          ? `${state.colors.active} font-bold shadow-lg`
-                          : state.colors.inactive
-                      }`}
-                    >
-                      {state.label}
-                    </div>
-                  );
-                })}
-              </div>
+          <div className="flex items-center gap-1 bg-slate-800/70 px-2 py-1.5 rounded-lg border border-slate-600 overflow-x-auto">
+            <span className="text-[10px] text-slate-400 mr-1 whitespace-nowrap">Market:</span>
+            <div className="flex gap-1">
+              {[
+                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-300', inactive: 'bg-emerald-950/30 text-emerald-700/40 border-emerald-900/40' } },
+                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-600 text-white border-emerald-400', inactive: 'bg-emerald-950/40 text-emerald-700/50 border-emerald-900/50' } },
+                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-500 text-white border-amber-300', inactive: 'bg-amber-950/30 text-amber-700/40 border-amber-900/40' } },
+                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-600 text-white border-rose-400', inactive: 'bg-rose-950/40 text-rose-700/50 border-rose-900/50' } },
+                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-rose-500 text-white border-rose-300', inactive: 'bg-rose-950/30 text-rose-700/40 border-rose-900/40' } }
+              ].map((state) => {
+                const isActive = state.value > 0.5;
+                return (
+                  <div
+                    key={state.key}
+                    className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
+                      isActive
+                        ? `${state.colors.active} font-bold shadow-lg`
+                        : state.colors.inactive
+                    }`}
+                  >
+                    {state.label}
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
         </div>
 
-        {data.isAuthenticated ? (
-          <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
-            <div className="flex flex-col gap-2 order-2 lg:order-1">
-              <MetricsPanel data={data} position="left" />
-            </div>
-            <div className="min-w-0 order-1 lg:order-2">
-              <PriceChart data={data} onTradeHover={setHoveredTrade} />
-            </div>
-            <div className="flex flex-col gap-2 order-3 lg:order-3">
-              <MetricsPanel data={data} position="right" />
-              <MetricsPanel data={data} position="trades" />
-            </div>
+        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
+          <div className="flex flex-col gap-2 order-2 lg:order-1">
+            <MetricsPanel data={data} position="left" />
           </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <div className="w-full">
-              <PriceChart data={data} onTradeHover={setHoveredTrade} />
-            </div>
+          <div className="min-w-0 order-1 lg:order-2">
+            <PriceChart data={data} onTradeHover={setHoveredTrade} />
           </div>
-        )}
+          <div className="flex flex-col gap-2 order-3 lg:order-3">
+            <MetricsPanel data={data} position="right" />
+            <MetricsPanel data={data} position="trades" />
+          </div>
+        </div>
       </div>
-
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={() => loadData()}
-      />
     </div>
   );
 }

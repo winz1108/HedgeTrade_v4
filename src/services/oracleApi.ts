@@ -7,18 +7,6 @@ const getProxyUrl = () => {
   return '/.netlify/functions/oracle-proxy';
 };
 
-export const logout = async (): Promise<void> => {
-  const url = `${getProxyUrl()}?endpoint=${encodeURIComponent('/api/auth/logout')}`;
-
-  await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-  });
-};
-
 export const fetchDashboardData = async (): Promise<DashboardData> => {
   const url = `${getProxyUrl()}?endpoint=${encodeURIComponent('/api/dashboard')}`;
 
@@ -26,22 +14,10 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     headers: {
       'Content-Type': 'application/json',
     },
-    credentials: 'include',
   });
 
   if (!response.ok) {
-    let errorDetails = '';
-    try {
-      const errorData = await response.json();
-      errorDetails = errorData.error || '';
-      if (errorData.details) {
-        console.error('Oracle VM Error Details:', errorData.details);
-        errorDetails += ` - ${JSON.stringify(errorData.details)}`;
-      }
-    } catch (e) {
-      errorDetails = response.statusText;
-    }
-    throw new Error(`Oracle VM unavailable: ${response.status} - ${errorDetails}`);
+    throw new Error(`Oracle VM unavailable: ${response.status} ${response.statusText}`);
   }
 
   const rawData = await response.json();
@@ -124,8 +100,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
         avgTradeReturn: rawData.metrics?.avgTradeReturn ?? 0,
         takeProfitCount: rawData.metrics?.takeProfitCount ?? 0,
         stopLossCount: rawData.metrics?.stopLossCount ?? 0
-      },
-      isAuthenticated: rawData.isAuthenticated ?? false
+      }
     };
 
     return data;

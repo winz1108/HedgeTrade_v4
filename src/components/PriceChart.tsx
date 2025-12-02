@@ -1679,7 +1679,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               })}
             </div>
 
-            <div className="absolute right-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+            <div className="absolute left-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
               <span className="text-slate-400 font-medium">Volume</span>
               {hoveredCandleIndex !== null && visibleCandles[hoveredCandleIndex] && (
                 <span className="text-slate-300 font-semibold">
@@ -1787,7 +1787,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 );
               })()}
             </svg>
-            <div className="absolute right-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+            <div className="absolute left-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
               <span className="text-slate-400 font-medium">MACD</span>
               {hoveredCandleIndex !== null && visibleCandles[hoveredCandleIndex] && (
                 <>
@@ -1882,7 +1882,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 );
               })()}
             </svg>
-            <div className="absolute right-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+            <div className="absolute left-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
               <span className="text-slate-400 font-medium">RSI</span>
               {hoveredCandleIndex !== null && visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].rsi !== undefined && (
                 <span className={`font-semibold ${

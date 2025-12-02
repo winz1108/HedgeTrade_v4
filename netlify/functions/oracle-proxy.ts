@@ -30,48 +30,28 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     }
 
     const oracleUrl = `${ORACLE_VM_URL}${endpoint}`;
-    console.log("Proxying to Oracle VM:", oracleUrl, "Method:", event.httpMethod);
+    console.log("Fetching from Oracle VM:", oracleUrl);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const requestOptions: RequestInit = {
-      method: event.httpMethod,
+    const response = await fetch(oracleUrl, {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Cookie": event.headers.cookie || "",
       },
       signal: controller.signal,
-    };
-
-    if (event.body && (event.httpMethod === "POST" || event.httpMethod === "PUT")) {
-      requestOptions.body = event.body;
-    }
-
-    const response = await fetch(oracleUrl, requestOptions);
+    });
 
     clearTimeout(timeoutId);
 
-    const responseCookies = response.headers.get("set-cookie");
-    const responseHeaders = { ...headers };
-    if (responseCookies) {
-      responseHeaders["set-cookie"] = responseCookies;
-    }
-
     if (!response.ok) {
-      let errorBody;
-      try {
-        errorBody = await response.json();
-      } catch {
-        errorBody = await response.text();
-      }
-      console.error(`Oracle VM responded with status ${response.status}:`, errorBody);
+      console.error(`Oracle VM responded with status ${response.status}`);
       return {
         statusCode: response.status,
-        headers: responseHeaders,
+        headers,
         body: JSON.stringify({
-          error: `Oracle VM responded with status ${response.status}`,
-          details: errorBody
+          error: `Oracle VM responded with status ${response.status}`
         }),
       };
     }
@@ -81,24 +61,17 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
 
     return {
       statusCode: 200,
-      headers: responseHeaders,
+      headers,
       body: JSON.stringify(data),
     };
   } catch (error) {
     console.error("Error connecting to Oracle VM:", error);
-
-    const isTimeout = error instanceof Error && error.name === 'AbortError';
-
     return {
       statusCode: 503,
       headers,
       body: JSON.stringify({
         error: error instanceof Error ? error.message : "Failed to connect to Oracle VM",
-        errorType: isTimeout ? "timeout" : "connection_error",
-        oracleVmUrl: ORACLE_VM_URL,
-        suggestion: isTimeout
-          ? "Oracle VM is taking too long to respond. It may be processing data or experiencing high load."
-          : "Cannot reach Oracle VM. Please check if the server is running."
+        oracleVmUrl: ORACLE_VM_URL
       }),
     };
   }
