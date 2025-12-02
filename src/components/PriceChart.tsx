@@ -85,7 +85,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       : 520;
 
   const priceChartHeight = Math.floor(baseHeight * 0.58);
-  const probabilityChartHeight = timeframe === '1m' ? Math.floor(baseHeight * 0.34) : 0;
+  const probabilityChartHeight = Math.floor(baseHeight * 0.34);
   const volumeChartHeight = volumeHeight;
   const chartHeight = priceChartHeight + probabilityChartHeight + volumeChartHeight + 24;
 
@@ -278,14 +278,50 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   };
 
   const probabilityData = useMemo(() => {
-    return visibleCandles
-      .map((candle, index) => ({
-        timestamp: candle.timestamp,
-        takeProfitProb: candle.takeProfitProb ?? 0,
-        candleIndex: index
-      }))
-      .filter(p => p.takeProfitProb > 0);
-  }, [visibleCandles]);
+    if (timeframe === '1m') {
+      return visibleCandles
+        .map((candle, index) => ({
+          timestamp: candle.timestamp,
+          takeProfitProb: candle.takeProfitProb ?? 0,
+          candleIndex: index
+        }))
+        .filter(p => p.takeProfitProb > 0);
+    }
+
+    // For other timeframes, find buy signals from 1m data within each candle's timeframe
+    const buySignals: Array<{ timestamp: number; takeProfitProb: number; candleIndex: number }> = [];
+    const all1mCandles = candlesByTimeframe['1m'];
+
+    visibleCandles.forEach((candle, index) => {
+      const timeframeMinutes = timeframe === '5m' ? 5 : timeframe === '15m' ? 15 : timeframe === '1h' ? 60 : timeframe === '4h' ? 240 : 1440;
+      const timeframeMs = timeframeMinutes * 60000;
+      const candleStart = candle.timestamp;
+      const candleEnd = candleStart + timeframeMs;
+
+      // Find 1m candles within this timeframe candle
+      const matchingSignals = all1mCandles.filter(c1m =>
+        c1m.timestamp >= candleStart &&
+        c1m.timestamp < candleEnd &&
+        c1m.takeProfitProb &&
+        c1m.takeProfitProb >= 0.98
+      );
+
+      if (matchingSignals.length > 0) {
+        // Use the highest probability signal in this timeframe
+        const bestSignal = matchingSignals.reduce((best, current) =>
+          (current.takeProfitProb ?? 0) > (best.takeProfitProb ?? 0) ? current : best
+        );
+
+        buySignals.push({
+          timestamp: bestSignal.timestamp,
+          takeProfitProb: bestSignal.takeProfitProb ?? 0,
+          candleIndex: index
+        });
+      }
+    });
+
+    return buySignals;
+  }, [visibleCandles, timeframe, candlesByTimeframe]);
 
   const probabilityPadding = 16;
 
@@ -1673,16 +1709,15 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </div>
           </div>
 
-          {timeframe === '1m' && (
-            <div
-              className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
-              style={{
-                top: `${priceChartHeight + volumeChartHeight + 28}px`,
-                height: `${probabilityChartHeight}px`,
-                width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-                zIndex: 1
-              }}
-            >
+          <div
+            className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
+            style={{
+              top: `${priceChartHeight + volumeChartHeight + 28}px`,
+              height: `${probabilityChartHeight}px`,
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
+              zIndex: 1
+            }}
+          >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
               {[1, 0.75, 0.5, 0.25, 0].map((value) => {
                 const y = probabilityToY(value);
@@ -1735,7 +1770,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   const x = prob.candleIndex * (candleWidth + candleGap) + candleWidth / 2;
 
                   const yTakeProfit = probabilityToY(prob.takeProfitProb);
-                  takeProfitPoints.push(`${x},${yTakeProfit}`);
+
+                  // Only add to line points for 1m timeframe
+                  if (timeframe === '1m') {
+                    takeProfitPoints.push(`${x},${yTakeProfit}`);
+                  }
 
                   if (prob.takeProfitProb >= 0.98) {
                     buySignals.push({ x, y: yTakeProfit, timestamp: prob.timestamp });
@@ -1744,7 +1783,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
                 return (
                   <>
-                    {takeProfitPoints.length > 1 && (
+                    {timeframe === '1m' && takeProfitPoints.length > 1 && (
                       <>
                         <defs>
                           <linearGradient id="takeProfitGradientChart" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -1820,7 +1859,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               )}
             </div>
           </div>
-          )}
 
         </div>
       </div>
