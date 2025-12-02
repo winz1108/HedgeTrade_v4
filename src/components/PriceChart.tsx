@@ -85,9 +85,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       : 520;
 
   const priceChartHeight = Math.floor(baseHeight * 0.58);
-  const probabilityChartHeight = Math.floor(baseHeight * 0.34);
+  const macdChartHeight = Math.floor(baseHeight * 0.18);
+  const rsiChartHeight = Math.floor(baseHeight * 0.16);
   const volumeChartHeight = volumeHeight;
-  const chartHeight = priceChartHeight + probabilityChartHeight + volumeChartHeight + 24;
+  const chartHeight = priceChartHeight + macdChartHeight + rsiChartHeight + volumeChartHeight + 32;
 
   const candlesByTimeframe = useMemo(() => {
     const validHistory1m = Array.isArray(data.priceHistory1m) ? data.priceHistory1m : [];
@@ -277,57 +278,36 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     handleResizeMouseMove(e);
   };
 
-  const probabilityData = useMemo(() => {
-    if (timeframe === '1m') {
-      return visibleCandles
-        .map((candle, index) => ({
-          timestamp: candle.timestamp,
-          takeProfitProb: candle.takeProfitProb ?? 0,
-          candleIndex: index,
-          hasProb: (candle.takeProfitProb ?? 0) > 0
-        }));
-    }
+  const macdData = useMemo(() => {
+    const macdValues = visibleCandles.map(c => c.macd).filter((v): v is number => v !== undefined);
+    const signalValues = visibleCandles.map(c => c.signal).filter((v): v is number => v !== undefined);
+    const histogramValues = visibleCandles.map(c => c.histogram).filter((v): v is number => v !== undefined);
 
-    // For other timeframes, find buy signals from 1m data within each candle's timeframe
-    const buySignals: Array<{ timestamp: number; takeProfitProb: number; candleIndex: number }> = [];
-    const all1mCandles = candlesByTimeframe['1m'];
+    if (macdValues.length === 0) return { min: -1, max: 1 };
 
-    visibleCandles.forEach((candle, index) => {
-      const timeframeMinutes = timeframe === '5m' ? 5 : timeframe === '15m' ? 15 : timeframe === '1h' ? 60 : timeframe === '4h' ? 240 : 1440;
-      const timeframeMs = timeframeMinutes * 60000;
-      const candleStart = candle.timestamp;
-      const candleEnd = candleStart + timeframeMs;
+    const allValues = [...macdValues, ...signalValues, ...histogramValues];
+    const absMax = Math.max(Math.abs(Math.min(...allValues)), Math.abs(Math.max(...allValues))) * 1.2;
+    return {
+      min: -absMax,
+      max: absMax
+    };
+  }, [visibleCandles]);
 
-      // Find 1m candles within this timeframe candle
-      const matchingSignals = all1mCandles.filter(c1m =>
-        c1m.timestamp >= candleStart &&
-        c1m.timestamp < candleEnd &&
-        c1m.takeProfitProb &&
-        c1m.takeProfitProb >= 0.98
-      );
+  const rsiData = useMemo(() => {
+    return { min: 0, max: 100 };
+  }, []);
 
-      if (matchingSignals.length > 0) {
-        // Use the highest probability signal in this timeframe
-        const bestSignal = matchingSignals.reduce((best, current) =>
-          (current.takeProfitProb ?? 0) > (best.takeProfitProb ?? 0) ? current : best
-        );
+  const macdPadding = 12;
+  const rsiPadding = 16;
 
-        buySignals.push({
-          timestamp: bestSignal.timestamp,
-          takeProfitProb: bestSignal.takeProfitProb ?? 0,
-          candleIndex: index
-        });
-      }
-    });
+  const macdToY = (value: number) => {
+    const plotHeight = macdChartHeight - (macdPadding * 2);
+    return macdPadding + ((macdData.max - value) / (macdData.max - macdData.min)) * plotHeight;
+  };
 
-    return buySignals;
-  }, [visibleCandles, timeframe, candlesByTimeframe]);
-
-  const probabilityPadding = 16;
-
-  const probabilityToY = (prob: number) => {
-    const plotHeight = probabilityChartHeight - (probabilityPadding * 2);
-    return probabilityPadding + ((1 - prob) * plotHeight);
+  const rsiToY = (value: number) => {
+    const plotHeight = rsiChartHeight - (rsiPadding * 2);
+    return rsiPadding + ((rsiData.max - value) / (rsiData.max - rsiData.min)) * plotHeight;
   };
 
   const handleZoomIn = () => {
@@ -1712,16 +1692,147 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           <div
             className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
             style={{
-              top: `${priceChartHeight + volumeChartHeight + 28}px`,
-              height: `${probabilityChartHeight}px`,
+              top: `${priceChartHeight + volumeChartHeight + 36}px`,
+              height: `${macdChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 1
             }}
           >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
-              {[1, 0.75, 0.5, 0.25, 0].map((value) => {
-                const y = probabilityToY(value);
-                const isMid = value === 0.5;
+              {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
+                const y = macdToY(value);
+                const isZero = value === 0;
+                return (
+                  <g key={i}>
+                    <line
+                      x1="0"
+                      y1={y}
+                      x2="100%"
+                      y2={y}
+                      stroke={isZero ? 'rgba(255, 255, 255, 0.3)' : 'rgba(43, 49, 57, 0.5)'}
+                      strokeWidth="1"
+                    />
+                    <text
+                      x="10"
+                      y={Math.max(12, Math.min(macdChartHeight - 4, y + 3))}
+                      fill="#848e9c"
+                      fontSize="10"
+                      fontFamily="monospace"
+                    >
+                      {value.toFixed(2)}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {visibleCandles.map((candle, idx) => {
+                if (candle.histogram === undefined) return null;
+                const x = idx * (candleWidth + candleGap) + candleWidth / 2;
+                const zeroY = macdToY(0);
+                const histY = macdToY(candle.histogram);
+                const height = Math.abs(zeroY - histY);
+                const isPositive = candle.histogram >= 0;
+
+                return (
+                  <rect
+                    key={idx}
+                    x={x - candleWidth / 2}
+                    y={isPositive ? histY : zeroY}
+                    width={candleWidth}
+                    height={height}
+                    fill={isPositive ? 'rgba(14, 203, 129, 0.5)' : 'rgba(246, 70, 93, 0.5)'}
+                  />
+                );
+              })}
+
+              {(() => {
+                const macdPoints: string[] = [];
+                const signalPoints: string[] = [];
+
+                visibleCandles.forEach((candle, idx) => {
+                  const x = idx * (candleWidth + candleGap) + candleWidth / 2;
+
+                  if (candle.macd !== undefined) {
+                    const y = macdToY(candle.macd);
+                    macdPoints.push(`${x},${y}`);
+                  }
+
+                  if (candle.signal !== undefined) {
+                    const y = macdToY(candle.signal);
+                    signalPoints.push(`${x},${y}`);
+                  }
+                });
+
+                return (
+                  <>
+                    {macdPoints.length > 1 && (
+                      <polyline
+                        points={macdPoints.join(' ')}
+                        fill="none"
+                        stroke="#3b82f6"
+                        strokeWidth="1.5"
+                        opacity="0.9"
+                      />
+                    )}
+                    {signalPoints.length > 1 && (
+                      <polyline
+                        points={signalPoints.join(' ')}
+                        fill="none"
+                        stroke="#f97316"
+                        strokeWidth="1.5"
+                        opacity="0.9"
+                      />
+                    )}
+                  </>
+                );
+              })()}
+            </svg>
+            <div className="absolute left-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+              <span className="text-slate-400 font-medium">MACD</span>
+              {hoveredCandleIndex !== null && visibleCandles[hoveredCandleIndex] && (
+                <>
+                  {visibleCandles[hoveredCandleIndex].macd !== undefined && (
+                    <span className="text-blue-400 font-semibold">
+                      {visibleCandles[hoveredCandleIndex].macd!.toFixed(2)}
+                    </span>
+                  )}
+                  {visibleCandles[hoveredCandleIndex].signal !== undefined && (
+                    <>
+                      <span className="text-slate-600">|</span>
+                      <span className="text-slate-500 text-[10px]">Signal</span>
+                      <span className="text-orange-400 font-semibold">
+                        {visibleCandles[hoveredCandleIndex].signal!.toFixed(2)}
+                      </span>
+                    </>
+                  )}
+                  {visibleCandles[hoveredCandleIndex].histogram !== undefined && (
+                    <>
+                      <span className="text-slate-600">|</span>
+                      <span className="text-slate-500 text-[10px]">Hist</span>
+                      <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].histogram! >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {visibleCandles[hoveredCandleIndex].histogram!.toFixed(2)}
+                      </span>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div
+            className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
+            style={{
+              top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
+              height: `${rsiChartHeight}px`,
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
+              zIndex: 1
+            }}
+          >
+            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
+              {[100, 70, 50, 30, 0].map((value) => {
+                const y = rsiToY(value);
+                const isThreshold = value === 30 || value === 70;
+                const isMid = value === 50;
                 return (
                   <g key={value}>
                     <line
@@ -1729,147 +1840,58 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       y1={y}
                       x2="100%"
                       y2={y}
-                      stroke={isMid ? 'rgba(255, 255, 255, 0.4)' : 'rgba(43, 49, 57, 0.5)'}
+                      stroke={isMid ? 'rgba(255, 255, 255, 0.4)' : isThreshold ? 'rgba(255, 255, 255, 0.15)' : 'rgba(43, 49, 57, 0.5)'}
                       strokeWidth={isMid ? '1.5' : '1'}
+                      strokeDasharray={isThreshold ? '4 2' : '0'}
                     />
                     <text
                       x="10"
-                      y={y + 3}
+                      y={value === 0 ? y - 2 : value === 100 ? y + 10 : y + 3}
                       fill="#848e9c"
                       fontSize="10"
                       fontFamily="monospace"
                     >
-                      {(value * 100).toFixed(0)}%
+                      {value}
                     </text>
                   </g>
                 );
               })}
 
               {(() => {
-                const thresholdY = probabilityToY(0.98);
-                return (
-                  <line
-                    x1="0"
-                    y1={thresholdY}
-                    x2="100%"
-                    y2={thresholdY}
-                    stroke="#fbbf24"
-                    strokeWidth="2"
-                    strokeDasharray="8 4"
-                    opacity="0.8"
-                  />
-                );
-              })()}
+                const rsiPoints: string[] = [];
 
-              {(() => {
-                const takeProfitPoints: string[] = [];
-                const buySignals: Array<{ x: number; y: number; timestamp: number }> = [];
-                const probDots: Array<{ x: number; y: number; hasProb: boolean }> = [];
-
-                probabilityData.forEach((prob) => {
-                  if (prob.candleIndex < 0) return;
-                  const x = prob.candleIndex * (candleWidth + candleGap) + candleWidth / 2;
-
-                  const yTakeProfit = probabilityToY(prob.takeProfitProb);
-
-                  // Only add to line points for 1m timeframe with valid data
-                  if (timeframe === '1m') {
-                    if (prob.hasProb) {
-                      takeProfitPoints.push(`${x},${yTakeProfit}`);
-                    }
-                    probDots.push({ x, y: yTakeProfit, hasProb: prob.hasProb });
-                  }
-
-                  if (prob.takeProfitProb >= 0.98) {
-                    buySignals.push({ x, y: yTakeProfit, timestamp: prob.timestamp });
-                  }
+                visibleCandles.forEach((candle, idx) => {
+                  if (candle.rsi === undefined) return;
+                  const x = idx * (candleWidth + candleGap) + candleWidth / 2;
+                  const y = rsiToY(candle.rsi);
+                  rsiPoints.push(`${x},${y}`);
                 });
 
                 return (
                   <>
-                    {timeframe === '1m' && takeProfitPoints.length > 1 && (
-                      <>
-                        <defs>
-                          <linearGradient id="takeProfitGradientChart" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                            <stop offset="100%" stopColor="#10b981" stopOpacity="0.05" />
-                          </linearGradient>
-                        </defs>
-                        <path
-                          d={`${takeProfitPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p}`).join(' ')} L ${takeProfitPoints[takeProfitPoints.length - 1].split(',')[0]} ${probabilityChartHeight - probabilityPadding} L ${takeProfitPoints[0].split(',')[0]} ${probabilityChartHeight - probabilityPadding} Z`}
-                          fill="url(#takeProfitGradientChart)"
-                        />
-                        <polyline
-                          points={takeProfitPoints.join(' ')}
-                          fill="none"
-                          stroke="#10b981"
-                          strokeWidth="2.5"
-                          opacity="0.9"
-                        />
-                      </>
-                    )}
-                    {timeframe === '1m' && probDots.map((dot, idx) => (
-                      <circle
-                        key={`prob-${idx}`}
-                        cx={dot.x}
-                        cy={dot.y}
-                        r="2.5"
-                        fill={dot.hasProb ? '#10b981' : '#ef4444'}
-                        opacity={dot.hasProb ? 0.8 : 0.6}
+                    {rsiPoints.length > 1 && (
+                      <polyline
+                        points={rsiPoints.join(' ')}
+                        fill="none"
+                        stroke="#a855f7"
+                        strokeWidth="2"
+                        opacity="0.9"
                       />
-                    ))}
-                    {buySignals.map((signal, idx) => (
-                      <g key={idx}>
-                        <circle
-                          cx={signal.x}
-                          cy={signal.y}
-                          r="6"
-                          fill="#fbbf24"
-                          stroke="#fff"
-                          strokeWidth="2"
-                          className="animate-pulse"
-                        />
-                        <text
-                          x={signal.x}
-                          y={signal.y - 12}
-                          textAnchor="middle"
-                          fill="#fbbf24"
-                          fontSize="14"
-                          fontWeight="bold"
-                        >
-                          ⬆
-                        </text>
-                      </g>
-                    ))}
+                    )}
                   </>
                 );
               })()}
             </svg>
             <div className="absolute left-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
-              <span className="text-slate-400 font-medium">익절확률 예측</span>
-              {hoveredCandleIndex !== null && probabilityData.length > 0 && (
-                <>
-                  {(() => {
-                    const prob = probabilityData.find(p => p.candleIndex === hoveredCandleIndex);
-                    if (!prob) return null;
-                    const isBuySignal = prob.takeProfitProb >= 0.98;
-                    return (
-                      <>
-                        <span className={`font-semibold ${isBuySignal ? 'text-amber-400' : 'text-emerald-400'}`}>
-                          {(prob.takeProfitProb * 100).toFixed(1)}%
-                        </span>
-                        {isBuySignal && (
-                          <>
-                            <span className="text-slate-600">|</span>
-                            <span className="text-amber-400 font-bold animate-pulse">
-                              매수 신호!
-                            </span>
-                          </>
-                        )}
-                      </>
-                    );
-                  })()}
-                </>
+              <span className="text-slate-400 font-medium">RSI</span>
+              {hoveredCandleIndex !== null && visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].rsi !== undefined && (
+                <span className={`font-semibold ${
+                  visibleCandles[hoveredCandleIndex].rsi! >= 70 ? 'text-rose-400' :
+                  visibleCandles[hoveredCandleIndex].rsi! <= 30 ? 'text-emerald-400' :
+                  'text-purple-400'
+                }`}>
+                  {visibleCandles[hoveredCandleIndex].rsi!.toFixed(1)}
+                </span>
               )}
             </div>
           </div>

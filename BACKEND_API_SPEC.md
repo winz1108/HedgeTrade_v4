@@ -37,8 +37,6 @@ GET /oracle/state
 
   pricePredictions: Candle[];     // Future price predictions (same format as candles)
 
-  probabilityHistory?: ProbabilityHistory[];  // 익절/손절 확률 히스토리 (매분 기록)
-
   trades: TradeEvent[];           // All historical trades
 
   holding: HoldingInfo;           // Current position information
@@ -62,21 +60,6 @@ GET /oracle/state
 ```
 
 ## Data Structures
-
-### ProbabilityHistory
-```typescript
-{
-  timestamp: number;              // Unix timestamp in milliseconds (매분 예측 시점)
-  takeProfitProb: number;         // Take profit probability (0-1)
-  stopLossProb: number;           // Stop loss probability (0-1)
-}
-```
-
-**중요:**
-- 매분 예측이 업데이트될 때마다 새로운 항목 추가
-- 최소 60개 이상 제공 권장 (최근 1시간 데이터)
-- 최대 500개까지 유지 (약 8시간)
-- 1분봉 차트 아래에 확률 예측 그래프로 표시됨
 
 ### Candle
 ```typescript
@@ -225,23 +208,6 @@ timestamp: 1700000000     // 초 단위 (10자리) - 날짜 포맷 깨짐
       "close": 42180,
       "volume": 100,
       "isPrediction": true
-    }
-  ],
-  "probabilityHistory": [
-    {
-      "timestamp": 1699999940000,
-      "takeProfitProb": 0.65,
-      "stopLossProb": 0.35
-    },
-    {
-      "timestamp": 1700000000000,
-      "takeProfitProb": 0.68,
-      "stopLossProb": 0.32
-    },
-    {
-      "timestamp": 1700000060000,
-      "takeProfitProb": 0.72,
-      "stopLossProb": 0.28
     }
   ],
   "trades": [

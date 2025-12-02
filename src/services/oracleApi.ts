@@ -77,7 +77,6 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       priceHistory4h: rawData.priceHistory?.['4h'] || [],
       priceHistory1d: rawData.priceHistory?.['1d'] || [],
       pricePredictions: rawData.pricePredictions || [],
-      probabilityHistory: rawData.probabilityHistory || [],
       trades: rawData.trades || [],
       holding: {
         isHolding: rawData.holding?.isHolding ?? false,
