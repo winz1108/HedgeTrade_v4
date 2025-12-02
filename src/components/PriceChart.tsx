@@ -277,12 +277,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     handleResizeMouseMove(e);
   };
 
-  const hasProbabilityDataIssue = useMemo(() => {
-    if (timeframe !== '1m') return false;
-    const candlesWithProb = visibleCandles.filter(c => c.takeProfitProb && c.takeProfitProb > 0);
-    return candlesWithProb.length === 0 && visibleCandles.length > 0;
-  }, [visibleCandles, timeframe]);
-
   const probabilityData = useMemo(() => {
     if (timeframe === '1m') {
       return visibleCandles
@@ -291,8 +285,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           takeProfitProb: candle.takeProfitProb ?? 0,
           candleIndex: index,
           hasProb: (candle.takeProfitProb ?? 0) > 0
-        }))
-        .filter(p => p.takeProfitProb > 0);
+        }));
     }
 
     // For other timeframes, find buy signals from 1m data within each candle's timeframe
@@ -1771,6 +1764,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               {(() => {
                 const takeProfitPoints: string[] = [];
                 const buySignals: Array<{ x: number; y: number; timestamp: number }> = [];
+                const probDots: Array<{ x: number; y: number; hasProb: boolean }> = [];
 
                 probabilityData.forEach((prob) => {
                   if (prob.candleIndex < 0) return;
@@ -1778,9 +1772,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
                   const yTakeProfit = probabilityToY(prob.takeProfitProb);
 
-                  // Only add to line points for 1m timeframe
+                  // Only add to line points for 1m timeframe with valid data
                   if (timeframe === '1m') {
-                    takeProfitPoints.push(`${x},${yTakeProfit}`);
+                    if (prob.hasProb) {
+                      takeProfitPoints.push(`${x},${yTakeProfit}`);
+                    }
+                    probDots.push({ x, y: yTakeProfit, hasProb: prob.hasProb });
                   }
 
                   if (prob.takeProfitProb >= 0.98) {
@@ -1811,6 +1808,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         />
                       </>
                     )}
+                    {timeframe === '1m' && probDots.map((dot, idx) => (
+                      <circle
+                        key={`prob-${idx}`}
+                        cx={dot.x}
+                        cy={dot.y}
+                        r="2.5"
+                        fill={dot.hasProb ? '#10b981' : '#ef4444'}
+                        opacity={dot.hasProb ? 0.8 : 0.6}
+                      />
+                    ))}
                     {buySignals.map((signal, idx) => (
                       <g key={idx}>
                         <circle
@@ -1840,10 +1847,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </svg>
             <div className="absolute left-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
               <span className="text-slate-400 font-medium">익절확률 예측</span>
-              {hasProbabilityDataIssue && (
-                <span className="text-red-400 font-semibold animate-pulse">⚠ 확률 데이터 없음</span>
-              )}
-              {!hasProbabilityDataIssue && hoveredCandleIndex !== null && probabilityData.length > 0 && (
+              {hoveredCandleIndex !== null && probabilityData.length > 0 && (
                 <>
                   {(() => {
                     const prob = probabilityData.find(p => p.candleIndex === hoveredCandleIndex);
