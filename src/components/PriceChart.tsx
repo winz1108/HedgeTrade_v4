@@ -1723,8 +1723,37 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               })}
 
               {(() => {
+                const thresholdY = probabilityToY(0.98);
+                return (
+                  <>
+                    <line
+                      x1="0"
+                      y1={thresholdY}
+                      x2="100%"
+                      y2={thresholdY}
+                      stroke="#fbbf24"
+                      strokeWidth="2"
+                      strokeDasharray="8 4"
+                      opacity="0.8"
+                    />
+                    <text
+                      x="100%"
+                      y={thresholdY - 5}
+                      textAnchor="end"
+                      fill="#fbbf24"
+                      fontSize="11"
+                      fontWeight="bold"
+                      fontFamily="monospace"
+                    >
+                      매수 임계값 (98%)
+                    </text>
+                  </>
+                );
+              })()}
+
+              {(() => {
                 const takeProfitPoints: string[] = [];
-                const stopLossPoints: string[] = [];
+                const buySignals: Array<{ x: number; y: number; timestamp: number }> = [];
 
                 probabilityData.forEach((prob) => {
                   if (prob.candleIndex < 0) return;
@@ -1733,8 +1762,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   const yTakeProfit = probabilityToY(prob.takeProfitProb);
                   takeProfitPoints.push(`${x},${yTakeProfit}`);
 
-                  const yStopLoss = probabilityToY(prob.stopLossProb);
-                  stopLossPoints.push(`${x},${yStopLoss}`);
+                  if (prob.takeProfitProb >= 0.98) {
+                    buySignals.push({ x, y: yTakeProfit, timestamp: prob.timestamp });
+                  }
                 });
 
                 return (
@@ -1760,27 +1790,29 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         />
                       </>
                     )}
-                    {stopLossPoints.length > 1 && (
-                      <>
-                        <defs>
-                          <linearGradient id="stopLossGradientChart" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3" />
-                            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.05" />
-                          </linearGradient>
-                        </defs>
-                        <path
-                          d={`${stopLossPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p}`).join(' ')} L ${stopLossPoints[stopLossPoints.length - 1].split(',')[0]} ${probabilityChartHeight - probabilityPadding} L ${stopLossPoints[0].split(',')[0]} ${probabilityChartHeight - probabilityPadding} Z`}
-                          fill="url(#stopLossGradientChart)"
+                    {buySignals.map((signal, idx) => (
+                      <g key={idx}>
+                        <circle
+                          cx={signal.x}
+                          cy={signal.y}
+                          r="6"
+                          fill="#fbbf24"
+                          stroke="#fff"
+                          strokeWidth="2"
+                          className="animate-pulse"
                         />
-                        <polyline
-                          points={stopLossPoints.join(' ')}
-                          fill="none"
-                          stroke="#ef4444"
-                          strokeWidth="2.5"
-                          opacity="0.9"
-                        />
-                      </>
-                    )}
+                        <text
+                          x={signal.x}
+                          y={signal.y - 12}
+                          textAnchor="middle"
+                          fill="#fbbf24"
+                          fontSize="14"
+                          fontWeight="bold"
+                        >
+                          ⬆
+                        </text>
+                      </g>
+                    ))}
                   </>
                 );
               })()}
@@ -1792,15 +1824,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   {(() => {
                     const prob = probabilityData.find(p => p.candleIndex === hoveredCandleIndex);
                     if (!prob) return null;
+                    const isBuySignal = prob.takeProfitProb >= 0.98;
                     return (
                       <>
-                        <span className="text-emerald-400 font-semibold">
-                          익절 {(prob.takeProfitProb * 100).toFixed(1)}%
+                        <span className={`font-semibold ${isBuySignal ? 'text-amber-400' : 'text-emerald-400'}`}>
+                          {(prob.takeProfitProb * 100).toFixed(1)}%
                         </span>
-                        <span className="text-slate-600">|</span>
-                        <span className="text-rose-400 font-semibold">
-                          손절 {(prob.stopLossProb * 100).toFixed(1)}%
-                        </span>
+                        {isBuySignal && (
+                          <>
+                            <span className="text-slate-600">|</span>
+                            <span className="text-amber-400 font-bold animate-pulse">
+                              매수 신호!
+                            </span>
+                          </>
+                        )}
                       </>
                     );
                   })()}

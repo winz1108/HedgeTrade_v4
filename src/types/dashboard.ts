@@ -58,7 +58,7 @@ export interface MarketState {
 export interface ProbabilityHistory {
   timestamp: number;
   takeProfitProb: number;
-  stopLossProb: number;
+  stopLossProb?: number;
 }
 
 export interface DashboardData {
