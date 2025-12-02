@@ -14,6 +14,7 @@ export interface Candle {
   signal?: number;
   histogram?: number;
   rsi?: number;
+  takeProfitProb?: number;
 }
 
 export interface TradeEvent {

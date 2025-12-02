@@ -278,27 +278,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   };
 
   const probabilityData = useMemo(() => {
-    if (!data.probabilityHistory || data.probabilityHistory.length === 0) {
-      return [];
-    }
-
-    return data.probabilityHistory
-      .filter(p => {
-        const candleIndex = visibleCandles.findIndex(c =>
-          Math.abs(c.timestamp - p.timestamp) < 60000
-        );
-        return candleIndex >= 0;
-      })
-      .map(p => {
-        const candleIndex = visibleCandles.findIndex(c =>
-          Math.abs(c.timestamp - p.timestamp) < 60000
-        );
-        return {
-          ...p,
-          candleIndex
-        };
-      });
-  }, [data.probabilityHistory, visibleCandles]);
+    return visibleCandles
+      .map((candle, index) => ({
+        timestamp: candle.timestamp,
+        takeProfitProb: candle.takeProfitProb ?? 0,
+        candleIndex: index
+      }))
+      .filter(p => p.takeProfitProb > 0);
+  }, [visibleCandles]);
 
   const probabilityPadding = 16;
 
@@ -1725,29 +1712,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               {(() => {
                 const thresholdY = probabilityToY(0.98);
                 return (
-                  <>
-                    <line
-                      x1="0"
-                      y1={thresholdY}
-                      x2="100%"
-                      y2={thresholdY}
-                      stroke="#fbbf24"
-                      strokeWidth="2"
-                      strokeDasharray="8 4"
-                      opacity="0.8"
-                    />
-                    <text
-                      x="100%"
-                      y={thresholdY - 5}
-                      textAnchor="end"
-                      fill="#fbbf24"
-                      fontSize="11"
-                      fontWeight="bold"
-                      fontFamily="monospace"
-                    >
-                      매수 임계값 (98%)
-                    </text>
-                  </>
+                  <line
+                    x1="0"
+                    y1={thresholdY}
+                    x2="100%"
+                    y2={thresholdY}
+                    stroke="#fbbf24"
+                    strokeWidth="2"
+                    strokeDasharray="8 4"
+                    opacity="0.8"
+                  />
                 );
               })()}
 
