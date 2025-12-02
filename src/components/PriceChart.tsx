@@ -277,13 +277,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     handleResizeMouseMove(e);
   };
 
+  const hasProbabilityDataIssue = useMemo(() => {
+    if (timeframe !== '1m') return false;
+    const candlesWithProb = visibleCandles.filter(c => c.takeProfitProb && c.takeProfitProb > 0);
+    return candlesWithProb.length === 0 && visibleCandles.length > 0;
+  }, [visibleCandles, timeframe]);
+
   const probabilityData = useMemo(() => {
     if (timeframe === '1m') {
       return visibleCandles
         .map((candle, index) => ({
           timestamp: candle.timestamp,
           takeProfitProb: candle.takeProfitProb ?? 0,
-          candleIndex: index
+          candleIndex: index,
+          hasProb: (candle.takeProfitProb ?? 0) > 0
         }))
         .filter(p => p.takeProfitProb > 0);
     }
@@ -1833,7 +1840,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </svg>
             <div className="absolute left-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
               <span className="text-slate-400 font-medium">익절확률 예측</span>
-              {hoveredCandleIndex !== null && probabilityData.length > 0 && (
+              {hasProbabilityDataIssue && (
+                <span className="text-red-400 font-semibold animate-pulse">⚠ 확률 데이터 없음</span>
+              )}
+              {!hasProbabilityDataIssue && hoveredCandleIndex !== null && probabilityData.length > 0 && (
                 <>
                   {(() => {
                     const prob = probabilityData.find(p => p.candleIndex === hoveredCandleIndex);
