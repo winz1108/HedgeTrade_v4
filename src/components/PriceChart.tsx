@@ -1679,14 +1679,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               })}
             </div>
 
-            <div className="absolute right-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
-              <span className="text-slate-400 font-medium">Volume</span>
-              {hoveredCandleIndex !== null && visibleCandles[hoveredCandleIndex] && (
-                <span className="text-slate-300 font-semibold">
-                  {visibleCandles[hoveredCandleIndex].volume.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC
-                </span>
-              )}
-            </div>
+            {hoveredCandleIndex !== null && (
+              <div className="absolute left-2 top-2 text-xs bg-slate-900/90 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+                <span className="text-slate-400 font-medium">Volume</span>
+                {visibleCandles[hoveredCandleIndex] && (
+                  <span className="text-slate-300 font-semibold">
+                    {visibleCandles[hoveredCandleIndex].volume.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <div
@@ -1787,36 +1789,38 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 );
               })()}
             </svg>
-            <div className="absolute right-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
-              <span className="text-slate-400 font-medium">MACD</span>
-              {hoveredCandleIndex !== null && visibleCandles[hoveredCandleIndex] && (
-                <>
-                  {visibleCandles[hoveredCandleIndex].macd !== undefined && (
-                    <span className="text-blue-400 font-semibold">
-                      {visibleCandles[hoveredCandleIndex].macd!.toFixed(2)}
-                    </span>
-                  )}
-                  {visibleCandles[hoveredCandleIndex].signal !== undefined && (
-                    <>
-                      <span className="text-slate-600">|</span>
-                      <span className="text-slate-500 text-[10px]">Signal</span>
-                      <span className="text-orange-400 font-semibold">
-                        {visibleCandles[hoveredCandleIndex].signal!.toFixed(2)}
+            {hoveredCandleIndex !== null && (
+              <div className="absolute left-2 top-2 text-xs bg-slate-900/90 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+                <span className="text-slate-400 font-medium">MACD</span>
+                {visibleCandles[hoveredCandleIndex] && (
+                  <>
+                    {visibleCandles[hoveredCandleIndex].macd !== undefined && (
+                      <span className="text-blue-400 font-semibold">
+                        {visibleCandles[hoveredCandleIndex].macd!.toFixed(2)}
                       </span>
-                    </>
-                  )}
-                  {visibleCandles[hoveredCandleIndex].histogram !== undefined && (
-                    <>
-                      <span className="text-slate-600">|</span>
-                      <span className="text-slate-500 text-[10px]">Hist</span>
-                      <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].histogram! >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {visibleCandles[hoveredCandleIndex].histogram!.toFixed(2)}
-                      </span>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
+                    )}
+                    {visibleCandles[hoveredCandleIndex].signal !== undefined && (
+                      <>
+                        <span className="text-slate-600">|</span>
+                        <span className="text-slate-500 text-[10px]">Signal</span>
+                        <span className="text-orange-400 font-semibold">
+                          {visibleCandles[hoveredCandleIndex].signal!.toFixed(2)}
+                        </span>
+                      </>
+                    )}
+                    {visibleCandles[hoveredCandleIndex].histogram !== undefined && (
+                      <>
+                        <span className="text-slate-600">|</span>
+                        <span className="text-slate-500 text-[10px]">Hist</span>
+                        <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].histogram! >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {visibleCandles[hoveredCandleIndex].histogram!.toFixed(2)}
+                        </span>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           <div
@@ -1882,18 +1886,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 );
               })()}
             </svg>
-            <div className="absolute right-2 top-2 text-xs bg-slate-900/80 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
-              <span className="text-slate-400 font-medium">RSI</span>
-              {hoveredCandleIndex !== null && visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].rsi !== undefined && (
-                <span className={`font-semibold ${
-                  visibleCandles[hoveredCandleIndex].rsi! >= 70 ? 'text-rose-400' :
-                  visibleCandles[hoveredCandleIndex].rsi! <= 30 ? 'text-emerald-400' :
-                  'text-purple-400'
-                }`}>
-                  {visibleCandles[hoveredCandleIndex].rsi!.toFixed(1)}
-                </span>
-              )}
-            </div>
+            {hoveredCandleIndex !== null && (
+              <div className="absolute left-2 top-2 text-xs bg-slate-900/90 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+                <span className="text-slate-400 font-medium">RSI</span>
+                {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].rsi !== undefined && (
+                  <span className={`font-semibold ${
+                    visibleCandles[hoveredCandleIndex].rsi! >= 70 ? 'text-rose-400' :
+                    visibleCandles[hoveredCandleIndex].rsi! <= 30 ? 'text-emerald-400' :
+                    'text-purple-400'
+                  }`}>
+                    {visibleCandles[hoveredCandleIndex].rsi!.toFixed(1)}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
         </div>
