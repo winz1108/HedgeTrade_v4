@@ -67,6 +67,12 @@ function App() {
         holding: dashboardData.holding?.isHolding ?? false,
         trades: dashboardData.trades?.length ?? 0
       });
+
+      console.log('🔍 Profit values check:', {
+        'holding.currentProfit': dashboardData.holding.currentProfit,
+        'metrics.portfolioReturnWithCommission': dashboardData.metrics.portfolioReturnWithCommission,
+        'ARE_THEY_EQUAL': dashboardData.holding.currentProfit === dashboardData.metrics.portfolioReturnWithCommission
+      });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
