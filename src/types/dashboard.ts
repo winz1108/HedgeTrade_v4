@@ -21,6 +21,7 @@ export interface TradeEvent {
   timestamp: number;
   type: 'buy' | 'sell';
   price: number;
+  profit?: number;
   pairId?: string;
   prediction?: {
     takeProfitProb: number;

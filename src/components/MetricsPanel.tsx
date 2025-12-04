@@ -25,14 +25,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   };
 
 
-  const calculateCurrentProfit = () => {
-    if (!data.holding.isHolding || !data.holding.buyPrice) return 0;
-    return ((data.currentPrice - data.holding.buyPrice) / data.holding.buyPrice) * 100;
-  };
-
-  const currentProfit = data.holding.isHolding
-    ? (data.holding.currentProfit !== undefined ? data.holding.currentProfit : calculateCurrentProfit())
-    : 0;
+  // 백엔드에서 계산된 currentProfit 값을 신뢰하고 사용
+  const currentProfit = data.holding.currentProfit ?? 0;
 
   if (position === 'left') {
     return (

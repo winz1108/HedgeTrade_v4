@@ -38,15 +38,13 @@ function App() {
         if (previousHoldingState.current && !dashboardData.holding.isHolding) {
           const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
           if (latestTrade && latestTrade.type === 'sell' && lastTradeCount.current < dashboardData.trades.length) {
-            const previousTrade = dashboardData.trades[dashboardData.trades.length - 2];
-            if (previousTrade && previousTrade.type === 'buy') {
-              const profit = ((latestTrade.price - previousTrade.price) / previousTrade.price) * 100;
-              sendSellNotification(
-                profit >= 0 ? 'profit' : 'loss',
-                latestTrade.price,
-                profit
-              );
-            }
+            // 백엔드에서 계산된 lastTradeProfit 값을 사용
+            const profit = latestTrade.profit ?? 0;
+            sendSellNotification(
+              profit >= 0 ? 'profit' : 'loss',
+              latestTrade.price,
+              profit
+            );
           }
         }
 
