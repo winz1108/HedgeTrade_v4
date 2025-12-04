@@ -50,11 +50,12 @@ GET /oracle/state
                                       // currentPrediction과 항상 함께 업데이트되어야 함
 
   metrics: {
-    portfolioReturn: number;      // Portfolio return in percentage
-    marketReturn: number;         // Market return in percentage
-    avgTradeReturn: number;       // Average trade return in percentage
-    takeProfitCount: number;      // Number of take profit exits
-    stopLossCount: number;        // Number of stop loss exits
+    portfolioReturn: number;              // Portfolio return without commission (percentage)
+    portfolioReturnWithCommission: number;// REQUIRED: Actual portfolio return with commission (percentage)
+    marketReturn: number;                 // Market return in percentage
+    avgTradeReturn: number;               // Average trade return in percentage
+    takeProfitCount: number;              // Number of take profit exits
+    stopLossCount: number;                // Number of stop loss exits
   };
 }
 ```
@@ -90,6 +91,7 @@ GET /oracle/state
   timestamp: number;              // Unix timestamp in milliseconds
   type: 'buy' | 'sell';          // Trade type
   price: number;                  // Execution price
+  profit?: number;                // REQUIRED for SELL trades: Profit percentage (e.g., 1.2 for +1.2%)
   pairId?: string;                // Used to match buy/sell pairs
 
   prediction?: {                  // Only present for BUY trades
@@ -111,7 +113,7 @@ GET /oracle/state
   // Required when isHolding = true
   buyPrice?: number;              // Entry price
   buyTime?: number;               // Entry time (Unix timestamp ms)
-  currentProfit?: number;         // Current profit in percentage
+  currentProfit?: number;         // REQUIRED when holding: Current profit percentage (e.g., 1.2 for +1.2%)
   takeProfitPrice?: number;       // Target take profit price
   stopLossPrice?: number;         // Target stop loss price
 
@@ -224,6 +226,13 @@ timestamp: 1700000000     // 초 단위 (10자리) - 날짜 포맷 깨짐
         "expectedTakeProfitPrice": 42500,
         "expectedStopLossPrice": 41800
       }
+    },
+    {
+      "timestamp": 1700001800000,
+      "type": "sell",
+      "price": 42150,
+      "profit": 0.36,
+      "pairId": "pair_123"
     }
   ],
   "holding": {
@@ -243,6 +252,7 @@ timestamp: 1700000000     // 초 단위 (10자리) - 날짜 포맷 깨짐
   "lastPredictionUpdateTime": 1699999980000,
   "metrics": {
     "portfolioReturn": 5.0,
+    "portfolioReturnWithCommission": 4.2,
     "marketReturn": 3.2,
     "avgTradeReturn": 1.8,
     "takeProfitCount": 12,
