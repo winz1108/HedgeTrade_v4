@@ -5,6 +5,7 @@ import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
 import { sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
+import { formatLocalTime } from './utils/time';
 
 
 function App() {
@@ -177,13 +178,14 @@ function App() {
               )}
             </div>
             <div className="flex items-center gap-2 ml-auto">
-              <span className="text-[10px] text-slate-400 font-mono">
-                {new Date(data.currentTime).toLocaleTimeString('ko-KR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit'
-                })}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] text-slate-400 font-mono">
+                  {formatLocalTime(data.currentTime)}
+                </span>
+                <span className="text-[8px] text-slate-500">
+                  바이낸스 서버 시간 기준
+                </span>
+              </div>
               <button
                 onClick={() => {
                   setNotificationsEnabled(!notificationsEnabled);

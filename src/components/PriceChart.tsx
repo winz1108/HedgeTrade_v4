@@ -2,6 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from '../types/dashboard';
+import { formatLocalTime, formatChartTime } from '../utils/time';
 
 interface PriceChartProps {
   data: DashboardData;
@@ -467,7 +468,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <div className="flex justify-between gap-6">
                         <span className="text-slate-400">익절확률 업데이트</span>
                         <span className="text-slate-300 text-[10px]">
-                          {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          {formatLocalTime(data.lastPredictionUpdateTime)}
                         </span>
                       </div>
                     )}
@@ -508,7 +509,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <div className="flex justify-between gap-6">
                       <span className="text-slate-400">마지막 업데이트</span>
                       <span className="text-slate-300 text-[10px]">
-                        {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {formatLocalTime(data.currentTime)}
                       </span>
                     </div>
                     {(() => {
@@ -759,7 +760,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <div className="flex justify-between gap-6">
                         <span className="text-slate-400">익절확률 업데이트</span>
                         <span className="text-slate-300 text-[10px]">
-                          {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          {formatLocalTime(data.lastPredictionUpdateTime)}
                         </span>
                       </div>
                     )}
@@ -800,7 +801,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <div className="flex justify-between gap-6">
                       <span className="text-slate-400">마지막 업데이트</span>
                       <span className="text-slate-300 text-[10px]">
-                        {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {formatLocalTime(data.currentTime)}
                       </span>
                     </div>
                     {(() => {
@@ -1099,10 +1100,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           {/* OHLC Display */}
           {hoveredCandle && (
             <div className="absolute left-3 top-3 z-10 flex items-center gap-3 text-xs bg-black/60 backdrop-blur-sm px-3 py-2 rounded border border-slate-700/50">
+              <span className="text-slate-400 font-mono">{formatChartTime(hoveredCandle.timestamp)}</span>
               <span className="text-slate-400">O <span className="text-white font-semibold">{hoveredCandle.open.toFixed(2)}</span></span>
               <span className="text-slate-400">H <span className="text-[#0ecb81] font-semibold">{hoveredCandle.high.toFixed(2)}</span></span>
               <span className="text-slate-400">L <span className="text-[#f6465d] font-semibold">{hoveredCandle.low.toFixed(2)}</span></span>
               <span className="text-slate-400">C <span className="text-white font-semibold">{hoveredCandle.close.toFixed(2)}</span></span>
+              {hoveredCandle.isComplete === false && (
+                <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded text-[10px] font-bold border border-amber-500/30 animate-pulse">
+                  진행 중
+                </span>
+              )}
             </div>
           )}
           <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 1 }}>
@@ -1607,18 +1614,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   if (zoomLevel > 2) {
                     timeLabel = `${date.getMonth() + 1}-${date.getDate()}`;
                   } else {
-                    timeLabel = date.toLocaleTimeString('en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: false
-                    });
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    timeLabel = `${hours}:${minutes}`;
                   }
                 } else {
-                  timeLabel = date.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                  });
+                  const hours = String(date.getHours()).padStart(2, '0');
+                  const minutes = String(date.getMinutes()).padStart(2, '0');
+                  timeLabel = `${hours}:${minutes}`;
                 }
 
                 return (
