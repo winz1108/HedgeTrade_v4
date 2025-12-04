@@ -94,7 +94,7 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       loadData();
-    }, 60000);
+    }, 300000); // 5분마다 업데이트 (5분봉 캔들 완성 주기와 동기화)
 
     return () => clearInterval(interval);
   }, []);
