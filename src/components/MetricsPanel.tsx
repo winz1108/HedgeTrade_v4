@@ -25,8 +25,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   };
 
 
-  // 백엔드에서 계산된 currentProfit 값을 신뢰하고 사용
-  const currentProfit = data.holding.currentProfit ?? 0;
+  // 백엔드에서 계산된 portfolioReturnWithCommission 값을 사용 (더 정확한 계산)
+  const currentProfit = data.metrics.portfolioReturnWithCommission ?? 0;
 
   if (position === 'left') {
     return (
