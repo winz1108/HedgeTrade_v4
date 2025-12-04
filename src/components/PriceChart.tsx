@@ -1299,8 +1299,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       top: `${bodyTop}px`,
                       height: `${Math.max(bodyHeight, 1)}px`,
                       width: '100%',
-                      borderWidth: isGreen ? '0' : '1px',
-                      backgroundColor: isGreen ? '#0ecb81' : '#0b0e11',
+                      borderWidth: '0',
+                      backgroundColor: isGreen ? '#0ecb81' : '#f6465d',
                     }}
                   />
                 </div>
