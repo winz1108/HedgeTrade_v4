@@ -79,13 +79,12 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   <div className="flex justify-between">
                     <span className="text-[10px] text-slate-400">Current Profit</span>
                     <span
+                      key={`profit-${data.holding.currentProfit}-${Date.now()}`}
                       className={`text-[10px] font-bold ${
                         (data.holding.currentProfit ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       }`}
                     >
-                      {data.holding.currentProfit !== undefined && data.holding.currentProfit !== null && !isNaN(data.holding.currentProfit)
-                        ? `${data.holding.currentProfit >= 0 ? '+' : ''}${data.holding.currentProfit.toFixed(2)}%`
-                        : '0.00%'}
+                      {formatPercent(data.holding.currentProfit)}
                     </span>
                   </div>
                 </div>
