@@ -7,6 +7,9 @@ const headers = {
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
   "Content-Type": "application/json",
+  "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0",
 };
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
