@@ -8,11 +8,13 @@ const getProxyUrl = () => {
 };
 
 export const fetchDashboardData = async (): Promise<DashboardData> => {
-  const url = `${getProxyUrl()}?endpoint=${encodeURIComponent('/api/dashboard')}`;
+  const url = `${getProxyUrl()}?endpoint=${encodeURIComponent('/api/dashboard')}&_=${Date.now()}`;
 
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache'
     },
   });
 
@@ -58,6 +60,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   });
 
   // 💰 currentProfit 상세 로깅
+  console.log('💰 RAW HOLDING DATA:', JSON.stringify(rawData.holding, null, 2));
+  console.log('💰 RAW METRICS DATA:', JSON.stringify(rawData.metrics, null, 2));
   console.log('💰 currentProfit 데이터:', {
     raw_currentProfit: rawData.holding?.currentProfit,
     raw_type: typeof rawData.holding?.currentProfit,
@@ -65,7 +69,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     currentPrice: rawData.currentPrice,
     calculated: rawData.currentPrice && rawData.holding?.buyPrice
       ? ((rawData.currentPrice - rawData.holding.buyPrice) / rawData.holding.buyPrice * 100).toFixed(2)
-      : 'N/A'
+      : 'N/A',
+    portfolioReturnWithCommission: rawData.metrics?.portfolioReturnWithCommission
   });
 
   if (rawData.error) {
