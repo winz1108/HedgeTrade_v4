@@ -22,7 +22,10 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   };
 
   const formatPercent = (value: number | undefined) => {
-    if (value === undefined || value === null || isNaN(value)) {
+    if (value === undefined || value === null) {
+      return '0.00%';
+    }
+    if (typeof value !== 'number' || isNaN(value)) {
       return '0.00%';
     }
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
@@ -79,12 +82,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   <div className="flex justify-between">
                     <span className="text-[10px] text-slate-400">Current Profit</span>
                     <span
-                      key={`profit-${data.holding.currentProfit}-${Date.now()}`}
                       className={`text-[10px] font-bold ${
                         (data.holding.currentProfit ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       }`}
                     >
-                      {formatPercent(data.holding.currentProfit)}
+                      {data.holding.currentProfit !== undefined && data.holding.currentProfit !== null
+                        ? `${data.holding.currentProfit >= 0 ? '+' : ''}${data.holding.currentProfit.toFixed(2)}%`
+                        : '0.00%'}
                     </span>
                   </div>
                 </div>
