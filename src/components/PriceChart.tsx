@@ -1491,15 +1491,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 const y = rawY;
                 const isHovered = hoveredTrade?.timestamp === trade.timestamp;
 
-                console.log('✅ Trade marker rendered:', {
-                  type: trade.type,
-                  price: trade.price,
-                  time: new Date(trade.timestamp).toLocaleTimeString(),
-                  candleIndex,
-                  x,
-                  y
-                });
-
                 return (
                   <div
                     key={`${trade.timestamp}-${idx}`}
