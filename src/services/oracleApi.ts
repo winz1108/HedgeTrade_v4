@@ -28,6 +28,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     throw new Error(`Oracle VM error: ${rawData.error}`);
   }
 
+  console.log('🔍 백엔드 Raw Data - holding:', rawData.holding);
+  console.log('🔍 백엔드 Raw Data - metrics:', rawData.metrics);
+
   try {
     const data: DashboardData = {
       version: rawData.version,
