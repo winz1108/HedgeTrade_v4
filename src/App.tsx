@@ -38,7 +38,6 @@ function App() {
         if (previousHoldingState.current && !dashboardData.holding.isHolding) {
           const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
           if (latestTrade && latestTrade.type === 'sell' && lastTradeCount.current < dashboardData.trades.length) {
-            // 백엔드에서 계산된 lastTradeProfit 값을 사용
             const profit = latestTrade.profit ?? 0;
             sendSellNotification(
               profit >= 0 ? 'profit' : 'loss',
@@ -54,7 +53,8 @@ function App() {
       previousHoldingState.current = dashboardData.holding.isHolding;
 
       console.log('📊 App.tsx setData 전 - currentProfit:', dashboardData.holding.currentProfit);
-      setData(dashboardData);
+      console.log('📊 전체 holding 데이터:', JSON.stringify(dashboardData.holding, null, 2));
+      setData({ ...dashboardData });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
