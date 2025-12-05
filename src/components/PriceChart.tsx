@@ -1023,12 +1023,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5 overflow-x-auto">
             {(['1m', '5m', '15m', '1h', '4h', '1d'] as const).map((tf) => {
-              console.log('🔵 Rendering timeframe button:', tf);
               return (
                 <button
                   key={tf}
                   onClick={() => {
-                    console.log('🔵 Clicked timeframe:', tf);
                     setTimeframe(tf);
                     setScrollOffset(0);
                     setResetScroll(prev => prev + 1);
@@ -1447,23 +1445,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   const isSellInRange = pairedSellTrade && pairedSellTrade.timestamp >= visibleTimeRangeStart && pairedSellTrade.timestamp <= visibleTimeRangeEnd;
 
                   if (!isSellInRange) {
-                    console.log('🚫 Trade marker hidden (out of visible range):', {
-                      type: trade.type,
-                      price: trade.price,
-                      time: new Date(trade.timestamp).toLocaleTimeString(),
-                      reason: 'Trade timestamp outside visible range'
-                    });
                     return null;
                   }
                 }
 
                 if (!isTradeInVisibleRange && trade.type === 'sell') {
-                  console.log('🚫 Trade marker hidden (out of visible range):', {
-                    type: trade.type,
-                    price: trade.price,
-                    time: new Date(trade.timestamp).toLocaleTimeString(),
-                    reason: 'Sell trade timestamp outside visible range'
-                  });
                   return null;
                 }
 
@@ -1492,23 +1478,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 }
 
                 if (candleIndex === -1) {
-                  console.log('❌ Trade marker skipped:', {
-                    type: trade.type,
-                    price: trade.price,
-                    time: new Date(trade.timestamp).toLocaleTimeString(),
-                    reason: 'candleIndex not found'
-                  });
                   return null;
                 }
 
                 const finalTradeInRange = trade.timestamp >= visibleTimeRangeStart && trade.timestamp <= visibleTimeRangeEnd;
                 if (!finalTradeInRange) {
-                  console.log('🚫 Trade marker hidden (final check - out of range):', {
-                    type: trade.type,
-                    price: trade.price,
-                    time: new Date(trade.timestamp).toLocaleTimeString(),
-                    candleIndex
-                  });
                   return null;
                 }
 
