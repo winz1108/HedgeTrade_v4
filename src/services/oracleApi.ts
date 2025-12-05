@@ -57,6 +57,17 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     lastPredictionUpdateTime: rawData.lastPredictionUpdateTime
   });
 
+  // 💰 currentProfit 상세 로깅
+  console.log('💰 currentProfit 데이터:', {
+    raw_currentProfit: rawData.holding?.currentProfit,
+    raw_type: typeof rawData.holding?.currentProfit,
+    buyPrice: rawData.holding?.buyPrice,
+    currentPrice: rawData.currentPrice,
+    calculated: rawData.currentPrice && rawData.holding?.buyPrice
+      ? ((rawData.currentPrice - rawData.holding.buyPrice) / rawData.holding.buyPrice * 100).toFixed(2)
+      : 'N/A'
+  });
+
   if (rawData.error) {
     throw new Error(`Oracle VM error: ${rawData.error}`);
   }

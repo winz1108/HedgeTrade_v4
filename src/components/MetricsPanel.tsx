@@ -79,7 +79,14 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                         (data.holding.currentProfit ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       }`}
                     >
-                      {formatPercent(data.holding.currentProfit)}
+                      {(() => {
+                        console.log('🔍 UI currentProfit:', {
+                          value: data.holding.currentProfit,
+                          type: typeof data.holding.currentProfit,
+                          formatted: formatPercent(data.holding.currentProfit)
+                        });
+                        return formatPercent(data.holding.currentProfit);
+                      })()}
                     </span>
                   </div>
                 </div>
