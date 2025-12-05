@@ -24,55 +24,6 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
   const rawData = await response.json();
 
-  // 🚨 전체 응답 덤프
-  console.log('🚨 FULL RAW DATA:', JSON.stringify(rawData, null, 2));
-
-  console.log('📡 API Response:', {
-    cacheStatus: rawData.cacheStatus,
-    priceHistory: {
-      '1m': rawData.priceHistory?.['1m']?.length || 0,
-      '5m': rawData.priceHistory?.['5m']?.length || 0,
-      '15m': rawData.priceHistory?.['15m']?.length || 0,
-      '1h': rawData.priceHistory?.['1h']?.length || 0,
-      '4h': rawData.priceHistory?.['4h']?.length || 0,
-      '1d': rawData.priceHistory?.['1d']?.length || 0
-    },
-    sample1m: rawData.priceHistory?.['1m']?.[0] || 'none',
-    hasPriceHistory: !!rawData.priceHistory,
-    priceHistoryKeys: rawData.priceHistory ? Object.keys(rawData.priceHistory) : []
-  });
-
-  // 🔍 4h와 1d 데이터 상세 확인
-  console.log('🔍 4h 데이터 타입:', typeof rawData.priceHistory?.['4h']);
-  console.log('🔍 4h 데이터 Array.isArray:', Array.isArray(rawData.priceHistory?.['4h']));
-  console.log('🔍 4h 첫 3개:', rawData.priceHistory?.['4h']?.slice(0, 3));
-  console.log('🔍 1d 데이터 타입:', typeof rawData.priceHistory?.['1d']);
-  console.log('🔍 1d 데이터 Array.isArray:', Array.isArray(rawData.priceHistory?.['1d']));
-  console.log('🔍 1d 첫 3개:', rawData.priceHistory?.['1d']?.slice(0, 3));
-
-  // 🎯 익절확률 확인
-  console.log('🎯 익절확률 데이터:', {
-    isHolding: rawData.holding?.isHolding,
-    initialTakeProfitProb: rawData.holding?.initialTakeProfitProb,
-    currentTakeProfitProb: rawData.holding?.currentTakeProfitProb,
-    currentPrediction: rawData.currentPrediction,
-    lastPredictionUpdateTime: rawData.lastPredictionUpdateTime
-  });
-
-  // 💰 currentProfit 상세 로깅
-  console.log('💰 RAW HOLDING DATA:', JSON.stringify(rawData.holding, null, 2));
-  console.log('💰 RAW METRICS DATA:', JSON.stringify(rawData.metrics, null, 2));
-  console.log('💰 currentProfit 데이터:', {
-    raw_currentProfit: rawData.holding?.currentProfit,
-    raw_type: typeof rawData.holding?.currentProfit,
-    buyPrice: rawData.holding?.buyPrice,
-    currentPrice: rawData.currentPrice,
-    calculated: rawData.currentPrice && rawData.holding?.buyPrice
-      ? ((rawData.currentPrice - rawData.holding.buyPrice) / rawData.holding.buyPrice * 100).toFixed(2)
-      : 'N/A',
-    portfolioReturnWithCommission: rawData.metrics?.portfolioReturnWithCommission
-  });
-
   if (rawData.error) {
     throw new Error(`Oracle VM error: ${rawData.error}`);
   }

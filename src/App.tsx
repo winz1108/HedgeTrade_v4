@@ -54,25 +54,6 @@ function App() {
       previousHoldingState.current = dashboardData.holding.isHolding;
 
       setData(dashboardData);
-
-      console.log('📊 Data loaded:', {
-        priceHistory: {
-          '1m': dashboardData.priceHistory1m?.length || 0,
-          '5m': dashboardData.priceHistory5m?.length || 0,
-          '15m': dashboardData.priceHistory15m?.length || 0,
-          '1h': dashboardData.priceHistory1h?.length || 0,
-          '4h': dashboardData.priceHistory4h?.length || 0,
-          '1d': dashboardData.priceHistory1d?.length || 0
-        },
-        holding: dashboardData.holding?.isHolding ?? false,
-        trades: dashboardData.trades?.length ?? 0
-      });
-
-      console.log('🔍 Profit values check:', {
-        'holding.currentProfit': dashboardData.holding.currentProfit,
-        'metrics.portfolioReturnWithCommission': dashboardData.metrics.portfolioReturnWithCommission,
-        'ARE_THEY_EQUAL': dashboardData.holding.currentProfit === dashboardData.metrics.portfolioReturnWithCommission
-      });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
