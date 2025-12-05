@@ -83,7 +83,9 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                         (data.holding.currentProfit ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       }`}
                     >
-                      {formatPercent(data.holding.currentProfit)}
+                      {data.holding.currentProfit !== undefined && data.holding.currentProfit !== null && !isNaN(data.holding.currentProfit)
+                        ? `${data.holding.currentProfit >= 0 ? '+' : ''}${data.holding.currentProfit.toFixed(2)}%`
+                        : '0.00%'}
                     </span>
                   </div>
                 </div>
