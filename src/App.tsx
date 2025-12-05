@@ -218,14 +218,14 @@ function App() {
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
           <div className="flex flex-col gap-2 order-2 lg:order-1">
-            <MetricsPanel data={data} position="left" />
+            <MetricsPanel key={`left-${data.currentTime}-${data.holding.currentProfit}`} data={data} position="left" />
           </div>
           <div className="min-w-0 order-1 lg:order-2">
             <PriceChart data={data} onTradeHover={setHoveredTrade} />
           </div>
           <div className="flex flex-col gap-2 order-3 lg:order-3">
-            <MetricsPanel data={data} position="right" />
-            <MetricsPanel data={data} position="trades" />
+            <MetricsPanel key={`right-${data.currentTime}`} data={data} position="right" />
+            <MetricsPanel key={`trades-${data.trades.length}`} data={data} position="trades" />
           </div>
         </div>
       </div>
