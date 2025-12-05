@@ -178,6 +178,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   <span className="text-[10px] text-slate-400 font-semibold">
                     {data.holding.isHolding ? 'Current' : 'Current Prediction'}
                   </span>
+                  {data.currentPrediction?.predictionCalculatedAt && (
+                    <span className="text-[9px] text-slate-500 font-mono">
+                      {formatLocalTime(data.currentPrediction.predictionCalculatedAt)}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
