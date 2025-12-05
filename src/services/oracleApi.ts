@@ -59,8 +59,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
         currentTakeProfitProb: rawData.holding?.currentTakeProfitProb,
         latestPrediction: rawData.holding?.latestPrediction
       },
-      currentPrediction: rawData.currentPrediction,
-      lastPredictionUpdateTime: rawData.currentPrediction?.lastUpdateTime ?? rawData.lastPredictionUpdateTime,
+      currentPrediction: rawData.currentPrediction ? {
+        takeProfitProb: rawData.currentPrediction.takeProfitProb,
+        stopLossProb: rawData.currentPrediction.stopLossProb,
+        predictionDataTimestamp: rawData.currentPrediction.predictionDataTimestamp,
+        predictionCalculatedAt: rawData.currentPrediction.predictionCalculatedAt,
+        v2UpdateCount: rawData.currentPrediction.v2UpdateCount,
+        v2LastUsed5minTimestamp: rawData.currentPrediction.v2LastUsed5minTimestamp
+      } : undefined,
+      lastPredictionUpdateTime: rawData.currentPrediction?.predictionCalculatedAt ?? rawData.currentPrediction?.lastUpdateTime ?? rawData.lastPredictionUpdateTime,
       marketState: rawData.marketState,
       gateWeights: rawData.gateWeights,
       metrics: {

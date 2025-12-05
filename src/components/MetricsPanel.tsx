@@ -122,11 +122,25 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-emerald-500/10 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-white">Take Profit Probability</h3>
-              <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded text-[8px] font-bold border border-blue-500/30">
-                완성된 5분봉 기준
-              </span>
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-white">Take Profit Probability</h3>
+                <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded text-[8px] font-bold border border-blue-500/30">
+                  완성된 5분봉 기준
+                </span>
+              </div>
+              {data.currentPrediction?.predictionDataTimestamp && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[8px] text-slate-500">
+                    데이터 기준: {formatLocalTime(data.currentPrediction.predictionDataTimestamp)}
+                  </span>
+                  {data.currentPrediction?.predictionCalculatedAt && (
+                    <span className="text-[8px] text-slate-500">
+                      계산 시점: {formatLocalTime(data.currentPrediction.predictionCalculatedAt)}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="p-1 bg-emerald-500/20 rounded-lg">
               <TrendingUp className="w-3 h-3 text-emerald-400" />
@@ -164,11 +178,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   <span className="text-[10px] text-slate-400 font-semibold">
                     {data.holding.isHolding ? 'Current' : 'Current Prediction'}
                   </span>
-                  {data.lastPredictionUpdateTime && (
-                    <span className="text-[9px] text-slate-500 font-mono">
-                      {formatLocalTime(data.lastPredictionUpdateTime)}
-                    </span>
-                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">

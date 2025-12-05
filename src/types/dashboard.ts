@@ -77,6 +77,10 @@ export interface DashboardData {
   currentPrediction?: {
     takeProfitProb: number;
     stopLossProb: number;
+    predictionDataTimestamp?: number;
+    predictionCalculatedAt?: number;
+    v2UpdateCount?: number;
+    v2LastUsed5minTimestamp?: number;
   };
   lastPredictionUpdateTime?: number;
   marketState?: MarketState;
