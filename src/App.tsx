@@ -53,6 +53,7 @@ function App() {
 
       previousHoldingState.current = dashboardData.holding.isHolding;
 
+      console.log('📊 App.tsx setData 전 - currentProfit:', dashboardData.holding.currentProfit);
       setData(dashboardData);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);

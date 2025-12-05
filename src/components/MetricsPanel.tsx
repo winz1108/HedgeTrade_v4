@@ -8,6 +8,10 @@ interface MetricsPanelProps {
 }
 
 export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
+  if (position === 'left' && data.holding.isHolding) {
+    console.log('🎨 MetricsPanel 렌더링 - currentProfit:', data.holding.currentProfit);
+  }
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

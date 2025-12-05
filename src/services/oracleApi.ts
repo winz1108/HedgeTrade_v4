@@ -73,6 +73,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       }
     };
 
+    console.log('✅ 변환 완료 - holding.currentProfit:', data.holding.currentProfit);
+    console.log('✅ 변환 완료 - 전체 data.holding:', data.holding);
+
     return data;
   } catch (error) {
     console.error('❌ Transformation error:', error);
