@@ -25,9 +25,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   };
 
 
-  // 백엔드에서 계산된 portfolioReturnWithCommission 값을 사용 (더 정확한 계산)
-  const currentProfit = data.metrics.portfolioReturnWithCommission ?? 0;
-
   if (position === 'left') {
     return (
       <div className="flex flex-col gap-2">
@@ -79,10 +76,10 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     <span className="text-[10px] text-slate-400">Current Profit</span>
                     <span
                       className={`text-[10px] font-bold ${
-                        currentProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                        (data.holding.currentProfit ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       }`}
                     >
-                      {formatPercent(currentProfit)}
+                      {formatPercent(data.holding.currentProfit)}
                     </span>
                   </div>
                 </div>
