@@ -57,7 +57,7 @@ function App() {
       if (dashboardData.currentPrediction?.v5MoeTakeProfitProb !== undefined) {
         console.log('📊 v5MoeTakeProfitProb:', dashboardData.currentPrediction.v5MoeTakeProfitProb);
         if (dashboardData.currentPrediction?.predictionCalculatedAt) {
-          console.log('📊 v5MoeTakeProfitProb 계산 시점:', new Date(dashboardData.currentPrediction.predictionCalculatedAt).toLocaleString('ko-KR'));
+          console.log('📊 v5MoeTakeProfitProb 계산 시점:', new Date(dashboardData.currentPrediction.predictionCalculatedAt).toLocaleString());
         }
       }
       setData({ ...dashboardData });
