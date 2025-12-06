@@ -56,12 +56,13 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
         takeProfitPrice: rawData.holding?.takeProfitPrice,
         stopLossPrice: rawData.holding?.stopLossPrice,
         initialTakeProfitProb: rawData.holding?.initialTakeProfitProb,
-        currentTakeProfitProb: rawData.holding?.currentTakeProfitProb,
+        v5MoeTakeProfitProb: rawData.holding?.v5MoeTakeProfitProb,
         latestPrediction: rawData.holding?.latestPrediction
       },
       currentPrediction: rawData.currentPrediction ? {
         takeProfitProb: rawData.currentPrediction.takeProfitProb,
         stopLossProb: rawData.currentPrediction.stopLossProb,
+        v5MoeTakeProfitProb: rawData.currentPrediction.v5MoeTakeProfitProb,
         predictionDataTimestamp: rawData.currentPrediction.predictionDataTimestamp,
         predictionCalculatedAt: rawData.currentPrediction.predictionCalculatedAt,
         v2UpdateCount: rawData.currentPrediction.v2UpdateCount,

@@ -54,6 +54,12 @@ function App() {
 
       console.log('📊 App.tsx setData 전 - currentProfit:', dashboardData.holding.currentProfit);
       console.log('📊 전체 holding 데이터:', JSON.stringify(dashboardData.holding, null, 2));
+      if (dashboardData.currentPrediction?.v5MoeTakeProfitProb !== undefined) {
+        console.log('📊 v5MoeTakeProfitProb:', dashboardData.currentPrediction.v5MoeTakeProfitProb);
+        if (dashboardData.currentPrediction?.predictionCalculatedAt) {
+          console.log('📊 v5MoeTakeProfitProb 계산 시점:', new Date(dashboardData.currentPrediction.predictionCalculatedAt).toLocaleString('ko-KR'));
+        }
+      }
       setData({ ...dashboardData });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);

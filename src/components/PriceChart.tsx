@@ -455,10 +455,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <div className="flex justify-between gap-6">
                       <span className="text-slate-400">현재 익절확률</span>
                       <span className="text-[#0ecb81] font-semibold">
-                        {data.currentPrediction?.takeProfitProb
-                          ? (data.currentPrediction.takeProfitProb * 100).toFixed(1)
-                          : data.holding.currentTakeProfitProb
-                            ? (data.holding.currentTakeProfitProb * 100).toFixed(1)
+                        {data.currentPrediction?.v5MoeTakeProfitProb
+                          ? (data.currentPrediction.v5MoeTakeProfitProb * 100).toFixed(1)
+                          : data.holding.v5MoeTakeProfitProb
+                            ? (data.holding.v5MoeTakeProfitProb * 100).toFixed(1)
                             : trade.prediction
                               ? (trade.prediction.takeProfitProb * 100).toFixed(1)
                               : 'N/A'}%
@@ -747,10 +747,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <div className="flex justify-between gap-6">
                       <span className="text-slate-400">현재 익절확률</span>
                       <span className="text-[#0ecb81] font-semibold">
-                        {data.currentPrediction?.takeProfitProb
-                          ? (data.currentPrediction.takeProfitProb * 100).toFixed(1)
-                          : data.holding.currentTakeProfitProb
-                            ? (data.holding.currentTakeProfitProb * 100).toFixed(1)
+                        {data.currentPrediction?.v5MoeTakeProfitProb
+                          ? (data.currentPrediction.v5MoeTakeProfitProb * 100).toFixed(1)
+                          : data.holding.v5MoeTakeProfitProb
+                            ? (data.holding.v5MoeTakeProfitProb * 100).toFixed(1)
                             : trade.prediction
                               ? (trade.prediction.takeProfitProb * 100).toFixed(1)
                               : 'N/A'}%

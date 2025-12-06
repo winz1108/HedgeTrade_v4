@@ -41,7 +41,7 @@ export interface HoldingInfo {
   takeProfitPrice?: number;
   stopLossPrice?: number;
   initialTakeProfitProb?: number;
-  currentTakeProfitProb?: number;
+  v5MoeTakeProfitProb?: number;
   latestPrediction?: {
     takeProfitProb: number;
     stopLossProb: number;
@@ -77,6 +77,7 @@ export interface DashboardData {
   currentPrediction?: {
     takeProfitProb: number;
     stopLossProb: number;
+    v5MoeTakeProfitProb?: number;
     predictionDataTimestamp?: number;
     predictionCalculatedAt?: number;
     v2UpdateCount?: number;
