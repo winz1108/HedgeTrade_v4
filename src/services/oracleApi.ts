@@ -29,7 +29,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   }
 
   console.log('🔍 백엔드 Raw Data - holding:', rawData.holding);
+  console.log('🔍 백엔드 Raw Data - currentPrediction:', rawData.currentPrediction);
   console.log('🔍 백엔드 Raw Data - metrics:', rawData.metrics);
+
+  // 🔍 undefined 필드 디버깅
+  if (rawData.holding?.isHolding) {
+    console.log('🔍 v5MoeTakeProfitProb:', rawData.holding.v5MoeTakeProfitProb);
+    console.log('🔍 latestPrediction:', rawData.holding.latestPrediction);
+    console.log('🔍 holding의 모든 키:', Object.keys(rawData.holding));
+  }
 
   try {
     const data: DashboardData = {
