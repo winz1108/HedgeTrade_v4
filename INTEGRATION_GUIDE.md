@@ -178,7 +178,7 @@ async def start_background_tasks():
 
 ```python
 # ✅ 올바른 방법: 버전을 변수로 관리
-CURRENT_VERSION = "v6.0.1.120"  # 업데이트할 때마다 수정
+CURRENT_VERSION = "v6.19.0.1"  # 업데이트할 때마다 수정
 
 @app.get("/api/dashboard")
 async def get_dashboard():
@@ -207,14 +207,6 @@ async def get_dashboard():
         ...
     }
 ```
-
-**버전 형식 규칙:**
-
-- 형식: `v메이저.마이너.패치.빌드` (예: `v6.0.1.120`)
-- 메이저: 큰 변경 (API 구조 변경)
-- 마이너: 기능 추가
-- 패치: 버그 수정
-- 빌드: 빌드 번호 또는 커밋 해시
 
 ---
 
