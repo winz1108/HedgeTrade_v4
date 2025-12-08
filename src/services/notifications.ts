@@ -20,9 +20,9 @@ const sendInAppNotification = (notification: InAppNotification) => {
   }
 };
 
-export const sendBuyNotification = (price: number, takeProfitProb: number) => {
+export const sendBuyNotification = (price: number) => {
   const title = '🟢 BTC Buy Signal';
-  const message = `Buy at $${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nTake Profit Probability: ${(takeProfitProb * 100).toFixed(1)}%`;
+  const message = `Buy at $${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   sendInAppNotification({
     id: `buy-${Date.now()}`,

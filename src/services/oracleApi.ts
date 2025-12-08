@@ -28,17 +28,6 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     throw new Error(`Oracle VM error: ${rawData.error}`);
   }
 
-  console.log('🔍 백엔드 Raw Data - holding:', rawData.holding);
-  console.log('🔍 백엔드 Raw Data - currentPrediction:', rawData.currentPrediction);
-  console.log('🔍 백엔드 Raw Data - metrics:', rawData.metrics);
-
-  // 🔍 undefined 필드 디버깅
-  if (rawData.holding?.isHolding) {
-    console.log('🔍 v5MoeTakeProfitProb:', rawData.holding.v5MoeTakeProfitProb);
-    console.log('🔍 latestPrediction:', rawData.holding.latestPrediction);
-    console.log('🔍 holding의 모든 키:', Object.keys(rawData.holding));
-  }
-
   try {
     const data: DashboardData = {
       version: rawData.version,
@@ -88,9 +77,6 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
         stopLossCount: rawData.metrics?.stopLossCount ?? 0
       }
     };
-
-    console.log('✅ 변환 완료 - holding.currentProfit:', data.holding.currentProfit);
-    console.log('✅ 변환 완료 - 전체 data.holding:', data.holding);
 
     return data;
   } catch (error) {
