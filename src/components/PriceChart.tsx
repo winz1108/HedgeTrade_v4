@@ -645,11 +645,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div className="flex justify-between gap-4">
                     <span className="text-slate-400">현재</span>
                     <span className="text-[#0ecb81]">
-                      {data.currentPrediction && data.currentPrediction.takeProfitProb !== undefined
-                        ? (data.currentPrediction.takeProfitProb * 100).toFixed(1)
-                        : data.holding.currentTakeProfitProb
-                          ? (data.holding.currentTakeProfitProb * 100).toFixed(1)
-                          : trade.prediction
+                      {data.holding.isHolding && data.holding.v5MoeTakeProfitProb !== undefined
+                        ? (data.holding.v5MoeTakeProfitProb * 100).toFixed(1)
+                        : data.currentPrediction?.v5MoeTakeProfitProb !== undefined
+                          ? (data.currentPrediction.v5MoeTakeProfitProb * 100).toFixed(1)
+                          : trade.prediction?.takeProfitProb !== undefined
                             ? (trade.prediction.takeProfitProb * 100).toFixed(1)
                             : 'N/A'}%
                     </span>
@@ -937,11 +937,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div className="flex justify-between gap-4">
                     <span className="text-slate-400">현재</span>
                     <span className="text-[#0ecb81]">
-                      {data.currentPrediction && data.currentPrediction.takeProfitProb !== undefined
-                        ? (data.currentPrediction.takeProfitProb * 100).toFixed(1)
-                        : data.holding.currentTakeProfitProb
-                          ? (data.holding.currentTakeProfitProb * 100).toFixed(1)
-                          : trade.prediction
+                      {data.holding.isHolding && data.holding.v5MoeTakeProfitProb !== undefined
+                        ? (data.holding.v5MoeTakeProfitProb * 100).toFixed(1)
+                        : data.currentPrediction?.v5MoeTakeProfitProb !== undefined
+                          ? (data.currentPrediction.v5MoeTakeProfitProb * 100).toFixed(1)
+                          : trade.prediction?.takeProfitProb !== undefined
                             ? (trade.prediction.takeProfitProb * 100).toFixed(1)
                             : 'N/A'}%
                     </span>
