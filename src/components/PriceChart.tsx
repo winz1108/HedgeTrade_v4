@@ -1394,6 +1394,30 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   strokeDasharray="4 2"
                   opacity="0.6"
                 />
+                {data.holding.takeProfitPrice && (
+                  <line
+                    x1="0"
+                    y1={priceToY(data.holding.takeProfitPrice)}
+                    x2="100%"
+                    y2={priceToY(data.holding.takeProfitPrice)}
+                    stroke="#0ecb81"
+                    strokeWidth="1"
+                    strokeDasharray="4 2"
+                    opacity="0.6"
+                  />
+                )}
+                {data.holding.stopLossPrice && (
+                  <line
+                    x1="0"
+                    y1={priceToY(data.holding.stopLossPrice)}
+                    x2="100%"
+                    y2={priceToY(data.holding.stopLossPrice)}
+                    stroke="#f6465d"
+                    strokeWidth="1"
+                    strokeDasharray="4 2"
+                    opacity="0.6"
+                  />
+                )}
               </svg>
             )}
 
