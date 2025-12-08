@@ -65,6 +65,11 @@ Deno.serve(async (req: Request) => {
       hasPriceHistory: !!data.priceHistory,
       priceHistoryKeys: data.priceHistory ? Object.keys(data.priceHistory) : [],
       priceHistory1mLength: data.priceHistory?.['1m']?.length || 0,
+      priceHistory5mLength: data.priceHistory?.['5m']?.length || 0,
+      priceHistory15mLength: data.priceHistory?.['15m']?.length || 0,
+      priceHistory1hLength: data.priceHistory?.['1h']?.length || 0,
+      priceHistory4hLength: data.priceHistory?.['4h']?.length || 0,
+      priceHistory1dLength: data.priceHistory?.['1d']?.length || 0,
       cacheStatus: data.cacheStatus
     });
 

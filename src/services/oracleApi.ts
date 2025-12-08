@@ -28,6 +28,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     throw new Error(`Oracle VM error: ${rawData.error}`);
   }
 
+  // 🔍 캔들 데이터 개수 디버깅
+  console.log('🔍 백엔드에서 받은 캔들 개수:');
+  console.log('  1m:', rawData.priceHistory?.['1m']?.length || 0);
+  console.log('  5m:', rawData.priceHistory?.['5m']?.length || 0);
+  console.log('  15m:', rawData.priceHistory?.['15m']?.length || 0);
+  console.log('  1h:', rawData.priceHistory?.['1h']?.length || 0);
+  console.log('  4h:', rawData.priceHistory?.['4h']?.length || 0);
+  console.log('  1d:', rawData.priceHistory?.['1d']?.length || 0);
+
   console.log('🔍 백엔드 Raw Data - holding:', rawData.holding);
   console.log('🔍 백엔드 Raw Data - currentPrediction:', rawData.currentPrediction);
   console.log('🔍 백엔드 Raw Data - metrics:', rawData.metrics);
