@@ -180,15 +180,15 @@ function App() {
               <div className="flex gap-2 px-2">
                 {data.availableAccounts.map((account) => (
                   <button
-                    key={account}
-                    onClick={() => setSelectedAccount(account)}
+                    key={account.id}
+                    onClick={() => setSelectedAccount(account.id)}
                     className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                      selectedAccount === account
+                      selectedAccount === account.id
                         ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
                         : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-slate-300'
                     }`}
                   >
-                    {account}
+                    {account.name}
                   </button>
                 ))}
               </div>

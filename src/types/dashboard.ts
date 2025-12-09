@@ -103,6 +103,7 @@ export interface AccountMetrics {
 
 export interface AccountData {
   accountId: string;
+  accountName?: string;
   asset: AccountAsset;
   holding: AccountHolding;
   trades: AccountTrade[];
@@ -183,5 +184,6 @@ export interface DashboardData {
     stopLossCount: number;
   };
   accountId?: string;
-  availableAccounts?: string[];
+  accountName?: string;
+  availableAccounts?: Array<{ id: string; name: string }>;
 }

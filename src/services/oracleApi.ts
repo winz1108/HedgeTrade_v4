@@ -97,7 +97,11 @@ const convertApiResponseToDashboardData = (
       stopLossCount: account.metrics.totalTrades - account.metrics.winningTrades,
     },
     accountId: selectedAccountId,
-    availableAccounts: apiResponse.accounts.map(acc => acc.accountId),
+    accountName: account.accountName,
+    availableAccounts: apiResponse.accounts.map(acc => ({
+      id: acc.accountId,
+      name: acc.accountName || acc.accountId
+    })),
   };
 };
 
