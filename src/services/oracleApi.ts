@@ -1,8 +1,8 @@
 import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/dashboard';
 
-const getProxyUrl = () => {
+const getApiUrl = () => {
   if (import.meta.env.DEV) {
-    return '/.netlify/functions/oracle-proxy';
+    return '';
   }
   return '/.netlify/functions/oracle-proxy';
 };
@@ -106,7 +106,12 @@ const convertApiResponseToDashboardData = (
 };
 
 export const fetchDashboardData = async (accountId: string): Promise<DashboardData> => {
-  const url = `${getProxyUrl()}?endpoint=${encodeURIComponent('/api/dashboard')}&_=${Date.now()}`;
+  const baseUrl = getApiUrl();
+  const isDirect = import.meta.env.DEV;
+
+  const url = isDirect
+    ? `/api/dashboard?_=${Date.now()}`
+    : `${baseUrl}?endpoint=${encodeURIComponent('/api/dashboard')}&_=${Date.now()}`;
 
   const response = await fetch(url, {
     headers: {
