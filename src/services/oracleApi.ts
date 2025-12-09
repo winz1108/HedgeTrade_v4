@@ -1,4 +1,4 @@
-import { DashboardData } from '../types/dashboard';
+import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/dashboard';
 
 const getProxyUrl = () => {
   if (import.meta.env.DEV) {
@@ -7,7 +7,101 @@ const getProxyUrl = () => {
   return '/.netlify/functions/oracle-proxy';
 };
 
-export const fetchDashboardData = async (): Promise<DashboardData> => {
+const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
+  const events: TradeEvent[] = [];
+
+  accountTrades.forEach(trade => {
+    events.push({
+      timestamp: trade.entryTime,
+      type: 'buy',
+      price: trade.entryPrice,
+    });
+
+    if (trade.completed) {
+      events.push({
+        timestamp: trade.exitTime,
+        type: 'sell',
+        price: trade.exitPrice,
+        profit: trade.pnl,
+      });
+    }
+  });
+
+  return events.sort((a, b) => a.timestamp - b.timestamp);
+};
+
+const convertApiResponseToDashboardData = (
+  apiResponse: ApiResponse,
+  selectedAccountId: string
+): DashboardData => {
+  const account = apiResponse.accounts.find(acc => acc.accountId === selectedAccountId);
+
+  if (!account) {
+    throw new Error(`Account ${selectedAccountId} not found`);
+  }
+
+  const priceHistory1m = apiResponse.priceHistory['1m'].map(candle => ({
+    timestamp: candle.time,
+    open: candle.open,
+    high: candle.high,
+    low: candle.low,
+    close: candle.close,
+    volume: candle.volume,
+  }));
+
+  return {
+    version: apiResponse.version,
+    currentAsset: account.asset.currentAsset,
+    currentBTC: account.asset.currentBTC,
+    currentCash: account.asset.currentCash,
+    initialAsset: account.asset.initialAsset,
+    currentTime: apiResponse.currentTime,
+    currentPrice: apiResponse.currentPrice,
+    priceHistory1m,
+    priceHistory5m: apiResponse.priceHistory['5m']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
+    priceHistory15m: apiResponse.priceHistory['15m']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
+    priceHistory1h: apiResponse.priceHistory['1h']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
+    priceHistory4h: apiResponse.priceHistory['4h']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
+    priceHistory1d: apiResponse.priceHistory['1d']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
+    pricePredictions: [],
+    trades: convertAccountTradesToTradeEvents(account.trades),
+    holding: {
+      isHolding: account.holding.hasPosition,
+      buyPrice: account.holding.entryPrice,
+      buyTime: account.holding.entryTime,
+      currentProfit: account.holding.unrealizedPnl,
+      takeProfitPrice: account.holding.tpPrice,
+      stopLossPrice: account.holding.slPrice,
+      initialTakeProfitProb: apiResponse.currentPrediction.v5MoeTakeProfitProb,
+      v5MoeTakeProfitProb: apiResponse.currentPrediction.v5MoeTakeProfitProb,
+      latestPrediction: {
+        takeProfitProb: apiResponse.currentPrediction.takeProfitProb,
+        stopLossProb: apiResponse.currentPrediction.stopLossProb,
+      },
+    },
+    currentPrediction: {
+      takeProfitProb: apiResponse.currentPrediction.takeProfitProb,
+      stopLossProb: apiResponse.currentPrediction.stopLossProb,
+      v5MoeTakeProfitProb: apiResponse.currentPrediction.v5MoeTakeProfitProb,
+      predictionDataTimestamp: apiResponse.currentPrediction.predictionTargetTimestampMs,
+      predictionCalculatedAt: apiResponse.currentPrediction.lastUpdateTime,
+    },
+    lastPredictionUpdateTime: apiResponse.lastPredictionUpdateTime,
+    marketState: apiResponse.marketState,
+    gateWeights: apiResponse.gateWeights,
+    metrics: {
+      portfolioReturn: account.metrics.portfolioReturn,
+      marketReturn: apiResponse.metrics.marketReturn ?? 0,
+      avgTradeReturn: account.metrics.avgPnl ?? 0,
+      takeProfitCount: account.metrics.winningTrades,
+      stopLossCount: account.metrics.totalTrades - account.metrics.winningTrades,
+    },
+    accountId: selectedAccountId,
+    availableAccounts: apiResponse.accounts.map(acc => acc.accountId),
+  };
+};
+
+export const fetchDashboardData = async (accountId: string): Promise<DashboardData> => {
   const url = `${getProxyUrl()}?endpoint=${encodeURIComponent('/api/dashboard')}&_=${Date.now()}`;
 
   const response = await fetch(url, {
@@ -22,90 +116,11 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
     throw new Error(`Oracle VM unavailable: ${response.status} ${response.statusText}`);
   }
 
-  const rawData = await response.json();
+  const apiResponse: ApiResponse = await response.json();
 
-  if (rawData.error) {
-    throw new Error(`Oracle VM error: ${rawData.error}`);
+  if (!apiResponse.accounts || apiResponse.accounts.length === 0) {
+    throw new Error('No accounts found in API response');
   }
 
-  // 🔍 캔들 데이터 개수 디버깅
-  console.log('🔍 백엔드에서 받은 캔들 개수:');
-  console.log('  1m:', rawData.priceHistory?.['1m']?.length || 0);
-  console.log('  5m:', rawData.priceHistory?.['5m']?.length || 0);
-  console.log('  15m:', rawData.priceHistory?.['15m']?.length || 0);
-  console.log('  1h:', rawData.priceHistory?.['1h']?.length || 0);
-  console.log('  4h:', rawData.priceHistory?.['4h']?.length || 0);
-  console.log('  1d:', rawData.priceHistory?.['1d']?.length || 0);
-
-  console.log('🔍 백엔드 Raw Data - holding:', rawData.holding);
-  console.log('🔍 백엔드 Raw Data - currentPrediction:', rawData.currentPrediction);
-  console.log('🔍 백엔드 Raw Data - metrics:', rawData.metrics);
-
-  // 🔍 undefined 필드 디버깅
-  if (rawData.holding?.isHolding) {
-    console.log('🔍 v5MoeTakeProfitProb:', rawData.holding.v5MoeTakeProfitProb);
-    console.log('🔍 latestPrediction:', rawData.holding.latestPrediction);
-    console.log('🔍 holding의 모든 키:', Object.keys(rawData.holding));
-  }
-
-  try {
-    const data: DashboardData = {
-      version: rawData.version,
-      currentAsset: rawData.asset?.currentAsset ?? 0,
-      currentBTC: rawData.asset?.currentBTC,
-      currentCash: rawData.asset?.currentCash,
-      initialAsset: rawData.asset?.initialAsset ?? 0,
-      currentTime: rawData.currentTime ?? Date.now(),
-      currentPrice: rawData.currentPrice ?? 0,
-      priceHistory1m: rawData.priceHistory?.['1m'] || [],
-      priceHistory5m: rawData.priceHistory?.['5m'] || [],
-      priceHistory15m: rawData.priceHistory?.['15m'] || [],
-      priceHistory1h: rawData.priceHistory?.['1h'] || [],
-      priceHistory4h: rawData.priceHistory?.['4h'] || [],
-      priceHistory1d: rawData.priceHistory?.['1d'] || [],
-      pricePredictions: rawData.pricePredictions || [],
-      trades: rawData.trades || [],
-      holding: {
-        isHolding: rawData.holding?.isHolding ?? false,
-        buyPrice: rawData.holding?.buyPrice,
-        buyTime: rawData.holding?.buyTime,
-        currentProfit: rawData.holding?.currentProfit,
-        takeProfitPrice: rawData.holding?.takeProfitPrice,
-        stopLossPrice: rawData.holding?.stopLossPrice,
-        initialTakeProfitProb: rawData.holding?.initialTakeProfitProb,
-        v5MoeTakeProfitProb: rawData.holding?.v5MoeTakeProfitProb,
-        latestPrediction: rawData.holding?.latestPrediction
-      },
-      currentPrediction: rawData.currentPrediction ? {
-        takeProfitProb: rawData.currentPrediction.takeProfitProb,
-        stopLossProb: rawData.currentPrediction.stopLossProb,
-        v5MoeTakeProfitProb: rawData.currentPrediction.v5MoeTakeProfitProb,
-        predictionDataTimestamp: rawData.currentPrediction.predictionDataTimestamp,
-        predictionCalculatedAt: rawData.currentPrediction.predictionCalculatedAt,
-        v2UpdateCount: rawData.currentPrediction.v2UpdateCount,
-        v2LastUsed5minTimestamp: rawData.currentPrediction.v2LastUsed5minTimestamp
-      } : undefined,
-      lastPredictionUpdateTime: rawData.currentPrediction?.predictionCalculatedAt ?? rawData.currentPrediction?.lastUpdateTime ?? rawData.lastPredictionUpdateTime,
-      marketState: rawData.marketState,
-      gateWeights: rawData.gateWeights,
-      metrics: {
-        portfolioReturn: rawData.metrics?.portfolioReturn ?? 0,
-        portfolioReturnWithCommission: rawData.metrics?.portfolioReturnWithCommission,
-        marketReturn: rawData.metrics?.marketReturn ?? 0,
-        avgTradeReturn: rawData.metrics?.avgTradeReturn ?? 0,
-        takeProfitCount: rawData.metrics?.takeProfitCount ?? 0,
-        stopLossCount: rawData.metrics?.stopLossCount ?? 0
-      }
-    };
-
-    console.log('✅ 변환 완료 - holding.currentProfit:', data.holding.currentProfit);
-    console.log('✅ 변환 완료 - 전체 data.holding:', data.holding);
-
-    return data;
-  } catch (error) {
-    console.error('❌ Transformation error:', error);
-    console.error('❌ Error location:', error instanceof Error ? error.stack : 'Unknown');
-    console.error('❌ Raw data that caused error:', rawData);
-    throw error;
-  }
+  return convertApiResponseToDashboardData(apiResponse, accountId);
 };

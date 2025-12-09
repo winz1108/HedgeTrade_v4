@@ -57,6 +57,94 @@ export interface MarketState {
   activeState: string;
 }
 
+export interface AccountAsset {
+  currentAsset: number;
+  initialAsset: number;
+  currentBTC: number;
+  currentCash: number;
+  btcQuantity: number;
+  usdcFree: number;
+  usdcLocked: number;
+}
+
+export interface AccountHolding {
+  hasPosition: boolean;
+  entryPrice?: number;
+  quantity?: number;
+  currentPrice?: number;
+  unrealizedPnl?: number;
+  unrealizedPnlPct?: number;
+  tpPrice?: number;
+  slPrice?: number;
+  entryTime?: number;
+}
+
+export interface AccountTrade {
+  entryPrice: number;
+  exitPrice: number;
+  quantity: number;
+  entryTime: number;
+  exitTime: number;
+  pnl: number;
+  pnlPct: number;
+  profit: number;
+  exitReason: 'TP' | 'SL';
+  completed: boolean;
+}
+
+export interface AccountMetrics {
+  portfolioReturn: number;
+  totalTrades: number;
+  winningTrades: number;
+  winRate: number;
+  totalPnl?: number;
+  avgPnl?: number;
+}
+
+export interface AccountData {
+  accountId: string;
+  asset: AccountAsset;
+  holding: AccountHolding;
+  trades: AccountTrade[];
+  metrics: AccountMetrics;
+}
+
+export interface ApiResponse {
+  version: string;
+  cacheStatus?: string;
+  currentTime: number;
+  currentPrice: number;
+  priceHistory: {
+    '1m': Candle[];
+    '5m': Candle[];
+    '15m': Candle[];
+    '1h': Candle[];
+    '4h': Candle[];
+    '1d': Candle[];
+  };
+  currentPrediction: {
+    v5MoeTakeProfitProb: number;
+    v5MoeStopLossProb: number;
+    takeProfitProb: number;
+    stopLossProb: number;
+    lastUpdateTime: number;
+    predictionTargetTimestampMs?: number;
+    marketState?: MarketState;
+    gateWeights?: number[];
+  };
+  lastPredictionUpdateTime: number;
+  marketState: MarketState;
+  gateWeights: number[];
+  accounts: AccountData[];
+  metrics: {
+    portfolioReturn: number;
+    totalTrades: number;
+    winningTrades: number;
+    winRate: number;
+    marketReturn?: number;
+  };
+}
+
 export interface DashboardData {
   version?: string;
   currentAsset: number;
@@ -94,4 +182,6 @@ export interface DashboardData {
     takeProfitCount: number;
     stopLossCount: number;
   };
+  accountId?: string;
+  availableAccounts?: string[];
 }

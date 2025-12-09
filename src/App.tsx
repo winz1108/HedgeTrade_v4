@@ -15,13 +15,14 @@ function App() {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<string>('Account_1');
   const previousHoldingState = useRef<boolean>(false);
   const lastTradeCount = useRef<number>(0);
 
   const loadData = async () => {
     try {
       setError(null);
-      const dashboardData = await fetchDashboardData();
+      const dashboardData = await fetchDashboardData(selectedAccount);
 
       if (!dashboardData || !dashboardData.metrics) {
         throw new Error('Invalid data structure received from API');
@@ -89,7 +90,12 @@ function App() {
     }, 60000); // 1분마다 업데이트
 
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedAccount]);
+
+  useEffect(() => {
+    setLoading(true);
+    loadData();
+  }, [selectedAccount]);
 
 
   if (loading) {
@@ -169,6 +175,25 @@ function App() {
                 </div>
               )}
             </div>
+
+            {data.availableAccounts && data.availableAccounts.length > 1 && (
+              <div className="flex gap-2 px-2">
+                {data.availableAccounts.map((account) => (
+                  <button
+                    key={account}
+                    onClick={() => setSelectedAccount(account)}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                      selectedAccount === account
+                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
+                        : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-slate-300'
+                    }`}
+                  >
+                    {account}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="flex items-center gap-2 ml-auto">
               <div className="flex flex-col items-end">
                 <span className="text-[10px] text-slate-400 font-mono">
