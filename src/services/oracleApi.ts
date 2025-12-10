@@ -34,10 +34,14 @@ const convertApiResponseToDashboardData = (
   apiResponse: ApiResponse,
   selectedAccountId: string
 ): DashboardData => {
-  const account = apiResponse.accounts.find(acc => acc.accountId === selectedAccountId);
+  let account = apiResponse.accounts.find(acc => acc.accountId === selectedAccountId);
+
+  if (!account && apiResponse.accounts.length > 0) {
+    account = apiResponse.accounts[0];
+  }
 
   if (!account) {
-    throw new Error(`Account ${selectedAccountId} not found`);
+    throw new Error('No accounts available');
   }
 
   const priceHistory1m = apiResponse.priceHistory['1m'].map(candle => ({

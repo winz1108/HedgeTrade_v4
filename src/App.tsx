@@ -15,7 +15,7 @@ function App() {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<string>('Account_1');
+  const [selectedAccount, setSelectedAccount] = useState<string>('');
   const previousHoldingState = useRef<boolean>(false);
   const lastTradeCount = useRef<number>(0);
 
@@ -61,6 +61,11 @@ function App() {
           console.log('📊 v5MoeTakeProfitProb 계산 시점:', new Date(dashboardData.currentPrediction.predictionCalculatedAt).toLocaleString());
         }
       }
+
+      if (!selectedAccount && dashboardData.accountId) {
+        setSelectedAccount(dashboardData.accountId);
+      }
+
       setData({ ...dashboardData });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
