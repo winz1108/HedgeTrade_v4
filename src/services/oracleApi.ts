@@ -48,26 +48,28 @@ const convertApiResponseToDashboardData = (
     throw new Error('No accounts available');
   }
 
-  const priceHistory1m = (apiResponse.priceHistory1m || []).map(candle => ({
-    timestamp: candle.timestamp,
-    open: candle.open,
-    high: candle.high,
-    low: candle.low,
-    close: candle.close,
-    volume: candle.volume,
-    ema20: candle.ema20,
-    ema50: candle.ema50,
-    bb_upper: candle.bb_upper,
-    bb_lower: candle.bb_lower,
-    bbUpper: candle.bbUpper,
-    bbMiddle: candle.bbMiddle,
-    bbLower: candle.bbLower,
-    bbWidth: candle.bbWidth,
-    macd: candle.macd,
-    signal: candle.signal,
-    histogram: candle.histogram,
-    rsi: candle.rsi,
-  }));
+  const mapCandles = (candles: any[]) => candles?.map(c => ({
+    timestamp: c.timestamp,
+    open: c.open,
+    high: c.high,
+    low: c.low,
+    close: c.close,
+    volume: c.volume,
+    ema20: c.ema20,
+    ema50: c.ema50,
+    bb_upper: c.bb_upper,
+    bb_lower: c.bb_lower,
+    bbUpper: c.bbUpper,
+    bbMiddle: c.bbMiddle,
+    bbLower: c.bbLower,
+    bbWidth: c.bbWidth,
+    macd: c.macd,
+    signal: c.signal,
+    histogram: c.histogram,
+    rsi: c.rsi,
+  })) || [];
+
+  const priceHistory = apiResponse.priceHistory || {};
 
   return {
     version: apiResponse.version,
@@ -77,12 +79,12 @@ const convertApiResponseToDashboardData = (
     initialAsset: account.asset.initialAsset,
     currentTime: apiResponse.currentTime,
     currentPrice: apiResponse.currentPrice,
-    priceHistory1m,
-    priceHistory5m: apiResponse.priceHistory5m?.map(c => ({ timestamp: c.timestamp, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, bbUpper: c.bbUpper, bbMiddle: c.bbMiddle, bbLower: c.bbLower, bbWidth: c.bbWidth, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
-    priceHistory15m: apiResponse.priceHistory15m?.map(c => ({ timestamp: c.timestamp, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, bbUpper: c.bbUpper, bbMiddle: c.bbMiddle, bbLower: c.bbLower, bbWidth: c.bbWidth, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
-    priceHistory1h: apiResponse.priceHistory1h?.map(c => ({ timestamp: c.timestamp, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, bbUpper: c.bbUpper, bbMiddle: c.bbMiddle, bbLower: c.bbLower, bbWidth: c.bbWidth, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
-    priceHistory4h: apiResponse.priceHistory4h?.map(c => ({ timestamp: c.timestamp, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, bbUpper: c.bbUpper, bbMiddle: c.bbMiddle, bbLower: c.bbLower, bbWidth: c.bbWidth, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
-    priceHistory1d: apiResponse.priceHistory1d?.map(c => ({ timestamp: c.timestamp, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, bbUpper: c.bbUpper, bbMiddle: c.bbMiddle, bbLower: c.bbLower, bbWidth: c.bbWidth, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
+    priceHistory1m: mapCandles(priceHistory['1m']),
+    priceHistory5m: mapCandles(priceHistory['5m']),
+    priceHistory15m: mapCandles(priceHistory['15m']),
+    priceHistory1h: mapCandles(priceHistory['1h']),
+    priceHistory4h: mapCandles(priceHistory['4h']),
+    priceHistory1d: mapCandles(priceHistory['1d']),
     pricePredictions: [],
     trades: convertAccountTradesToTradeEvents(account.trades),
     holding: {
@@ -157,8 +159,8 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
     throw new Error('No accounts found in API response');
   }
 
-  if (!apiResponse.priceHistory1m || !Array.isArray(apiResponse.priceHistory1m)) {
-    throw new Error('Invalid priceHistory1m in API response');
+  if (!apiResponse.priceHistory || typeof apiResponse.priceHistory !== 'object') {
+    throw new Error('Invalid priceHistory in API response');
   }
 
   return convertApiResponseToDashboardData(apiResponse, accountId);
