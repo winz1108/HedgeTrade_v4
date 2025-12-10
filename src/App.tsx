@@ -15,7 +15,7 @@ function App() {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<string>('');
+  const [selectedAccount, setSelectedAccount] = useState<string>('Account_A');
   const previousHoldingState = useRef<boolean>(false);
   const lastTradeCount = useRef<number>(0);
 
