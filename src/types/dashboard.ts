@@ -81,6 +81,7 @@ export interface AccountHolding {
   tpPrice?: number;
   slPrice?: number;
   entryTime?: number;
+  initialTakeProfitProb?: number;
 }
 
 export interface AccountTrade {
