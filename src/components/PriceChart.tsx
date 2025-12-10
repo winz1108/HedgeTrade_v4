@@ -1015,7 +1015,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               <span className="text-slate-400">EMA20</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-blue-500 rounded"></div>
+              <div className="w-3 h-0.5 bg-yellow-500 rounded"></div>
               <span className="text-slate-400">EMA50</span>
             </div>
             <div className="flex items-center gap-1">
@@ -1118,7 +1118,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <span className="text-slate-400">EMA20 <span className="text-orange-400 font-semibold">{hoveredCandle.ema20.toFixed(2)}</span></span>
                 )}
                 {hoveredCandle.ema50 && (
-                  <span className="text-slate-400">EMA50 <span className="text-blue-400 font-semibold">{hoveredCandle.ema50.toFixed(2)}</span></span>
+                  <span className="text-slate-400">EMA50 <span className="text-yellow-400 font-semibold">{hoveredCandle.ema50.toFixed(2)}</span></span>
                 )}
                 {(hoveredCandle.bbUpper || hoveredCandle.bb_upper) && (
                   <>
@@ -1259,7 +1259,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <polyline
                       points={ema50Points.join(' ')}
                       fill="none"
-                      stroke="#3b82f6"
+                      stroke="#eab308"
                       strokeWidth="2"
                       opacity="0.8"
                     />
