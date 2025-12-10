@@ -11,6 +11,10 @@ export interface Candle {
   ema50?: number;
   bb_upper?: number;
   bb_lower?: number;
+  bbUpper?: number;
+  bbMiddle?: number;
+  bbLower?: number;
+  bbWidth?: number;
   macd?: number;
   signal?: number;
   histogram?: number;

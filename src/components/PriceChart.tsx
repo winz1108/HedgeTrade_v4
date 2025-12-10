@@ -146,6 +146,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       if (c.ema50) vals.push(c.ema50);
       if (c.bb_upper) vals.push(c.bb_upper);
       if (c.bb_lower) vals.push(c.bb_lower);
+      if (c.bbUpper) vals.push(c.bbUpper);
+      if (c.bbMiddle) vals.push(c.bbMiddle);
+      if (c.bbLower) vals.push(c.bbLower);
       return vals;
     });
 
@@ -1016,7 +1019,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               <span className="text-slate-400">EMA50</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-gray-500 border-t border-dashed border-gray-500"></div>
+              <div className="w-3 h-0.5 bg-purple-500 border-t border-dashed border-purple-500"></div>
               <span className="text-slate-400">BB</span>
             </div>
           </div>
@@ -1097,17 +1100,35 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         <div className="absolute inset-0 overflow-hidden">
           {/* OHLC Display */}
           {hoveredCandle && (
-            <div className="absolute left-3 top-3 z-10 flex items-center gap-3 text-xs bg-black/60 backdrop-blur-sm px-3 py-2 rounded border border-slate-700/50">
-              <span className="text-slate-400 font-mono">{formatChartTime(hoveredCandle.timestamp)}</span>
-              <span className="text-slate-400">O <span className="text-white font-semibold">{hoveredCandle.open.toFixed(2)}</span></span>
-              <span className="text-slate-400">H <span className="text-[#0ecb81] font-semibold">{hoveredCandle.high.toFixed(2)}</span></span>
-              <span className="text-slate-400">L <span className="text-[#f6465d] font-semibold">{hoveredCandle.low.toFixed(2)}</span></span>
-              <span className="text-slate-400">C <span className="text-white font-semibold">{hoveredCandle.close.toFixed(2)}</span></span>
-              {hoveredCandle.isComplete === false && (
-                <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded text-[10px] font-bold border border-amber-500/30 animate-pulse">
-                  진행 중
-                </span>
-              )}
+            <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5 text-xs bg-black/70 backdrop-blur-sm px-3 py-2 rounded border border-slate-700/50">
+              <div className="flex items-center gap-3">
+                <span className="text-slate-400 font-mono">{formatChartTime(hoveredCandle.timestamp)}</span>
+                <span className="text-slate-400">O <span className="text-white font-semibold">{hoveredCandle.open.toFixed(2)}</span></span>
+                <span className="text-slate-400">H <span className="text-[#0ecb81] font-semibold">{hoveredCandle.high.toFixed(2)}</span></span>
+                <span className="text-slate-400">L <span className="text-[#f6465d] font-semibold">{hoveredCandle.low.toFixed(2)}</span></span>
+                <span className="text-slate-400">C <span className="text-white font-semibold">{hoveredCandle.close.toFixed(2)}</span></span>
+                {hoveredCandle.isComplete === false && (
+                  <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded text-[10px] font-bold border border-amber-500/30 animate-pulse">
+                    진행 중
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 text-[10px]">
+                {hoveredCandle.ema20 && (
+                  <span className="text-slate-400">EMA20 <span className="text-orange-400 font-semibold">{hoveredCandle.ema20.toFixed(2)}</span></span>
+                )}
+                {hoveredCandle.ema50 && (
+                  <span className="text-slate-400">EMA50 <span className="text-blue-400 font-semibold">{hoveredCandle.ema50.toFixed(2)}</span></span>
+                )}
+                {(hoveredCandle.bbUpper || hoveredCandle.bb_upper) && (
+                  <>
+                    <span className="text-slate-600">|</span>
+                    <span className="text-slate-400">BB <span className="text-purple-400 font-semibold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
+                    <span className="text-slate-400">/ <span className="text-purple-300 font-semibold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
+                    <span className="text-slate-400">/ <span className="text-purple-400 font-semibold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
+                  </>
+                )}
+              </div>
             </div>
           )}
           <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 1 }}>
@@ -1158,6 +1179,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               const ema20Points: string[] = [];
               const ema50Points: string[] = [];
               const bbUpperPoints: string[] = [];
+              const bbMiddlePoints: string[] = [];
               const bbLowerPoints: string[] = [];
 
               visibleCandles.forEach((candle, idx) => {
@@ -1173,13 +1195,22 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   ema50Points.push(`${x},${y}`);
                 }
 
-                if (candle.bb_upper !== undefined) {
-                  const y = priceToY(candle.bb_upper);
+                const bbUpper = candle.bbUpper ?? candle.bb_upper;
+                const bbMiddle = candle.bbMiddle;
+                const bbLower = candle.bbLower ?? candle.bb_lower;
+
+                if (bbUpper !== undefined) {
+                  const y = priceToY(bbUpper);
                   bbUpperPoints.push(`${x},${y}`);
                 }
 
-                if (candle.bb_lower !== undefined) {
-                  const y = priceToY(candle.bb_lower);
+                if (bbMiddle !== undefined) {
+                  const y = priceToY(bbMiddle);
+                  bbMiddlePoints.push(`${x},${y}`);
+                }
+
+                if (bbLower !== undefined) {
+                  const y = priceToY(bbLower);
                   bbLowerPoints.push(`${x},${y}`);
                 }
               });
@@ -1191,16 +1222,25 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={bbUpperPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(100, 100, 100, 0.5)"
-                        strokeWidth="1"
-                        strokeDasharray="2 2"
+                        stroke="rgba(147, 51, 234, 0.6)"
+                        strokeWidth="1.5"
+                        strokeDasharray="3 3"
                       />
+                      {bbMiddlePoints.length > 1 && (
+                        <polyline
+                          points={bbMiddlePoints.join(' ')}
+                          fill="none"
+                          stroke="rgba(147, 51, 234, 0.4)"
+                          strokeWidth="1"
+                          strokeDasharray="2 2"
+                        />
+                      )}
                       <polyline
                         points={bbLowerPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(100, 100, 100, 0.5)"
-                        strokeWidth="1"
-                        strokeDasharray="2 2"
+                        stroke="rgba(147, 51, 234, 0.6)"
+                        strokeWidth="1.5"
+                        strokeDasharray="3 3"
                       />
                     </>
                   )}
