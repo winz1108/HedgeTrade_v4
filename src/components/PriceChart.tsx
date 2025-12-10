@@ -51,7 +51,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const [hoveredCandle, setHoveredCandle] = useState<Candle | null>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [resetScroll, setResetScroll] = useState(0);
-  const [candleWidth, setCandleWidth] = useState(10);
+  const [candleWidth, setCandleWidth] = useState(4);
   const [timeframe, setTimeframe] = useState<Timeframe>('5m');
   const [volumeHeight, setVolumeHeight] = useState(60);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number; trade: TradeEvent; hasPairedSell: boolean; pairedTrade?: TradeEvent } | null>(null);
