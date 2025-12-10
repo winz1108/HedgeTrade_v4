@@ -10,6 +10,10 @@ const getApiUrl = () => {
 const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
   const events: TradeEvent[] = [];
 
+  if (!accountTrades || !Array.isArray(accountTrades)) {
+    return events;
+  }
+
   accountTrades.forEach(trade => {
     events.push({
       timestamp: trade.entryTime,
@@ -44,7 +48,7 @@ const convertApiResponseToDashboardData = (
     throw new Error('No accounts available');
   }
 
-  const priceHistory1m = apiResponse.priceHistory1m.map(candle => ({
+  const priceHistory1m = (apiResponse.priceHistory1m || []).map(candle => ({
     timestamp: candle.timestamp,
     open: candle.open,
     high: candle.high,
@@ -143,8 +147,18 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 
   const apiResponse: ApiResponse = await response.json();
 
+  console.log('API Response:', apiResponse);
+
+  if (!apiResponse) {
+    throw new Error('Empty API response');
+  }
+
   if (!apiResponse.accounts || apiResponse.accounts.length === 0) {
     throw new Error('No accounts found in API response');
+  }
+
+  if (!apiResponse.priceHistory1m || !Array.isArray(apiResponse.priceHistory1m)) {
+    throw new Error('Invalid priceHistory1m in API response');
   }
 
   return convertApiResponseToDashboardData(apiResponse, accountId);
