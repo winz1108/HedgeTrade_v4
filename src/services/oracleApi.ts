@@ -91,10 +91,10 @@ const convertApiResponseToDashboardData = (
       isHolding: account.holding.hasPosition,
       buyPrice: account.holding.entryPrice,
       buyTime: account.holding.entryTime,
-      currentProfit: account.holding.unrealizedPnl,
+      currentProfit: account.holding.unrealizedPnlPct,
       takeProfitPrice: account.holding.tpPrice,
       stopLossPrice: account.holding.slPrice,
-      initialTakeProfitProb: apiResponse.currentPrediction.v5MoeTakeProfitProb,
+      initialTakeProfitProb: account.holding.entryPrediction?.v5MoeTakeProfitProb,
       v5MoeTakeProfitProb: apiResponse.currentPrediction.v5MoeTakeProfitProb,
       latestPrediction: {
         takeProfitProb: apiResponse.currentPrediction.takeProfitProb,

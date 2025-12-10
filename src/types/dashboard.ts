@@ -81,6 +81,11 @@ export interface AccountHolding {
   tpPrice?: number;
   slPrice?: number;
   entryTime?: number;
+  entryPrediction?: {
+    v5MoeTakeProfitProb?: number;
+    takeProfitProb?: number;
+    stopLossProb?: number;
+  };
 }
 
 export interface AccountTrade {
