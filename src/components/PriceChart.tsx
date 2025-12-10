@@ -349,6 +349,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     };
   }, []);
 
+  useEffect(() => {
+    setScrollOffset(0);
+  }, [timeframe, data.priceHistory1m]);
+
   const handleTradeClick = (trade: TradeEvent, e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
 

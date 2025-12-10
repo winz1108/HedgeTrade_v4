@@ -175,27 +175,38 @@ function App() {
                 <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
               )}
               {data.holding.isHolding && (
-                <div className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-bold border-2 border-emerald-500/50 animate-pulse shadow-lg shadow-emerald-500/30">
-                  🟢 HOLDING BTC
+                <div className="px-4 py-1.5 bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-emerald-500/30 backdrop-blur-sm rounded-lg border border-emerald-400/40 shadow-lg shadow-emerald-500/20 animate-pulse">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse"></div>
+                    <span className="text-xs font-semibold bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent tracking-wide">
+                      BTC POSITION ACTIVE
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
 
             {data.availableAccounts && data.availableAccounts.length > 1 && (
               <div className="flex gap-2 px-2">
-                {data.availableAccounts.map((account) => (
-                  <button
-                    key={account.id}
-                    onClick={() => setSelectedAccount(account.id)}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                      selectedAccount === account.id
-                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
-                        : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-slate-300'
-                    }`}
-                  >
-                    {account.name}
-                  </button>
-                ))}
+                {[...data.availableAccounts]
+                  .sort((a, b) => {
+                    if (a.id === 'Account_A') return -1;
+                    if (b.id === 'Account_A') return 1;
+                    return a.id.localeCompare(b.id);
+                  })
+                  .map((account) => (
+                    <button
+                      key={account.id}
+                      onClick={() => setSelectedAccount(account.id)}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                        selectedAccount === account.id
+                          ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
+                          : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-slate-300'
+                      }`}
+                    >
+                      {account.name}
+                    </button>
+                  ))}
               </div>
             )}
 
