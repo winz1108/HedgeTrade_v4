@@ -51,6 +51,14 @@ const convertApiResponseToDashboardData = (
     low: candle.low,
     close: candle.close,
     volume: candle.volume,
+    ema20: candle.ema20,
+    ema50: candle.ema50,
+    bb_upper: candle.bb_upper,
+    bb_lower: candle.bb_lower,
+    macd: candle.macd,
+    signal: candle.signal,
+    histogram: candle.histogram,
+    rsi: candle.rsi,
   }));
 
   return {
@@ -62,11 +70,11 @@ const convertApiResponseToDashboardData = (
     currentTime: apiResponse.currentTime,
     currentPrice: apiResponse.currentPrice,
     priceHistory1m,
-    priceHistory5m: apiResponse.priceHistory['5m']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
-    priceHistory15m: apiResponse.priceHistory['15m']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
-    priceHistory1h: apiResponse.priceHistory['1h']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
-    priceHistory4h: apiResponse.priceHistory['4h']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
-    priceHistory1d: apiResponse.priceHistory['1d']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume })),
+    priceHistory5m: apiResponse.priceHistory['5m']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
+    priceHistory15m: apiResponse.priceHistory['15m']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
+    priceHistory1h: apiResponse.priceHistory['1h']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
+    priceHistory4h: apiResponse.priceHistory['4h']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
+    priceHistory1d: apiResponse.priceHistory['1d']?.map(c => ({ timestamp: c.time, open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume, ema20: c.ema20, ema50: c.ema50, bb_upper: c.bb_upper, bb_lower: c.bb_lower, macd: c.macd, signal: c.signal, histogram: c.histogram, rsi: c.rsi })),
     pricePredictions: [],
     trades: convertAccountTradesToTradeEvents(account.trades),
     holding: {
