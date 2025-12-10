@@ -1115,17 +1115,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
               <div className="flex items-center gap-3 text-[10px]">
                 {hoveredCandle.ema20 && (
-                  <span className="text-slate-400">EMA20 <span className="text-orange-400 font-semibold">{hoveredCandle.ema20.toFixed(2)}</span></span>
+                  <span className="text-slate-400">EMA20 <span className="text-yellow-400 font-semibold">{hoveredCandle.ema20.toFixed(2)}</span></span>
                 )}
                 {hoveredCandle.ema50 && (
-                  <span className="text-slate-400">EMA50 <span className="text-yellow-400 font-semibold">{hoveredCandle.ema50.toFixed(2)}</span></span>
+                  <span className="text-slate-400">EMA50 <span className="text-purple-400 font-semibold">{hoveredCandle.ema50.toFixed(2)}</span></span>
                 )}
                 {(hoveredCandle.bbUpper || hoveredCandle.bb_upper) && (
                   <>
                     <span className="text-slate-600">|</span>
-                    <span className="text-slate-400">BB <span className="text-purple-400 font-semibold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
-                    <span className="text-slate-400">/ <span className="text-purple-300 font-semibold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
-                    <span className="text-slate-400">/ <span className="text-purple-400 font-semibold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
+                    <span className="text-slate-400">BB <span className="text-slate-300 font-semibold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
+                    <span className="text-slate-400">/ <span className="text-slate-400 font-semibold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
+                    <span className="text-slate-400">/ <span className="text-slate-300 font-semibold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
                   </>
                 )}
               </div>
@@ -1222,7 +1222,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={bbUpperPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(147, 51, 234, 0.6)"
+                        stroke="rgba(148, 163, 184, 0.6)"
                         strokeWidth="1.5"
                         strokeDasharray="3 3"
                       />
@@ -1230,7 +1230,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         <polyline
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
-                          stroke="rgba(147, 51, 234, 0.4)"
+                          stroke="rgba(148, 163, 184, 0.4)"
                           strokeWidth="1"
                           strokeDasharray="2 2"
                         />
@@ -1238,7 +1238,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={bbLowerPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(147, 51, 234, 0.6)"
+                        stroke="rgba(148, 163, 184, 0.6)"
                         strokeWidth="1.5"
                         strokeDasharray="3 3"
                       />
@@ -1249,7 +1249,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <polyline
                       points={ema20Points.join(' ')}
                       fill="none"
-                      stroke="#f97316"
+                      stroke="#eab308"
                       strokeWidth="2"
                       opacity="0.8"
                     />
@@ -1259,7 +1259,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <polyline
                       points={ema50Points.join(' ')}
                       fill="none"
-                      stroke="#eab308"
+                      stroke="#a855f7"
                       strokeWidth="2"
                       opacity="0.8"
                     />
