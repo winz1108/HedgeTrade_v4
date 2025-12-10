@@ -115,14 +115,12 @@ export interface ApiResponse {
   cacheStatus?: string;
   currentTime: number;
   currentPrice: number;
-  priceHistory: {
-    '1m': Candle[];
-    '5m': Candle[];
-    '15m': Candle[];
-    '1h': Candle[];
-    '4h': Candle[];
-    '1d': Candle[];
-  };
+  priceHistory1m: Candle[];
+  priceHistory5m?: Candle[];
+  priceHistory15m?: Candle[];
+  priceHistory1h?: Candle[];
+  priceHistory4h?: Candle[];
+  priceHistory1d?: Candle[];
   currentPrediction: {
     v5MoeTakeProfitProb: number;
     v5MoeStopLossProb: number;
