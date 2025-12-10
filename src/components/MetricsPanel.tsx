@@ -134,11 +134,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   <span className="text-[8px] text-slate-500">
                     데이터 기준: {formatLocalTime(data.currentPrediction.predictionDataTimestamp)}
                   </span>
-                  {data.currentPrediction?.predictionCalculatedAt && (
-                    <span className="text-[8px] text-slate-500">
-                      계산 시점: {formatLocalTime(data.currentPrediction.predictionCalculatedAt)}
-                    </span>
-                  )}
                 </div>
               )}
             </div>

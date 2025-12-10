@@ -175,11 +175,13 @@ function App() {
                 <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
               )}
               {data.holding.isHolding && (
-                <div className="px-4 py-1.5 bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-emerald-500/30 backdrop-blur-sm rounded-lg border border-emerald-400/40 shadow-lg shadow-emerald-500/20 animate-pulse">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse"></div>
-                    <span className="text-xs font-semibold bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent tracking-wide">
-                      BTC POSITION ACTIVE
+                <div className="relative px-4 py-2 bg-slate-900/80 backdrop-blur-md rounded-lg border border-emerald-400/30 shadow-2xl overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10"></div>
+                  <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 via-emerald-400/20 to-emerald-500/20 blur-lg animate-pulse"></div>
+                  <div className="relative flex items-center gap-2.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]"></div>
+                    <span className="text-xs font-bold text-emerald-300 tracking-wider uppercase">
+                      BTC Position Active
                     </span>
                   </div>
                 </div>
