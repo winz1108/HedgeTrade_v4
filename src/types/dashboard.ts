@@ -99,6 +99,7 @@ export interface AccountTrade {
 
 export interface AccountMetrics {
   portfolioReturn: number;
+  portfolioReturnWithCommission?: number;
   totalTrades: number;
   winningTrades: number;
   winRate: number;

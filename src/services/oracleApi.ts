@@ -113,6 +113,7 @@ const convertApiResponseToDashboardData = (
     gateWeights: apiResponse.gateWeights,
     metrics: {
       portfolioReturn: account.metrics.portfolioReturn,
+      portfolioReturnWithCommission: account.metrics.portfolioReturnWithCommission,
       marketReturn: apiResponse.metrics.marketReturn ?? 0,
       avgTradeReturn: account.metrics.avgPnl ?? 0,
       takeProfitCount: account.metrics.winningTrades,
