@@ -181,7 +181,7 @@ function App() {
                   <div className="relative flex items-center gap-2.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]"></div>
                     <span className="text-xs font-bold text-emerald-300 tracking-wider uppercase">
-                      BTC Position Active
+                      Holding
                     </span>
                   </div>
                 </div>
