@@ -72,9 +72,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               {data.holding.isHolding ? (
                 <div className="space-y-1.5 bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-medium text-slate-300">Position</span>
                     <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[10px] font-bold border border-emerald-500/30 animate-pulse">
-                      HOLDING
+                      BTC POSITION ACTIVE
+                    </span>
+                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[10px] font-bold border border-emerald-500/30">
+                      Holding
                     </span>
                   </div>
                   <div className="flex justify-between">
