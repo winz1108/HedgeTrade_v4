@@ -14,23 +14,27 @@ const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades'])
     return events;
   }
 
-  accountTrades.forEach(trade => {
-    console.log('🔍 Trade entryTime:', trade.entryTime, 'Date:', new Date(trade.entryTime).toISOString());
+  accountTrades.forEach((trade, index) => {
+    const pairId = `pair_${trade.entryTime}_${index}`;
+
+    console.log('🔍 Trade entryTime:', trade.entryTime, 'Date:', new Date(trade.entryTime).toISOString(), 'pairId:', pairId);
 
     events.push({
       timestamp: trade.entryTime,
       type: 'buy',
       price: trade.entryPrice,
+      pairId,
     });
 
     if (trade.completed) {
-      console.log('🔍 Trade exitTime:', trade.exitTime, 'Date:', new Date(trade.exitTime).toISOString());
+      console.log('🔍 Trade exitTime:', trade.exitTime, 'Date:', new Date(trade.exitTime).toISOString(), 'pairId:', pairId);
 
       events.push({
         timestamp: trade.exitTime,
         type: 'sell',
         price: trade.exitPrice,
         profit: trade.pnl,
+        pairId,
       });
     }
   });
