@@ -15,6 +15,8 @@ const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades'])
   }
 
   accountTrades.forEach(trade => {
+    console.log('🔍 Trade entryTime:', trade.entryTime, 'Date:', new Date(trade.entryTime).toISOString());
+
     events.push({
       timestamp: trade.entryTime,
       type: 'buy',
@@ -22,6 +24,8 @@ const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades'])
     });
 
     if (trade.completed) {
+      console.log('🔍 Trade exitTime:', trade.exitTime, 'Date:', new Date(trade.exitTime).toISOString());
+
       events.push({
         timestamp: trade.exitTime,
         type: 'sell',
