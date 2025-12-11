@@ -32,7 +32,7 @@ function App() {
         if (!previousHoldingState.current && dashboardData.holding.isHolding) {
           sendBuyNotification(
             dashboardData.holding.buyPrice || dashboardData.currentPrice,
-            dashboardData.holding.initialTakeProfitProb || 0
+            dashboardData.currentPrediction?.takeProfitProb || 0
           );
         }
 
