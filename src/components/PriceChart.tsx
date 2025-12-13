@@ -9,7 +9,7 @@ interface PriceChartProps {
   onTradeHover: (trade: TradeEvent | null) => void;
 }
 
-type Timeframe = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
 
 function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): Candle[] {
   if (minutes === 1) {
@@ -110,6 +110,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       '1m': base1m,
       '5m': data.priceHistory5m ? [...data.priceHistory5m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 5),
       '15m': data.priceHistory15m ? [...data.priceHistory15m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 15),
+      '30m': aggregateCandlesToTimeframe(base1m, 30),
       '1h': data.priceHistory1h ? [...data.priceHistory1h, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 60),
       '4h': data.priceHistory4h ? [...data.priceHistory4h, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 240),
       '1d': data.priceHistory1d ? [...data.priceHistory1d, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 1440),
@@ -992,6 +993,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       case '1m': return 1;
       case '5m': return 5;
       case '15m': return 15;
+      case '30m': return 30;
       case '1h': return 60;
       case '4h': return 240;
       case '1d': return 1440;
@@ -1019,21 +1021,21 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <div className="hidden sm:flex items-center gap-2 text-[10px] bg-[#2b3139]/50 px-2 py-1 rounded">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-orange-500 rounded"></div>
+              <div className="w-3 h-0.5 bg-yellow-500 rounded"></div>
               <span className="text-slate-400">EMA20</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-yellow-500 rounded"></div>
+              <div className="w-3 h-0.5 bg-purple-500 rounded"></div>
               <span className="text-slate-400">EMA50</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-purple-500 border-t border-dashed border-purple-500"></div>
+              <div className="w-3 h-0.5 bg-gray-500 border-t border-dashed border-gray-500"></div>
               <span className="text-slate-400">BB</span>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5 overflow-x-auto">
-            {(['1m', '5m', '15m', '1h', '4h', '1d'] as const).map((tf) => {
+            {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
               return (
                 <button
                   key={tf}

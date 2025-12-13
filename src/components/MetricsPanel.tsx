@@ -53,13 +53,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               </div>
               <div className="space-y-1 pt-2 border-t border-slate-600/50">
                 <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-slate-400">BTC Value</span>
+                  <span className="text-[9px] text-slate-400">BTC</span>
                   <span className="text-xs font-semibold text-amber-400">
                     {formatCurrency(data.currentBTC || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-slate-400">Cash</span>
+                  <span className="text-[9px] text-slate-400">USDC</span>
                   <span className="text-xs font-semibold text-emerald-400">
                     {formatCurrency(data.currentCash || 0)}
                   </span>
@@ -247,14 +247,14 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 key={idx}
                 className={`flex items-center justify-between p-1 rounded border ${
                   trade.type === 'buy'
-                    ? 'bg-emerald-500/10 border-emerald-500/20'
-                    : 'bg-rose-500/10 border-rose-500/20'
+                    ? 'bg-blue-500/10 border-blue-500/20'
+                    : 'bg-orange-500/10 border-orange-500/20'
                 }`}
               >
                 <div className="flex flex-col">
                   <span
                     className={`text-[9px] font-bold uppercase ${
-                      trade.type === 'buy' ? 'text-emerald-400' : 'text-rose-400'
+                      trade.type === 'buy' ? 'text-blue-400' : 'text-orange-400'
                     }`}
                   >
                     {trade.type}
