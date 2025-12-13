@@ -100,6 +100,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       '1m': validHistory1m.length,
       '5m': data.priceHistory5m?.length || 0,
       '15m': data.priceHistory15m?.length || 0,
+      '30m': data.priceHistory30m?.length || 0,
       '1h': data.priceHistory1h?.length || 0,
       '4h': data.priceHistory4h?.length || 0,
       '1d': data.priceHistory1d?.length || 0,
@@ -110,7 +111,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       '1m': base1m,
       '5m': data.priceHistory5m ? [...data.priceHistory5m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 5),
       '15m': data.priceHistory15m ? [...data.priceHistory15m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 15),
-      '30m': aggregateCandlesToTimeframe(base1m, 30),
+      '30m': data.priceHistory30m ? [...data.priceHistory30m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 30),
       '1h': data.priceHistory1h ? [...data.priceHistory1h, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 60),
       '4h': data.priceHistory4h ? [...data.priceHistory4h, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 240),
       '1d': data.priceHistory1d ? [...data.priceHistory1d, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 1440),
@@ -120,13 +121,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       '1m': result['1m'].length,
       '5m': result['5m'].length,
       '15m': result['15m'].length,
+      '30m': result['30m'].length,
       '1h': result['1h'].length,
       '4h': result['4h'].length,
       '1d': result['1d'].length
     });
 
     return result;
-  }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory1h, data.priceHistory4h, data.priceHistory1d, data.pricePredictions]);
+  }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory30m, data.priceHistory1h, data.priceHistory4h, data.priceHistory1d, data.pricePredictions]);
 
   const selectedCandles = candlesByTimeframe[timeframe];
 
@@ -356,7 +358,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
   useEffect(() => {
     setScrollOffset(0);
-  }, [timeframe, data.priceHistory1m]);
+  }, [timeframe, data.priceHistory1m, data.priceHistory30m]);
 
   const handleTradeClick = (trade: TradeEvent, e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();

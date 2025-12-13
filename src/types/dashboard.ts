@@ -124,6 +124,7 @@ export interface ApiResponse {
   priceHistory1m: Candle[];
   priceHistory5m?: Candle[];
   priceHistory15m?: Candle[];
+  priceHistory30m?: Candle[];
   priceHistory1h?: Candle[];
   priceHistory4h?: Candle[];
   priceHistory1d?: Candle[];
@@ -161,6 +162,7 @@ export interface DashboardData {
   priceHistory1m: Candle[];
   priceHistory5m?: Candle[];
   priceHistory15m?: Candle[];
+  priceHistory30m?: Candle[];
   priceHistory1h?: Candle[];
   priceHistory4h?: Candle[];
   priceHistory1d?: Candle[];
