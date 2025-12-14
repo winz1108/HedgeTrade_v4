@@ -1169,31 +1169,34 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </linearGradient>
             </defs>
 
-            {Array.from({ length: 6 }).map((_, i) => {
-              const price = minPrice + ((maxPrice - minPrice) / 5) * i;
-              const y = priceToY(price);
-              return (
-                <g key={i}>
-                  <line
-                    x1="0"
-                    y1={y}
-                    x2="100%"
-                    y2={y}
-                    stroke="rgba(43, 49, 57, 0.5)"
-                    strokeWidth="1"
-                  />
-                  <text
-                    x="calc(100% - 60)"
-                    y={y + 4}
-                    fill="#848e9c"
-                    fontSize="11"
-                    fontFamily="monospace"
-                  >
-                    {price.toFixed(2)}
-                  </text>
-                </g>
-              );
-            })}
+            {(() => {
+              const svgWidth = containerRef.current?.offsetWidth || 1200;
+              return Array.from({ length: 6 }).map((_, i) => {
+                const price = minPrice + ((maxPrice - minPrice) / 5) * i;
+                const y = priceToY(price);
+                return (
+                  <g key={i}>
+                    <line
+                      x1="0"
+                      y1={y}
+                      x2="100%"
+                      y2={y}
+                      stroke="rgba(43, 49, 57, 0.5)"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={svgWidth - 60}
+                      y={y + 4}
+                      fill="#848e9c"
+                      fontSize="11"
+                      fontFamily="monospace"
+                    >
+                      {price.toFixed(2)}
+                    </text>
+                  </g>
+                );
+              });
+            })()}
 
             {predictionStartIndex > 0 && (
               <rect
@@ -1326,19 +1329,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 {/* Y-axis price label */}
                 {(() => {
                   const price = yToPrice(crosshairPosition.y);
+                  const svgWidth = containerRef.current?.offsetWidth || 1200;
                   return (
                     <g>
                       <rect
-                        x="calc(100% - 65)"
+                        x={svgWidth - 65}
                         y={crosshairPosition.y - 10}
                         width="60"
                         height="20"
-                        fill="rgba(43, 49, 57, 0.95)"
+                        fill="rgba(30, 35, 41, 1)"
                         stroke="rgba(255, 255, 255, 0.3)"
                         strokeWidth="1"
                       />
                       <text
-                        x="calc(100% - 35)"
+                        x={svgWidth - 35}
                         y={crosshairPosition.y + 4}
                         fill="#ffffff"
                         fontSize="11"
@@ -1734,7 +1738,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-2 py-1 bg-[#2b3139]/95 border border-white/30 rounded text-white font-semibold">
+                      <div className="px-2 py-1 bg-[#1e2329] border border-white/30 rounded text-white font-semibold">
                         {timeLabel}
                       </div>
                     ) : (
@@ -1808,31 +1812,34 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             }}
           >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
-              {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
-                const y = macdToY(value);
-                const isZero = value === 0;
-                return (
-                  <g key={i}>
-                    <line
-                      x1="0"
-                      y1={y}
-                      x2="100%"
-                      y2={y}
-                      stroke={isZero ? 'rgba(255, 255, 255, 0.3)' : 'rgba(43, 49, 57, 0.5)'}
-                      strokeWidth="1"
-                    />
-                    <text
-                      x="calc(100% - 55)"
-                      y={Math.max(12, Math.min(macdChartHeight - 4, y + 3))}
-                      fill="#848e9c"
-                      fontSize="10"
-                      fontFamily="monospace"
-                    >
-                      {value.toFixed(2)}
-                    </text>
-                  </g>
-                );
-              })}
+              {(() => {
+                const svgWidth = containerRef.current?.offsetWidth || 1200;
+                return [macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
+                  const y = macdToY(value);
+                  const isZero = value === 0;
+                  return (
+                    <g key={i}>
+                      <line
+                        x1="0"
+                        y1={y}
+                        x2="100%"
+                        y2={y}
+                        stroke={isZero ? 'rgba(255, 255, 255, 0.3)' : 'rgba(43, 49, 57, 0.5)'}
+                        strokeWidth="1"
+                      />
+                      <text
+                        x={svgWidth - 55}
+                        y={Math.max(12, Math.min(macdChartHeight - 4, y + 3))}
+                        fill="#848e9c"
+                        fontSize="10"
+                        fontFamily="monospace"
+                      >
+                        {value.toFixed(2)}
+                      </text>
+                    </g>
+                  );
+                });
+              })()}
 
               {visibleCandles.map((candle, idx) => {
                 if (candle.histogram === undefined) return null;
@@ -1940,33 +1947,36 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             }}
           >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
-              {[100, 70, 50, 30, 0].map((value) => {
-                const y = rsiToY(value);
-                const isThreshold = value === 30 || value === 70;
-                const isMid = value === 50;
-                return (
-                  <g key={value}>
-                    <line
-                      x1="0"
-                      y1={y}
-                      x2="100%"
-                      y2={y}
-                      stroke={isMid ? 'rgba(255, 255, 255, 0.4)' : isThreshold ? 'rgba(255, 255, 255, 0.15)' : 'rgba(43, 49, 57, 0.5)'}
-                      strokeWidth={isMid ? '1.5' : '1'}
-                      strokeDasharray={isThreshold ? '4 2' : '0'}
-                    />
-                    <text
-                      x="calc(100% - 30)"
-                      y={value === 0 ? y - 2 : value === 100 ? y + 10 : y + 3}
-                      fill="#848e9c"
-                      fontSize="10"
-                      fontFamily="monospace"
-                    >
-                      {value}
-                    </text>
-                  </g>
-                );
-              })}
+              {(() => {
+                const svgWidth = containerRef.current?.offsetWidth || 1200;
+                return [100, 70, 50, 30, 0].map((value) => {
+                  const y = rsiToY(value);
+                  const isThreshold = value === 30 || value === 70;
+                  const isMid = value === 50;
+                  return (
+                    <g key={value}>
+                      <line
+                        x1="0"
+                        y1={y}
+                        x2="100%"
+                        y2={y}
+                        stroke={isMid ? 'rgba(255, 255, 255, 0.4)' : isThreshold ? 'rgba(255, 255, 255, 0.15)' : 'rgba(43, 49, 57, 0.5)'}
+                        strokeWidth={isMid ? '1.5' : '1'}
+                        strokeDasharray={isThreshold ? '4 2' : '0'}
+                      />
+                      <text
+                        x={svgWidth - 30}
+                        y={value === 0 ? y - 2 : value === 100 ? y + 10 : y + 3}
+                        fill="#848e9c"
+                        fontSize="10"
+                        fontFamily="monospace"
+                      >
+                        {value}
+                      </text>
+                    </g>
+                  );
+                });
+              })()}
 
               {(() => {
                 const rsiPoints: string[] = [];
