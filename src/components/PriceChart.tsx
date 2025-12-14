@@ -1130,8 +1130,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           overflow: 'visible',
           touchAction: 'pan-x pan-y',
           overscrollBehavior: 'contain',
-          WebkitOverflowScrolling: 'touch',
-          paddingRight: '64px'
+          WebkitOverflowScrolling: 'touch'
         }}
         onMouseMove={handleContainerMouseMove}
         onMouseUp={handleMouseUp}
@@ -1718,7 +1717,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-slate-600">
+                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329]/95 border border-white/50">
                         {hoverLabel}
                       </div>
                     ) : (
@@ -1780,37 +1779,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 )}
               </div>
             )}
-          </div>
-
-          {/* Volume Y-Axis */}
-          <div
-            className="absolute w-16 bg-[#0b0e11] border-l border-slate-800/50"
-            style={{
-              right: '0',
-              top: `${priceChartHeight + 28}px`,
-              height: `${volumeChartHeight}px`,
-              zIndex: 10,
-            }}
-          >
-            {(() => {
-              const maxVolume = Math.max(...visibleCandles.map(c => c.volume));
-              const steps = 4;
-              return Array.from({ length: steps }).map((_, i) => {
-                const volume = (maxVolume / (steps - 1)) * (steps - 1 - i);
-                const percentage = i / (steps - 1);
-                const topPadding = Math.max(5, volumeChartHeight * 0.15);
-                const y = topPadding + (volumeChartHeight - topPadding - 10) * percentage;
-                return (
-                  <div
-                    key={i}
-                    className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
-                    style={{ top: `${y - 6}px` }}
-                  >
-                    {volume >= 1000 ? `${(volume / 1000).toFixed(1)}K` : volume.toFixed(0)}
-                  </div>
-                );
-              });
-            })()}
           </div>
 
           <div
@@ -1939,30 +1907,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
 
-          {/* MACD Y-Axis */}
-          <div
-            className="absolute w-16 bg-[#0b0e11] border-l border-slate-800/50"
-            style={{
-              right: '0',
-              top: `${priceChartHeight + volumeChartHeight + 36}px`,
-              height: `${macdChartHeight}px`,
-              zIndex: 10,
-            }}
-          >
-            {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
-              const y = macdToY(value);
-              return (
-                <div
-                  key={i}
-                  className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
-                  style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
-                >
-                  {value.toFixed(2)}
-                </div>
-              );
-            })}
-          </div>
-
           <div
             className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
             style={{
@@ -2036,30 +1980,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
 
-          {/* RSI Y-Axis */}
-          <div
-            className="absolute w-16 bg-[#0b0e11] border-l border-slate-800/50"
-            style={{
-              right: '0',
-              top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
-              height: `${rsiChartHeight}px`,
-              zIndex: 10,
-            }}
-          >
-            {[100, 70, 50, 30, 0].map((value) => {
-              const y = rsiToY(value);
-              return (
-                <div
-                  key={value}
-                  className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
-                  style={{ top: `${value === 0 ? y - 12 : value === 100 ? y : y - 6}px` }}
-                >
-                  {value}
-                </div>
-              );
-            })}
-          </div>
-
         </div>
       </div>
 
@@ -2099,16 +2019,71 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           )}
 
           {/* Hovered Price Box */}
-          {hoveredCandle && (
+          {crosshairPosition && (
             <div
               className="absolute right-0 w-full flex items-center justify-end pr-1 z-50"
-              style={{ top: `${priceToY(hoveredCandle.close) - 10}px` }}
+              style={{ top: `${crosshairPosition.y - 10}px` }}
             >
               <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329]/95 border border-white/50">
-                {hoveredCandle.close.toFixed(2)}
+                {yToPrice(crosshairPosition.y).toFixed(2)}
               </div>
             </div>
           )}
+        </div>
+
+        {/* Volume Y-Axis */}
+        <div className="relative" style={{ top: `${28}px`, height: `${volumeChartHeight}px` }}>
+          {(() => {
+            const maxVolume = Math.max(...visibleCandles.map(c => c.volume));
+            const steps = 4;
+            return Array.from({ length: steps }).map((_, i) => {
+              const volume = (maxVolume / (steps - 1)) * (steps - 1 - i);
+              const percentage = i / (steps - 1);
+              const topPadding = Math.max(5, volumeChartHeight * 0.15);
+              const y = topPadding + (volumeChartHeight - topPadding - 10) * percentage;
+              return (
+                <div
+                  key={i}
+                  className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
+                  style={{ top: `${y - 6}px` }}
+                >
+                  {volume >= 1000 ? `${(volume / 1000).toFixed(1)}K` : volume.toFixed(0)}
+                </div>
+              );
+            });
+          })()}
+        </div>
+
+        {/* MACD Y-Axis */}
+        <div className="relative" style={{ top: `${volumeChartHeight + 36}px`, height: `${macdChartHeight}px` }}>
+          {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
+            const y = macdToY(value);
+            return (
+              <div
+                key={i}
+                className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
+                style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
+              >
+                {value.toFixed(2)}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* RSI Y-Axis */}
+        <div className="relative" style={{ top: `${volumeChartHeight + macdChartHeight + 44}px`, height: `${rsiChartHeight}px` }}>
+          {[100, 70, 50, 30, 0].map((value) => {
+            const y = rsiToY(value);
+            return (
+              <div
+                key={value}
+                className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
+                style={{ top: `${value === 0 ? y - 12 : value === 100 ? y : y - 6}px` }}
+              >
+                {value}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
