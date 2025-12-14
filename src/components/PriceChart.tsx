@@ -1132,7 +1132,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch'
         }}
-        onWheel={handleWheel}
         onMouseMove={handleContainerMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
@@ -1175,7 +1174,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
             </div>
           )}
-          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 1, opacity: 0.95 }}>
+          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 20, opacity: 0.95 }}>
             <defs>
               <linearGradient id="predictionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="rgba(252, 213, 53, 0.15)" />
@@ -1814,8 +1813,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
           {/* Volume Y-Axis */}
           <div
-            className="absolute right-0 w-16 bg-[#0b0e11] border-l border-slate-800/50"
+            className="absolute w-16 bg-[#0b0e11] border-l border-slate-800/50"
             style={{
+              right: '-64px',
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
               zIndex: 10,
@@ -1970,8 +1970,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
           {/* MACD Y-Axis */}
           <div
-            className="absolute right-0 w-16 bg-[#0b0e11] border-l border-slate-800/50"
+            className="absolute w-16 bg-[#0b0e11] border-l border-slate-800/50"
             style={{
+              right: '-64px',
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
               zIndex: 10,
@@ -2066,8 +2067,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
           {/* RSI Y-Axis */}
           <div
-            className="absolute right-0 w-16 bg-[#0b0e11] border-l border-slate-800/50"
+            className="absolute w-16 bg-[#0b0e11] border-l border-slate-800/50"
             style={{
+              right: '-64px',
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
               zIndex: 10,
