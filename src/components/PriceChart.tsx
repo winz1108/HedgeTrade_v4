@@ -182,7 +182,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (e.deltaY !== 0) {
+    const absDeltaX = Math.abs(e.deltaX);
+    const absDeltaY = Math.abs(e.deltaY);
+
+    // 좌우 스크롤이 더 크면 차트 이동
+    if (absDeltaX > absDeltaY && e.deltaX !== 0) {
+      const scrollSpeed = 1;
+      const scrollDelta = e.deltaX * scrollSpeed;
+      setScrollOffset(prev => Math.max(0, prev + scrollDelta));
+    }
+    // 상하 스크롤이 더 크면 확대/축소
+    else if (e.deltaY !== 0) {
       const chartWidth = containerRef.current?.offsetWidth || (isMobile ? window.innerWidth - 16 : 1200);
       const maxCandles = 500;
       const dynamicMinCandleWidth = Math.max(1, (chartWidth / maxCandles) - candleGap);
