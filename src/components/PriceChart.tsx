@@ -1122,11 +1122,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         </div>
       </div>
 
+      <div className="flex bg-[#0b0e11]" style={{ height: `${chartHeight}px` }}>
       <div
         ref={containerRef}
-        className="relative bg-[#0b0e11] select-none flex-shrink-0 w-full"
+        className="relative select-none flex-shrink-0 flex-1"
         style={{
-          height: `${chartHeight}px`,
           overflow: 'hidden',
           touchAction: 'pan-x pan-y',
           overscrollBehavior: 'contain',
@@ -1175,7 +1175,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
             </div>
           )}
-          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 1 }}>
+          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 1, opacity: 0.95 }}>
             <defs>
               <linearGradient id="predictionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="rgba(252, 213, 53, 0.15)" />
@@ -1198,15 +1198,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       stroke="rgba(43, 49, 57, 0.5)"
                       strokeWidth="1"
                     />
-                    <text
-                      x={svgWidth - 60}
-                      y={y + 4}
-                      fill="#848e9c"
-                      fontSize="11"
-                      fontFamily="monospace"
-                    >
-                      {price.toFixed(2)}
-                    </text>
                   </g>
                 );
               });
@@ -2039,6 +2030,44 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
         </div>
       </div>
+
+      {/* Y-Axis */}
+      <div className="w-16 bg-[#0b0e11] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px` }}>
+        <div className="relative" style={{ height: `${priceChartHeight}px` }}>
+          {Array.from({ length: 6 }).map((_, i) => {
+            const price = minPrice + ((maxPrice - minPrice) / 5) * i;
+            const y = priceToY(price);
+            return (
+              <div
+                key={i}
+                className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[11px] font-mono"
+                style={{ top: `${y - 6}px` }}
+              >
+                {price.toFixed(2)}
+              </div>
+            );
+          })}
+
+          {/* Current Price Box */}
+          {latestCandle && (
+            <div
+              className={`absolute right-0 w-full flex items-center justify-end pr-1`}
+              style={{ top: `${priceToY(latestCandle.close) - 10}px` }}
+            >
+              <div
+                className={`px-1.5 py-0.5 rounded text-white text-[11px] font-bold ${
+                  latestCandle.close >= latestCandle.open
+                    ? 'bg-[#0ecb81]'
+                    : 'bg-[#f6465d]'
+                }`}
+              >
+                {latestCandle.close.toFixed(2)}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
     </div>
   );
 
