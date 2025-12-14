@@ -1144,7 +1144,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         <div className="absolute inset-0 overflow-hidden">
           {/* OHLC Display */}
           {hoveredCandle && (
-            <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5 text-xs bg-black/70 backdrop-blur-sm px-3 py-2 rounded border border-slate-700/50">
+            <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5 text-xs bg-[#1e2329] px-2 py-1 rounded border border-slate-700/50">
               <div className="flex items-center gap-3">
                 <span className="text-slate-400 font-mono">{formatChartTime(hoveredCandle.timestamp)}</span>
                 <span className="text-slate-400">O <span className="text-white font-semibold">{hoveredCandle.open.toFixed(2)}</span></span>
@@ -1342,6 +1342,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         y={crosshairPosition.y - 10}
                         width="60"
                         height="20"
+                        rx="2"
                         fill="rgba(30, 35, 41, 1)"
                         stroke="rgba(255, 255, 255, 0.3)"
                         strokeWidth="1"
@@ -1800,7 +1801,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </div>
 
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs bg-slate-900/90 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+              <div className="absolute left-2 top-2 text-xs bg-[#1e2329] px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
                 <span className="text-slate-400 font-medium">Volume</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <span className="text-slate-300 font-semibold">
@@ -1809,6 +1810,35 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Volume Y-Axis */}
+          <div
+            className="absolute right-0 w-16 bg-[#0b0e11] border-l border-slate-800/50"
+            style={{
+              top: `${priceChartHeight + 28}px`,
+              height: `${volumeChartHeight}px`,
+            }}
+          >
+            {(() => {
+              const maxVolume = Math.max(...visibleCandles.map(c => c.volume));
+              const steps = 4;
+              return Array.from({ length: steps }).map((_, i) => {
+                const volume = (maxVolume / (steps - 1)) * (steps - 1 - i);
+                const percentage = i / (steps - 1);
+                const topPadding = Math.max(5, volumeChartHeight * 0.15);
+                const y = topPadding + (volumeChartHeight - topPadding - 10) * percentage;
+                return (
+                  <div
+                    key={i}
+                    className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
+                    style={{ top: `${y - 6}px` }}
+                  >
+                    {volume >= 1000 ? `${(volume / 1000).toFixed(1)}K` : volume.toFixed(0)}
+                  </div>
+                );
+              });
+            })()}
           </div>
 
           <div
@@ -1836,15 +1866,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         stroke={isZero ? 'rgba(255, 255, 255, 0.3)' : 'rgba(43, 49, 57, 0.5)'}
                         strokeWidth="1"
                       />
-                      <text
-                        x={svgWidth - 55}
-                        y={Math.max(12, Math.min(macdChartHeight - 4, y + 3))}
-                        fill="#848e9c"
-                        fontSize="10"
-                        fontFamily="monospace"
-                      >
-                        {value.toFixed(2)}
-                      </text>
                     </g>
                   );
                 });
@@ -1913,7 +1934,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               })()}
             </svg>
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs bg-slate-900/90 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+              <div className="absolute left-2 top-2 text-xs bg-[#1e2329] px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
                 <span className="text-slate-400 font-medium">MACD</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <>
@@ -1946,6 +1967,28 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
 
+          {/* MACD Y-Axis */}
+          <div
+            className="absolute right-0 w-16 bg-[#0b0e11] border-l border-slate-800/50"
+            style={{
+              top: `${priceChartHeight + volumeChartHeight + 36}px`,
+              height: `${macdChartHeight}px`,
+            }}
+          >
+            {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
+              const y = macdToY(value);
+              return (
+                <div
+                  key={i}
+                  className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
+                  style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
+                >
+                  {value.toFixed(2)}
+                </div>
+              );
+            })}
+          </div>
+
           <div
             className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
             style={{
@@ -1973,15 +2016,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         strokeWidth={isMid ? '1.5' : '1'}
                         strokeDasharray={isThreshold ? '4 2' : '0'}
                       />
-                      <text
-                        x={svgWidth - 30}
-                        y={value === 0 ? y - 2 : value === 100 ? y + 10 : y + 3}
-                        fill="#848e9c"
-                        fontSize="10"
-                        fontFamily="monospace"
-                      >
-                        {value}
-                      </text>
                     </g>
                   );
                 });
@@ -2013,7 +2047,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               })()}
             </svg>
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs bg-slate-900/90 px-2 py-1 rounded flex items-center gap-2 pointer-events-none">
+              <div className="absolute left-2 top-2 text-xs bg-[#1e2329] px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
                 <span className="text-slate-400 font-medium">RSI</span>
                 {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].rsi !== undefined && (
                   <span className={`font-semibold ${
@@ -2026,6 +2060,28 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 )}
               </div>
             )}
+          </div>
+
+          {/* RSI Y-Axis */}
+          <div
+            className="absolute right-0 w-16 bg-[#0b0e11] border-l border-slate-800/50"
+            style={{
+              top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
+              height: `${rsiChartHeight}px`,
+            }}
+          >
+            {[100, 70, 50, 30, 0].map((value) => {
+              const y = rsiToY(value);
+              return (
+                <div
+                  key={value}
+                  className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
+                  style={{ top: `${value === 0 ? y - 12 : value === 100 ? y : y - 6}px` }}
+                >
+                  {value}
+                </div>
+              );
+            })}
           </div>
 
         </div>
