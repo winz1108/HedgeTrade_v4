@@ -1685,7 +1685,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               top: `${priceChartHeight + 8}px`,
               height: '20px',
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-              zIndex: 2
+              zIndex: 50
             }}
           >
             <div className="absolute left-0 flex pointer-events-none" style={{ width: '100%', height: '100%' }}>
@@ -1714,10 +1714,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     style={{
                       left: `${idx * (candleWidth + candleGap) - 25}px`,
                       top: '2px',
+                      zIndex: isHovered ? 100 : 1
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white">
+                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border-2 border-white pointer-events-auto" style={{ opacity: 1 }}>
                         {hoverLabel}
                       </div>
                     ) : (
