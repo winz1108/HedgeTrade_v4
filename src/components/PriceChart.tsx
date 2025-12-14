@@ -1370,7 +1370,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             style={{
               height: `${chartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-              zIndex: 5,
+              zIndex: 1,
               pointerEvents: 'auto'
             }}
             onMouseDown={handleMouseDown}
@@ -1818,7 +1818,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               right: '-64px',
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
-              zIndex: 10,
+              zIndex: 20,
             }}
           >
             {(() => {
@@ -1975,7 +1975,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               right: '-64px',
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
-              zIndex: 10,
+              zIndex: 20,
             }}
           >
             {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
@@ -2072,7 +2072,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               right: '-64px',
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
-              zIndex: 10,
+              zIndex: 20,
             }}
           >
             {[100, 70, 50, 30, 0].map((value) => {
@@ -2093,7 +2093,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       </div>
 
       {/* Y-Axis */}
-      <div className="w-16 bg-[#0b0e11] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px`, zIndex: 10 }}>
+      <div className="w-16 bg-[#0b0e11] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px`, zIndex: 20 }}>
         <div className="relative" style={{ height: `${priceChartHeight}px` }}>
           {Array.from({ length: 6 }).map((_, i) => {
             const price = minPrice + ((maxPrice - minPrice) / 5) * i;
