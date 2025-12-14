@@ -1717,7 +1717,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329]/95 border border-white/50">
+                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white/50">
                         {hoverLabel}
                       </div>
                     ) : (
@@ -2024,7 +2024,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               className="absolute right-0 w-full flex items-center justify-end pr-1 z-50"
               style={{ top: `${crosshairPosition.y - 10}px` }}
             >
-              <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329]/95 border border-white/50">
+              <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white/50">
                 {yToPrice(crosshairPosition.y).toFixed(2)}
               </div>
             </div>
@@ -2032,7 +2032,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         </div>
 
         {/* Volume Y-Axis */}
-        <div className="relative" style={{ top: `${28}px`, height: `${volumeChartHeight}px` }}>
+        <div className="absolute" style={{ top: `${priceChartHeight + 28}px`, height: `${volumeChartHeight}px`, width: '100%' }}>
           {(() => {
             const maxVolume = Math.max(...visibleCandles.map(c => c.volume));
             const steps = 4;
@@ -2055,7 +2055,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         </div>
 
         {/* MACD Y-Axis */}
-        <div className="relative" style={{ top: `${volumeChartHeight + 36}px`, height: `${macdChartHeight}px` }}>
+        <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + 36}px`, height: `${macdChartHeight}px`, width: '100%' }}>
           {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
             const y = macdToY(value);
             return (
@@ -2071,7 +2071,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         </div>
 
         {/* RSI Y-Axis */}
-        <div className="relative" style={{ top: `${volumeChartHeight + macdChartHeight + 44}px`, height: `${rsiChartHeight}px` }}>
+        <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`, height: `${rsiChartHeight}px`, width: '100%' }}>
           {[100, 70, 50, 30, 0].map((value) => {
             const y = rsiToY(value);
             return (
