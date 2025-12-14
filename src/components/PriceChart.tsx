@@ -1130,7 +1130,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           overflow: 'visible',
           touchAction: 'pan-x pan-y',
           overscrollBehavior: 'contain',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          paddingRight: '64px'
         }}
         onMouseMove={handleContainerMouseMove}
         onMouseUp={handleMouseUp}
@@ -1330,36 +1331,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   strokeDasharray="4 4"
                   style={{ pointerEvents: 'none' }}
                 />
-                {/* Y-axis price label - moved to Y-axis */}
-                {(() => {
-                  const price = yToPrice(crosshairPosition.y);
-                  const svgWidth = containerRef.current?.offsetWidth || 1200;
-                  return (
-                    <g>
-                      <rect
-                        x={svgWidth}
-                        y={crosshairPosition.y - 10}
-                        width="64"
-                        height="20"
-                        rx="3"
-                        fill="rgba(30, 35, 41, 0.95)"
-                        stroke="rgba(255, 255, 255, 0.5)"
-                        strokeWidth="1.5"
-                      />
-                      <text
-                        x={svgWidth + 32}
-                        y={crosshairPosition.y + 4}
-                        fill="#ffffff"
-                        fontSize="11"
-                        fontFamily="monospace"
-                        textAnchor="middle"
-                        fontWeight="bold"
-                      >
-                        {price.toFixed(2)}
-                      </text>
-                    </g>
-                  );
-                })()}
               </>
             )}
 
@@ -1815,7 +1786,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           <div
             className="absolute w-16 bg-[#0b0e11] border-l border-slate-800/50"
             style={{
-              right: '-64px',
+              right: '0',
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
               zIndex: 10,
@@ -1972,7 +1943,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           <div
             className="absolute w-16 bg-[#0b0e11] border-l border-slate-800/50"
             style={{
-              right: '-64px',
+              right: '0',
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
               zIndex: 10,
@@ -2069,7 +2040,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           <div
             className="absolute w-16 bg-[#0b0e11] border-l border-slate-800/50"
             style={{
-              right: '-64px',
+              right: '0',
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
               zIndex: 10,
@@ -2133,7 +2104,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               className="absolute right-0 w-full flex items-center justify-end pr-1 z-50"
               style={{ top: `${priceToY(hoveredCandle.close) - 10}px` }}
             >
-              <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-slate-600">
+              <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329]/95 border border-white/50">
                 {hoveredCandle.close.toFixed(2)}
               </div>
             </div>
