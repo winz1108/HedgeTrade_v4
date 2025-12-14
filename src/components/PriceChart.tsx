@@ -1726,7 +1726,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 const hours = String(date.getHours()).padStart(2, '0');
                 const minutes = String(date.getMinutes()).padStart(2, '0');
 
-                const timeLabel = `${month}-${day} ${hours}:${minutes}`;
+                const timeLabel = timeframe === '1d'
+                  ? `${month}-${day}`
+                  : `${hours}:${minutes}`;
+
+                const hoverLabel = `${month}-${day} ${hours}:${minutes}`;
 
                 return (
                   <div
@@ -1739,7 +1743,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   >
                     {isHovered ? (
                       <div className="px-2 py-1 bg-[#1e2329] border border-white/30 rounded text-white font-semibold">
-                        {timeLabel}
+                        {hoverLabel}
                       </div>
                     ) : (
                       <span className="text-[#848e9c]">{timeLabel}</span>
