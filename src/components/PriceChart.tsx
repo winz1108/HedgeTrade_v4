@@ -1174,7 +1174,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
             </div>
           )}
-          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 20, opacity: 0.95 }}>
+          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 5 }}>
             <defs>
               <linearGradient id="predictionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="rgba(252, 213, 53, 0.15)" />
@@ -1556,7 +1556,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </svg>
             )}
 
-            <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, width: `${visibleCandles.length * (candleWidth + candleGap)}px`, overflow: 'visible', zIndex: 20 }}>
+            <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, width: `${visibleCandles.length * (candleWidth + candleGap)}px`, overflow: 'visible', zIndex: 5 }}>
             {(() => {
               const allTrades: Array<TradeEvent & { isPaired: boolean }> = [];
 
