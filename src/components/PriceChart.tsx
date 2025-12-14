@@ -72,7 +72,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const touchStartWidth = useRef(0);
   const isPinching = useRef(false);
 
-  const minCandleWidth = 4;
+  const minCandleWidth = 1;
   const maxCandleWidth = 30;
   const candleGap = 2;
   const pricePadding = 20;
@@ -470,7 +470,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     if (isMobileView) {
       return createPortal(
         <div
-          className="fixed left-2 right-2 bottom-4 bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto"
+          className="fixed left-2 right-2 bottom-4 bg-[#1e2329]/90 backdrop-blur-md border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto"
           style={{
             zIndex: 999999,
           }}
@@ -759,7 +759,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
     return createPortal(
       <div
-        className="fixed bg-[#1e2329] border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto"
+        className="fixed bg-[#1e2329]/90 backdrop-blur-md border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto"
         style={{
           left: `${leftPos}px`,
           top: `${topPos}px`,
@@ -1144,7 +1144,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         <div className="absolute inset-0 overflow-hidden">
           {/* OHLC Display */}
           {hoveredCandle && (
-            <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5 text-xs bg-[#1e2329] px-2 py-1 rounded border border-slate-700/50">
+            <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5 text-xs bg-[#1e2329]/90 backdrop-blur-md px-2 py-1 rounded border border-slate-700/50">
               <div className="flex items-center gap-3">
                 <span className="text-slate-400 font-mono">{formatChartTime(hoveredCandle.timestamp)}</span>
                 <span className="text-slate-400">O <span className="text-white font-semibold">{hoveredCandle.open.toFixed(2)}</span></span>
@@ -1331,24 +1331,24 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   strokeDasharray="4 4"
                   style={{ pointerEvents: 'none' }}
                 />
-                {/* Y-axis price label */}
+                {/* Y-axis price label - moved to Y-axis */}
                 {(() => {
                   const price = yToPrice(crosshairPosition.y);
                   const svgWidth = containerRef.current?.offsetWidth || 1200;
                   return (
                     <g>
                       <rect
-                        x={svgWidth - 65}
+                        x={svgWidth}
                         y={crosshairPosition.y - 10}
-                        width="60"
+                        width="64"
                         height="20"
-                        rx="2"
-                        fill="rgba(30, 35, 41, 1)"
-                        stroke="rgba(255, 255, 255, 0.3)"
-                        strokeWidth="1"
+                        rx="3"
+                        fill="rgba(30, 35, 41, 0.95)"
+                        stroke="rgba(255, 255, 255, 0.5)"
+                        strokeWidth="1.5"
                       />
                       <text
-                        x={svgWidth - 35}
+                        x={svgWidth + 32}
                         y={crosshairPosition.y + 4}
                         fill="#ffffff"
                         fontSize="11"
@@ -1818,6 +1818,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             style={{
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
+              zIndex: 10,
             }}
           >
             {(() => {
@@ -1973,6 +1974,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             style={{
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
+              zIndex: 10,
             }}
           >
             {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
@@ -2068,6 +2070,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             style={{
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
+              zIndex: 10,
             }}
           >
             {[100, 70, 50, 30, 0].map((value) => {
@@ -2088,7 +2091,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       </div>
 
       {/* Y-Axis */}
-      <div className="w-16 bg-[#0b0e11] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px` }}>
+      <div className="w-16 bg-[#0b0e11] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px`, zIndex: 10 }}>
         <div className="relative" style={{ height: `${priceChartHeight}px` }}>
           {Array.from({ length: 6 }).map((_, i) => {
             const price = minPrice + ((maxPrice - minPrice) / 5) * i;
