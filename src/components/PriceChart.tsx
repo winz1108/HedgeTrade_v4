@@ -1035,7 +1035,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   };
 
   const chartContent = (
-    <div className={`bg-[#161a1e] rounded-lg shadow-2xl border border-slate-800 w-full ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
+    <div className={`bg-[#161a1e] rounded-lg shadow-2xl border border-slate-800 w-full overflow-visible ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
       <div className="bg-[#1e2329] px-2 sm:px-4 py-2 flex items-center justify-between border-b border-slate-800 flex-wrap gap-2">
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
@@ -1122,12 +1122,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         </div>
       </div>
 
-      <div className="flex bg-[#0b0e11]" style={{ height: `${chartHeight}px` }}>
+      <div className="flex bg-[#0b0e11] overflow-visible" style={{ height: `${chartHeight}px` }}>
       <div
         ref={containerRef}
         className="relative select-none flex-shrink-0 flex-1"
         style={{
-          overflow: 'hidden',
+          overflow: 'visible',
           touchAction: 'pan-x pan-y',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch'
@@ -1747,7 +1747,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-2 py-1 bg-[#1e2329] border border-white/30 rounded text-white font-semibold">
+                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-slate-600">
                         {hoverLabel}
                       </div>
                     ) : (
