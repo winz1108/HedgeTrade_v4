@@ -1140,10 +1140,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         onTouchEnd={handleTouchEnd}
       >
 
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-visible">
           {/* OHLC Display */}
           {hoveredCandle && (
-            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-[#1e2329] px-2 py-1 rounded border border-slate-700/50">
+            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-black px-2 py-1 rounded border border-slate-700/50">
               <div className="flex items-center gap-3">
                 <span className="text-slate-400 font-mono">{formatChartTime(hoveredCandle.timestamp)}</span>
                 <span className="text-slate-400">O <span className="text-white font-semibold">{hoveredCandle.open.toFixed(2)}</span></span>
@@ -2123,6 +2123,18 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 }`}
               >
                 {latestCandle.close.toFixed(2)}
+              </div>
+            </div>
+          )}
+
+          {/* Hovered Price Box */}
+          {hoveredCandle && (
+            <div
+              className="absolute right-0 w-full flex items-center justify-end pr-1 z-50"
+              style={{ top: `${priceToY(hoveredCandle.close) - 10}px` }}
+            >
+              <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-slate-600">
+                {hoveredCandle.close.toFixed(2)}
               </div>
             </div>
           )}
