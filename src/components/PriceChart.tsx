@@ -174,6 +174,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     return ((maxPrice - price) / (maxPrice - minPrice)) * priceChartHeight;
   };
 
+  const yToPrice = (y: number) => {
+    return maxPrice - (y / priceChartHeight) * (maxPrice - minPrice);
+  };
+
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     e.stopPropagation();
