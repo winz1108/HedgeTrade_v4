@@ -1143,7 +1143,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         <div className="absolute inset-0 overflow-hidden">
           {/* OHLC Display */}
           {hoveredCandle && (
-            <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5 text-xs bg-[#1e2329]/90 backdrop-blur-md px-2 py-1 rounded border border-slate-700/50">
+            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-[#1e2329] px-2 py-1 rounded border border-slate-700/50">
               <div className="flex items-center gap-3">
                 <span className="text-slate-400 font-mono">{formatChartTime(hoveredCandle.timestamp)}</span>
                 <span className="text-slate-400">O <span className="text-white font-semibold">{hoveredCandle.open.toFixed(2)}</span></span>
@@ -1818,7 +1818,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               right: '-64px',
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
-              zIndex: 20,
+              zIndex: 10,
             }}
           >
             {(() => {
@@ -1975,7 +1975,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               right: '-64px',
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
-              zIndex: 20,
+              zIndex: 10,
             }}
           >
             {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
@@ -2072,7 +2072,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               right: '-64px',
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
-              zIndex: 20,
+              zIndex: 10,
             }}
           >
             {[100, 70, 50, 30, 0].map((value) => {
@@ -2093,7 +2093,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       </div>
 
       {/* Y-Axis */}
-      <div className="w-16 bg-[#0b0e11] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px`, zIndex: 20 }}>
+      <div className="w-16 bg-[#0b0e11] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px`, zIndex: 10 }}>
         <div className="relative" style={{ height: `${priceChartHeight}px` }}>
           {Array.from({ length: 6 }).map((_, i) => {
             const price = minPrice + ((maxPrice - minPrice) / 5) * i;
