@@ -183,8 +183,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     e.stopPropagation();
 
     if (e.deltaY !== 0) {
+      const chartWidth = containerRef.current?.offsetWidth || (isMobile ? window.innerWidth - 16 : 1200);
+      const maxCandles = 500;
+      const dynamicMinCandleWidth = Math.max(1, (chartWidth / maxCandles) - candleGap);
+
       const zoomFactor = e.deltaY > 0 ? 0.92 : 1.08;
-      const newWidth = Math.max(minCandleWidth, Math.min(maxCandleWidth, candleWidth * zoomFactor));
+      const newWidth = Math.max(dynamicMinCandleWidth, Math.min(maxCandleWidth, candleWidth * zoomFactor));
 
       if (newWidth !== candleWidth) {
         setCandleWidth(newWidth);
