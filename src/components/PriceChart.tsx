@@ -57,6 +57,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number; trade: TradeEvent; hasPairedSell: boolean; pairedTrade?: TradeEvent } | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const [hoveredCandleIndex, setHoveredCandleIndex] = useState<number | null>(null);
+  const [crosshairPosition, setCrosshairPosition] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -205,12 +206,25 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       if (newOffset !== scrollOffset) {
         setScrollOffset(newOffset);
       }
+    } else if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      setCrosshairPosition({ x, y });
     }
   };
 
   const handleMouseUp = () => {
     isDragging.current = false;
     isResizing.current = false;
+  };
+
+  const handleMouseLeave = () => {
+    isDragging.current = false;
+    isResizing.current = false;
+    setCrosshairPosition(null);
+    setHoveredCandle(null);
+    setHoveredCandleIndex(null);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -1103,7 +1117,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         onWheel={handleWheel}
         onMouseMove={handleContainerMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -1165,8 +1179,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     strokeWidth="1"
                   />
                   <text
-                    x="10"
-                    y={y - 4}
+                    x="calc(100% - 60)"
+                    y={y + 4}
                     fill="#848e9c"
                     fontSize="11"
                     fontFamily="monospace"
@@ -1279,6 +1293,62 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 </>
               );
             })()}
+
+            {/* Crosshair */}
+            {crosshairPosition && hoveredCandleIndex !== null && (
+              <>
+                {/* Vertical line */}
+                <line
+                  x1={crosshairPosition.x}
+                  y1="0"
+                  x2={crosshairPosition.x}
+                  y2={priceChartHeight}
+                  stroke="rgba(255, 255, 255, 0.3)"
+                  strokeWidth="1"
+                  strokeDasharray="4 4"
+                  style={{ pointerEvents: 'none' }}
+                />
+                {/* Horizontal line */}
+                <line
+                  x1="0"
+                  y1={crosshairPosition.y}
+                  x2="100%"
+                  y2={crosshairPosition.y}
+                  stroke="rgba(255, 255, 255, 0.3)"
+                  strokeWidth="1"
+                  strokeDasharray="4 4"
+                  style={{ pointerEvents: 'none' }}
+                />
+                {/* Y-axis price label */}
+                {(() => {
+                  const price = yToPrice(crosshairPosition.y);
+                  return (
+                    <g>
+                      <rect
+                        x="calc(100% - 65)"
+                        y={crosshairPosition.y - 10}
+                        width="60"
+                        height="20"
+                        fill="rgba(43, 49, 57, 0.95)"
+                        stroke="rgba(255, 255, 255, 0.3)"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x="calc(100% - 35)"
+                        y={crosshairPosition.y + 4}
+                        fill="#ffffff"
+                        fontSize="11"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                        fontWeight="bold"
+                      >
+                        {price.toFixed(2)}
+                      </text>
+                    </g>
+                  );
+                })()}
+              </>
+            )}
 
           </svg>
 
@@ -1643,40 +1713,29 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 if (!showLabel) return null;
 
                 const date = new Date(candle.timestamp);
-                let timeLabel: string;
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
 
-                if (timeframe === '1d') {
-                  timeLabel = `${date.getMonth() + 1}-${date.getDate()}`;
-                } else if (timeframe === '4h') {
-                  const totalVisibleWidth = visibleCandles.length * (candleWidth + candleGap);
-                  const chartWidth = containerRef.current?.offsetWidth || 1200;
-                  const zoomLevel = totalVisibleWidth / chartWidth;
-
-                  if (zoomLevel > 2) {
-                    timeLabel = `${date.getMonth() + 1}-${date.getDate()}`;
-                  } else {
-                    const hours = String(date.getHours()).padStart(2, '0');
-                    const minutes = String(date.getMinutes()).padStart(2, '0');
-                    timeLabel = `${hours}:${minutes}`;
-                  }
-                } else {
-                  const hours = String(date.getHours()).padStart(2, '0');
-                  const minutes = String(date.getMinutes()).padStart(2, '0');
-                  timeLabel = `${hours}:${minutes}`;
-                }
+                const timeLabel = `${month}-${day} ${hours}:${minutes}`;
 
                 return (
                   <div
                     key={idx}
                     className="absolute text-[10px] font-mono whitespace-nowrap"
                     style={{
-                      left: `${idx * (candleWidth + candleGap)}px`,
+                      left: `${idx * (candleWidth + candleGap) - 25}px`,
                       top: '2px',
-                      color: isHovered ? '#ffffff' : '#848e9c',
-                      fontWeight: isHovered ? '600' : 'normal',
                     }}
                   >
-                    {timeLabel}
+                    {isHovered ? (
+                      <div className="px-2 py-1 bg-[#2b3139]/95 border border-white/30 rounded text-white font-semibold">
+                        {timeLabel}
+                      </div>
+                    ) : (
+                      <span className="text-[#848e9c]">{timeLabel}</span>
+                    )}
                   </div>
                 );
               })}
@@ -1759,7 +1818,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       strokeWidth="1"
                     />
                     <text
-                      x="10"
+                      x="calc(100% - 55)"
                       y={Math.max(12, Math.min(macdChartHeight - 4, y + 3))}
                       fill="#848e9c"
                       fontSize="10"
@@ -1893,7 +1952,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       strokeDasharray={isThreshold ? '4 2' : '0'}
                     />
                     <text
-                      x="10"
+                      x="calc(100% - 30)"
                       y={value === 0 ? y - 2 : value === 100 ? y + 10 : y + 3}
                       fill="#848e9c"
                       fontSize="10"
