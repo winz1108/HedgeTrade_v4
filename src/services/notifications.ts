@@ -21,8 +21,8 @@ const sendInAppNotification = (notification: InAppNotification) => {
 };
 
 export const sendBuyNotification = (price: number, takeProfitProb: number) => {
-  const title = '🟢 BTC Buy Signal';
-  const message = `Buy at $${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nTake Profit Probability: ${(takeProfitProb * 100).toFixed(1)}%`;
+  const title = '🔵 매수 체결';
+  const message = `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}에 매수 체결\n익절 확률: ${(takeProfitProb * 100).toFixed(1)}%`;
 
   sendInAppNotification({
     id: `buy-${Date.now()}`,
@@ -35,8 +35,8 @@ export const sendBuyNotification = (price: number, takeProfitProb: number) => {
 
 export const sendSellNotification = (type: 'profit' | 'loss', price: number, profit: number) => {
   const isProfit = type === 'profit';
-  const title = isProfit ? '🎯 Take Profit Hit!' : '🛑 Stop Loss Hit';
-  const message = `Sold at $${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nProfit: ${profit >= 0 ? '+' : ''}${profit.toFixed(2)}%`;
+  const title = isProfit ? '🟢 익절 체결' : '🔴 손절 체결';
+  const message = `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}에 매도 체결\n수익률: ${profit >= 0 ? '+' : ''}${profit.toFixed(2)}%`;
 
   sendInAppNotification({
     id: `sell-${Date.now()}`,

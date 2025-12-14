@@ -143,9 +143,9 @@ function App() {
             key={notification.id}
             className={`p-4 rounded-lg shadow-2xl border-2 animate-slide-in backdrop-blur-sm ${
               notification.type === 'buy'
-                ? 'bg-emerald-500/90 border-emerald-400 text-white'
-                : notification.type === 'sell-profit'
                 ? 'bg-blue-500/90 border-blue-400 text-white'
+                : notification.type === 'sell-profit'
+                ? 'bg-emerald-500/90 border-emerald-400 text-white'
                 : 'bg-rose-500/90 border-rose-400 text-white'
             }`}
           >
