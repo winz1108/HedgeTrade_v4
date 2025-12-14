@@ -1717,7 +1717,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white/50">
+                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white">
                         {hoverLabel}
                       </div>
                     ) : (
@@ -1984,15 +1984,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       </div>
 
       {/* Y-Axis */}
-      <div className="w-16 bg-[#0b0e11] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px`, zIndex: 10 }}>
+      <div className="w-16 bg-[#1a1d24] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px`, zIndex: 10 }}>
         <div className="relative" style={{ height: `${priceChartHeight}px` }}>
           {Array.from({ length: 6 }).map((_, i) => {
+            if (i === 0 || i === 5) return null;
             const price = minPrice + ((maxPrice - minPrice) / 5) * i;
             const y = priceToY(price);
             return (
               <div
                 key={i}
-                className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[11px] font-mono"
+                className="absolute right-0 w-full text-left pl-2 text-[#848e9c] text-[11px]"
                 style={{ top: `${y - 6}px` }}
               >
                 {price.toFixed(2)}
@@ -2024,7 +2025,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               className="absolute right-0 w-full flex items-center justify-end pr-1 z-50"
               style={{ top: `${crosshairPosition.y - 10}px` }}
             >
-              <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white/50">
+              <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white">
                 {yToPrice(crosshairPosition.y).toFixed(2)}
               </div>
             </div>
@@ -2044,7 +2045,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               return (
                 <div
                   key={i}
-                  className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
+                  className="absolute right-0 w-full text-left pl-2 text-[#848e9c] text-[10px]"
                   style={{ top: `${y - 6}px` }}
                 >
                   {volume >= 1000 ? `${(volume / 1000).toFixed(1)}K` : volume.toFixed(0)}
@@ -2061,7 +2062,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             return (
               <div
                 key={i}
-                className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
+                className="absolute right-0 w-full text-left pl-2 text-[#848e9c] text-[10px]"
                 style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
               >
                 {value.toFixed(2)}
@@ -2077,7 +2078,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             return (
               <div
                 key={value}
-                className="absolute right-0 w-full text-right pr-2 text-[#848e9c] text-[10px] font-mono"
+                className="absolute right-0 w-full text-left pl-2 text-[#848e9c] text-[10px]"
                 style={{ top: `${value === 0 ? y - 12 : value === 100 ? y : y - 6}px` }}
               >
                 {value}
