@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Minimize2, Eye, EyeOff } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from '../types/dashboard';
 import { formatLocalTime, formatChartTime } from '../utils/time';
 
@@ -58,6 +58,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const [hoveredCandleIndex, setHoveredCandleIndex] = useState<number | null>(null);
   const [crosshairPosition, setCrosshairPosition] = useState<{ x: number; y: number } | null>(null);
+  const [showTradeMarkers, setShowTradeMarkers] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -1104,6 +1105,21 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             <ZoomIn className="w-3 h-3 text-slate-400" />
           </button>
           <button
+            onClick={() => setShowTradeMarkers(!showTradeMarkers)}
+            className={`p-1 rounded transition-colors ${
+              showTradeMarkers
+                ? 'bg-[#3b82f6] hover:bg-[#2563eb]'
+                : 'bg-[#2b3139] hover:bg-[#3e444d]'
+            }`}
+            title={showTradeMarkers ? "Hide B/S Markers" : "Show B/S Markers"}
+          >
+            {showTradeMarkers ? (
+              <Eye className="w-3 h-3 text-white" />
+            ) : (
+              <EyeOff className="w-3 h-3 text-slate-400" />
+            )}
+          </button>
+          <button
             onClick={() => {
               setIsMaximized(!isMaximized);
               setScrollOffset(0);
@@ -1562,6 +1578,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
 
               return allTrades.map((trade, idx) => {
+                if (!showTradeMarkers) return null;
                 if (visibleCandles.length === 0) return null;
 
                 const isTradeInVisibleRange = trade.timestamp >= visibleTimeRangeStart && trade.timestamp <= visibleTimeRangeEnd;
