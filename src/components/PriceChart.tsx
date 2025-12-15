@@ -2005,7 +2005,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           {/* Current Price Box */}
           {latestCandle && (
             <div
-              className={`absolute right-0 w-full flex items-center justify-end pr-1`}
+              className={`absolute left-0 right-0 flex items-center justify-center`}
               style={{ top: `${priceToY(latestCandle.close) - 10}px` }}
             >
               <div
@@ -2023,7 +2023,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           {/* Hovered Price Box */}
           {crosshairPosition && (
             <div
-              className="absolute right-0 w-full flex items-center justify-end pr-1 z-50"
+              className="absolute left-0 right-0 flex items-center justify-center z-50"
               style={{ top: `${crosshairPosition.y - 10}px` }}
             >
               <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white">
