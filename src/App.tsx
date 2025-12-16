@@ -101,20 +101,11 @@ function App() {
 
     try {
       const isDev = import.meta.env.DEV;
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const url = isDev
         ? '/api/debug/verification'
-        : `${supabaseUrl}/functions/v1/oracle-proxy?endpoint=${encodeURIComponent('/api/debug/verification')}`;
+        : `/.netlify/functions/oracle-proxy?endpoint=${encodeURIComponent('/api/debug/verification')}`;
 
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-
-      if (!isDev) {
-        headers['Authorization'] = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
-      }
-
-      const response = await fetch(url, { headers });
+      const response = await fetch(url);
       const data = await response.json();
       setDebugData(data);
     } catch (error) {

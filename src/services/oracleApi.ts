@@ -4,8 +4,7 @@ const getApiUrl = () => {
   if (import.meta.env.DEV) {
     return '';
   }
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  return `${supabaseUrl}/functions/v1/oracle-proxy`;
+  return '/.netlify/functions/oracle-proxy';
 };
 
 const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
@@ -233,17 +232,13 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
     ? `/api/dashboard?_=${Date.now()}`
     : `${baseUrl}?endpoint=${encodeURIComponent('/api/dashboard')}&_=${Date.now()}`;
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache'
-  };
-
-  if (!isDirect) {
-    headers['Authorization'] = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
-  }
-
-  const response = await fetch(url, { headers });
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache'
+    },
+  });
 
   if (!response.ok) {
     throw new Error(`Oracle VM unavailable: ${response.status} ${response.statusText}`);
