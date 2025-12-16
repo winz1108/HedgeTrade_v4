@@ -83,13 +83,18 @@ function App() {
     setVerificationResult(null);
 
     try {
-      const response = await fetch('http://130.61.50.101:54321/api/debug/verification/text');
+      const isDev = import.meta.env.DEV;
+      const url = isDev
+        ? 'http://130.61.50.101:54321/api/debug/verification/text'
+        : '/.netlify/functions/oracle-proxy?endpoint=' + encodeURIComponent('/api/debug/verification/text');
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const text = await response.text();
+      const text = isDev ? await response.text() : JSON.stringify(await response.json(), null, 2);
       setVerificationResult(text);
     } catch (error) {
       console.error('서버 검증 실패:', error);
