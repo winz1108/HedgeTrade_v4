@@ -103,7 +103,7 @@ function App() {
       const isDev = import.meta.env.DEV;
       const url = isDev
         ? '/api/debug/verification'
-        : `/.netlify/functions/oracle-proxy?endpoint=${encodeURIComponent('/api/debug/verification')}`;
+        : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/oracle-proxy?endpoint=${encodeURIComponent('/api/debug/verification')}`;
 
       const response = await fetch(url);
       const data = await response.json();
