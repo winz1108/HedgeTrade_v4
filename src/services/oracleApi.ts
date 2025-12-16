@@ -4,7 +4,8 @@ const getApiUrl = () => {
   if (import.meta.env.DEV) {
     return '';
   }
-  return '/.netlify/functions/oracle-proxy';
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  return `${supabaseUrl}/functions/v1/oracle-proxy`;
 };
 
 const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
