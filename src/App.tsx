@@ -100,7 +100,12 @@ function App() {
     setDebugData(null);
 
     try {
-      const response = await fetch('http://130.61.50.101:54321/api/debug/verification');
+      const isDev = import.meta.env.DEV;
+      const url = isDev
+        ? '/api/debug/verification'
+        : `/.netlify/functions/oracle-proxy?endpoint=${encodeURIComponent('/api/debug/verification')}`;
+
+      const response = await fetch(url);
       const data = await response.json();
       setDebugData(data);
     } catch (error) {
