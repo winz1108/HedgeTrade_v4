@@ -216,7 +216,7 @@ function App() {
       </div>
 
       {debugModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-slate-700">
               <div className="flex items-center gap-2">
