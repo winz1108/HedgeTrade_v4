@@ -83,12 +83,7 @@ function App() {
     setVerificationResult(null);
 
     try {
-      const isDev = import.meta.env.DEV;
-      const url = isDev
-        ? 'http://130.61.50.101:54321/api/debug/verification/text'
-        : `/.netlify/functions/oracle-proxy?endpoint=${encodeURIComponent('/api/debug/verification/text')}`;
-
-      const response = await fetch(url);
+      const response = await fetch('http://130.61.50.101:54321/api/debug/verification/text');
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
