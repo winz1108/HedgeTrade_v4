@@ -2,11 +2,10 @@ import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 
 const ORACLE_VM_URL = "http://130.61.50.101:54321";
 
-const headers = {
+const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-  "Content-Type": "application/json",
   "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
   "Pragma": "no-cache",
   "Expires": "0",
@@ -16,7 +15,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
-      headers,
+      headers: corsHeaders,
       body: "",
     };
   }
@@ -27,7 +26,10 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     if (!endpoint) {
       return {
         statusCode: 400,
-        headers,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ error: "endpoint parameter is required" }),
       };
     }
@@ -52,7 +54,10 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       console.error(`Oracle VM responded with status ${response.status}`);
       return {
         statusCode: response.status,
-        headers,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           error: `Oracle VM responded with status ${response.status}`
         }),
@@ -60,26 +65,39 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     }
 
     const contentType = response.headers.get('content-type') || '';
-    let data;
+    let body: string;
+    let responseHeaders: Record<string, string>;
 
     if (contentType.includes('application/json')) {
-      data = await response.json();
+      const data = await response.json();
+      body = JSON.stringify(data);
+      responseHeaders = {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      };
     } else {
-      data = await response.text();
+      body = await response.text();
+      responseHeaders = {
+        ...corsHeaders,
+        "Content-Type": "text/plain",
+      };
     }
 
     console.log("Successfully fetched data from Oracle VM");
 
     return {
       statusCode: 200,
-      headers,
-      body: typeof data === 'string' ? data : JSON.stringify(data),
+      headers: responseHeaders,
+      body,
     };
   } catch (error) {
     console.error("Error connecting to Oracle VM:", error);
     return {
       statusCode: 503,
-      headers,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         error: error instanceof Error ? error.message : "Failed to connect to Oracle VM",
         oracleVmUrl: ORACLE_VM_URL
