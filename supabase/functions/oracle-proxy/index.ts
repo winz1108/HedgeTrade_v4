@@ -5,7 +5,7 @@ const ORACLE_VM_URL = "http://130.61.50.101:54321";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, Cache-Control, Pragma",
 };
 
 Deno.serve(async (req: Request) => {
