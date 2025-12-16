@@ -94,7 +94,10 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const text = isDev ? await response.text() : JSON.stringify(await response.json(), null, 2);
+      const contentType = response.headers.get('content-type') || '';
+      const text = contentType.includes('application/json')
+        ? JSON.stringify(await response.json(), null, 2)
+        : await response.text();
       setVerificationResult(text);
     } catch (error) {
       console.error('서버 검증 실패:', error);

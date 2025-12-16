@@ -59,13 +59,21 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       };
     }
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    let data;
+
+    if (contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      data = await response.text();
+    }
+
     console.log("Successfully fetched data from Oracle VM");
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(data),
+      body: typeof data === 'string' ? data : JSON.stringify(data),
     };
   } catch (error) {
     console.error("Error connecting to Oracle VM:", error);
