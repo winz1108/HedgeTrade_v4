@@ -1158,13 +1158,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
         <div className="absolute inset-0 overflow-visible">
           {/* OHLC Display */}
-          {hoveredCandle && hoveredCandleIndex !== null && (
-            <div
-              className="absolute top-3 z-30 flex flex-col gap-1.5 text-xs bg-black px-2 py-1 rounded border border-slate-700/50"
-              style={{
-                left: hoveredCandleIndex < 5 ? '12px' : Math.max(12, hoveredCandleIndex * (candleWidth + candleGap) - 100) + 'px'
-              }}
-            >
+          {hoveredCandle && (
+            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-black px-2 py-1 rounded border border-slate-700/50">
               <div className="flex items-center gap-3">
                 <span className="text-slate-400 font-mono">{formatChartTime(hoveredCandle.timestamp)}</span>
                 <span className="text-slate-400">O <span className="text-white font-semibold">{hoveredCandle.open.toFixed(2)}</span></span>
@@ -1715,7 +1710,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 const showLabel = idx % Math.max(1, Math.floor(50 / candleWidth)) === 0 || idx === hoveredCandleIndex;
                 const isHovered = idx === hoveredCandleIndex;
 
-                if (!showLabel) return null;
+                if (!showLabel || idx === 0) return null;
 
                 const date = new Date(candle.timestamp);
                 const month = String(date.getMonth() + 1).padStart(2, '0');
