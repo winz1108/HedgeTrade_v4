@@ -1190,14 +1190,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
             </div>
           )}
-          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 5 }}>
-            <defs>
-              <linearGradient id="predictionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="rgba(252, 213, 53, 0.15)" />
-                <stop offset="100%" stopColor="rgba(252, 213, 53, 0.05)" />
-              </linearGradient>
-            </defs>
 
+          {/* Grid lines - zIndex 1 (bottom layer) */}
+          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 1 }}>
             {(() => {
               const svgWidth = containerRef.current?.offsetWidth || 1200;
               return Array.from({ length: 6 }).map((_, i) => {
@@ -1217,6 +1212,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 );
               });
             })()}
+          </svg>
+
+          {/* Indicators (EMA, BB) - zIndex 2 (middle layer) */}
+          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 2 }}>
+            <defs>
+              <linearGradient id="predictionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="rgba(252, 213, 53, 0.15)" />
+                <stop offset="100%" stopColor="rgba(252, 213, 53, 0.05)" />
+              </linearGradient>
+            </defs>
 
             {predictionStartIndex > 0 && (
               <rect
@@ -1356,7 +1361,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             style={{
               height: `${chartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-              zIndex: 1,
+              zIndex: 3,
               pointerEvents: 'auto'
             }}
             onMouseDown={handleMouseDown}
