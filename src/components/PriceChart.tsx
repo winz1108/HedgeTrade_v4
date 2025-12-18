@@ -2027,7 +2027,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           {/* Current Price Box */}
           {latestCandle && (
             <div
-              className={`absolute left-0 right-0 flex items-center justify-center`}
+              className={`absolute right-0 w-full text-left pl-2 flex items-center`}
               style={{ top: `${priceToY(latestCandle.close) - 10}px` }}
             >
               <div
@@ -2037,7 +2037,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     : 'bg-[#f6465d]'
                 }`}
               >
-                {latestCandle.close.toFixed(2)}
+                ${latestCandle.close.toFixed(2)}
               </div>
             </div>
           )}
@@ -2045,11 +2045,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           {/* Hovered Price Box */}
           {crosshairPosition && (
             <div
-              className="absolute left-0 right-0 flex items-center justify-center z-50"
+              className="absolute right-0 w-full text-left pl-2 flex items-center z-50"
               style={{ top: `${crosshairPosition.y - 10}px` }}
             >
               <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white">
-                {yToPrice(crosshairPosition.y).toFixed(2)}
+                ${yToPrice(crosshairPosition.y).toFixed(2)}
               </div>
             </div>
           )}
