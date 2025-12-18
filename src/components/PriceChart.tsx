@@ -2114,6 +2114,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     </div>
   );
 
+  if (selectedCandles.length === 0) {
+    return (
+      <div className="w-full rounded-lg bg-slate-900/50 border border-slate-800/50 p-8 flex items-center justify-center">
+        <div className="text-slate-400 text-sm">차트 데이터를 불러오는 중...</div>
+      </div>
+    );
+  }
+
   return (
     <>
       {renderTooltip()}
