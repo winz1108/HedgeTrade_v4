@@ -14,7 +14,10 @@ function App() {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<string>('Account_A');
+  const [selectedAccount, setSelectedAccount] = useState<string>(() => {
+    const saved = localStorage.getItem('lastSelectedAccount');
+    return saved || 'Account_A';
+  });
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationResult, setVerificationResult] = useState<string | null>(null);
   const [verificationLoading, setVerificationLoading] = useState(false);
@@ -130,6 +133,7 @@ function App() {
   }, [selectedAccount]);
 
   useEffect(() => {
+    localStorage.setItem('lastSelectedAccount', selectedAccount);
     setLoading(true);
     loadData();
   }, [selectedAccount]);
