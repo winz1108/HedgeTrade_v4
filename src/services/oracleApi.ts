@@ -98,7 +98,7 @@ const convertApiResponseToDashboardData = (
         isHolding: account.holding.hasPosition,
         buyPrice: account.holding.entryPrice,
         buyTime: account.holding.entryTime,
-        currentProfit: account.holding.unrealizedPnl,
+        currentProfit: account.holding.unrealizedPnlPct,
         takeProfitPrice: account.holding.tpPrice,
         stopLossPrice: account.holding.slPrice,
         initialTakeProfitProb: account.holding.initialTakeProfitProb,
