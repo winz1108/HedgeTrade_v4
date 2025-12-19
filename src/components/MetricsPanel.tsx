@@ -242,7 +242,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
         </div>
 
-        <div className="space-y-0.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: '400px' }}>
+        <div className="space-y-0.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: '140px' }}>
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, idx) => (
               <div
