@@ -59,6 +59,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const [hoveredCandleIndex, setHoveredCandleIndex] = useState<number | null>(null);
   const [crosshairPosition, setCrosshairPosition] = useState<{ x: number; y: number } | null>(null);
   const [showTradeMarkers, setShowTradeMarkers] = useState(true);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -139,7 +140,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       return { minPrice: 0, maxPrice: 100, visibleCandles: [], visibleStartIndex: 0, maxScroll: 0 };
     }
 
-    const chartWidth = containerRef.current?.offsetWidth || (isMobile ? window.innerWidth - 16 : 1200);
+    const chartWidth = containerWidth || (isMobile ? window.innerWidth - 16 : 1200);
     const visibleCount = Math.floor(chartWidth / (candleWidth + candleGap));
     const startIndex = Math.max(0, selectedCandles.length - visibleCount - scrollOffset);
     const endIndex = Math.min(selectedCandles.length, startIndex + visibleCount);
@@ -194,7 +195,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     }
     // 상하 스크롤이 더 크면 확대/축소
     else if (e.deltaY !== 0) {
-      const chartWidth = containerRef.current?.offsetWidth || (isMobile ? window.innerWidth - 16 : 1200);
+      const chartWidth = containerWidth || (isMobile ? window.innerWidth - 16 : 1200);
       const maxCandles = 500;
       const dynamicMinCandleWidth = Math.max(1, (chartWidth / maxCandles) - candleGap);
 
@@ -377,14 +378,24 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     const container = containerRef.current;
     if (!container) return;
 
+    // Set initial width
+    setContainerWidth(container.offsetWidth);
+
     const preventNavigation = (e: WheelEvent) => {
       e.preventDefault();
       e.stopPropagation();
     };
 
+    // Update width on resize
+    const resizeObserver = new ResizeObserver(() => {
+      setContainerWidth(container.offsetWidth);
+    });
+
+    resizeObserver.observe(container);
     container.addEventListener('wheel', preventNavigation, { passive: false });
 
     return () => {
+      resizeObserver.disconnect();
       container.removeEventListener('wheel', preventNavigation);
     };
   }, []);
@@ -1194,7 +1205,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           {/* Grid lines - zIndex 1 (bottom layer) */}
           <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 1 }}>
             {(() => {
-              const svgWidth = containerRef.current?.offsetWidth || 1200;
+              const svgWidth = containerWidth || 1200;
               return Array.from({ length: 6 }).map((_, i) => {
                 const price = minPrice + ((maxPrice - minPrice) / 5) * i;
                 const y = priceToY(price);
@@ -1815,7 +1826,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
               {(() => {
-                const svgWidth = containerRef.current?.offsetWidth || 1200;
+                const svgWidth = containerWidth || 1200;
                 return [macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
                   const y = macdToY(value);
                   const isZero = value === 0;
@@ -1941,7 +1952,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
               {(() => {
-                const svgWidth = containerRef.current?.offsetWidth || 1200;
+                const svgWidth = containerWidth || 1200;
                 return [100, 70, 50, 30, 0].map((value) => {
                   const y = rsiToY(value);
                   const isThreshold = value === 30 || value === 70;
