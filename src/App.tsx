@@ -43,12 +43,34 @@ function App() {
         throw new Error('Invalid data structure received from API');
       }
 
+      const lastNotifiedTimestamp = getLastNotifiedTrade(selectedAccount);
+
+      if (dashboardData.trades.length > 0) {
+        const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
+        if (lastNotifiedTimestamp === 0) {
+          setLastNotifiedTrade(selectedAccount, latestTrade.timestamp);
+          console.log('🔔 초기 타임스탬프 설정:', latestTrade.timestamp);
+        }
+      }
+
       if (notificationsEnabled && previousHoldingState.current !== null) {
-        const lastNotifiedTimestamp = getLastNotifiedTrade(selectedAccount);
+        console.log('🔔 알림 체크:', {
+          previousHolding: previousHoldingState.current,
+          currentHolding: dashboardData.holding.isHolding,
+          lastNotifiedTimestamp,
+          selectedAccount
+        });
 
         if (!previousHoldingState.current && dashboardData.holding.isHolding) {
           const lastBuyTrade = [...dashboardData.trades].reverse().find(t => t.type === 'buy');
+          console.log('🔔 매수 체크:', {
+            lastBuyTrade: lastBuyTrade?.timestamp,
+            lastNotifiedTimestamp,
+            shouldNotify: lastBuyTrade && lastBuyTrade.timestamp > lastNotifiedTimestamp
+          });
+
           if (lastBuyTrade && lastBuyTrade.timestamp > lastNotifiedTimestamp) {
+            console.log('🔔 매수 알림 발송!');
             sendBuyNotification(
               dashboardData.holding.buyPrice || dashboardData.currentPrice,
               dashboardData.holding.initialTakeProfitProb || dashboardData.currentPrediction?.takeProfitProb || 0
@@ -59,7 +81,14 @@ function App() {
 
         if (previousHoldingState.current && !dashboardData.holding.isHolding) {
           const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
+          console.log('🔔 매도 체크:', {
+            latestTrade: latestTrade?.timestamp,
+            lastNotifiedTimestamp,
+            shouldNotify: latestTrade && latestTrade.type === 'sell' && latestTrade.timestamp > lastNotifiedTimestamp
+          });
+
           if (latestTrade && latestTrade.type === 'sell' && latestTrade.timestamp > lastNotifiedTimestamp) {
+            console.log('🔔 매도 알림 발송!');
             const profit = latestTrade.profit ?? 0;
             sendSellNotification(
               profit >= 0 ? 'profit' : 'loss',
