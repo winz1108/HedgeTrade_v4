@@ -22,7 +22,8 @@ function App() {
   const [verificationResult, setVerificationResult] = useState<string | null>(null);
   const [verificationLoading, setVerificationLoading] = useState(false);
   const previousHoldingState = useRef<boolean>(false);
-  const lastTradeCount = useRef<number>(0);
+  const lastTradeTimestamp = useRef<number>(0);
+  const isInitialLoad = useRef<boolean>(true);
 
   const loadData = async () => {
     try {
@@ -33,30 +34,41 @@ function App() {
         throw new Error('Invalid data structure received from API');
       }
 
-      if (data && notificationsEnabled) {
+      if (!isInitialLoad.current && notificationsEnabled) {
         if (!previousHoldingState.current && dashboardData.holding.isHolding) {
-          sendBuyNotification(
-            dashboardData.holding.buyPrice || dashboardData.currentPrice,
-            dashboardData.currentPrediction?.takeProfitProb || 0
-          );
+          const lastBuyTrade = [...dashboardData.trades].reverse().find(t => t.type === 'buy');
+          if (lastBuyTrade && lastBuyTrade.timestamp > lastTradeTimestamp.current) {
+            sendBuyNotification(
+              dashboardData.holding.buyPrice || dashboardData.currentPrice,
+              dashboardData.holding.initialTakeProfitProb || dashboardData.currentPrediction?.takeProfitProb || 0
+            );
+            lastTradeTimestamp.current = lastBuyTrade.timestamp;
+          }
         }
 
         if (previousHoldingState.current && !dashboardData.holding.isHolding) {
           const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
-          if (latestTrade && latestTrade.type === 'sell' && lastTradeCount.current < dashboardData.trades.length) {
+          if (latestTrade && latestTrade.type === 'sell' && latestTrade.timestamp > lastTradeTimestamp.current) {
             const profit = latestTrade.profit ?? 0;
             sendSellNotification(
               profit >= 0 ? 'profit' : 'loss',
               latestTrade.price,
               profit
             );
+            lastTradeTimestamp.current = latestTrade.timestamp;
           }
         }
+      }
 
-        lastTradeCount.current = dashboardData.trades.length;
+      if (dashboardData.trades.length > 0) {
+        const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
+        if (latestTrade.timestamp > lastTradeTimestamp.current) {
+          lastTradeTimestamp.current = latestTrade.timestamp;
+        }
       }
 
       previousHoldingState.current = dashboardData.holding.isHolding;
+      isInitialLoad.current = false;
 
       console.log('📊 App.tsx setData 전 - currentProfit:', dashboardData.holding.currentProfit);
       console.log('📊 전체 holding 데이터:', JSON.stringify(dashboardData.holding, null, 2));
@@ -135,6 +147,8 @@ function App() {
   useEffect(() => {
     localStorage.setItem('lastSelectedAccount', selectedAccount);
     setLoading(true);
+    isInitialLoad.current = true;
+    lastTradeTimestamp.current = 0;
     loadData();
   }, [selectedAccount]);
 
