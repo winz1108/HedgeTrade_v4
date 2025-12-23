@@ -65,13 +65,25 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    let body: string;
+    let responseContentType: string;
+
+    if (contentType.includes('application/json')) {
+      const data = await response.json();
+      body = JSON.stringify(data);
+      responseContentType = "application/json";
+    } else {
+      body = await response.text();
+      responseContentType = "text/plain; charset=utf-8";
+    }
+
     console.log("Successfully fetched data from Oracle VM");
 
-    return new Response(JSON.stringify(data), {
+    return new Response(body, {
       headers: {
         ...corsHeaders,
-        "Content-Type": "application/json",
+        "Content-Type": responseContentType,
         "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
         "Pragma": "no-cache",
         "Expires": "0",
