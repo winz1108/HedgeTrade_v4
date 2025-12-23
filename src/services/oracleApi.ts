@@ -1,4 +1,5 @@
 import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/dashboard';
+import io, { Socket } from 'socket.io-client';
 
 const getApiUrl = () => {
   if (import.meta.env.DEV) {
@@ -259,3 +260,98 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 
   return convertApiResponseToDashboardData(apiResponse, accountId);
 };
+
+const ORACLE_WS_URL = 'http://130.61.50.101:54321';
+
+class OracleWebSocketService {
+  private socket: Socket | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+
+  connect() {
+    if (this.socket?.connected) {
+      console.log('WebSocket already connected');
+      return;
+    }
+
+    this.socket = io(ORACLE_WS_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: this.maxReconnectAttempts,
+      timeout: 20000,
+    });
+
+    this.socket.on('connect', () => {
+      console.log('✅ WebSocket connected:', this.socket?.id);
+      this.reconnectAttempts = 0;
+
+      this.subscribePrice();
+      this.subscribeKlines(['1m', '5m', '15m', '30m', '1h', '4h', '1d']);
+      this.subscribeProfit(['Account_A', 'Account_B']);
+    });
+
+    this.socket.on('disconnect', (reason) => {
+      console.log('❌ WebSocket disconnected:', reason);
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('WebSocket connection error:', error);
+      this.reconnectAttempts++;
+      if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+        console.error('Max reconnection attempts reached');
+      }
+    });
+
+    this.socket.on('connected', (data) => {
+      console.log('Server confirmation:', data);
+    });
+
+    this.socket.on('ticker_update', (data) => {
+      console.log('Ticker update:', data);
+      this.onTickerUpdate?.(data);
+    });
+
+    this.socket.on('kline_update', (data) => {
+      console.log('Kline update:', data);
+      this.onKlineUpdate?.(data);
+    });
+
+    this.socket.on('profit_update', (data) => {
+      console.log('Profit update:', data);
+      this.onProfitUpdate?.(data);
+    });
+  }
+
+  subscribePrice() {
+    if (this.socket?.connected) {
+      this.socket.emit('subscribe_price');
+    }
+  }
+
+  subscribeKlines(timeframes: string[]) {
+    if (this.socket?.connected) {
+      this.socket.emit('subscribe_klines', { timeframes });
+    }
+  }
+
+  subscribeProfit(accountIds: string[]) {
+    if (this.socket?.connected) {
+      this.socket.emit('subscribe_profit', { accountIds });
+    }
+  }
+
+  disconnect() {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+  }
+
+  onTickerUpdate?: (data: any) => void;
+  onKlineUpdate?: (data: any) => void;
+  onProfitUpdate?: (data: any) => void;
+}
+
+export const oracleWebSocket = new OracleWebSocketService();
