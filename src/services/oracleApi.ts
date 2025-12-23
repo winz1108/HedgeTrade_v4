@@ -262,10 +262,10 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
-  // 로컬 개발: HTTP 사용 (백엔드 직접 연결)
-  // 프로덕션: wss:// 사용 (HTTPS 필요)
+  // 로컬 개발: 직접 백엔드 연결 (포트 54321)
+  // 프로덕션: Nginx HTTPS/WSS 프록시 (포트 443, 포트 번호 생략)
   if (window.location.protocol === 'https:') {
-    return 'wss://130.61.50.101:54321';
+    return 'https://130.61.50.101';
   }
   return 'http://130.61.50.101:54321';
 };
@@ -286,14 +286,15 @@ class OracleWebSocketService {
 
     this.socket = io(wsUrl, {
       path: '/socket.io/',
-      transports: ['polling', 'websocket'],
+      transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionDelay: 2000,
-      reconnectionDelayMax: 10000,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       reconnectionAttempts: 5,
       timeout: 20000,
       forceNew: true,
       upgrade: true,
+      rejectUnauthorized: false,
     });
 
     this.socket.on('connect', () => {
