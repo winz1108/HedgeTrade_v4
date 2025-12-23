@@ -262,7 +262,11 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
-  // 항상 HTTP로 연결 (백엔드가 HTTPS 미지원)
+  // 로컬 개발: HTTP 사용 (백엔드 직접 연결)
+  // 프로덕션: wss:// 사용 (HTTPS 필요)
+  if (window.location.protocol === 'https:') {
+    return 'wss://130.61.50.101:54321';
+  }
   return 'http://130.61.50.101:54321';
 };
 
