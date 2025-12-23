@@ -275,27 +275,26 @@ class OracleWebSocketService {
 
   connect() {
     if (this.socket?.connected) {
-      console.log('WebSocket already connected');
       return;
     }
 
     const wsUrl = getWebSocketUrl();
-    console.log('🔌 Connecting to WebSocket:', wsUrl);
+    console.log('🔌 WebSocket 연결 시도 (선택사항)');
 
     this.socket = io(wsUrl, {
       path: '/socket.io/',
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: this.maxReconnectAttempts,
-      timeout: 20000,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+      reconnectionAttempts: 3,
+      timeout: 10000,
       secure: !import.meta.env.DEV,
       rejectUnauthorized: false,
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket connected:', this.socket?.id);
+      console.log('✅ WebSocket 연결됨');
       this.reconnectAttempts = 0;
 
       this.subscribePrice();
@@ -304,14 +303,13 @@ class OracleWebSocketService {
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('❌ WebSocket disconnected:', reason);
+      console.log('❌ WebSocket 연결 끊김:', reason);
     });
 
-    this.socket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+    this.socket.on('connect_error', () => {
       this.reconnectAttempts++;
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-        console.error('Max reconnection attempts reached');
+        console.log('⚠️ WebSocket 사용 불가 (REST API만 사용)');
       }
     });
 
