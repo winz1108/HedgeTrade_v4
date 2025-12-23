@@ -3,9 +3,9 @@ import io, { Socket } from 'socket.io-client';
 
 const getApiUrl = () => {
   if (import.meta.env.DEV) {
-    return '';
+    return 'http://130.61.50.101:54321';
   }
-  return '/.netlify/functions/oracle-proxy';
+  return 'https://130.61.50.101';
 };
 
 const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
@@ -227,11 +227,7 @@ const convertApiResponseToDashboardData = (
 
 export const fetchDashboardData = async (accountId: string): Promise<DashboardData> => {
   const baseUrl = getApiUrl();
-  const isDirect = import.meta.env.DEV;
-
-  const url = isDirect
-    ? `/api/dashboard?_=${Date.now()}`
-    : `${baseUrl}?endpoint=${encodeURIComponent('/api/dashboard')}&_=${Date.now()}`;
+  const url = `${baseUrl}/api/dashboard?_=${Date.now()}`;
 
   const response = await fetch(url, {
     headers: {
@@ -264,10 +260,10 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 const getWebSocketUrl = () => {
   // 로컬 개발: 직접 백엔드 연결 (포트 54321)
   // 프로덕션: Nginx HTTPS/WSS 프록시 (포트 443, 포트 번호 생략)
-  if (window.location.protocol === 'https:') {
-    return 'https://130.61.50.101';
+  if (import.meta.env.DEV) {
+    return 'http://130.61.50.101:54321';
   }
-  return 'http://130.61.50.101:54321';
+  return 'https://130.61.50.101';
 };
 
 class OracleWebSocketService {
