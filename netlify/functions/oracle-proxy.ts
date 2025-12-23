@@ -38,7 +38,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     console.log("Fetching from Oracle VM:", oracleUrl);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     const response = await fetch(oracleUrl, {
       method: "GET",
