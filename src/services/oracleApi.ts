@@ -265,7 +265,7 @@ const getWebSocketUrl = () => {
   if (import.meta.env.DEV) {
     return 'http://130.61.50.101:54321';
   }
-  return 'https://130.61.50.101:54321';
+  return 'https://130.61.50.101';
 };
 
 class OracleWebSocketService {
@@ -283,6 +283,7 @@ class OracleWebSocketService {
     console.log('🔌 Connecting to WebSocket:', wsUrl);
 
     this.socket = io(wsUrl, {
+      path: '/socket.io/',
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -290,6 +291,7 @@ class OracleWebSocketService {
       reconnectionAttempts: this.maxReconnectAttempts,
       timeout: 20000,
       secure: !import.meta.env.DEV,
+      rejectUnauthorized: false,
     });
 
     this.socket.on('connect', () => {
