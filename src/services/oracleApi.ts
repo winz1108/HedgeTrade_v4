@@ -262,10 +262,8 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
-  if (import.meta.env.DEV) {
-    return 'http://130.61.50.101:54321';
-  }
-  return 'https://130.61.50.101';
+  // 항상 HTTP로 연결 (백엔드가 HTTPS 미지원)
+  return 'http://130.61.50.101:54321';
 };
 
 class OracleWebSocketService {
@@ -275,11 +273,12 @@ class OracleWebSocketService {
 
   connect() {
     if (this.socket?.connected) {
+      console.log('⚠️ 이미 연결됨');
       return;
     }
 
     const wsUrl = getWebSocketUrl();
-    console.log('🔌 WebSocket 연결 시도 (선택사항)');
+    console.log('🔌 WebSocket 연결 시도:', wsUrl);
 
     this.socket = io(wsUrl, {
       path: '/socket.io/',
@@ -294,12 +293,14 @@ class OracleWebSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket 연결됨');
+      console.log('✅ WebSocket 연결됨! Socket ID:', this.socket?.id);
       this.reconnectAttempts = 0;
 
+      console.log('📤 구독 요청 전송 중...');
       this.subscribePrice();
       this.subscribeKlines(['1m', '5m', '15m', '30m', '1h', '4h', '1d']);
       this.subscribeProfit(['Account_A', 'Account_B']);
+      console.log('📤 구독 요청 완료');
     });
 
     this.socket.on('disconnect', (reason) => {
@@ -318,17 +319,17 @@ class OracleWebSocketService {
     });
 
     this.socket.on('ticker_update', (data) => {
-      console.log('Ticker update:', data);
+      console.log('📥 ticker_update:', data);
       this.onTickerUpdate?.(data);
     });
 
     this.socket.on('kline_update', (data) => {
-      console.log('Kline update:', data);
+      console.log('📥 kline_update:', data.timeframe, 'isFinal:', data.isFinal);
       this.onKlineUpdate?.(data);
     });
 
     this.socket.on('profit_update', (data) => {
-      console.log('Profit update:', data);
+      console.log('📥 profit_update:', data);
       this.onProfitUpdate?.(data);
     });
   }
