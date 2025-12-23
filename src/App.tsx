@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { RefreshCw, X, Bug } from 'lucide-react';
+import { RefreshCw, X, Bug, BarChart3 } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
@@ -21,6 +21,9 @@ function App() {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationResult, setVerificationResult] = useState<string | null>(null);
   const [verificationLoading, setVerificationLoading] = useState(false);
+  const [showPerformanceModal, setShowPerformanceModal] = useState(false);
+  const [performanceResult, setPerformanceResult] = useState<string | null>(null);
+  const [performanceLoading, setPerformanceLoading] = useState(false);
   const previousHoldingState = useRef<boolean | null>(null);
 
   const getLastNotifiedTradeKey = (accountId: string) => `lastNotifiedTrade_${accountId}`;
@@ -154,6 +157,38 @@ function App() {
     }
   };
 
+  const handleRealtimePerformance = async () => {
+    setPerformanceLoading(true);
+    setShowPerformanceModal(true);
+    setPerformanceResult(null);
+
+    try {
+      const isDev = import.meta.env.DEV;
+      const url = isDev
+        ? 'http://130.61.50.101:54321/api/debug/realtime-performance/text'
+        : '/.netlify/functions/oracle-proxy?endpoint=' + encodeURIComponent('/api/debug/realtime-performance/text');
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const text = await response.text();
+      setPerformanceResult(text);
+    } catch (error) {
+      console.error('실시간 성능 지표 조회 실패:', error);
+      setPerformanceResult(`오류 발생: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    } finally {
+      setPerformanceLoading(false);
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     loadData();
@@ -245,6 +280,44 @@ function App() {
           </div>
         ))}
       </div>
+
+      {showPerformanceModal && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onClick={() => setShowPerformanceModal(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-slate-700">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-cyan-400" />
+                <h2 className="text-lg font-bold text-white">실시간 성능 지표</h2>
+              </div>
+              <button
+                onClick={() => setShowPerformanceModal(false)}
+                className="p-1 hover:bg-slate-700 rounded transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto max-h-[calc(85vh-80px)]">
+              {performanceLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="w-8 h-8 animate-spin text-cyan-400" />
+                  <span className="ml-3 text-slate-300">계산 중...</span>
+                </div>
+              ) : performanceResult ? (
+                <pre className="text-xs text-slate-200 font-mono whitespace-pre-wrap break-words bg-slate-950/50 p-4 rounded-lg border border-slate-700">
+                  {performanceResult}
+                </pre>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
 
       {showVerificationModal && (
         <div
@@ -341,6 +414,13 @@ function App() {
                   바이낸스 서버 시간 기준
                 </span>
               </div>
+              <button
+                onClick={handleRealtimePerformance}
+                className="p-1.5 rounded transition-all duration-200 text-cyan-400 hover:bg-cyan-500/10"
+                title="실시간 성능 지표"
+              >
+                <BarChart3 className="w-3 h-3" />
+              </button>
               <button
                 onClick={handleVerification}
                 className="p-1.5 rounded transition-all duration-200 text-amber-400 hover:bg-amber-500/10"
