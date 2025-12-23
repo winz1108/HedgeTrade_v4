@@ -283,14 +283,14 @@ class OracleWebSocketService {
 
     this.socket = io(wsUrl, {
       path: '/socket.io/',
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionDelay: 2000,
       reconnectionDelayMax: 10000,
-      reconnectionAttempts: 3,
-      timeout: 10000,
-      secure: !import.meta.env.DEV,
-      rejectUnauthorized: false,
+      reconnectionAttempts: 5,
+      timeout: 20000,
+      forceNew: true,
+      upgrade: true,
     });
 
     this.socket.on('connect', () => {
