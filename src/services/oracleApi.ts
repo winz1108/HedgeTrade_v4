@@ -261,7 +261,12 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
   return convertApiResponseToDashboardData(apiResponse, accountId);
 };
 
-const ORACLE_WS_URL = 'http://130.61.50.101:54321';
+const getWebSocketUrl = () => {
+  if (import.meta.env.DEV) {
+    return 'http://130.61.50.101:54321';
+  }
+  return 'https://130.61.50.101:54321';
+};
 
 class OracleWebSocketService {
   private socket: Socket | null = null;
@@ -274,13 +279,17 @@ class OracleWebSocketService {
       return;
     }
 
-    this.socket = io(ORACLE_WS_URL, {
+    const wsUrl = getWebSocketUrl();
+    console.log('🔌 Connecting to WebSocket:', wsUrl);
+
+    this.socket = io(wsUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: this.maxReconnectAttempts,
       timeout: 20000,
+      secure: !import.meta.env.DEV,
     });
 
     this.socket.on('connect', () => {
