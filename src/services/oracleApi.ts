@@ -2,16 +2,8 @@ import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/da
 import io, { Socket } from 'socket.io-client';
 
 const getApiUrl = () => {
-  // Netlify 환경: 오라클 서버 직접 연결
-  if (window.location.hostname.includes('netlify.app')) {
-    return 'http://130.61.50.101:54321';
-  }
-  // 개발 환경: 백엔드 직접 연결
-  if (import.meta.env.DEV) {
-    return 'http://130.61.50.101:54321';
-  }
-  // 오라클 서버 (Nginx 프록시)
-  return window.location.origin;
+  // 오라클 서버 HTTPS (Nginx 443 포트)
+  return 'https://130.61.50.101';
 };
 
 const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
@@ -264,8 +256,8 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
-  // 오라클 서버 IP (Nginx 80번 포트)
-  return 'http://130.61.50.101';
+  // 오라클 서버 HTTPS (Nginx 443 포트)
+  return 'https://130.61.50.101';
 };
 
 class OracleWebSocketService {
