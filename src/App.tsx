@@ -201,15 +201,15 @@ function App() {
         setNotifications(prev => prev.filter(n => n.id !== notification.id));
       }, 5000);
     });
-
-    const pollingInterval = setInterval(() => {
-      loadData();
-    }, 10000);
-
-    return () => {
-      clearInterval(pollingInterval);
-    };
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData();
+    }, 60000); // 1분마다 업데이트
+
+    return () => clearInterval(interval);
+  }, [selectedAccount]);
 
   useEffect(() => {
     localStorage.setItem('lastSelectedAccount', selectedAccount);
