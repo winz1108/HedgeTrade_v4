@@ -2,10 +2,7 @@ import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/da
 import io, { Socket } from 'socket.io-client';
 
 const getApiUrl = () => {
-  if (import.meta.env.DEV) {
-    return 'http://130.61.50.101:54321';
-  }
-  return 'https://130.61.50.101';
+  return 'http://130.61.50.101:54321';
 };
 
 const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
@@ -258,12 +255,7 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
-  // 로컬 개발: 직접 백엔드 연결 (포트 54321)
-  // 프로덕션: Nginx HTTPS/WSS 프록시 (포트 443)
-  if (import.meta.env.DEV) {
-    return 'http://130.61.50.101:54321';
-  }
-  return 'https://130.61.50.101';
+  return 'http://130.61.50.101:54321';
 };
 
 class OracleWebSocketService {
