@@ -204,7 +204,7 @@ function App() {
 
     const pollingInterval = setInterval(() => {
       loadData();
-    }, 5000);
+    }, 10000);
 
     return () => {
       clearInterval(pollingInterval);
