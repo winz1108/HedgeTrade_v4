@@ -289,10 +289,8 @@ class OracleWebSocketService {
     }
 
     const wsUrl = getWebSocketUrl();
-    // Netlify/개발: 직접 연결 = 기본 path
-    // 오라클 서버: Nginx가 /ws 경로로 프록시
-    const isDirectConnection = window.location.hostname.includes('netlify.app') || import.meta.env.DEV;
-    const socketPath = isDirectConnection ? '/socket.io/' : '/ws/socket.io/';
+    // 모든 환경에서 /socket.io/ 사용 (Flask-SocketIO 기본 경로)
+    const socketPath = '/socket.io/';
 
     console.log('🔌 WebSocket 연결 시도:', wsUrl, 'path:', socketPath);
 
