@@ -5,7 +5,7 @@ const getApiUrl = () => {
   if (import.meta.env.DEV) {
     return 'http://130.61.50.101:54321';
   }
-  return 'https://130.61.50.101';
+  return 'http://130.61.50.101';
 };
 
 const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
@@ -259,11 +259,11 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 
 const getWebSocketUrl = () => {
   // 로컬 개발: 직접 백엔드 연결 (포트 54321)
-  // 프로덕션: Nginx HTTPS/WSS 프록시 (포트 443, 포트 번호 생략)
+  // 프로덕션: Nginx HTTP 프록시 (포트 80)
   if (import.meta.env.DEV) {
     return 'http://130.61.50.101:54321';
   }
-  return 'https://130.61.50.101';
+  return 'http://130.61.50.101';
 };
 
 class OracleWebSocketService {
