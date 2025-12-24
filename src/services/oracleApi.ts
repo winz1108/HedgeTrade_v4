@@ -2,10 +2,12 @@ import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/da
 import io, { Socket } from 'socket.io-client';
 
 const getApiUrl = () => {
+  // 개발 환경: 백엔드 직접 연결
   if (import.meta.env.DEV) {
     return 'http://130.61.50.101:54321';
   }
-  return 'https://130.61.50.101';
+  // 프로덕션: 현재 도메인 사용 (Nginx 프록시)
+  return window.location.origin;
 };
 
 const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
@@ -258,12 +260,13 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
-  // 로컬 개발: 직접 백엔드 연결 (포트 54321)
-  // 프로덕션: Nginx HTTPS/WSS 프록시 (포트 443)
+  // 개발 환경: 백엔드 직접 연결
   if (import.meta.env.DEV) {
     return 'http://130.61.50.101:54321';
   }
-  return 'https://130.61.50.101';
+  // 프로덕션: 현재 도메인 사용 (http -> ws, https -> wss)
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}`;
 };
 
 class OracleWebSocketService {
@@ -278,10 +281,13 @@ class OracleWebSocketService {
     }
 
     const wsUrl = getWebSocketUrl();
-    console.log('🔌 WebSocket 연결 시도:', wsUrl);
+    // 프로덕션: Nginx가 /ws 경로로 프록시
+    const socketPath = import.meta.env.DEV ? '/socket.io/' : '/ws/socket.io/';
+
+    console.log('🔌 WebSocket 연결 시도:', wsUrl, 'path:', socketPath);
 
     this.socket = io(wsUrl, {
-      path: '/socket.io/',
+      path: socketPath,
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -291,7 +297,7 @@ class OracleWebSocketService {
       forceNew: true,
       upgrade: true,
       rejectUnauthorized: false,
-      secure: true,
+      secure: window.location.protocol === 'https:',
     });
 
     this.socket.on('connect', () => {
