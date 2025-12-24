@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { RefreshCw, X, Bug, BarChart3 } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
-import { fetchDashboardData, oracleWebSocket } from './services/oracleApi';
+import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
 import { sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
@@ -24,7 +24,6 @@ function App() {
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
   const [performanceResult, setPerformanceResult] = useState<string | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
   const previousHoldingState = useRef<boolean | null>(null);
 
   const getLastNotifiedTradeKey = (accountId: string) => `lastNotifiedTrade_${accountId}`;
@@ -203,37 +202,12 @@ function App() {
       }, 5000);
     });
 
-    oracleWebSocket.connect();
-
-    oracleWebSocket.onTickerUpdate = (tickerData) => {
-      console.log('🔄 Ticker update:', tickerData);
-      if (data) {
-        setData(prev => prev ? { ...prev, currentPrice: tickerData.price } : prev);
-      }
-    };
-
-    oracleWebSocket.onKlineUpdate = (klineData) => {
-      console.log('🔄 Kline update:', klineData);
-      if (data) {
-        loadData();
-      }
-    };
-
-    oracleWebSocket.onProfitUpdate = (profitData) => {
-      console.log('🔄 Profit update:', profitData);
-      if (data && profitData.accountId === selectedAccount) {
-        loadData();
-      }
-    };
-
-    const checkConnection = setInterval(() => {
-      const socket = (oracleWebSocket as any).socket;
-      setIsConnected(socket?.connected || false);
-    }, 1000);
+    const pollingInterval = setInterval(() => {
+      loadData();
+    }, 5000);
 
     return () => {
-      clearInterval(checkConnection);
-      oracleWebSocket.disconnect();
+      clearInterval(pollingInterval);
     };
   }, []);
 
@@ -432,12 +406,6 @@ function App() {
             )}
 
             <div className="flex items-center gap-2 ml-auto">
-              <div className="flex items-center gap-2 px-2 py-1 rounded bg-slate-800/70 border border-slate-600">
-                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]' : 'bg-red-400'}`}></div>
-                <span className="text-[10px] text-slate-300 font-mono">
-                  {isConnected ? 'WS Connected' : 'WS Disconnected'}
-                </span>
-              </div>
               <div className="flex flex-col items-end">
                 <span className="text-[10px] text-slate-400 font-mono">
                   {formatLocalTime(data.currentTime)}
