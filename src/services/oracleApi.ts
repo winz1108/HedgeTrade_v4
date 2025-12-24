@@ -265,12 +265,8 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
-  // Netlify 환경: wss:// 사용 (HTTPS 환경)
-  if (window.location.hostname.includes('netlify.app')) {
-    return 'wss://130.61.50.101';
-  }
-  // 로컬 개발: ws:// 사용
-  return 'ws://130.61.50.101';
+  // 모든 환경에서 HTTPS 사용 (socket.io가 자동으로 wss://로 변환)
+  return 'https://130.61.50.101';
 };
 
 class OracleWebSocketService {
@@ -299,6 +295,7 @@ class OracleWebSocketService {
       reconnectionAttempts: 5,
       timeout: 20000,
       upgrade: true,
+      rejectUnauthorized: false, // self-signed SSL 인증서 허용
     });
 
     this.socket.on('connect', () => {
