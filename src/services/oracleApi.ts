@@ -2,11 +2,15 @@ import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/da
 import io, { Socket } from 'socket.io-client';
 
 const getApiUrl = () => {
+  // Netlify 환경: 오라클 서버 직접 연결
+  if (window.location.hostname.includes('netlify.app')) {
+    return 'http://130.61.50.101:54321';
+  }
   // 개발 환경: 백엔드 직접 연결
   if (import.meta.env.DEV) {
     return 'http://130.61.50.101:54321';
   }
-  // 프로덕션: 현재 도메인 사용 (Nginx 프록시)
+  // 오라클 서버 (Nginx 프록시)
   return window.location.origin;
 };
 
@@ -260,11 +264,15 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
+  // Netlify 환경: 오라클 서버 직접 연결
+  if (window.location.hostname.includes('netlify.app')) {
+    return 'http://130.61.50.101:54321';
+  }
   // 개발 환경: 백엔드 직접 연결
   if (import.meta.env.DEV) {
     return 'http://130.61.50.101:54321';
   }
-  // 프로덕션: 현재 도메인 사용 (http -> ws, https -> wss)
+  // 오라클 서버 (http -> ws, https -> wss)
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${protocol}//${window.location.host}`;
 };
@@ -281,8 +289,10 @@ class OracleWebSocketService {
     }
 
     const wsUrl = getWebSocketUrl();
-    // 프로덕션: Nginx가 /ws 경로로 프록시
-    const socketPath = import.meta.env.DEV ? '/socket.io/' : '/ws/socket.io/';
+    // Netlify/개발: 직접 연결 = 기본 path
+    // 오라클 서버: Nginx가 /ws 경로로 프록시
+    const isDirectConnection = window.location.hostname.includes('netlify.app') || import.meta.env.DEV;
+    const socketPath = isDirectConnection ? '/socket.io/' : '/ws/socket.io/';
 
     console.log('🔌 WebSocket 연결 시도:', wsUrl, 'path:', socketPath);
 
