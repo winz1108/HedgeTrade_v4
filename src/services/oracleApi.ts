@@ -265,8 +265,12 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
-  // WebSocket은 직접 연결 (Nginx 80 포트)
-  return 'http://130.61.50.101';
+  // Netlify 환경: wss:// 사용 (HTTPS 환경)
+  if (window.location.hostname.includes('netlify.app')) {
+    return 'wss://130.61.50.101';
+  }
+  // 로컬 개발: ws:// 사용
+  return 'ws://130.61.50.101';
 };
 
 class OracleWebSocketService {
