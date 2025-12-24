@@ -264,17 +264,8 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 };
 
 const getWebSocketUrl = () => {
-  // Netlify 환경: 오라클 서버 직접 연결
-  if (window.location.hostname.includes('netlify.app')) {
-    return 'http://130.61.50.101:54321';
-  }
-  // 개발 환경: 백엔드 직접 연결
-  if (import.meta.env.DEV) {
-    return 'http://130.61.50.101:54321';
-  }
-  // 오라클 서버 (http -> ws, https -> wss)
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${protocol}//${window.location.host}`;
+  // 오라클 서버 IP (Nginx 80번 포트)
+  return 'http://130.61.50.101';
 };
 
 class OracleWebSocketService {
@@ -296,16 +287,13 @@ class OracleWebSocketService {
 
     this.socket = io(wsUrl, {
       path: socketPath,
-      transports: ['websocket', 'polling'],
+      transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 5,
       timeout: 20000,
-      forceNew: true,
       upgrade: true,
-      rejectUnauthorized: false,
-      secure: window.location.protocol === 'https:',
     });
 
     this.socket.on('connect', () => {
