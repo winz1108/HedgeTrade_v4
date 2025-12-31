@@ -218,6 +218,12 @@ function App() {
     loadData();
   }, [selectedAccount]);
 
+  useEffect(() => {
+    if (data?.currentPrice) {
+      document.title = `HedgeTrade - $${data.currentPrice.toFixed(2)}`;
+    }
+  }, [data?.currentPrice]);
+
 
   if (loading) {
     return (
