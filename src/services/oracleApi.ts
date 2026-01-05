@@ -35,7 +35,7 @@ const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades'])
         timestamp: trade.exitTime,
         type: 'sell',
         price: trade.exitPrice,
-        profit: trade.pnl,
+        profit: trade.pnlPct,
         pairId,
       });
     }
