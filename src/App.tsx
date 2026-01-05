@@ -4,7 +4,6 @@ import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
-import { sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from './services/notifications';
 import { formatLocalTime } from './utils/time';
 
 function App() {
@@ -12,8 +11,6 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [notifications, setNotifications] = useState<InAppNotification[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string>(() => {
     const saved = localStorage.getItem('lastSelectedAccount');
     return saved || 'Account_A';
@@ -24,18 +21,6 @@ function App() {
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
   const [performanceResult, setPerformanceResult] = useState<string | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
-  const previousHoldingState = useRef<boolean | null>(null);
-
-  const getLastNotifiedTradeKey = (accountId: string) => `lastNotifiedTrade_${accountId}`;
-
-  const getLastNotifiedTrade = (accountId: string): number => {
-    const stored = localStorage.getItem(getLastNotifiedTradeKey(accountId));
-    return stored ? parseInt(stored, 10) : 0;
-  };
-
-  const setLastNotifiedTrade = (accountId: string, timestamp: number) => {
-    localStorage.setItem(getLastNotifiedTradeKey(accountId), timestamp.toString());
-  };
 
   const loadData = async () => {
     try {
@@ -45,65 +30,6 @@ function App() {
       if (!dashboardData || !dashboardData.metrics) {
         throw new Error('Invalid data structure received from API');
       }
-
-      const lastNotifiedTimestamp = getLastNotifiedTrade(selectedAccount);
-
-      if (dashboardData.trades.length > 0) {
-        const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
-        if (lastNotifiedTimestamp === 0) {
-          setLastNotifiedTrade(selectedAccount, latestTrade.timestamp);
-          console.log('🔔 초기 타임스탬프 설정:', latestTrade.timestamp);
-        }
-      }
-
-      if (notificationsEnabled && previousHoldingState.current !== null) {
-        console.log('🔔 알림 체크:', {
-          previousHolding: previousHoldingState.current,
-          currentHolding: dashboardData.holding.isHolding,
-          lastNotifiedTimestamp,
-          selectedAccount
-        });
-
-        if (!previousHoldingState.current && dashboardData.holding.isHolding) {
-          const lastBuyTrade = [...dashboardData.trades].reverse().find(t => t.type === 'buy');
-          console.log('🔔 매수 체크:', {
-            lastBuyTrade: lastBuyTrade?.timestamp,
-            lastNotifiedTimestamp,
-            shouldNotify: lastBuyTrade && lastBuyTrade.timestamp > lastNotifiedTimestamp
-          });
-
-          if (lastBuyTrade && lastBuyTrade.timestamp > lastNotifiedTimestamp) {
-            console.log('🔔 매수 알림 발송!');
-            sendBuyNotification(
-              dashboardData.holding.buyPrice || dashboardData.currentPrice,
-              dashboardData.holding.initialTakeProfitProb || dashboardData.currentPrediction?.takeProfitProb || 0
-            );
-            setLastNotifiedTrade(selectedAccount, lastBuyTrade.timestamp);
-          }
-        }
-
-        if (previousHoldingState.current && !dashboardData.holding.isHolding) {
-          const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
-          console.log('🔔 매도 체크:', {
-            latestTrade: latestTrade?.timestamp,
-            lastNotifiedTimestamp,
-            shouldNotify: latestTrade && latestTrade.type === 'sell' && latestTrade.timestamp > lastNotifiedTimestamp
-          });
-
-          if (latestTrade && latestTrade.type === 'sell' && latestTrade.timestamp > lastNotifiedTimestamp) {
-            console.log('🔔 매도 알림 발송!');
-            const profit = latestTrade.profit ?? 0;
-            sendSellNotification(
-              profit >= 0 ? 'profit' : 'loss',
-              latestTrade.price,
-              profit
-            );
-            setLastNotifiedTrade(selectedAccount, latestTrade.timestamp);
-          }
-        }
-      }
-
-      previousHoldingState.current = dashboardData.holding.isHolding;
 
       console.log('📊 App.tsx setData 전 - currentProfit:', dashboardData.holding.currentProfit);
       console.log('📊 전체 holding 데이터:', JSON.stringify(dashboardData.holding, null, 2));
@@ -192,15 +118,6 @@ function App() {
   useEffect(() => {
     setLoading(true);
     loadData();
-
-    setNotificationsEnabled(true);
-
-    setNotificationCallback((notification) => {
-      setNotifications(prev => [...prev, notification]);
-      setTimeout(() => {
-        setNotifications(prev => prev.filter(n => n.id !== notification.id));
-      }, 5000);
-    });
   }, []);
 
   useEffect(() => {
@@ -214,7 +131,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem('lastSelectedAccount', selectedAccount);
     setLoading(true);
-    previousHoldingState.current = null;
     loadData();
   }, [selectedAccount]);
 
@@ -259,34 +175,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`p-4 rounded-lg shadow-2xl border-2 animate-slide-in backdrop-blur-sm ${
-              notification.type === 'buy'
-                ? 'bg-blue-500/90 border-blue-400 text-white'
-                : notification.type === 'sell-profit'
-                ? 'bg-emerald-500/90 border-emerald-400 text-white'
-                : 'bg-rose-500/90 border-rose-400 text-white'
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <div className="font-bold text-sm mb-1">{notification.title}</div>
-                <div className="text-xs whitespace-pre-line opacity-90">{notification.message}</div>
-              </div>
-              <button
-                onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
-                className="p-1 hover:bg-white/20 rounded transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
       {showPerformanceModal && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
