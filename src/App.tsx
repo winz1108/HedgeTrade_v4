@@ -6,13 +6,26 @@ import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
 import { formatLocalTime } from './utils/time';
 
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+};
+
+const setCookie = (name: string, value: string, days: number = 365) => {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+};
+
 function App() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<string>(() => {
-    const saved = localStorage.getItem('lastSelectedAccount');
+    const saved = getCookie('lastSelectedAccount');
     return saved || 'Account_A';
   });
   const [showVerificationModal, setShowVerificationModal] = useState(false);
@@ -129,7 +142,7 @@ function App() {
   }, [selectedAccount]);
 
   useEffect(() => {
-    localStorage.setItem('lastSelectedAccount', selectedAccount);
+    setCookie('lastSelectedAccount', selectedAccount);
     setLoading(true);
     loadData();
   }, [selectedAccount]);
