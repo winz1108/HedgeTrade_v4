@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { RefreshCw, X, Bug, BarChart3 } from 'lucide-react';
 import { DashboardData, TradeEvent } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
@@ -22,7 +22,7 @@ function App() {
   const [performanceResult, setPerformanceResult] = useState<string | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setError(null);
       const dashboardData = await fetchDashboardData(selectedAccount);
@@ -51,7 +51,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedAccount]);
 
   const handleVerification = async () => {
     setVerificationLoading(true);
@@ -118,21 +118,21 @@ function App() {
   useEffect(() => {
     setLoading(true);
     loadData();
-  }, []);
+  }, [loadData]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       loadData();
-    }, 60000); // 1분마다 업데이트
+    }, 60000);
 
     return () => clearInterval(interval);
-  }, [selectedAccount]);
+  }, [loadData]);
 
   useEffect(() => {
     window.location.hash = selectedAccount;
     setLoading(true);
     loadData();
-  }, [selectedAccount]);
+  }, [selectedAccount, loadData]);
 
   useEffect(() => {
     if (data?.currentPrice) {
