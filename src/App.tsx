@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { RefreshCw, X, Bug, BarChart3 } from 'lucide-react';
-import { DashboardData, TradeEvent } from './types/dashboard';
+import { DashboardData, TradeEvent, Candle } from './types/dashboard';
 import { fetchDashboardData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
 import { formatLocalTime } from './utils/time';
+import { websocketService, CandleData } from './services/websocket';
 
 function App() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -151,6 +152,101 @@ function App() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [selectedAccount]);
+
+  useEffect(() => {
+    websocketService.connect();
+
+    const convertCandleData = (candleData: CandleData): Candle => ({
+      timestamp: candleData.timestamp,
+      open: candleData.open,
+      high: candleData.high,
+      low: candleData.low,
+      close: candleData.close,
+      volume: candleData.volume,
+      ema20: candleData.ema20,
+      ema50: candleData.ema50,
+      bbUpper: candleData.bbUpper,
+      bbMiddle: candleData.bbMiddle,
+      bbLower: candleData.bbLower,
+      bbWidth: candleData.bbWidth,
+      macd: candleData.macd,
+      signal: candleData.signal,
+      histogram: candleData.histogram,
+      rsi: candleData.rsi,
+    });
+
+    const unsubscribePriceUpdate = websocketService.onPriceUpdate((priceData) => {
+      setData((prevData) => {
+        if (!prevData) return prevData;
+        return {
+          ...prevData,
+          currentPrice: priceData.currentPrice,
+          currentTime: priceData.currentTime,
+        };
+      });
+    });
+
+    const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
+      if (update.timeframe !== '5m') return;
+
+      setData((prevData) => {
+        if (!prevData || !prevData.priceHistory5m) return prevData;
+
+        const candles = [...prevData.priceHistory5m];
+        const newCandle = convertCandleData(update.candle);
+
+        if (candles.length > 0) {
+          const lastCandle = candles[candles.length - 1];
+          if (lastCandle.timestamp === newCandle.timestamp) {
+            candles[candles.length - 1] = newCandle;
+          } else {
+            candles.push(newCandle);
+          }
+        } else {
+          candles.push(newCandle);
+        }
+
+        return {
+          ...prevData,
+          priceHistory5m: candles,
+        };
+      });
+    });
+
+    const unsubscribeCandleUpdate = websocketService.onCandleUpdate((update) => {
+      setData((prevData) => {
+        if (!prevData) return prevData;
+
+        const newCandle = convertCandleData(update.candle);
+        const timeframeKey = `priceHistory${update.timeframe}` as keyof DashboardData;
+        const existingCandles = prevData[timeframeKey] as Candle[] | undefined;
+
+        if (!existingCandles) return prevData;
+
+        const candles = [...existingCandles];
+        const existingIndex = candles.findIndex(c => c.timestamp === newCandle.timestamp);
+
+        if (existingIndex >= 0) {
+          candles[existingIndex] = newCandle;
+        } else {
+          candles.push(newCandle);
+          candles.sort((a, b) => a.timestamp - b.timestamp);
+        }
+
+        return {
+          ...prevData,
+          [timeframeKey]: candles,
+        };
+      });
+    });
+
+    return () => {
+      unsubscribePriceUpdate();
+      unsubscribeRealtimeCandleUpdate();
+      unsubscribeCandleUpdate();
+      websocketService.disconnect();
+    };
+  }, []);
 
 
   if (loading) {
