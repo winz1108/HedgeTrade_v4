@@ -1,12 +1,7 @@
 import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/dashboard';
 
 const getApiUrl = () => {
-  // Netlify 환경: Netlify Function 프록시 사용
-  if (window.location.hostname.includes('netlify.app')) {
-    return '/.netlify/functions/oracle-proxy';
-  }
-  // 로컬 개발: 오라클 서버 직접 연결
-  return 'http://130.61.50.101:54321';
+  return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 };
 
 const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
@@ -228,12 +223,7 @@ const convertApiResponseToDashboardData = (
 
 export const fetchDashboardData = async (accountId: string): Promise<DashboardData> => {
   const baseUrl = getApiUrl();
-
-  // Netlify Function 사용 시 endpoint 파라미터로 전달
-  const isNetlifyFunction = baseUrl.includes('.netlify/functions');
-  const url = isNetlifyFunction
-    ? `${baseUrl}?endpoint=/api/dashboard&_=${Date.now()}`
-    : `${baseUrl}/api/dashboard?_=${Date.now()}`;
+  const url = `${baseUrl}/api/dashboard?_=${Date.now()}`;
 
   const response = await fetch(url, {
     headers: {
