@@ -35,9 +35,27 @@ export interface PriceUpdate {
   currentTime: number;
 }
 
+export interface AccountAsset {
+  currentAsset: number;
+  currentBTC: number;
+  currentCash: number;
+  initialAsset: number;
+}
+
+export interface AccountAssetsUpdate {
+  accountId: string;
+  asset: AccountAsset;
+}
+
+export interface BinanceServerTime {
+  serverTime: number;
+}
+
 type CandleUpdateCallback = (data: CandleUpdate) => void;
 type RealtimeCandleUpdateCallback = (data: RealtimeCandleUpdate) => void;
 type PriceUpdateCallback = (data: PriceUpdate) => void;
+type AccountAssetsUpdateCallback = (data: AccountAssetsUpdate) => void;
+type BinanceServerTimeCallback = (data: BinanceServerTime) => void;
 type ConnectionStatusCallback = (connected: boolean) => void;
 
 class WebSocketService {
@@ -45,6 +63,8 @@ class WebSocketService {
   private candleUpdateCallbacks: Set<CandleUpdateCallback> = new Set();
   private realtimeCandleUpdateCallbacks: Set<RealtimeCandleUpdateCallback> = new Set();
   private priceUpdateCallbacks: Set<PriceUpdateCallback> = new Set();
+  private accountAssetsUpdateCallbacks: Set<AccountAssetsUpdateCallback> = new Set();
+  private binanceServerTimeCallbacks: Set<BinanceServerTimeCallback> = new Set();
   private connectionStatusCallbacks: Set<ConnectionStatusCallback> = new Set();
 
   connect() {
@@ -80,6 +100,14 @@ class WebSocketService {
       this.priceUpdateCallbacks.forEach(cb => cb(data));
     });
 
+    this.socket.on('account_assets_update', (data: AccountAssetsUpdate) => {
+      this.accountAssetsUpdateCallbacks.forEach(cb => cb(data));
+    });
+
+    this.socket.on('binance_server_time', (data: BinanceServerTime) => {
+      this.binanceServerTimeCallbacks.forEach(cb => cb(data));
+    });
+
     this.socket.on('connect_error', (error) => {
       console.error('WebSocket connection error:', error);
     });
@@ -105,6 +133,16 @@ class WebSocketService {
   onPriceUpdate(callback: PriceUpdateCallback) {
     this.priceUpdateCallbacks.add(callback);
     return () => this.priceUpdateCallbacks.delete(callback);
+  }
+
+  onAccountAssetsUpdate(callback: AccountAssetsUpdateCallback) {
+    this.accountAssetsUpdateCallbacks.add(callback);
+    return () => this.accountAssetsUpdateCallbacks.delete(callback);
+  }
+
+  onBinanceServerTime(callback: BinanceServerTimeCallback) {
+    this.binanceServerTimeCallbacks.add(callback);
+    return () => this.binanceServerTimeCallbacks.delete(callback);
   }
 
   onConnectionStatus(callback: ConnectionStatusCallback) {

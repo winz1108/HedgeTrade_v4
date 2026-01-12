@@ -122,14 +122,6 @@ function App() {
   }, [loadData]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      loadData();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [loadData]);
-
-  useEffect(() => {
     window.location.hash = selectedAccount;
     setLoading(true);
     loadData();
@@ -240,10 +232,37 @@ function App() {
       });
     });
 
+    const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {
+      setData((prevData) => {
+        if (!prevData) return prevData;
+        if (update.accountId !== selectedAccount) return prevData;
+
+        return {
+          ...prevData,
+          currentAsset: update.asset.currentAsset,
+          currentBTC: update.asset.currentBTC,
+          currentCash: update.asset.currentCash,
+          initialAsset: update.asset.initialAsset,
+        };
+      });
+    });
+
+    const unsubscribeBinanceServerTime = websocketService.onBinanceServerTime((update) => {
+      setData((prevData) => {
+        if (!prevData) return prevData;
+        return {
+          ...prevData,
+          currentTime: update.serverTime,
+        };
+      });
+    });
+
     return () => {
       unsubscribePriceUpdate();
       unsubscribeRealtimeCandleUpdate();
       unsubscribeCandleUpdate();
+      unsubscribeAccountAssetsUpdate();
+      unsubscribeBinanceServerTime();
       websocketService.disconnect();
     };
   }, []);
