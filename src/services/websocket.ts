@@ -77,9 +77,14 @@ class WebSocketService {
   private statsInterval: NodeJS.Timeout | null = null;
 
   connect() {
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+    // WebSocket은 Oracle VM 서버로 직접 연결
+    const wsUrl = import.meta.env.DEV
+      ? 'http://130.61.50.101:54321'
+      : 'https://api.hedgetrade.eu';
 
-    this.socket = io(apiUrl, {
+    console.log('🔌 Connecting to WebSocket server:', wsUrl);
+
+    this.socket = io(wsUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -90,7 +95,7 @@ class WebSocketService {
     this.socket.on('connect', () => {
       console.log('✅ WebSocket connected');
       console.log('🔌 Socket ID:', this.socket?.id);
-      console.log('🌐 Connected to:', apiUrl);
+      console.log('🌐 Connected to:', wsUrl);
       this.connectionStatusCallbacks.forEach(cb => cb(true));
       this.startStatsTracking();
     });
