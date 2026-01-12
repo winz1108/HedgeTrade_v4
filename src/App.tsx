@@ -61,9 +61,10 @@ function App() {
 
     try {
       const isDev = import.meta.env.DEV;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const url = isDev
         ? 'http://130.61.50.101:54321/api/debug/verification/text'
-        : '/.netlify/functions/oracle-proxy?endpoint=' + encodeURIComponent('/api/debug/verification/text');
+        : `${supabaseUrl}/functions/v1/oracle-proxy?endpoint=${encodeURIComponent('/api/debug/verification/text')}`;
 
       const response = await fetch(url);
 
@@ -91,9 +92,10 @@ function App() {
 
     try {
       const isDev = import.meta.env.DEV;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const url = isDev
         ? 'http://130.61.50.101:54321/api/debug/realtime-performance/text'
-        : '/.netlify/functions/oracle-proxy?endpoint=' + encodeURIComponent('/api/debug/realtime-performance/text');
+        : `${supabaseUrl}/functions/v1/oracle-proxy?endpoint=${encodeURIComponent('/api/debug/realtime-performance/text')}`;
 
       const response = await fetch(url, {
         method: 'GET',
