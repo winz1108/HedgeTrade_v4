@@ -123,7 +123,7 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       loadData();
-    }, 60000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [loadData]);
