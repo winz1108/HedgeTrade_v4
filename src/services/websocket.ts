@@ -89,6 +89,8 @@ class WebSocketService {
 
     this.socket.on('connect', () => {
       console.log('✅ WebSocket connected');
+      console.log('🔌 Socket ID:', this.socket?.id);
+      console.log('🌐 Connected to:', apiUrl);
       this.connectionStatusCallbacks.forEach(cb => cb(true));
       this.startStatsTracking();
     });
@@ -96,6 +98,10 @@ class WebSocketService {
     this.socket.on('disconnect', () => {
       console.log('❌ WebSocket disconnected');
       this.connectionStatusCallbacks.forEach(cb => cb(false));
+    });
+
+    this.socket.onAny((eventName, ...args) => {
+      console.log(`🔔 Received event: "${eventName}"`, args);
     });
 
     this.socket.on('candle_update', (data: CandleUpdate) => {
