@@ -78,10 +78,10 @@ class WebSocketService {
 
   connect() {
     // Development: Use direct Oracle VM server
-    // Production: Use local WebSocket (assumes you have a proxy or local server)
+    // Production: Use current domain with proxy (wss://hedgetrade.eu)
     const wsUrl = import.meta.env.DEV
       ? 'http://130.61.50.101:54321'
-      : 'http://localhost:54321';
+      : window.location.origin;
 
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
 
