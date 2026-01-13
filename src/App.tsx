@@ -179,17 +179,33 @@ function App() {
         if (!prevData || !prevData.priceHistory5m) return prevData;
 
         const candles = [...prevData.priceHistory5m];
-        const newCandle = convertCandleData(update);
 
-        if (candles.length > 0) {
-          const lastCandle = candles[candles.length - 1];
-          if (lastCandle.timestamp === newCandle.timestamp) {
-            candles[candles.length - 1] = newCandle;
-          } else {
-            candles.push(newCandle);
-          }
-        } else {
+        if (update.isFinal) {
+          const newCandle = convertCandleData(update);
+          candles.shift();
           candles.push(newCandle);
+        } else {
+          const newCandle = convertCandleData(update);
+
+          if (candles.length > 0) {
+            const lastCompleteCandle = candles[candles.length - 1];
+            newCandle.ema20 = lastCompleteCandle.ema20;
+            newCandle.ema50 = lastCompleteCandle.ema50;
+            newCandle.bbUpper = lastCompleteCandle.bbUpper;
+            newCandle.bbMiddle = lastCompleteCandle.bbMiddle;
+            newCandle.bbLower = lastCompleteCandle.bbLower;
+            newCandle.bbWidth = lastCompleteCandle.bbWidth;
+            newCandle.macd = lastCompleteCandle.macd;
+            newCandle.signal = lastCompleteCandle.signal;
+            newCandle.histogram = lastCompleteCandle.histogram;
+            newCandle.rsi = lastCompleteCandle.rsi;
+          }
+
+          if (candles.length === 199) {
+            candles.push(newCandle);
+          } else if (candles.length >= 200) {
+            candles[candles.length - 1] = newCandle;
+          }
         }
 
         return {
@@ -210,13 +226,36 @@ function App() {
         if (!existingCandles) return prevData;
 
         const candles = [...existingCandles];
-        const existingIndex = candles.findIndex(c => c.timestamp === newCandle.timestamp);
 
-        if (existingIndex >= 0) {
-          candles[existingIndex] = newCandle;
+        if (update.isFinal) {
+          const existingIndex = candles.findIndex(c => c.timestamp === newCandle.timestamp);
+
+          if (existingIndex >= 0) {
+            candles[existingIndex] = newCandle;
+          } else {
+            candles.shift();
+            candles.push(newCandle);
+          }
         } else {
-          candles.push(newCandle);
-          candles.sort((a, b) => a.timestamp - b.timestamp);
+          if (candles.length > 0) {
+            const lastCompleteCandle = candles[candles.length - 1];
+            newCandle.ema20 = lastCompleteCandle.ema20;
+            newCandle.ema50 = lastCompleteCandle.ema50;
+            newCandle.bbUpper = lastCompleteCandle.bbUpper;
+            newCandle.bbMiddle = lastCompleteCandle.bbMiddle;
+            newCandle.bbLower = lastCompleteCandle.bbLower;
+            newCandle.bbWidth = lastCompleteCandle.bbWidth;
+            newCandle.macd = lastCompleteCandle.macd;
+            newCandle.signal = lastCompleteCandle.signal;
+            newCandle.histogram = lastCompleteCandle.histogram;
+            newCandle.rsi = lastCompleteCandle.rsi;
+          }
+
+          if (candles.length === 199) {
+            candles.push(newCandle);
+          } else if (candles.length >= 200) {
+            candles[candles.length - 1] = newCandle;
+          }
         }
 
         return {
@@ -259,7 +298,7 @@ function App() {
       unsubscribeBinanceServerTime();
       websocketService.disconnect();
     };
-  }, []);
+  }, [selectedAccount]);
 
 
   if (loading) {
