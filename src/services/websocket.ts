@@ -78,16 +78,19 @@ class WebSocketService {
 
   connect() {
     // WebSocket은 Oracle VM 서버로 직접 연결
-    const wsUrl = 'http://130.61.50.101:54321';
+    const wsUrl = import.meta.env.DEV
+      ? 'http://130.61.50.101:54321'
+      : 'https://api.hedgetrade.eu';
 
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
 
     this.socket = io(wsUrl, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: Infinity,
+      upgrade: true,
     });
 
     this.socket.on('connect', () => {
