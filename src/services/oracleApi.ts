@@ -14,8 +14,6 @@ const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades'])
   accountTrades.forEach((trade, index) => {
     const pairId = `pair_${trade.entryTime}_${index}`;
 
-    console.log('🔍 Trade entryTime:', trade.entryTime, 'Date:', new Date(trade.entryTime).toISOString(), 'pairId:', pairId);
-
     events.push({
       timestamp: trade.entryTime,
       type: 'buy',
@@ -24,8 +22,6 @@ const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades'])
     });
 
     if (trade.completed) {
-      console.log('🔍 Trade exitTime:', trade.exitTime, 'Date:', new Date(trade.exitTime).toISOString(), 'pairId:', pairId);
-
       events.push({
         timestamp: trade.exitTime,
         type: 'sell',
@@ -238,8 +234,6 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
   }
 
   const apiResponse: ApiResponse = await response.json();
-
-  console.log('API Response:', apiResponse);
 
   if (!apiResponse) {
     throw new Error('Empty API response');

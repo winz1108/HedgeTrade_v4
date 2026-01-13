@@ -109,16 +109,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       '1d': data.priceHistory1d ? [...data.priceHistory1d, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 1440),
     };
 
-    console.log('📊 Final candle counts:', {
-      '1m': result['1m'].length,
-      '5m': result['5m'].length,
-      '15m': result['15m'].length,
-      '30m': result['30m'].length,
-      '1h': result['1h'].length,
-      '4h': result['4h'].length,
-      '1d': result['1d'].length
-    });
-
     return result;
   }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory30m, data.priceHistory1h, data.priceHistory4h, data.priceHistory1d, data.pricePredictions]);
 
@@ -155,8 +145,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     const minPrice = Math.min(...prices) - priceRange * 0.1;
     const maxPrice = Math.max(...prices) + priceRange * 0.1;
     const maxScroll = Math.max(0, selectedCandles.length - visibleCount);
-
-    console.log('💰 Price range:', { minPrice, maxPrice });
 
     return { minPrice, maxPrice, visibleCandles, visibleStartIndex: startIndex, maxScroll };
   }, [selectedCandles, scrollOffset, candleWidth, resetScroll, timeframe, containerWidth]);
