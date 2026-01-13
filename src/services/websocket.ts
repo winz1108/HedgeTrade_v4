@@ -159,7 +159,7 @@ class WebSocketService {
     const startTime = Date.now();
     this.statsInterval = setInterval(() => {
       const elapsed = (Date.now() - startTime) / 1000;
-      console.log('\n📊 WebSocket Statistics (5min):');
+      console.log('\n📊 WebSocket Statistics (30s):');
 
       Object.entries(this.eventStats).forEach(([eventName, stats]) => {
         if (stats.count > 0) {
@@ -167,7 +167,7 @@ class WebSocketService {
           console.log(`${eventName}: ${stats.count} events (${rate.toFixed(2)}/s)`);
         }
       });
-    }, 300000);
+    }, 30000);
   }
 
   onCandleUpdate(callback: CandleUpdateCallback) {
