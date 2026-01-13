@@ -1610,18 +1610,24 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       return trade.timestamp >= candlePeriod && trade.timestamp < candlePeriod + timeframeMs;
                     });
                   }
+
+                  if (candleIndex === -1) {
+                    const closestCandle = visibleCandles.reduce((closest, candle, idx) => {
+                      const timeDiff = Math.abs(candle.timestamp - trade.timestamp);
+                      if (timeDiff < closest.diff && timeDiff < timeframeMs * 1.5) {
+                        return { idx, diff: timeDiff };
+                      }
+                      return closest;
+                    }, { idx: -1, diff: Infinity });
+
+                    if (closestCandle.idx !== -1) {
+                      candleIndex = closestCandle.idx;
+                    }
+                  }
                 }
 
                 if (candleIndex === -1) {
-                  return null;
-                }
-
-                if (candleIndex === -1) {
-                  return null;
-                }
-
-                const finalTradeInRange = trade.timestamp >= visibleTimeRangeStart && trade.timestamp <= visibleTimeRangeEnd;
-                if (!finalTradeInRange) {
+                  console.log(`Trade marker not rendered - Trade timestamp: ${new Date(trade.timestamp).toISOString()}, Type: ${trade.type}, Timeframe: ${timeframe}, Visible range: ${new Date(visibleTimeRangeStart).toISOString()} - ${new Date(visibleTimeRangeEnd).toISOString()}`);
                   return null;
                 }
 
