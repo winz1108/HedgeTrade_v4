@@ -99,17 +99,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     const validPredictions = Array.isArray(data.pricePredictions) ? data.pricePredictions : [];
     const base1m = [...validHistory1m, ...validPredictions];
 
-    console.log('📊 Candle data received:', {
-      '1m': validHistory1m.length,
-      '5m': data.priceHistory5m?.length || 0,
-      '15m': data.priceHistory15m?.length || 0,
-      '30m': data.priceHistory30m?.length || 0,
-      '1h': data.priceHistory1h?.length || 0,
-      '4h': data.priceHistory4h?.length || 0,
-      '1d': data.priceHistory1d?.length || 0,
-      predictions: validPredictions.length
-    });
-
     const result = {
       '1m': base1m,
       '5m': data.priceHistory5m ? [...data.priceHistory5m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 5),

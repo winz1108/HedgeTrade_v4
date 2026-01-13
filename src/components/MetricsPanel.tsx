@@ -8,12 +8,6 @@ interface MetricsPanelProps {
 }
 
 export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
-  if (position === 'left' && data.holding.isHolding) {
-    console.log('🎨 MetricsPanel 렌더링 - currentProfit:', data.holding.currentProfit);
-    console.log('🎨 MetricsPanel 렌더링 - typeof currentProfit:', typeof data.holding.currentProfit);
-    console.log('🎨 MetricsPanel 렌더링 - 전체 holding:', JSON.stringify(data.holding, null, 2));
-  }
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
