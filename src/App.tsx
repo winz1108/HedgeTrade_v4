@@ -201,9 +201,9 @@ function App() {
             newCandle.rsi = lastCompleteCandle.rsi;
           }
 
-          if (candles.length === 199) {
+          if (candles.length === 299) {
             candles.push(newCandle);
-          } else if (candles.length >= 200) {
+          } else if (candles.length >= 300) {
             candles[candles.length - 1] = newCandle;
           }
         }
@@ -251,9 +251,9 @@ function App() {
             newCandle.rsi = lastCompleteCandle.rsi;
           }
 
-          if (candles.length === 199) {
+          if (candles.length === 299) {
             candles.push(newCandle);
-          } else if (candles.length >= 200) {
+          } else if (candles.length >= 300) {
             candles[candles.length - 1] = newCandle;
           }
         }
