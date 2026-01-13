@@ -85,12 +85,14 @@ class WebSocketService {
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
 
     this.socket = io(wsUrl, {
-      transports: ['polling', 'websocket'],
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: Infinity,
-      upgrade: true,
+      timeout: 20000,
+      pingInterval: 25000,
+      pingTimeout: 60000,
     });
 
     this.socket.on('connect', () => {
@@ -101,9 +103,25 @@ class WebSocketService {
       this.startStatsTracking();
     });
 
-    this.socket.on('disconnect', () => {
-      console.log('❌ WebSocket disconnected');
+    this.socket.on('disconnect', (reason) => {
+      console.log('❌ WebSocket disconnected, reason:', reason);
       this.connectionStatusCallbacks.forEach(cb => cb(false));
+    });
+
+    this.socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log(`🔄 Reconnection attempt #${attemptNumber}`);
+    });
+
+    this.socket.on('reconnect', (attemptNumber) => {
+      console.log(`✅ Reconnected after ${attemptNumber} attempts`);
+    });
+
+    this.socket.on('reconnect_error', (error) => {
+      console.error('❌ Reconnection error:', error);
+    });
+
+    this.socket.on('reconnect_failed', () => {
+      console.error('❌ Reconnection failed');
     });
 
     this.socket.on('candle_update', (data: CandleUpdate) => {
