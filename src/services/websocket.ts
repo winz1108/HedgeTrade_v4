@@ -77,10 +77,8 @@ class WebSocketService {
   private statsInterval: NodeJS.Timeout | null = null;
 
   connect() {
-    // WebSocket은 Oracle VM 서버로 직접 연결
-    const wsUrl = import.meta.env.DEV
-      ? 'http://130.61.50.101:54321'
-      : 'https://api.hedgetrade.eu';
+    // WebSocket은 Oracle VM 서버로 직접 연결 (프로덕션에서도 동일)
+    const wsUrl = 'http://130.61.50.101:54321';
 
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
 
