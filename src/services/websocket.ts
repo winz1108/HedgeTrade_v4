@@ -106,45 +106,32 @@ class WebSocketService {
     });
 
     this.socket.on('candle_update', (data: CandleUpdate) => {
-      const now = Date.now();
-      const timestamp = new Date().toISOString();
       this.eventStats.candle_update.count++;
-      this.eventStats.candle_update.lastTime = now;
-      console.log(`[${timestamp}] 📊 candle_update received:`, data.timeframe);
+      this.eventStats.candle_update.lastTime = Date.now();
       this.candleUpdateCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('realtime_candle_update', (data: RealtimeCandleUpdate) => {
-      const now = Date.now();
       this.eventStats.realtime_candle_update.count++;
-      this.eventStats.realtime_candle_update.lastTime = now;
+      this.eventStats.realtime_candle_update.lastTime = Date.now();
       this.realtimeCandleUpdateCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('price_update', (data: PriceUpdate) => {
-      const now = Date.now();
-      const timestamp = new Date().toISOString();
       this.eventStats.price_update.count++;
-      this.eventStats.price_update.lastTime = now;
-      console.log(`[${timestamp}] 💰 price_update received:`, data.currentPrice);
+      this.eventStats.price_update.lastTime = Date.now();
       this.priceUpdateCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('account_assets_update', (data: AccountAssetsUpdate) => {
-      const now = Date.now();
-      const timestamp = new Date().toISOString();
       this.eventStats.account_assets_update.count++;
-      this.eventStats.account_assets_update.lastTime = now;
-      console.log(`[${timestamp}] 💼 account_assets_update received:`, data.accountId);
+      this.eventStats.account_assets_update.lastTime = Date.now();
       this.accountAssetsUpdateCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('binance_server_time', (data: BinanceServerTime) => {
-      const now = Date.now();
-      const timestamp = new Date().toISOString();
       this.eventStats.binance_server_time.count++;
-      this.eventStats.binance_server_time.lastTime = now;
-      console.log(`[${timestamp}] ⏰ binance_server_time received:`, new Date(data.serverTime).toISOString());
+      this.eventStats.binance_server_time.lastTime = Date.now();
       this.binanceServerTimeCallbacks.forEach(cb => cb(data));
     });
 
@@ -172,20 +159,15 @@ class WebSocketService {
     const startTime = Date.now();
     this.statsInterval = setInterval(() => {
       const elapsed = (Date.now() - startTime) / 1000;
-      console.log('\n📊 WebSocket Event Statistics (last 30s):');
-      console.log('═══════════════════════════════════════════════════════');
+      console.log('\n📊 WebSocket Statistics (5min):');
 
       Object.entries(this.eventStats).forEach(([eventName, stats]) => {
-        const rate = stats.count / elapsed;
-        const timeSinceLastEvent = stats.lastTime > 0
-          ? ((Date.now() - stats.lastTime) / 1000).toFixed(1) + 's ago'
-          : 'never';
-
-        console.log(`${eventName.padEnd(25)} | Count: ${String(stats.count).padStart(4)} | Rate: ${rate.toFixed(2)}/s | Last: ${timeSinceLastEvent}`);
+        if (stats.count > 0) {
+          const rate = stats.count / elapsed;
+          console.log(`${eventName}: ${stats.count} events (${rate.toFixed(2)}/s)`);
+        }
       });
-
-      console.log('═══════════════════════════════════════════════════════\n');
-    }, 30000);
+    }, 300000);
   }
 
   onCandleUpdate(callback: CandleUpdateCallback) {
