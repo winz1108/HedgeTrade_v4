@@ -78,15 +78,15 @@ class WebSocketService {
 
   connect() {
     // Development: Use direct Oracle VM server
-    // Production: Use local WebSocket (assumes you have a proxy or local server)
+    // Production: Use api.hedgetrade.eu
     const wsUrl = import.meta.env.DEV
       ? 'http://130.61.50.101:54321'
-      : 'http://localhost:54321';
+      : 'https://api.hedgetrade.eu';
 
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
 
     this.socket = io(wsUrl, {
-      transports: ['websocket', 'polling'],
+      transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
