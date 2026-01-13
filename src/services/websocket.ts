@@ -81,9 +81,10 @@ class WebSocketService {
     const wsUrl = 'https://api.hedgetrade.eu';
 
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
+    console.log('🔌 Socket.IO version:', io.version);
 
     this.socket = io(wsUrl, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
@@ -91,12 +92,15 @@ class WebSocketService {
       timeout: 20000,
       pingInterval: 25000,
       pingTimeout: 60000,
+      upgrade: true,
+      rememberUpgrade: true,
     });
 
     this.socket.on('connect', () => {
       console.log('✅ WebSocket connected');
       console.log('🔌 Socket ID:', this.socket?.id);
       console.log('🌐 Connected to:', wsUrl);
+      console.log('🔌 Transport:', this.socket?.io?.engine?.transport?.name);
       this.connectionStatusCallbacks.forEach(cb => cb(true));
       this.startStatsTracking();
     });
@@ -153,7 +157,23 @@ class WebSocketService {
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+      console.error('❌ WebSocket connection error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error type:', error.type);
+      console.error('Error description:', error.description);
+    });
+
+    this.socket.on('error', (error) => {
+      console.error('❌ WebSocket error:', error);
+    });
+
+    this.socket.io.on('error', (error) => {
+      console.error('❌ Socket.IO Manager error:', error);
+    });
+
+    this.socket.io.on('reconnect_attempt', () => {
+      console.log('🔄 Manager reconnect attempt');
+      console.log('🔌 Available transports:', this.socket?.io?.opts?.transports);
     });
   }
 
