@@ -77,10 +77,14 @@ class WebSocketService {
   private statsInterval: NodeJS.Timeout | null = null;
 
   connect() {
-    // Always connect to api.hedgetrade.eu
-    const wsUrl = 'https://api.hedgetrade.eu';
+    // Get WebSocket URL from environment or use default
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+    const wsPort = import.meta.env.VITE_WS_PORT || '54321';
+    const wsUrl = import.meta.env.VITE_WS_URL || `${apiUrl}:${wsPort}`;
 
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
+    console.log('🔌 Base API URL:', apiUrl);
+    console.log('🔌 WebSocket Port:', wsPort);
     console.log('🔌 Socket.IO version:', io.version);
 
     this.socket = io(wsUrl, {
