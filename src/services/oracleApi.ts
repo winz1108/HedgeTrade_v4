@@ -218,31 +218,46 @@ const convertApiResponseToDashboardData = (
 };
 
 export const fetchDashboardData = async (accountId: string): Promise<DashboardData> => {
-  const baseUrl = getApiUrl();
+  const isDev = import.meta.env.DEV;
+  const baseUrl = isDev ? 'http://130.61.50.101:54321' : getApiUrl();
   const url = `${baseUrl}/api/dashboard?_=${Date.now()}`;
 
-  const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache'
-    },
-  });
+  console.log('🔍 Fetching dashboard data from:', url);
+  console.log('🔍 Environment:', isDev ? 'Development' : 'Production');
 
-  if (!response.ok) {
-    throw new Error(`Oracle VM unavailable: ${response.status} ${response.statusText}`);
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+    });
+
+    console.log('✅ API Response status:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`Oracle VM unavailable: ${response.status} ${response.statusText}`);
+    }
+
+    const apiResponse: ApiResponse = await response.json();
+    console.log('✅ API Response received:', apiResponse ? 'Valid' : 'Empty');
+
+    if (!apiResponse) {
+      throw new Error('Empty API response');
+    }
+
+    // accounts 배열 형식 또는 단일 구조 모두 허용
+    if (!apiResponse.accounts && !(apiResponse as any).priceHistory1m) {
+      throw new Error('Invalid API response: missing accounts or priceHistory1m');
+    }
+
+    const dashboardData = convertApiResponseToDashboardData(apiResponse, accountId);
+    console.log('✅ Dashboard data converted successfully');
+
+    return dashboardData;
+  } catch (error) {
+    console.error('❌ Failed to fetch dashboard data:', error);
+    throw error;
   }
-
-  const apiResponse: ApiResponse = await response.json();
-
-  if (!apiResponse) {
-    throw new Error('Empty API response');
-  }
-
-  // accounts 배열 형식 또는 단일 구조 모두 허용
-  if (!apiResponse.accounts && !(apiResponse as any).priceHistory1m) {
-    throw new Error('Invalid API response: missing accounts or priceHistory1m');
-  }
-
-  return convertApiResponseToDashboardData(apiResponse, accountId);
 };
