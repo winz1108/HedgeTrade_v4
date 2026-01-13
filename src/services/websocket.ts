@@ -1,34 +1,31 @@
 import { io, Socket } from 'socket.io-client';
 
 export interface CandleData {
-  timestamp: number;
+  timeframe: string;
+  openTime: number;
+  closeTime: number;
   open: number;
   high: number;
   low: number;
   close: number;
   volume: number;
-  isFinal?: boolean;
-  ema20?: number;
-  ema50?: number;
+  isFinal: boolean;
+  timestamp: string;
+  rsi?: number;
+  macd?: number;
+  macdSignal?: number;
+  macdHistogram?: number;
   bbUpper?: number;
   bbMiddle?: number;
   bbLower?: number;
   bbWidth?: number;
-  macd?: number;
-  signal?: number;
-  histogram?: number;
-  rsi?: number;
+  ema20?: number;
+  ema50?: number;
 }
 
-export interface RealtimeCandleUpdate {
-  timeframe: string;
-  candle: CandleData;
-}
+export interface RealtimeCandleUpdate extends CandleData {}
 
-export interface CandleUpdate {
-  timeframe: string;
-  candle: CandleData;
-}
+export interface CandleUpdate extends CandleData {}
 
 export interface PriceUpdate {
   currentPrice: number;
@@ -82,9 +79,10 @@ class WebSocketService {
     const wsUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
+    console.log('🔌 Namespace: /ws/dashboard');
     console.log('🔌 Socket.IO version:', io.version);
 
-    this.socket = io(wsUrl, {
+    this.socket = io(`${wsUrl}/ws/dashboard`, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,

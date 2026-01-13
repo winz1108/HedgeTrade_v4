@@ -142,12 +142,13 @@ function App() {
     websocketService.connect();
 
     const convertCandleData = (candleData: CandleData): Candle => ({
-      timestamp: candleData.timestamp,
+      timestamp: candleData.openTime,
       open: candleData.open,
       high: candleData.high,
       low: candleData.low,
       close: candleData.close,
       volume: candleData.volume,
+      isComplete: candleData.isFinal,
       ema20: candleData.ema20,
       ema50: candleData.ema50,
       bbUpper: candleData.bbUpper,
@@ -155,8 +156,8 @@ function App() {
       bbLower: candleData.bbLower,
       bbWidth: candleData.bbWidth,
       macd: candleData.macd,
-      signal: candleData.signal,
-      histogram: candleData.histogram,
+      signal: candleData.macdSignal,
+      histogram: candleData.macdHistogram,
       rsi: candleData.rsi,
     });
 
@@ -178,7 +179,7 @@ function App() {
         if (!prevData || !prevData.priceHistory5m) return prevData;
 
         const candles = [...prevData.priceHistory5m];
-        const newCandle = convertCandleData(update.candle);
+        const newCandle = convertCandleData(update);
 
         if (candles.length > 0) {
           const lastCandle = candles[candles.length - 1];
@@ -202,7 +203,7 @@ function App() {
       setData((prevData) => {
         if (!prevData) return prevData;
 
-        const newCandle = convertCandleData(update.candle);
+        const newCandle = convertCandleData(update);
         const timeframeKey = `priceHistory${update.timeframe}` as keyof DashboardData;
         const existingCandles = prevData[timeframeKey] as Candle[] | undefined;
 
