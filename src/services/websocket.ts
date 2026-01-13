@@ -77,11 +77,8 @@ class WebSocketService {
   private statsInterval: NodeJS.Timeout | null = null;
 
   connect() {
-    // Development: Use direct Oracle VM server
-    // Production: Use api.hedgetrade.eu
-    const wsUrl = import.meta.env.DEV
-      ? 'http://130.61.50.101:54321'
-      : 'https://api.hedgetrade.eu';
+    // Always connect to api.hedgetrade.eu
+    const wsUrl = 'https://api.hedgetrade.eu';
 
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
 
