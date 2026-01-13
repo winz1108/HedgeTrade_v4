@@ -105,10 +105,6 @@ class WebSocketService {
       this.connectionStatusCallbacks.forEach(cb => cb(false));
     });
 
-    this.socket.onAny((eventName, ...args) => {
-      console.log(`🔔 Received event: "${eventName}"`, args);
-    });
-
     this.socket.on('candle_update', (data: CandleUpdate) => {
       const now = Date.now();
       const timestamp = new Date().toISOString();
@@ -120,10 +116,8 @@ class WebSocketService {
 
     this.socket.on('realtime_candle_update', (data: RealtimeCandleUpdate) => {
       const now = Date.now();
-      const timestamp = new Date().toISOString();
       this.eventStats.realtime_candle_update.count++;
       this.eventStats.realtime_candle_update.lastTime = now;
-      console.log(`[${timestamp}] 🔄 realtime_candle_update received:`, data.timeframe, 'price:', data.candle.close);
       this.realtimeCandleUpdateCallbacks.forEach(cb => cb(data));
     });
 
