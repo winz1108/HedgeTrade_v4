@@ -46,6 +46,15 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
   return aggregated.sort((a, b) => a.timestamp - b.timestamp);
 }
 
+interface TooltipData {
+  x: number;
+  y: number;
+  trade: TradeEvent;
+  hasPairedSell: boolean;
+  pairedTrade?: TradeEvent;
+  pinned: boolean;
+}
+
 export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [hoveredCandle, setHoveredCandle] = useState<Candle | null>(null);
@@ -54,7 +63,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const [candleWidth, setCandleWidth] = useState(4);
   const [timeframe, setTimeframe] = useState<Timeframe>('5m');
   const [volumeHeight, setVolumeHeight] = useState(60);
-  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number; trade: TradeEvent; hasPairedSell: boolean; pairedTrade?: TradeEvent } | null>(null);
+  const [pinnedTooltips, setPinnedTooltips] = useState<Map<string, TooltipData>>(new Map());
+  const [hoverTooltip, setHoverTooltip] = useState<TooltipData | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const [hoveredCandleIndex, setHoveredCandleIndex] = useState<number | null>(null);
   const [crosshairPosition, setCrosshairPosition] = useState<{ x: number; y: number } | null>(null);
@@ -384,20 +394,26 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const handleTradeClick = (trade: TradeEvent, e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
 
-    if (trade.type === 'buy') {
-      const pairedTrade = trade.pairId
-        ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
-        : null;
-
+    if (trade.type === 'buy' && trade.pairId) {
+      const pairedTrade = data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp);
       const clientX = 'touches' in e ? e.touches[0]?.clientX || 0 : e.clientX;
       const clientY = 'touches' in e ? e.touches[0]?.clientY || 0 : e.clientY;
 
-      setTooltipPosition({
-        x: clientX,
-        y: clientY,
-        trade,
-        hasPairedSell: pairedTrade?.type === 'sell',
-        pairedTrade: pairedTrade || undefined
+      setPinnedTooltips(prev => {
+        const next = new Map(prev);
+        if (next.has(trade.pairId!)) {
+          next.delete(trade.pairId!);
+        } else {
+          next.set(trade.pairId!, {
+            x: clientX,
+            y: clientY,
+            trade,
+            hasPairedSell: pairedTrade?.type === 'sell' || false,
+            pairedTrade: pairedTrade || undefined,
+            pinned: true
+          });
+        }
+        return next;
       });
       setHoveredTrade(trade);
       onTradeHover(trade);
@@ -409,19 +425,18 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       setHoveredTrade(trade);
       onTradeHover(trade);
 
-      if (trade.type === 'buy') {
+      if (trade.type === 'buy' && trade.pairId && !pinnedTooltips.has(trade.pairId)) {
         const containerRect = containerRef.current?.getBoundingClientRect();
         if (containerRect) {
-          const pairedTrade = trade.pairId
-            ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
-            : null;
+          const pairedTrade = data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp);
 
-          setTooltipPosition({
+          setHoverTooltip({
             x: containerRect.left + x,
             y: containerRect.top + y + window.scrollY,
             trade,
-            hasPairedSell: pairedTrade?.type === 'sell',
-            pairedTrade: pairedTrade || undefined
+            hasPairedSell: pairedTrade?.type === 'sell' || false,
+            pairedTrade: pairedTrade || undefined,
+            pinned: false
           });
         }
       }
@@ -432,14 +447,18 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     if (window.innerWidth >= 768) {
       setHoveredTrade(null);
       onTradeHover(null);
-      setTooltipPosition(null);
+      setHoverTooltip(null);
     }
   };
 
-  const handleCloseTooltip = () => {
+  const handleCloseTooltip = (pairId: string) => {
+    setPinnedTooltips(prev => {
+      const next = new Map(prev);
+      next.delete(pairId);
+      return next;
+    });
     setHoveredTrade(null);
     onTradeHover(null);
-    setTooltipPosition(null);
   };
 
   const predictionStartIndex = visibleCandles.findIndex(c => c.isPrediction);
@@ -449,21 +468,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   const priceChange = latestCandle && firstCandle ? latestCandle.close - firstCandle.open : 0;
   const priceChangePercent = latestCandle && firstCandle && firstCandle.open ? (priceChange / firstCandle.open) * 100 : 0;
 
-  const renderTooltip = () => {
-    if (!tooltipPosition) return null;
-
-    const { x, y, trade, hasPairedSell, pairedTrade } = tooltipPosition;
+  const renderSingleTooltip = (tooltipData: TooltipData) => {
+    const { x, y, trade, hasPairedSell, pairedTrade, pinned } = tooltipData;
 
     const isMobileView = window.innerWidth < 768;
 
     if (isMobileView) {
       return createPortal(
         <div
+          key={trade.pairId || trade.timestamp}
           className="fixed left-2 right-2 bottom-4 bg-[#1e2329]/90 backdrop-blur-md border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto"
           style={{
             zIndex: 999999,
           }}
-          onClick={handleCloseTooltip}
+          onClick={() => trade.pairId && handleCloseTooltip(trade.pairId)}
         >
         {!hasPairedSell ? (
           <>
@@ -748,7 +766,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
     return createPortal(
       <div
-        className="fixed bg-[#1e2329]/90 backdrop-blur-md border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto"
+        key={trade.pairId || trade.timestamp}
+        className={`fixed bg-[#1e2329]/90 backdrop-blur-md border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl max-h-[600px] overflow-y-auto ${!pinned ? 'pointer-events-none' : ''}`}
         style={{
           left: `${leftPos}px`,
           top: `${topPos}px`,
@@ -757,6 +776,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           zIndex: 999999,
         }}
       >
+        {pinned && (
+          <button
+            onClick={() => trade.pairId && handleCloseTooltip(trade.pairId)}
+            className="absolute top-2 right-2 text-slate-400 hover:text-white transition-colors"
+          >
+            ✕
+          </button>
+        )}
         {!hasPairedSell ? (
           <>
             <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
@@ -1009,6 +1036,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       </div>,
       document.body
     );
+  };
+
+  const renderTooltips = () => {
+    const tooltipsToRender: TooltipData[] = [];
+
+    if (hoverTooltip) {
+      tooltipsToRender.push(hoverTooltip);
+    }
+
+    pinnedTooltips.forEach(tooltip => {
+      tooltipsToRender.push(tooltip);
+    });
+
+    return tooltipsToRender.map(tooltipData => renderSingleTooltip(tooltipData));
   };
 
   const getTimeframeMinutes = (tf: Timeframe): number => {
@@ -2112,7 +2153,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
   return (
     <>
-      {renderTooltip()}
+      {renderTooltips()}
       {isMaximized ? createPortal(
         <div className="fixed inset-0 z-50 bg-slate-950 overflow-auto">
           {chartContent}
