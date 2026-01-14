@@ -110,11 +110,6 @@ function App() {
   };
 
   useEffect(() => {
-    setLoading(true);
-    loadData();
-  }, [loadData]);
-
-  useEffect(() => {
     window.location.hash = selectedAccount;
     setLoading(true);
     loadData();
