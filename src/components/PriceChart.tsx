@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { ZoomIn, ZoomOut, Maximize2, Minimize2, Eye, EyeOff } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from '../types/dashboard';
 import { formatLocalTime, formatChartTime } from '../utils/time';
+import { websocketService } from '../services/websocket';
 
 interface PriceChartProps {
   data: DashboardData;
@@ -1059,6 +1060,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5 overflow-x-auto">
             {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
+              const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
+              const isLoading = !hasData && tf !== timeframe;
+
               return (
                 <button
                   key={tf}
@@ -1066,6 +1070,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     setTimeframe(tf);
                     setScrollOffset(0);
                     setResetScroll(prev => prev + 1);
+                    if (!hasData) {
+                      websocketService.requestTimeframeData(tf);
+                    }
                   }}
                   className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all flex-shrink-0 ${
                     timeframe === tf
@@ -1074,6 +1081,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   }`}
                 >
                   {tf}
+                  {isLoading && <span className="ml-1 text-[8px] opacity-50">•••</span>}
                 </button>
               );
             })}

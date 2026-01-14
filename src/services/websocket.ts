@@ -240,6 +240,15 @@ class WebSocketService {
   isConnected(): boolean {
     return this.socket?.connected ?? false;
   }
+
+  requestTimeframeData(timeframe: string) {
+    if (this.socket && this.socket.connected) {
+      console.log(`📊 Requesting ${timeframe} candle data from server`);
+      this.socket.emit('request_timeframe', { timeframe });
+    } else {
+      console.warn('⚠️ Cannot request timeframe data: WebSocket not connected');
+    }
+  }
 }
 
 export const websocketService = new WebSocketService();
