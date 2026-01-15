@@ -211,6 +211,8 @@ function App() {
     });
 
     const unsubscribePriceUpdate = websocketService.onPriceUpdate((priceData) => {
+      document.title = `HedgeTrade - $${priceData.currentPrice.toFixed(2)}`;
+
       setData((prevData) => {
         if (!prevData) return prevData;
         return {
