@@ -112,8 +112,8 @@ function App() {
       const isDev = import.meta.env.DEV;
       const apiUrl = import.meta.env.VITE_API_URL;
       const url = isDev
-        ? 'http://130.61.50.101:54321/api/debug/verification/text'
-        : `${apiUrl}/api/debug/verification/text`;
+        ? 'http://130.61.50.101:54321/api/debug'
+        : `${apiUrl}/api/debug`;
 
       const response = await fetch(url);
 
@@ -143,21 +143,17 @@ function App() {
       const isDev = import.meta.env.DEV;
       const apiUrl = import.meta.env.VITE_API_URL;
       const url = isDev
-        ? 'http://130.61.50.101:54321/api/debug/realtime-performance/text'
-        : `${apiUrl}/api/debug/realtime-performance/text`;
+        ? 'http://130.61.50.101:54321/api/realtime_performance'
+        : `${apiUrl}/api/realtime_performance`;
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'text/plain; charset=utf-8',
-        },
-      });
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const text = await response.text();
+      const data = await response.json();
+      const text = JSON.stringify(data, null, 2);
       setPerformanceResult(text);
     } catch (error) {
       console.error('실시간 성능 지표 조회 실패:', error);
