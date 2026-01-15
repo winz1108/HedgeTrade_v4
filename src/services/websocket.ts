@@ -11,6 +11,7 @@ export interface CandleData {
   volume: number;
   isFinal: boolean;
   timestamp: string;
+  is_complete?: boolean;
   rsi?: number;
   macd?: number;
   macdSignal?: number;
@@ -26,6 +27,10 @@ export interface CandleData {
 export interface RealtimeCandleUpdate extends CandleData {}
 
 export interface CandleUpdate extends CandleData {}
+
+export interface CandleComplete extends CandleData {
+  is_complete: true;
+}
 
 export interface PriceUpdate {
   currentPrice: number;
@@ -50,6 +55,7 @@ export interface BinanceServerTime {
 
 type CandleUpdateCallback = (data: CandleUpdate) => void;
 type RealtimeCandleUpdateCallback = (data: RealtimeCandleUpdate) => void;
+type CandleCompleteCallback = (data: CandleComplete) => void;
 type PriceUpdateCallback = (data: PriceUpdate) => void;
 type AccountAssetsUpdateCallback = (data: AccountAssetsUpdate) => void;
 type BinanceServerTimeCallback = (data: BinanceServerTime) => void;
@@ -59,6 +65,7 @@ class WebSocketService {
   private socket: Socket | null = null;
   private candleUpdateCallbacks: Set<CandleUpdateCallback> = new Set();
   private realtimeCandleUpdateCallbacks: Set<RealtimeCandleUpdateCallback> = new Set();
+  private candleCompleteCallbacks: Set<CandleCompleteCallback> = new Set();
   private priceUpdateCallbacks: Set<PriceUpdateCallback> = new Set();
   private accountAssetsUpdateCallbacks: Set<AccountAssetsUpdateCallback> = new Set();
   private binanceServerTimeCallbacks: Set<BinanceServerTimeCallback> = new Set();
@@ -68,6 +75,7 @@ class WebSocketService {
     price_update: { count: 0, lastTime: 0 },
     realtime_candle_update: { count: 0, lastTime: 0 },
     candle_update: { count: 0, lastTime: 0 },
+    candle_complete: { count: 0, lastTime: 0 },
     account_assets_update: { count: 0, lastTime: 0 },
     binance_server_time: { count: 0, lastTime: 0 },
   };
@@ -130,6 +138,12 @@ class WebSocketService {
       this.eventStats.candle_update.count++;
       this.eventStats.candle_update.lastTime = Date.now();
       this.candleUpdateCallbacks.forEach(cb => cb(data));
+    });
+
+    this.socket.on('candle_complete', (data: CandleComplete) => {
+      this.eventStats.candle_complete.count++;
+      this.eventStats.candle_complete.lastTime = Date.now();
+      this.candleCompleteCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('realtime_candle_update', (data: RealtimeCandleUpdate) => {
@@ -210,6 +224,11 @@ class WebSocketService {
   onCandleUpdate(callback: CandleUpdateCallback) {
     this.candleUpdateCallbacks.add(callback);
     return () => this.candleUpdateCallbacks.delete(callback);
+  }
+
+  onCandleComplete(callback: CandleCompleteCallback) {
+    this.candleCompleteCallbacks.add(callback);
+    return () => this.candleCompleteCallbacks.delete(callback);
   }
 
   onRealtimeCandleUpdate(callback: RealtimeCandleUpdateCallback) {

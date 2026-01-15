@@ -217,6 +217,67 @@ const convertApiResponseToDashboardData = (
   };
 };
 
+export const fetchChartData = async (timeframe: string, limit: number = 500) => {
+  const isDev = import.meta.env.DEV;
+  const baseUrl = isDev ? 'http://130.61.50.101:54321' : getApiUrl();
+  const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}`;
+
+  console.log(`📊 Fetching ${timeframe} chart data from:`, url);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch chart data: ${response.status} ${response.statusText}`);
+    }
+
+    const chartResponse = await response.json();
+
+    if (!chartResponse.success) {
+      throw new Error(chartResponse.error || 'Failed to load chart data');
+    }
+
+    const mapCandles = (candles: any[]) => candles?.map(c => ({
+      timestamp: c.timestamp,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+      ema20: c.ema20,
+      ema50: c.ema50,
+      bb_upper: c.bb_upper,
+      bb_lower: c.bb_lower,
+      bbUpper: c.bbUpper,
+      bbMiddle: c.bbMiddle,
+      bbLower: c.bbLower,
+      bbWidth: c.bbWidth,
+      macd: c.macd,
+      signal: c.signal,
+      histogram: c.histogram,
+      rsi: c.rsi,
+    })) || [];
+
+    console.log(`✅ ${timeframe} chart data loaded: ${chartResponse.candles.length} candles`);
+
+    return {
+      timeframe: chartResponse.timeframe,
+      candles: mapCandles(chartResponse.candles),
+      count: chartResponse.count,
+      source: chartResponse.source,
+    };
+  } catch (error) {
+    console.error(`❌ Failed to fetch ${timeframe} chart data:`, error);
+    throw error;
+  }
+};
+
 export const fetchDashboardData = async (accountId: string): Promise<DashboardData> => {
   const isDev = import.meta.env.DEV;
   const baseUrl = isDev ? 'http://130.61.50.101:54321' : getApiUrl();
@@ -245,11 +306,6 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 
     if (!apiResponse) {
       throw new Error('Empty API response');
-    }
-
-    // accounts 배열 형식 또는 단일 구조 모두 허용
-    if (!apiResponse.accounts && !(apiResponse as any).priceHistory1m) {
-      throw new Error('Invalid API response: missing accounts or priceHistory1m');
     }
 
     const dashboardData = convertApiResponseToDashboardData(apiResponse, accountId);

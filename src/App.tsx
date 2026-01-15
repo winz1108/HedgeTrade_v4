@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { RefreshCw, X, Bug, BarChart3 } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from './types/dashboard';
-import { fetchDashboardData } from './services/oracleApi';
+import { fetchDashboardData, fetchChartData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
 import { formatLocalTime } from './utils/time';
@@ -26,6 +26,9 @@ function App() {
   const loadData = useCallback(async () => {
     try {
       setError(null);
+
+      // 1. Load dashboard data first
+      console.log('📊 Step 1: Loading dashboard data...');
       const dashboardData = await fetchDashboardData(selectedAccount);
 
       if (!dashboardData || !dashboardData.metrics) {
@@ -36,11 +39,66 @@ function App() {
         setSelectedAccount(dashboardData.accountId);
       }
 
+      // 2. Load 5m chart first (priority)
+      console.log('📊 Step 2: Loading 5m chart data (priority)...');
+      try {
+        const chart5m = await fetchChartData('5m', 500);
+        dashboardData.priceHistory5m = chart5m.candles as Candle[];
+        console.log('✅ 5m chart loaded:', chart5m.candles.length, 'candles');
+      } catch (chartError) {
+        console.error('⚠️ Failed to load 5m chart:', chartError);
+      }
+
+      // Set initial data with 5m chart
       setData({ ...dashboardData });
+      setLoading(false);
+
+      // 3. Load other timeframes in background
+      console.log('📊 Step 3: Loading other timeframes in background...');
+      const timeframes = ['1m', '15m', '30m', '1h', '4h', '1d'] as const;
+
+      for (const timeframe of timeframes) {
+        try {
+          const chart = await fetchChartData(timeframe, 500);
+          console.log(`✅ ${timeframe} chart loaded:`, chart.candles.length, 'candles');
+
+          // Update data with new timeframe
+          setData(prev => {
+            if (!prev) return prev;
+            const updated = { ...prev };
+
+            switch (timeframe) {
+              case '1m':
+                updated.priceHistory1m = chart.candles as Candle[];
+                break;
+              case '15m':
+                updated.priceHistory15m = chart.candles as Candle[];
+                break;
+              case '30m':
+                updated.priceHistory30m = chart.candles as Candle[];
+                break;
+              case '1h':
+                updated.priceHistory1h = chart.candles as Candle[];
+                break;
+              case '4h':
+                updated.priceHistory4h = chart.candles as Candle[];
+                break;
+              case '1d':
+                updated.priceHistory1d = chart.candles as Candle[];
+                break;
+            }
+
+            return updated;
+          });
+        } catch (chartError) {
+          console.error(`⚠️ Failed to load ${timeframe} chart:`, chartError);
+        }
+      }
+
+      console.log('✅ All chart data loaded');
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
-    } finally {
       setLoading(false);
     }
   }, [selectedAccount]);
