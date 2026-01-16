@@ -4,64 +4,63 @@ const getApiUrl = () => {
   return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 };
 
-const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: boolean): TradeEvent[] => {
+const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: boolean, entryTime?: number): TradeEvent[] => {
   const events: TradeEvent[] = [];
 
   if (!accountTrades || !Array.isArray(accountTrades)) {
     return events;
   }
 
-  const buys: any[] = [];
-  const sells: any[] = [];
+  // 시간순 정렬
+  const sortedTrades = [...accountTrades].sort((a, b) => a.timestamp - b.timestamp);
 
-  accountTrades.forEach((trade) => {
-    if (trade.type === 'buy') {
-      buys.push(trade);
-    } else if (trade.type === 'sell') {
-      sells.push(trade);
+  // Entry-Exit 페어 생성
+  const entries: any[] = [];
+  const exits: any[] = [];
+
+  for (const trade of sortedTrades) {
+    if (trade.type === 'entry' || trade.type === 'buy') {
+      entries.push(trade);
+    } else if (trade.type === 'exit' || trade.type === 'sell') {
+      exits.push(trade);
     }
-  });
+  }
 
-  buys.sort((a, b) => a.timestamp - b.timestamp);
-  sells.sort((a, b) => a.timestamp - b.timestamp);
-
+  // 페어링: 각 Entry에 대응하는 Exit 찾기
   let pairCount = 0;
-  const buyIndex = 0;
 
-  for (let i = 0; i < buys.length; i++) {
-    const buy = buys[i];
-    const isLastBuy = i === buys.length - 1;
-    const isHoldingThisPosition = hasPosition && isLastBuy;
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const isLastEntry = i === entries.length - 1;
+    const isHoldingThisPosition = hasPosition && isLastEntry && entryTime && Math.abs(entry.timestamp - entryTime) < 5000;
 
-    if (isHoldingThisPosition) {
-      events.push({
-        timestamp: buy.timestamp,
-        type: 'buy',
-        price: buy.price,
-        pairId: `pair_${pairCount}`,
-      });
-    } else if (sells[i]) {
-      const sell = sells[i];
-      const pairId = `pair_${pairCount}`;
-      const profitPct = ((sell.price - buy.price) / buy.price) * 100;
+    // Exit 찾기 - Entry보다 나중이고 아직 페어링되지 않은 것
+    const exit = exits[i]; // 순서대로 페어링
 
-      events.push({
-        timestamp: buy.timestamp,
-        type: 'buy',
-        price: buy.price,
-        pairId,
-      });
+    const pairId = `pair_${pairCount}`;
+
+    // Entry 추가
+    events.push({
+      timestamp: entry.timestamp,
+      type: 'buy',
+      price: entry.price,
+      pairId: pairId,
+    });
+
+    // Exit이 있으면 추가 (보유중이 아닌 경우)
+    if (exit && !isHoldingThisPosition) {
+      const profitPct = ((exit.price - entry.price) / entry.price) * 100;
 
       events.push({
-        timestamp: sell.timestamp,
+        timestamp: exit.timestamp,
         type: 'sell',
-        price: sell.price,
+        price: exit.price,
         profit: profitPct,
-        pairId,
+        pairId: pairId,
       });
-
-      pairCount++;
     }
+
+    pairCount++;
   }
 
   return events.sort((a, b) => a.timestamp - b.timestamp);
@@ -116,7 +115,7 @@ const convertApiResponseToDashboardData = (
       priceHistory4h: mapCandles((apiResponse as any).priceHistory4h),
       priceHistory1d: mapCandles((apiResponse as any).priceHistory1d),
       pricePredictions: [],
-      trades: convertAccountTradesToTradeEvents(account.trades, account.holding.hasPosition),
+      trades: convertAccountTradesToTradeEvents(account.trades, account.holding.hasPosition, account.holding.entryTime),
       holding: {
         isHolding: account.holding.hasPosition,
         buyPrice: account.holding.entryPrice,

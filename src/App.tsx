@@ -502,6 +502,11 @@ function App() {
               {data.version && (
                 <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
               )}
+              {data.currentTime && (
+                <span className="text-[10px] text-slate-400 font-mono">
+                  {formatLocalTime(data.currentTime)}
+                </span>
+              )}
               {data.holding.isHolding && (
                 <div className="relative px-4 py-2 bg-slate-900/80 backdrop-blur-md rounded-lg border border-emerald-400/30 shadow-2xl overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10"></div>
