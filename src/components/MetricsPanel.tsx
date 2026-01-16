@@ -219,8 +219,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   }
 
   if (position === 'trades') {
-    const [hoveredPair, setHoveredPair] = useState<number | null>(null);
-
     const oneWeekAgo = data.currentTime - (7 * 24 * 60 * 60 * 1000);
     const allTrades = [...data.trades]
       .sort((a, b) => a.timestamp - b.timestamp)
@@ -268,13 +266,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
         <div className="space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: '140px' }}>
           {completedPairs.length > 0 ? (
             completedPairs.map((pair) => (
-              <div
-                key={pair.pairIndex}
-                className="relative"
-                onMouseEnter={() => setHoveredPair(pair.pairIndex)}
-                onMouseLeave={() => setHoveredPair(null)}
-              >
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-t p-1">
+              <div key={pair.pairIndex} className="space-y-1">
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded p-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] font-bold uppercase text-blue-400">BUY</span>
                     <div className="flex flex-col items-end">
@@ -284,12 +277,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   </div>
                 </div>
 
-                {hoveredPair === pair.pairIndex && pair.sell && (
-                  <div className="absolute left-1/2 top-[19px] w-px h-[calc(100%-38px)] z-10 border-l border-dashed border-slate-400/50"></div>
-                )}
-
                 {pair.sell && (
-                  <div className={`bg-orange-500/10 border-t-0 border ${pair.profit! >= 0 ? 'border-emerald-500/30' : 'border-rose-500/30'} rounded-b p-1`}>
+                  <div className={`bg-orange-500/10 border ${pair.profit! >= 0 ? 'border-emerald-500/30' : 'border-rose-500/30'} rounded p-1`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] font-bold uppercase text-orange-400">SELL</span>
