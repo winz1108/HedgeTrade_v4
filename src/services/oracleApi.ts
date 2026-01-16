@@ -4,21 +4,65 @@ const getApiUrl = () => {
   return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 };
 
-const convertAccountTradesToTradeEvents = (accountTrades: any[]): TradeEvent[] => {
+const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: boolean): TradeEvent[] => {
   const events: TradeEvent[] = [];
 
   if (!accountTrades || !Array.isArray(accountTrades)) {
     return events;
   }
 
+  const buys: any[] = [];
+  const sells: any[] = [];
+
   accountTrades.forEach((trade) => {
-    events.push({
-      timestamp: trade.timestamp,
-      type: trade.type as 'buy' | 'sell',
-      price: trade.price,
-      pairId: `trade_${trade.id || trade.orderId}`,
-    });
+    if (trade.type === 'buy') {
+      buys.push(trade);
+    } else if (trade.type === 'sell') {
+      sells.push(trade);
+    }
   });
+
+  buys.sort((a, b) => a.timestamp - b.timestamp);
+  sells.sort((a, b) => a.timestamp - b.timestamp);
+
+  let pairCount = 0;
+  const buyIndex = 0;
+
+  for (let i = 0; i < buys.length; i++) {
+    const buy = buys[i];
+    const isLastBuy = i === buys.length - 1;
+    const isHoldingThisPosition = hasPosition && isLastBuy;
+
+    if (isHoldingThisPosition) {
+      events.push({
+        timestamp: buy.timestamp,
+        type: 'buy',
+        price: buy.price,
+        pairId: `pair_${pairCount}`,
+      });
+    } else if (sells[i]) {
+      const sell = sells[i];
+      const pairId = `pair_${pairCount}`;
+      const profitPct = ((sell.price - buy.price) / buy.price) * 100;
+
+      events.push({
+        timestamp: buy.timestamp,
+        type: 'buy',
+        price: buy.price,
+        pairId,
+      });
+
+      events.push({
+        timestamp: sell.timestamp,
+        type: 'sell',
+        price: sell.price,
+        profit: profitPct,
+        pairId,
+      });
+
+      pairCount++;
+    }
+  }
 
   return events.sort((a, b) => a.timestamp - b.timestamp);
 };
@@ -72,7 +116,7 @@ const convertApiResponseToDashboardData = (
       priceHistory4h: mapCandles((apiResponse as any).priceHistory4h),
       priceHistory1d: mapCandles((apiResponse as any).priceHistory1d),
       pricePredictions: [],
-      trades: convertAccountTradesToTradeEvents(account.trades),
+      trades: convertAccountTradesToTradeEvents(account.trades, account.holding.hasPosition),
       holding: {
         isHolding: account.holding.hasPosition,
         buyPrice: account.holding.entryPrice,
@@ -99,11 +143,11 @@ const convertApiResponseToDashboardData = (
       gateWeights: apiResponse.gateWeights,
       metrics: {
         portfolioReturn: account.metrics.portfolioReturn ?? 0,
-        portfolioReturnWithCommission: (account.metrics as any).portfolioReturnWithCommission,
-        marketReturn: (apiResponse.metrics as any)?.marketChange ?? 0,
-        avgTradeReturn: (account.metrics as any).avgPnl ?? 0,
-        takeProfitCount: (account.metrics as any).winningTrades ?? 0,
-        stopLossCount: Math.max(0, (account.metrics.totalTrades ?? 0) - ((account.metrics as any).winningTrades ?? 0)),
+        portfolioReturnWithCommission: account.metrics.portfolioReturnWithCommission ?? account.metrics.portfolioReturn,
+        marketReturn: (apiResponse.metrics as any)?.marketChange ?? (apiResponse.metrics as any)?.marketReturn ?? 0,
+        avgTradeReturn: account.metrics.avgTradeReturn ?? (account.metrics as any).avgPnl ?? 0,
+        takeProfitCount: account.metrics.takeProfitCount ?? 0,
+        stopLossCount: account.metrics.stopLossCount ?? 0,
       },
       accountId: selectedAccountId,
       accountName: account.accountName,

@@ -1642,7 +1642,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       y2={sellPos.y}
                       stroke="rgba(100, 116, 139, 0.4)"
                       strokeWidth="1"
-                      strokeDasharray="3 3"
                     />
                   );
                 });
