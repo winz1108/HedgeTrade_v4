@@ -4,32 +4,20 @@ const getApiUrl = () => {
   return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 };
 
-const convertAccountTradesToTradeEvents = (accountTrades: AccountData['trades']): TradeEvent[] => {
+const convertAccountTradesToTradeEvents = (accountTrades: any[]): TradeEvent[] => {
   const events: TradeEvent[] = [];
 
   if (!accountTrades || !Array.isArray(accountTrades)) {
     return events;
   }
 
-  accountTrades.forEach((trade, index) => {
-    const pairId = `pair_${trade.entryTime}_${index}`;
-
+  accountTrades.forEach((trade) => {
     events.push({
-      timestamp: trade.entryTime,
-      type: 'buy',
-      price: trade.entryPrice,
-      pairId,
+      timestamp: trade.timestamp,
+      type: trade.type as 'buy' | 'sell',
+      price: trade.price,
+      pairId: `trade_${trade.id || trade.orderId}`,
     });
-
-    if (trade.completed) {
-      events.push({
-        timestamp: trade.exitTime,
-        type: 'sell',
-        price: trade.exitPrice,
-        profit: trade.pnlPct,
-        pairId,
-      });
-    }
   });
 
   return events.sort((a, b) => a.timestamp - b.timestamp);
@@ -110,12 +98,12 @@ const convertApiResponseToDashboardData = (
       marketState: apiResponse.marketState,
       gateWeights: apiResponse.gateWeights,
       metrics: {
-        portfolioReturn: account.metrics.portfolioReturn,
-        portfolioReturnWithCommission: account.metrics.portfolioReturnWithCommission,
-        marketReturn: apiResponse.metrics.marketReturn ?? 0,
-        avgTradeReturn: account.metrics.avgPnl ?? 0,
-        takeProfitCount: account.metrics.winningTrades,
-        stopLossCount: account.metrics.totalTrades - account.metrics.winningTrades,
+        portfolioReturn: account.metrics.portfolioReturn ?? 0,
+        portfolioReturnWithCommission: (account.metrics as any).portfolioReturnWithCommission,
+        marketReturn: (apiResponse.metrics as any)?.marketChange ?? 0,
+        avgTradeReturn: (account.metrics as any).avgPnl ?? 0,
+        takeProfitCount: (account.metrics as any).winningTrades ?? 0,
+        stopLossCount: Math.max(0, (account.metrics.totalTrades ?? 0) - ((account.metrics as any).winningTrades ?? 0)),
       },
       accountId: selectedAccountId,
       accountName: account.accountName,
@@ -207,7 +195,7 @@ const convertApiResponseToDashboardData = (
     metrics: {
       portfolioReturn: (apiResponse as any).metrics?.portfolioReturn ?? 0,
       portfolioReturnWithCommission: (apiResponse as any).metrics?.portfolioReturnWithCommission,
-      marketReturn: (apiResponse as any).metrics?.marketReturn ?? 0,
+      marketReturn: (apiResponse as any).metrics?.marketChange ?? (apiResponse as any).metrics?.marketReturn ?? 0,
       avgTradeReturn: (apiResponse as any).metrics?.avgTradeReturn ?? 0,
       takeProfitCount: (apiResponse as any).metrics?.takeProfitCount ?? 0,
       stopLossCount: (apiResponse as any).metrics?.stopLossCount ?? 0,
