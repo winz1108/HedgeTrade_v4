@@ -410,19 +410,21 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       setHoveredTrade(trade);
       onTradeHover(trade);
 
-      const containerRect = containerRef.current?.getBoundingClientRect();
-      if (containerRect) {
-        const pairedTrade = trade.pairId
-          ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
-          : null;
+      if (trade.type === 'buy') {
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+          const pairedTrade = trade.pairId
+            ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
+            : null;
 
-        setTooltipPosition({
-          x: containerRect.left + x,
-          y: containerRect.top + y + window.scrollY,
-          trade,
-          hasPairedSell: pairedTrade?.type === 'sell',
-          pairedTrade: pairedTrade || undefined
-        });
+          setTooltipPosition({
+            x: containerRect.left + x,
+            y: containerRect.top + y + window.scrollY,
+            trade,
+            hasPairedSell: pairedTrade?.type === 'sell',
+            pairedTrade: pairedTrade || undefined
+          });
+        }
       }
     }
   };
@@ -1541,6 +1543,112 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </svg>
             )}
 
+            {/* Connection lines between paired B and S - zIndex 4 */}
+            <svg className="absolute top-0 left-0 w-full pointer-events-none" height={priceChartHeight} style={{ zIndex: 4 }}>
+            {(() => {
+              const allTrades: Array<TradeEvent & { isPaired: boolean }> = [];
+
+              data.trades.forEach(trade => {
+                const pairedTrade = trade.pairId
+                  ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
+                  : null;
+                allTrades.push({
+                  ...trade,
+                  isPaired: !!pairedTrade
+                });
+              });
+
+              if (data.holding.buyPrice && data.holding.buyTime) {
+                const existsInTrades = allTrades.some(
+                  t => t.type === 'buy' && Math.abs(t.timestamp - data.holding.buyTime!) < 5000
+                );
+
+                if (!existsInTrades) {
+                  allTrades.push({
+                    timestamp: data.holding.buyTime,
+                    type: 'buy',
+                    price: data.holding.buyPrice,
+                    isPaired: false
+                  });
+                }
+              }
+
+              const timeframeMinutes = getTimeframeMinutes(timeframe);
+              const timeframeMs = timeframeMinutes * 60000;
+              const visibleTimeRangeStart = visibleCandles.length > 0 ? visibleCandles[0].timestamp : 0;
+              const visibleTimeRangeEnd = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0;
+
+              if (!showTradeMarkers || visibleCandles.length === 0) return null;
+
+              const getTradePosition = (trade: TradeEvent) => {
+                let candleIndex = -1;
+
+                if (timeframeMinutes === 1) {
+                  candleIndex = visibleCandles.findIndex(c => Math.abs(c.timestamp - trade.timestamp) < 60000);
+                } else {
+                  const tradePeriod = Math.floor(trade.timestamp / timeframeMs) * timeframeMs;
+                  candleIndex = visibleCandles.findIndex(c => {
+                    const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
+                    return candlePeriod === tradePeriod;
+                  });
+
+                  if (candleIndex === -1) {
+                    candleIndex = visibleCandles.findIndex(c => {
+                      const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
+                      return trade.timestamp >= candlePeriod && trade.timestamp < candlePeriod + timeframeMs;
+                    });
+                  }
+
+                  if (candleIndex === -1) {
+                    const closestCandle = visibleCandles.reduce((closest, candle, idx) => {
+                      const timeDiff = Math.abs(candle.timestamp - trade.timestamp);
+                      if (timeDiff < closest.diff && timeDiff < timeframeMs * 1.5) {
+                        return { idx, diff: timeDiff };
+                      }
+                      return closest;
+                    }, { idx: -1, diff: Infinity });
+
+                    if (closestCandle.idx !== -1) {
+                      candleIndex = closestCandle.idx;
+                    }
+                  }
+                }
+
+                if (candleIndex === -1) return null;
+
+                return {
+                  x: candleIndex * (candleWidth + candleGap) + candleWidth / 2,
+                  y: priceToY(trade.price)
+                };
+              };
+
+              return allTrades
+                .filter(trade => trade.type === 'buy' && trade.isPaired && trade.pairId)
+                .map(buyTrade => {
+                  const sellTrade = data.trades.find(t => t.pairId === buyTrade.pairId && t.type === 'sell');
+                  if (!sellTrade) return null;
+
+                  const buyPos = getTradePosition(buyTrade);
+                  const sellPos = getTradePosition(sellTrade);
+
+                  if (!buyPos || !sellPos) return null;
+
+                  return (
+                    <line
+                      key={`line-${buyTrade.pairId}`}
+                      x1={buyPos.x}
+                      y1={buyPos.y}
+                      x2={sellPos.x}
+                      y2={sellPos.y}
+                      stroke="rgba(100, 116, 139, 0.4)"
+                      strokeWidth="1"
+                      strokeDasharray="3 3"
+                    />
+                  );
+                });
+            })()}
+            </svg>
+
             <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, width: `${visibleCandles.length * (candleWidth + candleGap)}px`, overflow: 'visible', zIndex: 5 }}>
             {(() => {
               const allTrades: Array<TradeEvent & { isPaired: boolean }> = [];
@@ -1575,6 +1683,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               const visibleTimeRangeStart = visibleCandles.length > 0 ? visibleCandles[0].timestamp : 0;
               const visibleTimeRangeEnd = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0;
 
+              const unpairedBuyTrades = allTrades.filter(t => t.type === 'buy' && !t.isPaired);
+              const lastUnpairedBuyTimestamp = unpairedBuyTrades.length > 0
+                ? Math.max(...unpairedBuyTrades.map(t => t.timestamp))
+                : null;
 
               return allTrades.map((trade, idx) => {
                 if (!showTradeMarkers) return null;
@@ -1659,7 +1771,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   >
                     {trade.type === 'buy' ? (
                       <div className="relative flex items-center justify-center">
-                        {!trade.isPaired && (
+                        {!trade.isPaired && lastUnpairedBuyTimestamp === trade.timestamp && (
                           <>
                             <div className="absolute w-12 h-12 bg-[#3b82f6] rounded-full opacity-10 animate-pulse" />
                             <div className="absolute w-10 h-10 bg-[#3b82f6] rounded-full opacity-15 animate-ping" style={{ animationDuration: '2s' }} />
