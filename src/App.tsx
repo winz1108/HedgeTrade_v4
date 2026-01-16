@@ -109,11 +109,8 @@ function App() {
     setVerificationResult(null);
 
     try {
-      const isDev = import.meta.env.DEV;
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const url = isDev
-        ? 'http://130.61.50.101:54321/api/debug'
-        : `${apiUrl}/api/debug`;
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://130.61.50.101:54321';
+      const url = `${apiUrl}/api/debug`;
 
       const response = await fetch(url);
 
@@ -140,11 +137,8 @@ function App() {
     setPerformanceResult(null);
 
     try {
-      const isDev = import.meta.env.DEV;
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const url = isDev
-        ? 'http://130.61.50.101:54321/api/realtime_performance'
-        : `${apiUrl}/api/realtime_performance`;
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://130.61.50.101:54321';
+      const url = `${apiUrl}/api/realtime_performance`;
 
       const response = await fetch(url);
 
