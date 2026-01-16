@@ -410,21 +410,19 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       setHoveredTrade(trade);
       onTradeHover(trade);
 
-      if (trade.type === 'buy') {
-        const containerRect = containerRef.current?.getBoundingClientRect();
-        if (containerRect) {
-          const pairedTrade = trade.pairId
-            ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
-            : null;
+      const containerRect = containerRef.current?.getBoundingClientRect();
+      if (containerRect) {
+        const pairedTrade = trade.pairId
+          ? data.trades.find(t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp)
+          : null;
 
-          setTooltipPosition({
-            x: containerRect.left + x,
-            y: containerRect.top + y + window.scrollY,
-            trade,
-            hasPairedSell: pairedTrade?.type === 'sell',
-            pairedTrade: pairedTrade || undefined
-          });
-        }
+        setTooltipPosition({
+          x: containerRect.left + x,
+          y: containerRect.top + y + window.scrollY,
+          trade,
+          hasPairedSell: pairedTrade?.type === 'sell',
+          pairedTrade: pairedTrade || undefined
+        });
       }
     }
   };
