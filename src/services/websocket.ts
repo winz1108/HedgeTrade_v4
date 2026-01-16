@@ -67,6 +67,10 @@ export interface PredictionUpdate {
   timestamp: string;
 }
 
+export interface DashboardUpdate {
+  [key: string]: any;
+}
+
 type CandleUpdateCallback = (data: CandleUpdate) => void;
 type RealtimeCandleUpdateCallback = (data: RealtimeCandleUpdate) => void;
 type CandleCompleteCallback = (data: CandleComplete) => void;
@@ -74,6 +78,7 @@ type PriceUpdateCallback = (data: PriceUpdate) => void;
 type AccountAssetsUpdateCallback = (data: AccountAssetsUpdate) => void;
 type BinanceServerTimeCallback = (data: BinanceServerTime) => void;
 type PredictionUpdateCallback = (data: PredictionUpdate) => void;
+type DashboardUpdateCallback = (data: DashboardUpdate) => void;
 type ConnectionStatusCallback = (connected: boolean) => void;
 
 class WebSocketService {
@@ -85,6 +90,7 @@ class WebSocketService {
   private accountAssetsUpdateCallbacks: Set<AccountAssetsUpdateCallback> = new Set();
   private binanceServerTimeCallbacks: Set<BinanceServerTimeCallback> = new Set();
   private predictionUpdateCallbacks: Set<PredictionUpdateCallback> = new Set();
+  private dashboardUpdateCallbacks: Set<DashboardUpdateCallback> = new Set();
   private connectionStatusCallbacks: Set<ConnectionStatusCallback> = new Set();
 
   private eventStats = {
@@ -95,14 +101,19 @@ class WebSocketService {
     account_assets_update: { count: 0, lastTime: 0 },
     binance_server_time: { count: 0, lastTime: 0 },
     prediction_update: { count: 0, lastTime: 0 },
+    dashboard_update: { count: 0, lastTime: 0 },
   };
   private statsInterval: NodeJS.Timeout | null = null;
 
   connect() {
     // Connect to API URL without port (Cloudflare only proxies 80/443)
     // Nginx will automatically proxy WebSocket connections to the backend
-    const wsUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+    const isDev = import.meta.env.DEV;
+    const wsUrl = isDev
+      ? 'http://130.61.50.101:54321'
+      : (import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu');
 
+    console.log('🔌 Environment:', isDev ? 'Development' : 'Production');
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
     console.log('🔌 Namespace: /ws/dashboard');
     console.log('🔌 Socket.IO version:', io.version);
@@ -193,6 +204,13 @@ class WebSocketService {
       this.predictionUpdateCallbacks.forEach(cb => cb(data));
     });
 
+    this.socket.on('dashboard_update', (data: DashboardUpdate) => {
+      this.eventStats.dashboard_update.count++;
+      this.eventStats.dashboard_update.lastTime = Date.now();
+      console.log('📊 Dashboard update received:', data);
+      this.dashboardUpdateCallbacks.forEach(cb => cb(data));
+    });
+
     this.socket.on('connect_error', (error) => {
       console.error('❌ WebSocket connection error:', error);
       console.error('Error message:', error.message);
@@ -277,6 +295,11 @@ class WebSocketService {
   onPredictionUpdate(callback: PredictionUpdateCallback) {
     this.predictionUpdateCallbacks.add(callback);
     return () => this.predictionUpdateCallbacks.delete(callback);
+  }
+
+  onDashboardUpdate(callback: DashboardUpdateCallback) {
+    this.dashboardUpdateCallbacks.add(callback);
+    return () => this.dashboardUpdateCallbacks.delete(callback);
   }
 
   onConnectionStatus(callback: ConnectionStatusCallback) {

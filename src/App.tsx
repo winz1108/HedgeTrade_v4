@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { RefreshCw, X, Bug, BarChart3 } from 'lucide-react';
+import { RefreshCw, X, Bug, BarChart3, Wifi, WifiOff } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from './types/dashboard';
 import { fetchDashboardData, fetchChartData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
@@ -22,6 +22,7 @@ function App() {
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
   const [performanceResult, setPerformanceResult] = useState<string | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -366,6 +367,22 @@ function App() {
       });
     });
 
+    const unsubscribeDashboardUpdate = websocketService.onDashboardUpdate((update) => {
+      console.log('📊 Processing dashboard update in App.tsx:', update);
+      setData((prevData) => {
+        if (!prevData) return prevData;
+        return {
+          ...prevData,
+          ...update,
+        };
+      });
+    });
+
+    const unsubscribeConnectionStatus = websocketService.onConnectionStatus((connected) => {
+      setWsConnected(connected);
+      console.log('🔌 WebSocket connection status:', connected ? 'Connected' : 'Disconnected');
+    });
+
     return () => {
       unsubscribePriceUpdate();
       unsubscribeRealtimeCandleUpdate();
@@ -373,6 +390,8 @@ function App() {
       unsubscribeAccountAssetsUpdate();
       unsubscribeBinanceServerTime();
       unsubscribePredictionUpdate();
+      unsubscribeDashboardUpdate();
+      unsubscribeConnectionStatus();
       websocketService.disconnect();
     };
   }, [selectedAccount]);
@@ -542,6 +561,23 @@ function App() {
                   {formatLocalTime(data.currentTime)}
                 </span>
               )}
+              <div
+                className={`flex items-center gap-1 px-2 py-1 rounded transition-all duration-200 ${
+                  wsConnected
+                    ? 'bg-emerald-500/10 text-emerald-400'
+                    : 'bg-red-500/10 text-red-400'
+                }`}
+                title={wsConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 끊김'}
+              >
+                {wsConnected ? (
+                  <Wifi className="w-3 h-3" />
+                ) : (
+                  <WifiOff className="w-3 h-3" />
+                )}
+                <span className="text-[10px] font-medium">
+                  {wsConnected ? 'Live' : 'Offline'}
+                </span>
+              </div>
               <button
                 onClick={handleRealtimePerformance}
                 className="p-1.5 rounded transition-all duration-200 text-cyan-400 hover:bg-cyan-500/10"
