@@ -1,7 +1,7 @@
 import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/dashboard';
 
 const getApiUrl = () => {
-  return import.meta.env.VITE_API_URL || 'http://130.61.50.101:54321';
+  return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 };
 
 const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: boolean, entryTime?: number): TradeEvent[] => {
@@ -247,7 +247,8 @@ const convertApiResponseToDashboardData = (
 };
 
 export const fetchChartData = async (timeframe: string, limit: number = 500) => {
-  const baseUrl = getApiUrl();
+  const isDev = import.meta.env.DEV;
+  const baseUrl = isDev ? 'http://130.61.50.101:54321' : getApiUrl();
   const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}`;
 
   console.log(`📊 Fetching ${timeframe} chart data from:`, url);
@@ -307,10 +308,12 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
 };
 
 export const fetchDashboardData = async (accountId: string): Promise<DashboardData> => {
-  const baseUrl = getApiUrl();
+  const isDev = import.meta.env.DEV;
+  const baseUrl = isDev ? 'http://130.61.50.101:54321' : getApiUrl();
   const url = `${baseUrl}/api/dashboard?_=${Date.now()}`;
 
   console.log('🔍 Fetching dashboard data from:', url);
+  console.log('🔍 Environment:', isDev ? 'Development' : 'Production');
 
   try {
     const response = await fetch(url, {
