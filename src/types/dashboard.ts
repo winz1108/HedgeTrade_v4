@@ -114,6 +114,11 @@ export interface AccountData {
   holding: AccountHolding;
   trades: AccountTrade[];
   metrics: AccountMetrics;
+  tradeStats?: {
+    takeProfitExits: number;
+    stopLossExits: number;
+    winRate: number;
+  };
 }
 
 export interface ApiResponse {
