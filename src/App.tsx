@@ -112,8 +112,8 @@ function App() {
       const isDev = import.meta.env.DEV;
       const apiUrl = import.meta.env.VITE_API_URL;
       const url = isDev
-        ? 'http://130.61.50.101:54321/api/debug'
-        : `${apiUrl}/api/debug`;
+        ? 'http://130.61.50.101:54321/api/debug/verification'
+        : `${apiUrl}/api/debug/verification`;
 
       const response = await fetch(url);
 
@@ -143,8 +143,8 @@ function App() {
       const isDev = import.meta.env.DEV;
       const apiUrl = import.meta.env.VITE_API_URL;
       const url = isDev
-        ? 'http://130.61.50.101:54321/api/realtime_performance'
-        : `${apiUrl}/api/realtime_performance`;
+        ? 'http://130.61.50.101:54321/api/debug/realtime-performance'
+        : `${apiUrl}/api/debug/realtime-performance`;
 
       const response = await fetch(url);
 
