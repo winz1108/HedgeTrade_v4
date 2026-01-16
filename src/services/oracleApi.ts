@@ -68,8 +68,6 @@ const convertApiResponseToDashboardData = (
       rsi: c.rsi,
     })) || [];
 
-    const priceHistory = apiResponse.priceHistory || {};
-
     return {
       version: apiResponse.version,
       currentAsset: account.asset.currentAsset,
@@ -78,13 +76,13 @@ const convertApiResponseToDashboardData = (
       initialAsset: account.asset.initialAsset,
       currentTime: apiResponse.currentTime,
       currentPrice: apiResponse.currentPrice,
-      priceHistory1m: mapCandles(priceHistory['1m']),
-      priceHistory5m: mapCandles(priceHistory['5m']),
-      priceHistory15m: mapCandles(priceHistory['15m']),
-      priceHistory30m: mapCandles(priceHistory['30m']),
-      priceHistory1h: mapCandles(priceHistory['1h']),
-      priceHistory4h: mapCandles(priceHistory['4h']),
-      priceHistory1d: mapCandles(priceHistory['1d']),
+      priceHistory1m: mapCandles((apiResponse as any).priceHistory1m),
+      priceHistory5m: mapCandles((apiResponse as any).priceHistory5m),
+      priceHistory15m: mapCandles((apiResponse as any).priceHistory15m),
+      priceHistory30m: mapCandles((apiResponse as any).priceHistory30m),
+      priceHistory1h: mapCandles((apiResponse as any).priceHistory1h),
+      priceHistory4h: mapCandles((apiResponse as any).priceHistory4h),
+      priceHistory1d: mapCandles((apiResponse as any).priceHistory1d),
       pricePredictions: [],
       trades: convertAccountTradesToTradeEvents(account.trades),
       holding: {

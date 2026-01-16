@@ -341,12 +341,42 @@ function App() {
       });
     });
 
+    const unsubscribePredictionUpdate = websocketService.onPredictionUpdate((update) => {
+      if (!update.success || !update.prediction) return;
+
+      setData((prevData) => {
+        if (!prevData) return prevData;
+        return {
+          ...prevData,
+          currentPrediction: {
+            takeProfitProb: update.prediction!.prob,
+            stopLossProb: update.prediction!.stopLossProb,
+            v5MoeTakeProfitProb: update.prediction!.prob,
+            predictionDataTimestamp: update.prediction!.predictionTargetTimestampMs,
+            predictionCalculatedAt: update.prediction!.predictionCalculatedAt,
+          },
+          lastPredictionUpdateTime: update.prediction!.predictionCalculatedAt,
+          marketState: update.prediction!.market_state,
+          gateWeights: update.prediction!.gate_weights,
+          holding: {
+            ...prevData.holding,
+            v5MoeTakeProfitProb: update.prediction!.prob,
+            latestPrediction: {
+              takeProfitProb: update.prediction!.prob,
+              stopLossProb: update.prediction!.stopLossProb,
+            },
+          },
+        };
+      });
+    });
+
     return () => {
       unsubscribePriceUpdate();
       unsubscribeRealtimeCandleUpdate();
       unsubscribeCandleUpdate();
       unsubscribeAccountAssetsUpdate();
       unsubscribeBinanceServerTime();
+      unsubscribePredictionUpdate();
       websocketService.disconnect();
     };
   }, [selectedAccount]);

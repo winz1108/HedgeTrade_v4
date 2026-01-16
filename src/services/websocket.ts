@@ -53,12 +53,27 @@ export interface BinanceServerTime {
   serverTime: number;
 }
 
+export interface PredictionUpdate {
+  success: boolean;
+  prediction?: {
+    prob: number;
+    stopLossProb: number;
+    predictionCalculatedAt: number;
+    predictionTargetTimestampMs: number;
+    model_version: string;
+    market_state?: any;
+    gate_weights?: number[];
+  };
+  timestamp: string;
+}
+
 type CandleUpdateCallback = (data: CandleUpdate) => void;
 type RealtimeCandleUpdateCallback = (data: RealtimeCandleUpdate) => void;
 type CandleCompleteCallback = (data: CandleComplete) => void;
 type PriceUpdateCallback = (data: PriceUpdate) => void;
 type AccountAssetsUpdateCallback = (data: AccountAssetsUpdate) => void;
 type BinanceServerTimeCallback = (data: BinanceServerTime) => void;
+type PredictionUpdateCallback = (data: PredictionUpdate) => void;
 type ConnectionStatusCallback = (connected: boolean) => void;
 
 class WebSocketService {
@@ -69,6 +84,7 @@ class WebSocketService {
   private priceUpdateCallbacks: Set<PriceUpdateCallback> = new Set();
   private accountAssetsUpdateCallbacks: Set<AccountAssetsUpdateCallback> = new Set();
   private binanceServerTimeCallbacks: Set<BinanceServerTimeCallback> = new Set();
+  private predictionUpdateCallbacks: Set<PredictionUpdateCallback> = new Set();
   private connectionStatusCallbacks: Set<ConnectionStatusCallback> = new Set();
 
   private eventStats = {
@@ -78,6 +94,7 @@ class WebSocketService {
     candle_complete: { count: 0, lastTime: 0 },
     account_assets_update: { count: 0, lastTime: 0 },
     binance_server_time: { count: 0, lastTime: 0 },
+    prediction_update: { count: 0, lastTime: 0 },
   };
   private statsInterval: NodeJS.Timeout | null = null;
 
@@ -170,6 +187,12 @@ class WebSocketService {
       this.binanceServerTimeCallbacks.forEach(cb => cb(data));
     });
 
+    this.socket.on('prediction_update', (data: PredictionUpdate) => {
+      this.eventStats.prediction_update.count++;
+      this.eventStats.prediction_update.lastTime = Date.now();
+      this.predictionUpdateCallbacks.forEach(cb => cb(data));
+    });
+
     this.socket.on('connect_error', (error) => {
       console.error('❌ WebSocket connection error:', error);
       console.error('Error message:', error.message);
@@ -249,6 +272,11 @@ class WebSocketService {
   onBinanceServerTime(callback: BinanceServerTimeCallback) {
     this.binanceServerTimeCallbacks.add(callback);
     return () => this.binanceServerTimeCallbacks.delete(callback);
+  }
+
+  onPredictionUpdate(callback: PredictionUpdateCallback) {
+    this.predictionUpdateCallbacks.add(callback);
+    return () => this.predictionUpdateCallbacks.delete(callback);
   }
 
   onConnectionStatus(callback: ConnectionStatusCallback) {
