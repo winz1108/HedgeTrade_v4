@@ -151,6 +151,11 @@ export interface ApiResponse {
   };
 }
 
+export interface TradingConfig {
+  takeProfitPercent: number;
+  stopLossPercent: number;
+}
+
 export interface DashboardData {
   version?: string;
   currentAsset: number;
@@ -189,6 +194,7 @@ export interface DashboardData {
     takeProfitCount: number;
     stopLossCount: number;
   };
+  tradingConfig?: TradingConfig;
   accountId?: string;
   accountName?: string;
   availableAccounts?: Array<{ id: string; name: string }>;
