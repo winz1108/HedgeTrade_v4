@@ -112,8 +112,8 @@ function App() {
       const isDev = import.meta.env.DEV;
       const apiUrl = import.meta.env.VITE_API_URL;
       const url = isDev
-        ? 'http://130.61.50.101:54321/api/debug/verification'
-        : `${apiUrl}/api/debug/verification`;
+        ? 'http://130.61.50.101:54321/api/debug/verification/text'
+        : `${apiUrl}/api/debug/verification/text`;
 
       const response = await fetch(url);
 
@@ -121,10 +121,7 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const contentType = response.headers.get('content-type') || '';
-      const text = contentType.includes('application/json')
-        ? JSON.stringify(await response.json(), null, 2)
-        : await response.text();
+      const text = await response.text();
       setVerificationResult(text);
     } catch (error) {
       console.error('서버 검증 실패:', error);
@@ -143,8 +140,8 @@ function App() {
       const isDev = import.meta.env.DEV;
       const apiUrl = import.meta.env.VITE_API_URL;
       const url = isDev
-        ? 'http://130.61.50.101:54321/api/debug/realtime-performance'
-        : `${apiUrl}/api/debug/realtime-performance`;
+        ? 'http://130.61.50.101:54321/api/debug/realtime-performance/text'
+        : `${apiUrl}/api/debug/realtime-performance/text`;
 
       const response = await fetch(url);
 
@@ -152,8 +149,7 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      const text = JSON.stringify(data, null, 2);
+      const text = await response.text();
       setPerformanceResult(text);
     } catch (error) {
       console.error('실시간 성능 지표 조회 실패:', error);
