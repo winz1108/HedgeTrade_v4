@@ -502,11 +502,6 @@ function App() {
               {data.version && (
                 <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
               )}
-              {data.currentTime && (
-                <span className="text-[10px] text-slate-400 font-mono">
-                  {formatLocalTime(data.currentTime)}
-                </span>
-              )}
               {data.holding.isHolding && (
                 <div className="relative px-4 py-2 bg-slate-900/80 backdrop-blur-md rounded-lg border border-emerald-400/30 shadow-2xl overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10"></div>
@@ -545,7 +540,12 @@ function App() {
               </div>
             )}
 
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-3 ml-auto">
+              {data.currentTime && (
+                <span className="text-xs text-slate-400 font-mono">
+                  {formatLocalTime(data.currentTime)}
+                </span>
+              )}
               <button
                 onClick={handleRealtimePerformance}
                 className="p-1.5 rounded transition-all duration-200 text-cyan-400 hover:bg-cyan-500/10"
