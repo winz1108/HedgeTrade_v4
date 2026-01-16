@@ -1,6 +1,7 @@
-import { TrendingUp, TrendingDown, DollarSign, Activity, History } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, History, Info } from 'lucide-react';
 import { DashboardData } from '../types/dashboard';
 import { formatLocalTime, formatLocalDateTime } from '../utils/time';
+import { useState } from 'react';
 
 interface MetricsPanelProps {
   data: DashboardData;
@@ -218,50 +219,134 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   }
 
   if (position === 'trades') {
+    const [selectedTrade, setSelectedTrade] = useState<number | null>(null);
+
     const oneWeekAgo = data.currentTime - (7 * 24 * 60 * 60 * 1000);
-    const recentTrades = [...data.trades]
-      .reverse()
-      .filter(trade => trade.timestamp >= oneWeekAgo)
-      .slice(0, 40);
+    const allTrades = [...data.trades]
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .filter(trade => trade.timestamp >= oneWeekAgo);
+
+    interface TradePair {
+      buy: typeof allTrades[0];
+      sell?: typeof allTrades[0];
+      profit?: number;
+      pairIndex: number;
+    }
+
+    const tradePairs: TradePair[] = [];
+    let pendingBuy: typeof allTrades[0] | null = null;
+
+    allTrades.forEach(trade => {
+      if (trade.type === 'buy') {
+        pendingBuy = trade;
+      } else if (trade.type === 'sell' && pendingBuy) {
+        const profit = ((trade.price - pendingBuy.price) / pendingBuy.price) * 100;
+        tradePairs.push({
+          buy: pendingBuy,
+          sell: trade,
+          profit,
+          pairIndex: tradePairs.length,
+        });
+        pendingBuy = null;
+      }
+    });
+
+    if (pendingBuy) {
+      tradePairs.push({
+        buy: pendingBuy,
+        pairIndex: tradePairs.length,
+      });
+    }
+
+    const recentPairs = tradePairs.slice(-20).reverse();
 
     return (
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300">
         <div className="flex items-center justify-between mb-1.5">
           <h3 className="text-xs font-bold text-white">Recent Trades</h3>
           <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-slate-500 font-mono">max 40 / 7d</span>
+            <span className="text-[9px] text-slate-500 font-mono">max 20 pairs / 7d</span>
             <div className="p-0.5 bg-purple-500/20 rounded">
               <History className="w-2.5 h-2.5 text-purple-400" />
             </div>
           </div>
         </div>
 
-        <div className="space-y-0.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: '140px' }}>
-          {recentTrades.length > 0 ? (
-            recentTrades.map((trade, idx) => (
-              <div
-                key={idx}
-                className={`flex items-center justify-between p-1 rounded border ${
-                  trade.type === 'buy'
-                    ? 'bg-blue-500/10 border-blue-500/20'
-                    : 'bg-orange-500/10 border-orange-500/20'
-                }`}
-              >
-                <div className="flex flex-col">
-                  <span
-                    className={`text-[9px] font-bold uppercase ${
-                      trade.type === 'buy' ? 'text-blue-400' : 'text-orange-400'
-                    }`}
-                  >
-                    {trade.type}
-                  </span>
-                  <span className="text-[8px] text-slate-500">
-                    {formatLocalDateTime(trade.timestamp)}
-                  </span>
+        <div className="space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: '140px' }}>
+          {recentPairs.length > 0 ? (
+            recentPairs.map((pair) => (
+              <div key={pair.pairIndex} className="space-y-0.5">
+                <div
+                  className="relative group bg-blue-500/10 border border-blue-500/20 rounded p-1 hover:bg-blue-500/20 transition-colors cursor-pointer"
+                  onClick={() => setSelectedTrade(selectedTrade === pair.pairIndex ? null : pair.pairIndex)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-bold uppercase text-blue-400">BUY</span>
+                      <button className="p-0.5 hover:bg-blue-500/30 rounded">
+                        <Info className="w-2.5 h-2.5 text-blue-300" />
+                      </button>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[9px] font-bold text-white">{formatCurrency(pair.buy.price)}</span>
+                      <span className="text-[8px] text-slate-500">{formatLocalDateTime(pair.buy.timestamp)}</span>
+                    </div>
+                  </div>
+                  {selectedTrade === pair.pairIndex && (
+                    <div className="absolute left-0 top-full mt-1 z-10 bg-slate-900 border border-blue-500/50 rounded-lg p-2 shadow-xl min-w-[200px]">
+                      <div className="text-[9px] space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Price:</span>
+                          <span className="text-white font-semibold">{formatCurrency(pair.buy.price)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Time:</span>
+                          <span className="text-white font-mono text-[8px]">{formatLocalDateTime(pair.buy.timestamp)}</span>
+                        </div>
+                        {pair.sell && pair.profit !== undefined && (
+                          <>
+                            <div className="border-t border-slate-700 my-1"></div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Exit Price:</span>
+                              <span className="text-white font-semibold">{formatCurrency(pair.sell.price)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Profit:</span>
+                              <span className={`font-bold ${pair.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                {pair.profit >= 0 ? '+' : ''}{pair.profit.toFixed(2)}%
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <span className="text-[9px] font-bold text-white">
-                  {formatCurrency(trade.price)}
-                </span>
+
+                {pair.sell && (
+                  <div className={`bg-orange-500/10 border ${pair.profit! >= 0 ? 'border-emerald-500/30' : 'border-rose-500/30'} rounded p-1`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[9px] font-bold uppercase text-orange-400">SELL</span>
+                        {pair.profit !== undefined && (
+                          <span className={`text-[9px] font-bold ${pair.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {pair.profit >= 0 ? '+' : ''}{pair.profit.toFixed(2)}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[9px] font-bold text-white">{formatCurrency(pair.sell.price)}</span>
+                        <span className="text-[8px] text-slate-500">{formatLocalDateTime(pair.sell.timestamp)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!pair.sell && (
+                  <div className="bg-slate-700/20 border border-slate-600/30 rounded p-1">
+                    <span className="text-[9px] text-slate-500 italic">Open position</span>
+                  </div>
+                )}
               </div>
             ))
           ) : (
