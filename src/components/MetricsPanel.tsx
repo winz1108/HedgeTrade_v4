@@ -220,43 +220,17 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
   if (position === 'trades') {
     const oneWeekAgo = data.currentTime - (7 * 24 * 60 * 60 * 1000);
-    const allTrades = [...data.trades]
-      .sort((a, b) => a.timestamp - b.timestamp)
-      .filter(trade => trade.timestamp >= oneWeekAgo);
-
-    interface TradePair {
-      buy: typeof allTrades[0];
-      sell?: typeof allTrades[0];
-      profit?: number;
-      pairIndex: number;
-    }
-
-    const tradePairs: TradePair[] = [];
-    let pendingBuy: typeof allTrades[0] | null = null;
-
-    allTrades.forEach(trade => {
-      if (trade.type === 'buy') {
-        pendingBuy = trade;
-      } else if (trade.type === 'sell' && pendingBuy) {
-        const profit = ((trade.price - pendingBuy.price) / pendingBuy.price) * 100;
-        tradePairs.push({
-          buy: pendingBuy,
-          sell: trade,
-          profit,
-          pairIndex: tradePairs.length,
-        });
-        pendingBuy = null;
-      }
-    });
-
-    const completedPairs = tradePairs.filter(p => p.sell).slice(-40).reverse();
+    const recentTrades = [...data.trades]
+      .filter(trade => trade.timestamp >= oneWeekAgo)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 40);
 
     return (
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300">
         <div className="flex items-center justify-between mb-1.5">
           <h3 className="text-xs font-bold text-white">Recent Trades</h3>
           <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-slate-500 font-mono">max 40 pairs / 7d</span>
+            <span className="text-[9px] text-slate-500 font-mono">max 40 trades / 7d</span>
             <div className="p-0.5 bg-purple-500/20 rounded">
               <History className="w-2.5 h-2.5 text-purple-400" />
             </div>
@@ -264,33 +238,26 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
         </div>
 
         <div className="space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: '140px' }}>
-          {completedPairs.length > 0 ? (
-            completedPairs.map((pair) => (
-              <div key={pair.pairIndex} className="space-y-1">
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded p-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-bold uppercase text-blue-400">BUY</span>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[9px] font-bold text-white">{formatCurrency(pair.buy.price)}</span>
-                      <span className="text-[8px] text-slate-500">{formatLocalDateTime(pair.buy.timestamp)}</span>
+          {recentTrades.length > 0 ? (
+            recentTrades.map((trade, index) => (
+              <div key={`${trade.timestamp}-${index}`}>
+                {trade.type === 'buy' ? (
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded p-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-bold uppercase text-blue-400">BUY</span>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[9px] font-bold text-white">{formatCurrency(trade.price)}</span>
+                        <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                {pair.sell && (
-                  <div className={`bg-orange-500/10 border ${pair.profit! >= 0 ? 'border-emerald-500/30' : 'border-rose-500/30'} rounded p-1`}>
+                ) : (
+                  <div className="bg-orange-500/10 border border-orange-500/20 rounded p-1">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <span className="text-[9px] font-bold uppercase text-orange-400">SELL</span>
-                        {pair.profit !== undefined && (
-                          <span className={`text-[9px] font-bold ${pair.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {pair.profit >= 0 ? '+' : ''}{pair.profit.toFixed(2)}%
-                          </span>
-                        )}
-                      </div>
+                      <span className="text-[9px] font-bold uppercase text-orange-400">SELL</span>
                       <div className="flex flex-col items-end">
-                        <span className="text-[9px] font-bold text-white">{formatCurrency(pair.sell.price)}</span>
-                        <span className="text-[8px] text-slate-500">{formatLocalDateTime(pair.sell.timestamp)}</span>
+                        <span className="text-[9px] font-bold text-white">{formatCurrency(trade.price)}</span>
+                        <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
                       </div>
                     </div>
                   </div>
