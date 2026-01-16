@@ -541,14 +541,6 @@ function App() {
             )}
 
             <div className="flex items-center gap-2 ml-auto">
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] text-slate-400 font-mono">
-                  {formatLocalTime(data.currentTime)}
-                </span>
-                <span className="text-[8px] text-slate-500">
-                  바이낸스 서버 시간 기준
-                </span>
-              </div>
               <button
                 onClick={handleRealtimePerformance}
                 className="p-1.5 rounded transition-all duration-200 text-cyan-400 hover:bg-cyan-500/10"

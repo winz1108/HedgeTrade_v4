@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, DollarSign, Activity, History, Info } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, History } from 'lucide-react';
 import { DashboardData } from '../types/dashboard';
 import { formatLocalTime, formatLocalDateTime } from '../utils/time';
 import { useState } from 'react';
@@ -219,7 +219,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   }
 
   if (position === 'trades') {
-    const [selectedTrade, setSelectedTrade] = useState<number | null>(null);
+    const [hoveredPair, setHoveredPair] = useState<number | null>(null);
 
     const oneWeekAgo = data.currentTime - (7 * 24 * 60 * 60 * 1000);
     const allTrades = [...data.trades]
@@ -251,14 +251,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
       }
     });
 
-    if (pendingBuy) {
-      tradePairs.push({
-        buy: pendingBuy,
-        pairIndex: tradePairs.length,
-      });
-    }
-
-    const recentPairs = tradePairs.slice(-40).reverse();
+    const completedPairs = tradePairs.filter(p => p.sell).slice(-40).reverse();
 
     return (
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300">
@@ -273,58 +266,30 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
         </div>
 
         <div className="space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: '140px' }}>
-          {recentPairs.length > 0 ? (
-            recentPairs.map((pair) => (
-              <div key={pair.pairIndex} className="space-y-0.5">
-                <div
-                  className="relative group bg-blue-500/10 border border-blue-500/20 rounded p-1 hover:bg-blue-500/20 transition-colors cursor-pointer"
-                  onClick={() => setSelectedTrade(selectedTrade === pair.pairIndex ? null : pair.pairIndex)}
-                >
+          {completedPairs.length > 0 ? (
+            completedPairs.map((pair) => (
+              <div
+                key={pair.pairIndex}
+                className="relative"
+                onMouseEnter={() => setHoveredPair(pair.pairIndex)}
+                onMouseLeave={() => setHoveredPair(null)}
+              >
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-t p-1">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[9px] font-bold uppercase text-blue-400">BUY</span>
-                      <button className="p-0.5 hover:bg-blue-500/30 rounded">
-                        <Info className="w-2.5 h-2.5 text-blue-300" />
-                      </button>
-                    </div>
+                    <span className="text-[9px] font-bold uppercase text-blue-400">BUY</span>
                     <div className="flex flex-col items-end">
                       <span className="text-[9px] font-bold text-white">{formatCurrency(pair.buy.price)}</span>
                       <span className="text-[8px] text-slate-500">{formatLocalDateTime(pair.buy.timestamp)}</span>
                     </div>
                   </div>
-                  {selectedTrade === pair.pairIndex && (
-                    <div className="absolute left-0 top-full mt-1 z-10 bg-slate-900 border border-blue-500/50 rounded-lg p-2 shadow-xl min-w-[200px]">
-                      <div className="text-[9px] space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Price:</span>
-                          <span className="text-white font-semibold">{formatCurrency(pair.buy.price)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Time:</span>
-                          <span className="text-white font-mono text-[8px]">{formatLocalDateTime(pair.buy.timestamp)}</span>
-                        </div>
-                        {pair.sell && pair.profit !== undefined && (
-                          <>
-                            <div className="border-t border-slate-700 my-1"></div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-400">Exit Price:</span>
-                              <span className="text-white font-semibold">{formatCurrency(pair.sell.price)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-400">Profit:</span>
-                              <span className={`font-bold ${pair.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                {pair.profit >= 0 ? '+' : ''}{pair.profit.toFixed(2)}%
-                              </span>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
+                {hoveredPair === pair.pairIndex && pair.sell && (
+                  <div className="absolute left-1/2 top-[19px] w-px h-[calc(100%-38px)] z-10 border-l border-dashed border-slate-400/50"></div>
+                )}
+
                 {pair.sell && (
-                  <div className={`bg-orange-500/10 border ${pair.profit! >= 0 ? 'border-emerald-500/30' : 'border-rose-500/30'} rounded p-1`}>
+                  <div className={`bg-orange-500/10 border-t-0 border ${pair.profit! >= 0 ? 'border-emerald-500/30' : 'border-rose-500/30'} rounded-b p-1`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] font-bold uppercase text-orange-400">SELL</span>
@@ -339,12 +304,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                         <span className="text-[8px] text-slate-500">{formatLocalDateTime(pair.sell.timestamp)}</span>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {!pair.sell && (
-                  <div className="bg-slate-700/20 border border-slate-600/30 rounded p-1">
-                    <span className="text-[9px] text-slate-500 italic">Open position</span>
                   </div>
                 )}
               </div>
