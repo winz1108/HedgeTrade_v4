@@ -349,10 +349,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   }, [isMaximized]);
 
   useEffect(() => {
-    setScrollOffset(0);
-  }, [timeframe, selectedCandles.length]);
-
-  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
@@ -377,10 +373,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       container.removeEventListener('wheel', preventNavigation);
     };
   }, []);
-
-  useEffect(() => {
-    setScrollOffset(0);
-  }, [timeframe, data.priceHistory1m, data.priceHistory30m]);
 
   const handleTradeClick = (trade: TradeEvent, e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
