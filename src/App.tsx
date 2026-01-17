@@ -110,11 +110,8 @@ function App() {
     setVerificationResult(null);
 
     try {
-      const isDev = import.meta.env.DEV;
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const url = isDev
-        ? 'http://130.61.50.101:54321/api/debug/verification/text'
-        : `${apiUrl}/api/debug/verification/text`;
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+      const url = `${apiUrl}/api/debug/verification/text`;
 
       const response = await fetch(url);
 
@@ -138,11 +135,8 @@ function App() {
     setPerformanceResult(null);
 
     try {
-      const isDev = import.meta.env.DEV;
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const url = isDev
-        ? 'http://130.61.50.101:54321/api/debug/realtime-performance/text'
-        : `${apiUrl}/api/debug/realtime-performance/text`;
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+      const url = `${apiUrl}/api/debug/realtime-performance/text`;
 
       const response = await fetch(url);
 
@@ -223,6 +217,7 @@ function App() {
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
       setData((prevData) => {
         if (!prevData) return prevData;
+        if (!update.timeframe) return prevData;
 
         const newCandle = convertCandleData(update);
         const timeframeLower = update.timeframe.toLowerCase();
@@ -271,6 +266,7 @@ function App() {
     const unsubscribeCandleUpdate = websocketService.onCandleUpdate((update) => {
       setData((prevData) => {
         if (!prevData) return prevData;
+        if (!update.timeframe) return prevData;
 
         const newCandle = convertCandleData(update);
         const timeframeLower = update.timeframe.toLowerCase();
