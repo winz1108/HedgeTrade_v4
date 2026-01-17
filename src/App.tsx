@@ -225,10 +225,14 @@ function App() {
         if (!prevData) return prevData;
 
         const newCandle = convertCandleData(update);
-        const timeframeKey = `priceHistory${update.timeframe}` as keyof DashboardData;
+        const timeframeLower = update.timeframe.toLowerCase();
+        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
         const existingCandles = prevData[timeframeKey] as Candle[] | undefined;
 
-        if (!existingCandles) return prevData;
+        if (!existingCandles) {
+          console.log(`⚠️ No existing candles for timeframe: ${update.timeframe}, normalized: ${timeframeLower}, key: ${timeframeKey}`);
+          return prevData;
+        }
 
         const candles = [...existingCandles];
 
@@ -269,7 +273,8 @@ function App() {
         if (!prevData) return prevData;
 
         const newCandle = convertCandleData(update);
-        const timeframeKey = `priceHistory${update.timeframe}` as keyof DashboardData;
+        const timeframeLower = update.timeframe.toLowerCase();
+        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
         const existingCandles = prevData[timeframeKey] as Candle[] | undefined;
 
         if (!existingCandles) return prevData;
