@@ -221,20 +221,21 @@ function App() {
     });
 
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
-      if (update.timeframe !== '5m') return;
-
       setData((prevData) => {
-        if (!prevData || !prevData.priceHistory5m) return prevData;
+        if (!prevData) return prevData;
 
-        const candles = [...prevData.priceHistory5m];
+        const newCandle = convertCandleData(update);
+        const timeframeKey = `priceHistory${update.timeframe}` as keyof DashboardData;
+        const existingCandles = prevData[timeframeKey] as Candle[] | undefined;
+
+        if (!existingCandles) return prevData;
+
+        const candles = [...existingCandles];
 
         if (update.isFinal) {
-          const newCandle = convertCandleData(update);
           candles.shift();
           candles.push(newCandle);
         } else {
-          const newCandle = convertCandleData(update);
-
           if (candles.length > 0) {
             const lastCompleteCandle = candles[candles.length - 1];
             newCandle.ema20 = lastCompleteCandle.ema20;
@@ -258,7 +259,7 @@ function App() {
 
         return {
           ...prevData,
-          priceHistory5m: candles,
+          [timeframeKey]: candles,
         };
       });
     });
