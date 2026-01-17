@@ -247,8 +247,7 @@ const convertApiResponseToDashboardData = (
 };
 
 export const fetchChartData = async (timeframe: string, limit: number = 500) => {
-  const isDev = import.meta.env.DEV;
-  const baseUrl = isDev ? 'http://130.61.50.101:54321' : getApiUrl();
+  const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}`;
 
   console.log(`📊 Fetching ${timeframe} chart data from:`, url);
@@ -308,12 +307,10 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
 };
 
 export const fetchDashboardData = async (accountId: string): Promise<DashboardData> => {
-  const isDev = import.meta.env.DEV;
-  const baseUrl = isDev ? 'http://130.61.50.101:54321' : getApiUrl();
+  const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/dashboard?_=${Date.now()}`;
 
   console.log('🔍 Fetching dashboard data from:', url);
-  console.log('🔍 Environment:', isDev ? 'Development' : 'Production');
 
   try {
     const response = await fetch(url, {

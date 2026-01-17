@@ -108,12 +108,8 @@ class WebSocketService {
   connect() {
     // Connect to API URL without port (Cloudflare only proxies 80/443)
     // Nginx will automatically proxy WebSocket connections to the backend
-    const isDev = import.meta.env.DEV;
-    const wsUrl = isDev
-      ? 'http://130.61.50.101:54321'
-      : (import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu');
+    const wsUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 
-    console.log('🔌 Environment:', isDev ? 'Development' : 'Production');
     console.log('🔌 Connecting to WebSocket server:', wsUrl);
     console.log('🔌 Namespace: /ws/dashboard');
     console.log('🔌 Socket.IO version:', io.version);
