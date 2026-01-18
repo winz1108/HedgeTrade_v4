@@ -215,8 +215,6 @@ function App() {
     });
 
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
-      console.log('📊 Received realtime_candle_update:', update.timeframe, 'close:', update.close, 'isFinal:', update.isFinal);
-
       setData((prevData) => {
         if (!prevData) return prevData;
         if (!update.timeframe) return prevData;
@@ -227,11 +225,8 @@ function App() {
         const existingCandles = prevData[timeframeKey] as Candle[] | undefined;
 
         if (!existingCandles) {
-          console.log(`⚠️ No existing candles for timeframe: ${update.timeframe}, normalized: ${timeframeLower}, key: ${timeframeKey}`);
           return prevData;
         }
-
-        console.log(`📈 Updating ${timeframeLower}: close=${update.close}, candleCount=${existingCandles.length}`);
 
         const candles = [...existingCandles];
 
@@ -260,20 +255,14 @@ function App() {
           }
         }
 
-        const result = {
+        return {
           ...prevData,
           [timeframeKey]: candles,
         };
-
-        console.log(`✅ Updated ${timeframeLower}: newClose=${candles[candles.length - 1]?.close}`);
-
-        return result;
       });
     });
 
     const unsubscribeCandleUpdate = websocketService.onCandleUpdate((update) => {
-      console.log('📊 Received candle_update:', update.timeframe, 'close:', update.close, 'isFinal:', update.isFinal);
-
       setData((prevData) => {
         if (!prevData) return prevData;
         if (!update.timeframe) return prevData;
@@ -284,11 +273,8 @@ function App() {
         const existingCandles = prevData[timeframeKey] as Candle[] | undefined;
 
         if (!existingCandles) {
-          console.log(`⚠️ No existing candles for timeframe: ${update.timeframe}, normalized: ${timeframeLower}, key: ${timeframeKey}`);
           return prevData;
         }
-
-        console.log(`📈 Updating ${timeframeLower}: close=${update.close}, candleCount=${existingCandles.length}`);
 
         const candles = [...existingCandles];
 
@@ -323,14 +309,10 @@ function App() {
           }
         }
 
-        const result = {
+        return {
           ...prevData,
           [timeframeKey]: candles,
         };
-
-        console.log(`✅ Updated ${timeframeLower}: newClose=${candles[candles.length - 1]?.close}`);
-
-        return result;
       });
     });
 
