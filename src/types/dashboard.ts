@@ -27,6 +27,7 @@ export interface TradeEvent {
   price: number;
   profit?: number;
   pairId?: string;
+  quantity?: number;  // 체결 수량
   prediction?: {
     takeProfitProb: number;
     stopLossProb: number;

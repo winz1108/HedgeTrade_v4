@@ -44,6 +44,7 @@ const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: bo
       timestamp: entry.timestamp,
       type: 'buy',
       price: entry.price,
+      quantity: entry.quantity,
       pairId: pairId,
     });
 
@@ -55,6 +56,7 @@ const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: bo
         timestamp: exit.timestamp,
         type: 'sell',
         price: exit.price,
+        quantity: exit.quantity,
         profit: profitPct,
         pairId: pairId,
       });

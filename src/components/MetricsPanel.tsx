@@ -248,6 +248,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                       <div className="flex flex-col items-end">
                         <span className="text-[9px] font-bold text-white">{formatCurrency(trade.price)}</span>
                         <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
+                        {trade.quantity && (
+                          <span className="text-[7px] text-slate-400">
+                            {trade.quantity.toFixed(6)} BTC = {formatCurrency(trade.price * trade.quantity)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -258,6 +263,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                       <div className="flex flex-col items-end">
                         <span className="text-[9px] font-bold text-white">{formatCurrency(trade.price)}</span>
                         <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
+                        {trade.quantity && (
+                          <span className="text-[7px] text-slate-400">
+                            {trade.quantity.toFixed(6)} BTC = {formatCurrency(trade.price * trade.quantity)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
