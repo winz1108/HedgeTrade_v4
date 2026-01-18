@@ -554,6 +554,7 @@ function App() {
       console.log(`✅ Candle complete: ${update.timeframe} at ${new Date(update.openTime).toLocaleTimeString()}`);
 
       // 완성봉 이벤트 발생 시 해당 타임프레임만 최신 5개 검증
+      // 단, 마지막 진행봉은 제외하고 완성봉만 병합 (진행봉은 웹소켓만 신뢰)
       try {
         const chart = await fetchChartData(update.timeframe, 5);
         const timeframeLower = update.timeframe.toLowerCase();
@@ -568,10 +569,14 @@ function App() {
           }
 
           const newCandles = chart.candles as Candle[];
+
+          // 마지막 진행봉 제외하고 완성봉만 병합
+          const completedCandlesOnly = newCandles.slice(0, -1);
+
           const merged = [...existingCandles];
           let addedCount = 0;
 
-          for (const newCandle of newCandles) {
+          for (const newCandle of completedCandlesOnly) {
             const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
             if (existingIndex === -1) {
               // 타임스탬프 순서대로 삽입
@@ -583,7 +588,7 @@ function App() {
               }
               addedCount++;
             } else {
-              // 기존 캔들 업데이트
+              // 기존 캔들 업데이트 (완성봉만)
               merged[existingIndex] = newCandle;
             }
           }
