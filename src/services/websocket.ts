@@ -221,10 +221,18 @@ class WebSocketService {
       this.priceUpdateCallbacks.forEach(cb => cb(data));
     });
 
-    this.socket.on('account_assets_update', (data: AccountAssetsUpdate) => {
+    this.socket.on('account_assets_update', (data: any) => {
       this.eventStats.account_assets_update.count++;
       this.eventStats.account_assets_update.lastTime = Date.now();
 
+      // 백엔드가 잘못된 형식으로 보내는 경우 (dashboard_update 형식)
+      if (data.accounts && data.totalAsset) {
+        console.warn('⚠️ account_assets_update: 백엔드가 dashboard_update 형식으로 보냄 - 무시');
+        console.warn('   백엔드 수정 필요: { accountId, asset: { currentAsset, currentBTC, currentCash, initialAsset } }');
+        return;
+      }
+
+      // 올바른 형식 검증
       if (!data || !data.asset) {
         console.error('❌ account_assets_update: 잘못된 데이터 구조', data);
         return;

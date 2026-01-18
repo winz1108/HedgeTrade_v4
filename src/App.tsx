@@ -344,17 +344,23 @@ function App() {
     });
 
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
-      // 기술지표 확인 로그
+      // 기술지표 확인 로그 (진행봉/완성봉 모두)
+      const indicatorStatus = {
+        timeframe: update.timeframe,
+        time: new Date(update.openTime).toLocaleTimeString(),
+        isFinal: update.isFinal,
+        close: update.close,
+        rsi: update.rsi ?? '❌',
+        macd: update.macd ?? '❌',
+        ema20: update.ema20 ?? '❌',
+        bbUpper: update.bbUpper ?? '❌',
+      };
+
       if (update.isFinal) {
-        console.log('📊 realtime_candle_update (완성봉):', {
-          timeframe: update.timeframe,
-          time: new Date(update.openTime).toLocaleTimeString(),
-          close: update.close,
-          rsi: update.rsi ?? 'missing',
-          macd: update.macd ?? 'missing',
-          ema20: update.ema20 ?? 'missing',
-          bbUpper: update.bbUpper ?? 'missing',
-        });
+        console.log('🔴 realtime_candle_update (완성봉 isFinal=true):', indicatorStatus);
+        console.log('   원시 데이터 전체:', update);
+      } else if (Math.random() < 0.05) { // 진행봉은 5%만 로그
+        console.log('🟡 realtime_candle_update (진행봉 isFinal=false):', indicatorStatus);
       }
 
       setData((prevData) => {
@@ -378,12 +384,15 @@ function App() {
 
           if (lastCandle && lastCandle.timestamp === newCandle.timestamp) {
             // 마지막 진행봉이 완성봉이 된 경우: 기술지표 업데이트
-            console.log('🔄 진행봉→완성봉 전환:', {
+            console.log('🔄 진행봉→완성봉 전환 [BEFORE UPDATE]:', {
               timeframe: update.timeframe,
               time: new Date(update.openTime).toLocaleTimeString(),
-              rsi: update.rsi ?? 'missing',
-              macd: update.macd ?? 'missing',
-              ema20: update.ema20 ?? 'missing',
+              oldRSI: lastCandle.rsi ?? '❌',
+              oldMACD: lastCandle.macd ?? '❌',
+              oldEMA20: lastCandle.ema20 ?? '❌',
+              newRSI: update.rsi ?? '❌',
+              newMACD: update.macd ?? '❌',
+              newEMA20: update.ema20 ?? '❌',
             });
 
             lastCandle.isComplete = true;
@@ -393,16 +402,23 @@ function App() {
             lastCandle.volume = newCandle.volume;
 
             // 기술지표 업데이트 (백엔드가 보낸 값 사용)
-            if (update.rsi !== undefined) lastCandle.rsi = update.rsi;
-            if (update.macd !== undefined) lastCandle.macd = update.macd;
-            if (update.macdSignal !== undefined) lastCandle.signal = update.macdSignal;
-            if (update.macdHistogram !== undefined) lastCandle.histogram = update.macdHistogram;
-            if (update.ema20 !== undefined) lastCandle.ema20 = update.ema20;
-            if (update.ema50 !== undefined) lastCandle.ema50 = update.ema50;
-            if (update.bbUpper !== undefined) lastCandle.bbUpper = update.bbUpper;
-            if (update.bbMiddle !== undefined) lastCandle.bbMiddle = update.bbMiddle;
-            if (update.bbLower !== undefined) lastCandle.bbLower = update.bbLower;
-            if (update.bbWidth !== undefined) lastCandle.bbWidth = update.bbWidth;
+            let updatedCount = 0;
+            if (update.rsi !== undefined) { lastCandle.rsi = update.rsi; updatedCount++; }
+            if (update.macd !== undefined) { lastCandle.macd = update.macd; updatedCount++; }
+            if (update.macdSignal !== undefined) { lastCandle.signal = update.macdSignal; updatedCount++; }
+            if (update.macdHistogram !== undefined) { lastCandle.histogram = update.macdHistogram; updatedCount++; }
+            if (update.ema20 !== undefined) { lastCandle.ema20 = update.ema20; updatedCount++; }
+            if (update.ema50 !== undefined) { lastCandle.ema50 = update.ema50; updatedCount++; }
+            if (update.bbUpper !== undefined) { lastCandle.bbUpper = update.bbUpper; updatedCount++; }
+            if (update.bbMiddle !== undefined) { lastCandle.bbMiddle = update.bbMiddle; updatedCount++; }
+            if (update.bbLower !== undefined) { lastCandle.bbLower = update.bbLower; updatedCount++; }
+            if (update.bbWidth !== undefined) { lastCandle.bbWidth = update.bbWidth; updatedCount++; }
+
+            console.log(`   ✅ ${updatedCount}개 지표 업데이트 완료 [AFTER UPDATE]:`, {
+              rsi: lastCandle.rsi ?? '❌',
+              macd: lastCandle.macd ?? '❌',
+              ema20: lastCandle.ema20 ?? '❌',
+            });
           } else {
             // 갭 발생: onCandleComplete에서 처리
             const completedCandles = candles.filter(c => c.isComplete !== false);
