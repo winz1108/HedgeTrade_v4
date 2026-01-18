@@ -371,49 +371,60 @@ function App() {
       });
     });
 
-    const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
+    const unsubscribeCandleComplete = websocketService.onCandleComplete((update) => {
       if (!update.timeframe) return;
 
       console.log(`✅ Candle complete: ${update.timeframe} at ${new Date(update.openTime).toLocaleTimeString()}`);
 
-      try {
-        const chart = await fetchChartData(update.timeframe, 2);
-        const timeframeLower = update.timeframe.toLowerCase();
-        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
+      const fetchLatestCandles = async (attempt: number) => {
+        try {
+          const chart = await fetchChartData(update.timeframe, 2);
+          const timeframeLower = update.timeframe.toLowerCase();
+          const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
 
-        setData(prev => {
-          if (!prev) return prev;
+          setData(prev => {
+            if (!prev) return prev;
 
-          const existingCandles = prev[timeframeKey] as Candle[] | undefined;
-          if (!existingCandles || existingCandles.length === 0) {
-            return { ...prev, [timeframeKey]: chart.candles as Candle[] };
-          }
-
-          const newCandles = chart.candles as Candle[];
-          const merged = [...existingCandles];
-
-          for (const newCandle of newCandles) {
-            const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
-            if (existingIndex === -1) {
-              merged.push(newCandle);
-            } else {
-              merged[existingIndex] = newCandle;
+            const existingCandles = prev[timeframeKey] as Candle[] | undefined;
+            if (!existingCandles || existingCandles.length === 0) {
+              return { ...prev, [timeframeKey]: chart.candles as Candle[] };
             }
-          }
 
-          merged.sort((a, b) => a.timestamp - b.timestamp);
+            const newCandles = chart.candles as Candle[];
+            const merged = [...existingCandles];
 
-          if (merged.length > 500) {
-            merged.splice(0, merged.length - 500);
-          }
+            for (const newCandle of newCandles) {
+              const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
+              if (existingIndex === -1) {
+                merged.push(newCandle);
+              } else {
+                merged[existingIndex] = newCandle;
+              }
+            }
 
-          return { ...prev, [timeframeKey]: merged };
-        });
+            merged.sort((a, b) => a.timestamp - b.timestamp);
 
-        console.log(`🔄 ${update.timeframe}: Verified latest 2 candles`);
-      } catch (error) {
-        console.error(`❌ Failed to verify ${update.timeframe} candles:`, error);
-      }
+            if (merged.length > 500) {
+              merged.splice(0, merged.length - 500);
+            }
+
+            return { ...prev, [timeframeKey]: merged };
+          });
+
+          console.log(`🔄 ${update.timeframe}: Verified latest 2 candles (attempt ${attempt}/5)`);
+        } catch (error) {
+          console.error(`❌ Failed to verify ${update.timeframe} candles (attempt ${attempt}/5):`, error);
+        }
+      };
+
+      // 즉시 1번 실행
+      fetchLatestCandles(1);
+
+      // 1초 간격으로 4번 더 실행 (총 5번)
+      setTimeout(() => fetchLatestCandles(2), 1000);
+      setTimeout(() => fetchLatestCandles(3), 2000);
+      setTimeout(() => fetchLatestCandles(4), 3000);
+      setTimeout(() => fetchLatestCandles(5), 4000);
     });
 
     const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {
