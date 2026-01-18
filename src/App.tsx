@@ -557,15 +557,19 @@ function App() {
       setWsConnected(connected);
       console.log('🔌 WebSocket connection status:', connected ? 'Connected' : 'Disconnected');
 
-      if (connected && !isInitialConnection) {
-        console.log('🔄 WebSocket reconnected, checking for missing candles...');
-        setTimeout(() => refillMissingCandles(), 1000);
-      }
-
       if (connected) {
+        console.log('🔄 WebSocket connected, checking for missing candles...');
+        setTimeout(() => refillMissingCandles(), 2000);
         isInitialConnection = false;
       }
     });
+
+    // 주기적으로 갭 체크 및 자동 채우기 (30초마다)
+    const gapCheckInterval = setInterval(() => {
+      if (wsConnected && data) {
+        refillMissingCandles();
+      }
+    }, 30000);
 
     return () => {
       unsubscribePriceUpdate();
@@ -577,6 +581,7 @@ function App() {
       unsubscribePredictionUpdate();
       unsubscribeDashboardUpdate();
       unsubscribeConnectionStatus();
+      clearInterval(gapCheckInterval);
       websocketService.disconnect();
     };
   }, [selectedAccount, refillMissingCandles]);
