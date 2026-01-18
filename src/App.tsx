@@ -581,6 +581,12 @@ function App() {
               addedCount++;
             } else {
               // 기존 캔들 업데이트 (완성봉만)
+              console.log(`   🔄 Updating completed candle with indicators:`, {
+                timestamp: new Date(newCandle.timestamp).toISOString(),
+                ema20: newCandle.ema20,
+                rsi: newCandle.rsi,
+                macd: newCandle.macd
+              });
               merged[existingIndex] = newCandle;
             }
           }
@@ -593,6 +599,17 @@ function App() {
 
           if (addedCount > 0) {
             console.log(`🔄 ${update.timeframe}: Added ${addedCount} missing candles on complete event`);
+          }
+
+          // 최종 병합된 마지막 완성봉의 기술지표 확인
+          const lastCompleted = merged.filter(c => c.isComplete !== false).pop();
+          if (lastCompleted) {
+            console.log(`   ✅ Last completed candle after merge:`, {
+              timestamp: new Date(lastCompleted.timestamp).toISOString(),
+              ema20: lastCompleted.ema20,
+              rsi: lastCompleted.rsi,
+              macd: lastCompleted.macd
+            });
           }
 
           return { ...prev, [timeframeKey]: merged };
