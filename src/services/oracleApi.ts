@@ -248,7 +248,7 @@ const convertApiResponseToDashboardData = (
 
 export const fetchChartData = async (timeframe: string, limit: number = 500) => {
   const baseUrl = getApiUrl();
-  const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}&_=${Date.now()}`;
+  const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}`;
 
   console.log(`📊 Fetching ${timeframe} chart data from:`, url);
 
@@ -256,8 +256,6 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
       },
     });
 

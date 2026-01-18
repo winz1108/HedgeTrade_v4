@@ -316,6 +316,30 @@ function App() {
       });
     });
 
+    const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
+      if (!update.timeframe) return;
+
+      console.log(`🔄 Candle complete for ${update.timeframe}, refreshing chart data...`);
+
+      try {
+        const chart = await fetchChartData(update.timeframe, 500);
+        const timeframeLower = update.timeframe.toLowerCase();
+        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
+
+        setData((prevData) => {
+          if (!prevData) return prevData;
+          return {
+            ...prevData,
+            [timeframeKey]: chart.candles as Candle[],
+          };
+        });
+
+        console.log(`✅ ${update.timeframe} chart refreshed with ${chart.candles.length} candles`);
+      } catch (error) {
+        console.error(`❌ Failed to refresh ${update.timeframe} chart:`, error);
+      }
+    });
+
     const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {
       setData((prevData) => {
         if (!prevData) return prevData;
@@ -390,6 +414,7 @@ function App() {
       unsubscribePriceUpdate();
       unsubscribeRealtimeCandleUpdate();
       unsubscribeCandleUpdate();
+      unsubscribeCandleComplete();
       unsubscribeAccountAssetsUpdate();
       unsubscribeBinanceServerTime();
       unsubscribePredictionUpdate();
