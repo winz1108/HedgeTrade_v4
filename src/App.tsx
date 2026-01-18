@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { RefreshCw, X, Bug, BarChart3, Wifi, WifiOff } from 'lucide-react';
+import { RefreshCw, X, Bug, BarChart3 } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from './types/dashboard';
 import { fetchDashboardData, fetchChartData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
@@ -34,7 +34,6 @@ function App() {
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
   const [performanceResult, setPerformanceResult] = useState<string | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
-  const [wsConnected, setWsConnected] = useState(false);
 
   // BTC 수량과 USDC 수량을 저장 (가격 업데이트 시 자산 재계산용)
   const btcBalanceRef = useRef<number>(0);
@@ -718,9 +717,9 @@ function App() {
       if (update.accounts && update.accounts.length > 0) {
         const accountData = update.accounts.find(acc => acc.accountId === selectedAccount);
 
-        if (accountData) {
-          btcBalanceRef.current = accountData.btcBalance;
-          usdcBalanceRef.current = accountData.usdcBalance;
+        if (accountData && accountData.asset) {
+          btcBalanceRef.current = accountData.btcBalance || 0;
+          usdcBalanceRef.current = accountData.usdcBalance || 0;
 
           setData((prevData) => {
             if (!prevData) return prevData;
@@ -729,31 +728,24 @@ function App() {
               ...prevData,
               currentPrice: update.currentPrice,
               currentTime: update.serverTime,
-              currentAsset: accountData.totalAsset,
-              currentBTC: accountData.btcValue,
-              currentCash: accountData.usdcBalance,
+              currentAsset: accountData.asset?.currentAsset ?? prevData.currentAsset,
+              currentBTC: accountData.asset?.currentBTC ?? prevData.currentBTC,
+              currentCash: accountData.asset?.currentCash ?? prevData.currentCash,
             };
           });
         }
       }
     });
 
-    let isInitialConnection = true;
-
     const unsubscribeConnectionStatus = websocketService.onConnectionStatus((connected) => {
-      setWsConnected(connected);
-      console.log('🔌 WebSocket connection status:', connected ? 'Connected' : 'Disconnected');
-
       if (connected) {
-        console.log('🔄 WebSocket connected, checking for missing candles...');
         setTimeout(() => refillMissingCandles(), 2000);
-        isInitialConnection = false;
       }
     });
 
     // 주기적으로 갭 체크 및 자동 채우기 (30초마다)
     const gapCheckInterval = setInterval(() => {
-      if (wsConnected && data) {
+      if (data) {
         refillMissingCandles();
       }
     }, 30000);
@@ -957,23 +949,6 @@ function App() {
                   {formatLocalTime(data.currentTime)}
                 </span>
               )}
-              <div
-                className={`flex items-center gap-1 px-2 py-1 rounded transition-all duration-200 ${
-                  wsConnected
-                    ? 'bg-emerald-500/10 text-emerald-400'
-                    : 'bg-red-500/10 text-red-400'
-                }`}
-                title={wsConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 끊김'}
-              >
-                {wsConnected ? (
-                  <Wifi className="w-3 h-3" />
-                ) : (
-                  <WifiOff className="w-3 h-3" />
-                )}
-                <span className="text-[10px] font-medium">
-                  {wsConnected ? 'Live' : 'Offline'}
-                </span>
-              </div>
               <button
                 onClick={handleRealtimePerformance}
                 className="p-1.5 rounded transition-all duration-200 text-cyan-400 hover:bg-cyan-500/10"
