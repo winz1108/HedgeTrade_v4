@@ -110,9 +110,16 @@ class WebSocketService {
     // Nginx will automatically proxy WebSocket connections to the backend
     const wsUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 
-    console.log('🔌 Connecting to WebSocket server:', wsUrl);
-    console.log('🔌 Namespace: /ws/dashboard');
-    console.log('🔌 Socket.IO version:', io.version);
+    console.log('═══════════════════════════════════════');
+    console.log('🔌 WebSocket Connection Attempt');
+    console.log('═══════════════════════════════════════');
+    console.log('📍 URL:', wsUrl);
+    console.log('📍 Full path:', `${wsUrl}/ws/dashboard`);
+    console.log('📍 Namespace: /ws/dashboard');
+    console.log('📍 Socket.IO path: /socket.io/');
+    console.log('📍 Socket.IO version:', io.version);
+    console.log('📍 Transports: websocket, polling');
+    console.log('═══════════════════════════════════════');
 
     this.socket = io(`${wsUrl}/ws/dashboard`, {
       transports: ['websocket', 'polling'],
@@ -129,16 +136,25 @@ class WebSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket connected');
+      console.log('═══════════════════════════════════════');
+      console.log('✅ WebSocket CONNECTED');
+      console.log('═══════════════════════════════════════');
       console.log('🔌 Socket ID:', this.socket?.id);
       console.log('🌐 Connected to:', wsUrl);
       console.log('🔌 Transport:', this.socket?.io?.engine?.transport?.name);
+      console.log('⏰ Connected at:', new Date().toLocaleString());
+      console.log('═══════════════════════════════════════');
       this.connectionStatusCallbacks.forEach(cb => cb(true));
       this.startStatsTracking();
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('❌ WebSocket disconnected, reason:', reason);
+      console.log('═══════════════════════════════════════');
+      console.log('❌ WebSocket DISCONNECTED');
+      console.log('═══════════════════════════════════════');
+      console.log('❌ Reason:', reason);
+      console.log('⏰ Disconnected at:', new Date().toLocaleString());
+      console.log('═══════════════════════════════════════');
       this.connectionStatusCallbacks.forEach(cb => cb(false));
     });
 
@@ -207,10 +223,22 @@ class WebSocketService {
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('❌ WebSocket connection error:', error);
-      console.error('Error message:', error.message);
-      console.error('Error type:', error.type);
-      console.error('Error description:', error.description);
+      console.log('═══════════════════════════════════════');
+      console.error('❌ WebSocket CONNECTION ERROR');
+      console.log('═══════════════════════════════════════');
+      console.error('❌ Error:', error);
+      console.error('❌ Message:', error.message);
+      console.error('❌ Type:', error.type);
+      console.error('❌ Description:', error.description);
+      console.error('⏰ Error at:', new Date().toLocaleString());
+      console.log('═══════════════════════════════════════');
+      console.log('🔍 DIAGNOSIS:');
+      console.log('  1. Check if backend server is running');
+      console.log('  2. Check backend logs for errors');
+      console.log('  3. Verify WebSocket endpoint: /ws/dashboard');
+      console.log('  4. Verify Socket.IO namespace is registered');
+      console.log('  5. Check CORS configuration');
+      console.log('═══════════════════════════════════════');
     });
 
     this.socket.on('error', (error) => {
