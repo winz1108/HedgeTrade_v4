@@ -381,24 +381,15 @@ function App() {
         const candles = [...existingCandles];
 
         if (update.isFinal) {
-          // 완성봉: 갭 감지
+          // 완성봉: 갭 감지만 수행, 실제 추가는 onCandleComplete에서 처리
           const completedCandles = candles.filter(c => c.isComplete !== false);
           if (completedCandles.length > 0) {
             const lastCompleted = completedCandles[completedCandles.length - 1];
             detectAndFillGap(update.timeframe, lastCompleted.timestamp, newCandle.timestamp);
           }
 
-          // 완성봉: 기존에 같은 타임스탬프가 있으면 업데이트, 없으면 추가
-          const existingIndex = candles.findIndex(c => c.timestamp === newCandle.timestamp);
-          if (existingIndex >= 0) {
-            candles[existingIndex] = newCandle;
-          } else {
-            candles.push(newCandle);
-            // 500개 초과 시에만 앞에서 삭제
-            if (candles.length > 500) {
-              candles.shift();
-            }
-          }
+          // 완성봉은 onCandleComplete 이벤트에서 CSV 데이터(기술지표 포함)로 처리
+          return prevData;
         } else {
           // 진행 중인 봉
           const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
