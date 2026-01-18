@@ -203,7 +203,6 @@ class WebSocketService {
     this.socket.on('dashboard_update', (data: DashboardUpdate) => {
       this.eventStats.dashboard_update.count++;
       this.eventStats.dashboard_update.lastTime = Date.now();
-      console.log('📊 Dashboard update received:', data);
       this.dashboardUpdateCallbacks.forEach(cb => cb(data));
     });
 

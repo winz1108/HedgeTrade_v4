@@ -299,27 +299,47 @@ function App() {
           }
         } else {
           // 진행 중인 봉: 지표는 마지막 완성봉 것을 복사
-          if (candles.length > 0) {
-            const lastCompleteCandle = candles[candles.length - 1];
-            newCandle.ema20 = lastCompleteCandle.ema20;
-            newCandle.ema50 = lastCompleteCandle.ema50;
-            newCandle.bbUpper = lastCompleteCandle.bbUpper;
-            newCandle.bbMiddle = lastCompleteCandle.bbMiddle;
-            newCandle.bbLower = lastCompleteCandle.bbLower;
-            newCandle.bbWidth = lastCompleteCandle.bbWidth;
-            newCandle.macd = lastCompleteCandle.macd;
-            newCandle.signal = lastCompleteCandle.signal;
-            newCandle.histogram = lastCompleteCandle.histogram;
-            newCandle.rsi = lastCompleteCandle.rsi;
+          const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
+
+          if (lastCandle && lastCandle.isComplete !== false) {
+            // 마지막 캔들이 완성봉이면 지표 복사
+            newCandle.ema20 = lastCandle.ema20;
+            newCandle.ema50 = lastCandle.ema50;
+            newCandle.bbUpper = lastCandle.bbUpper;
+            newCandle.bbMiddle = lastCandle.bbMiddle;
+            newCandle.bbLower = lastCandle.bbLower;
+            newCandle.bbWidth = lastCandle.bbWidth;
+            newCandle.macd = lastCandle.macd;
+            newCandle.signal = lastCandle.signal;
+            newCandle.histogram = lastCandle.histogram;
+            newCandle.rsi = lastCandle.rsi;
+          } else if (lastCandle && lastCandle.isComplete === false) {
+            // 마지막 캔들이 진행 중인 봉이면 그 지표를 그대로 유지
+            newCandle.ema20 = lastCandle.ema20;
+            newCandle.ema50 = lastCandle.ema50;
+            newCandle.bbUpper = lastCandle.bbUpper;
+            newCandle.bbMiddle = lastCandle.bbMiddle;
+            newCandle.bbLower = lastCandle.bbLower;
+            newCandle.bbWidth = lastCandle.bbWidth;
+            newCandle.macd = lastCandle.macd;
+            newCandle.signal = lastCandle.signal;
+            newCandle.histogram = lastCandle.histogram;
+            newCandle.rsi = lastCandle.rsi;
           }
 
-          // 진행 중인 봉 업데이트
+          // 진행 중인 봉: 마지막이 진행 중인 봉이면 업데이트, 아니면 추가
           if (candles.length === 0) {
             candles.push(newCandle);
-          } else if (candles.length < 300) {
-            candles.push(newCandle);
-          } else {
+          } else if (lastCandle && lastCandle.isComplete === false) {
+            // 마지막 캔들이 진행 중인 봉이면 업데이트
             candles[candles.length - 1] = newCandle;
+          } else {
+            // 마지막 캔들이 완성봉이면 새 진행 중인 봉 추가
+            candles.push(newCandle);
+            // 500개 초과 시 앞에서 삭제
+            if (candles.length > 500) {
+              candles.shift();
+            }
           }
         }
 
@@ -360,27 +380,47 @@ function App() {
           }
         } else {
           // 진행 중인 봉: 지표는 마지막 완성봉 것을 복사
-          if (candles.length > 0) {
-            const lastCompleteCandle = candles[candles.length - 1];
-            newCandle.ema20 = lastCompleteCandle.ema20;
-            newCandle.ema50 = lastCompleteCandle.ema50;
-            newCandle.bbUpper = lastCompleteCandle.bbUpper;
-            newCandle.bbMiddle = lastCompleteCandle.bbMiddle;
-            newCandle.bbLower = lastCompleteCandle.bbLower;
-            newCandle.bbWidth = lastCompleteCandle.bbWidth;
-            newCandle.macd = lastCompleteCandle.macd;
-            newCandle.signal = lastCompleteCandle.signal;
-            newCandle.histogram = lastCompleteCandle.histogram;
-            newCandle.rsi = lastCompleteCandle.rsi;
+          const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
+
+          if (lastCandle && lastCandle.isComplete !== false) {
+            // 마지막 캔들이 완성봉이면 지표 복사
+            newCandle.ema20 = lastCandle.ema20;
+            newCandle.ema50 = lastCandle.ema50;
+            newCandle.bbUpper = lastCandle.bbUpper;
+            newCandle.bbMiddle = lastCandle.bbMiddle;
+            newCandle.bbLower = lastCandle.bbLower;
+            newCandle.bbWidth = lastCandle.bbWidth;
+            newCandle.macd = lastCandle.macd;
+            newCandle.signal = lastCandle.signal;
+            newCandle.histogram = lastCandle.histogram;
+            newCandle.rsi = lastCandle.rsi;
+          } else if (lastCandle && lastCandle.isComplete === false) {
+            // 마지막 캔들이 진행 중인 봉이면 그 지표를 그대로 유지
+            newCandle.ema20 = lastCandle.ema20;
+            newCandle.ema50 = lastCandle.ema50;
+            newCandle.bbUpper = lastCandle.bbUpper;
+            newCandle.bbMiddle = lastCandle.bbMiddle;
+            newCandle.bbLower = lastCandle.bbLower;
+            newCandle.bbWidth = lastCandle.bbWidth;
+            newCandle.macd = lastCandle.macd;
+            newCandle.signal = lastCandle.signal;
+            newCandle.histogram = lastCandle.histogram;
+            newCandle.rsi = lastCandle.rsi;
           }
 
-          // 진행 중인 봉 업데이트
+          // 진행 중인 봉: 마지막이 진행 중인 봉이면 업데이트, 아니면 추가
           if (candles.length === 0) {
             candles.push(newCandle);
-          } else if (candles.length < 300) {
-            candles.push(newCandle);
-          } else {
+          } else if (lastCandle && lastCandle.isComplete === false) {
+            // 마지막 캔들이 진행 중인 봉이면 업데이트
             candles[candles.length - 1] = newCandle;
+          } else {
+            // 마지막 캔들이 완성봉이면 새 진행 중인 봉 추가
+            candles.push(newCandle);
+            // 500개 초과 시 앞에서 삭제
+            if (candles.length > 500) {
+              candles.shift();
+            }
           }
         }
 
@@ -502,7 +542,6 @@ function App() {
     });
 
     const unsubscribeDashboardUpdate = websocketService.onDashboardUpdate((update) => {
-      console.log('📊 Processing dashboard update in App.tsx:', update);
       setData((prevData) => {
         if (!prevData) return prevData;
         return {
