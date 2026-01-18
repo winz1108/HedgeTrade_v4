@@ -111,14 +111,14 @@ function App() {
 
       const cached = dataCache.load();
       if (cached) {
-        console.log('💾 Using cached data while loading fresh data');
+        console.log('💾 Using cached data while loading fresh data', cached);
         setData(prev => prev ? {
           ...prev,
-          currentAsset: cached.currentAsset ?? prev.currentAsset,
-          currentBTC: cached.currentBTC ?? prev.currentBTC,
-          currentCash: cached.currentCash ?? prev.currentCash,
-          initialAsset: cached.initialAsset ?? prev.initialAsset,
-          currentPrice: cached.currentPrice ?? prev.currentPrice,
+          currentAsset: (cached.currentAsset && cached.currentAsset > 0) ? cached.currentAsset : prev.currentAsset,
+          currentBTC: (cached.currentBTC && cached.currentBTC > 0) ? cached.currentBTC : prev.currentBTC,
+          currentCash: (cached.currentCash !== undefined) ? cached.currentCash : prev.currentCash,
+          initialAsset: (cached.initialAsset && cached.initialAsset > 0) ? cached.initialAsset : prev.initialAsset,
+          currentPrice: (cached.currentPrice && cached.currentPrice > 0) ? cached.currentPrice : prev.currentPrice,
         } : prev);
       }
 
@@ -733,20 +733,37 @@ function App() {
           return prevData;
         }
 
-        dataCache.save({
-          currentAsset: update.asset.currentAsset,
-          currentBTC: update.asset.currentBTC,
-          currentCash: update.asset.currentCash,
-          initialAsset: update.asset.initialAsset,
-          currentPrice: prevData.currentPrice,
-        });
+        // 0 값 필터링: 0이 아닌 값만 사용
+        const currentAsset = (update.asset.currentAsset && update.asset.currentAsset > 0)
+          ? update.asset.currentAsset
+          : prevData.currentAsset;
+        const currentBTC = (update.asset.currentBTC && update.asset.currentBTC > 0)
+          ? update.asset.currentBTC
+          : prevData.currentBTC;
+        const currentCash = (update.asset.currentCash !== undefined && update.asset.currentCash !== null)
+          ? update.asset.currentCash
+          : prevData.currentCash;
+        const initialAsset = (update.asset.initialAsset && update.asset.initialAsset > 0)
+          ? update.asset.initialAsset
+          : prevData.initialAsset;
+
+        // 캐시에는 0이 아닌 값만 저장
+        if (currentAsset > 0) {
+          dataCache.save({
+            currentAsset,
+            currentBTC,
+            currentCash,
+            initialAsset,
+            currentPrice: prevData.currentPrice,
+          });
+        }
 
         return {
           ...prevData,
-          currentAsset: update.asset.currentAsset,
-          currentBTC: update.asset.currentBTC,
-          currentCash: update.asset.currentCash,
-          initialAsset: update.asset.initialAsset,
+          currentAsset,
+          currentBTC,
+          currentCash,
+          initialAsset,
         };
       });
     });
@@ -811,22 +828,41 @@ function App() {
         const accountData = update.accounts.find(acc => acc.accountId === selectedAccount);
 
         if (accountData) {
-          btcBalanceRef.current = accountData.btcBalance || 0;
-          usdcBalanceRef.current = accountData.usdcBalance || 0;
-
           setData((prevData) => {
             if (!prevData) return prevData;
 
-            const currentAsset = (accountData as any).asset?.currentAsset ?? accountData.totalAsset ?? prevData.currentAsset;
-            const currentBTC = (accountData as any).asset?.currentBTC ?? accountData.btcValue ?? prevData.currentBTC;
-            const currentCash = (accountData as any).asset?.currentCash ?? accountData.usdcBalance ?? prevData.currentCash;
+            // 0 값 필터링: 0이 아닌 값만 사용, 0이면 이전 값 유지
+            const newAsset = (accountData as any).asset?.currentAsset ?? accountData.totalAsset;
+            const newBTC = (accountData as any).asset?.currentBTC ?? accountData.btcValue;
+            const newCash = (accountData as any).asset?.currentCash ?? accountData.usdcBalance;
 
-            dataCache.save({
-              currentAsset,
-              currentBTC,
-              currentCash,
-              initialAsset: prevData.initialAsset,
-              currentPrice: update.currentPrice,
+            const currentAsset = (newAsset && newAsset > 0) ? newAsset : prevData.currentAsset;
+            const currentBTC = (newBTC && newBTC > 0) ? newBTC : prevData.currentBTC;
+            const currentCash = (newCash !== undefined && newCash !== null) ? newCash : prevData.currentCash;
+
+            // btcBalance와 usdcBalance 업데이트 (0이 아닌 경우만)
+            if (accountData.btcBalance && accountData.btcBalance > 0) {
+              btcBalanceRef.current = accountData.btcBalance;
+            }
+            if (accountData.usdcBalance !== undefined && accountData.usdcBalance !== null) {
+              usdcBalanceRef.current = accountData.usdcBalance;
+            }
+
+            // 캐시에는 0이 아닌 값만 저장
+            if (currentAsset > 0) {
+              dataCache.save({
+                currentAsset,
+                currentBTC,
+                currentCash,
+                initialAsset: prevData.initialAsset,
+                currentPrice: update.currentPrice,
+              });
+            }
+
+            console.log('📊 dashboard_update:', {
+              received: { asset: newAsset, btc: newBTC, cash: newCash },
+              applied: { asset: currentAsset, btc: currentBTC, cash: currentCash },
+              previous: { asset: prevData.currentAsset, btc: prevData.currentBTC, cash: prevData.currentCash },
             });
 
             return {
