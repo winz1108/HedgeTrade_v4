@@ -534,7 +534,31 @@ function App() {
     const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
       if (!update.timeframe) return;
 
-      console.log(`✅ Candle complete: ${update.timeframe} at ${new Date(update.openTime).toLocaleTimeString()}`);
+      // 기술지표 누락 감지
+      const hasIndicators = update.rsi !== undefined &&
+                           update.macd !== undefined &&
+                           update.ema20 !== undefined &&
+                           update.ema50 !== undefined;
+
+      if (!hasIndicators) {
+        console.error('═══════════════════════════════════════');
+        console.error('❌ CRITICAL: Candle WITHOUT indicators!');
+        console.error('═══════════════════════════════════════');
+        console.error('⏰ Time:', new Date(update.openTime).toLocaleTimeString());
+        console.error('📊 Timeframe:', update.timeframe);
+        console.error('💰 Close:', update.close);
+        console.error('📉 RSI:', update.rsi);
+        console.error('📈 MACD:', update.macd);
+        console.error('📊 EMA20:', update.ema20);
+        console.error('📊 EMA50:', update.ema50);
+        console.error('═══════════════════════════════════════');
+        console.error('🔧 ACTION REQUIRED:');
+        console.error('   백엔드에서 기술지표를 계산해서 보내야 합니다!');
+        console.error('   자세한 내용: TECHNICAL_INDICATOR_ROOT_CAUSE.md');
+        console.error('═══════════════════════════════════════');
+      } else {
+        console.log(`✅ Candle complete: ${update.timeframe} at ${new Date(update.openTime).toLocaleTimeString()} (RSI=${update.rsi?.toFixed(1)}, MACD=${update.macd?.toFixed(1)})`);
+      }
 
       // 완성봉 이벤트 발생 시 해당 타임프레임만 최신 5개 검증
       // 단, 마지막 진행봉은 제외하고 완성봉만 병합 (진행봉은 웹소켓만 신뢰)
@@ -558,8 +582,14 @@ function App() {
 
           const merged = [...existingCandles];
           let addedCount = 0;
+          let indicatorMissingCount = 0;
 
           for (const newCandle of completedCandlesOnly) {
+            // 기술지표 누락 체크
+            if (!newCandle.rsi || !newCandle.macd || !newCandle.ema20) {
+              indicatorMissingCount++;
+            }
+
             const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
             if (existingIndex === -1) {
               // 타임스탬프 순서대로 삽입
@@ -572,12 +602,6 @@ function App() {
               addedCount++;
             } else {
               // 기존 캔들 업데이트 (완성봉만)
-              console.log(`   🔄 Updating completed candle with indicators:`, {
-                timestamp: new Date(newCandle.timestamp).toISOString(),
-                ema20: newCandle.ema20,
-                rsi: newCandle.rsi,
-                macd: newCandle.macd
-              });
               merged[existingIndex] = newCandle;
             }
           }
@@ -592,15 +616,29 @@ function App() {
             console.log(`🔄 ${update.timeframe}: Added ${addedCount} missing candles on complete event`);
           }
 
+          if (indicatorMissingCount > 0) {
+            console.warn(`⚠️ ${update.timeframe}: ${indicatorMissingCount} candles missing indicators`);
+          }
+
           // 최종 병합된 마지막 완성봉의 기술지표 확인
           const lastCompleted = merged.filter(c => c.isComplete !== false).pop();
           if (lastCompleted) {
-            console.log(`   ✅ Last completed candle after merge:`, {
-              timestamp: new Date(lastCompleted.timestamp).toISOString(),
-              ema20: lastCompleted.ema20,
-              rsi: lastCompleted.rsi,
-              macd: lastCompleted.macd
-            });
+            const hasAllIndicators = lastCompleted.rsi && lastCompleted.macd && lastCompleted.ema20;
+            if (hasAllIndicators) {
+              console.log(`   ✅ Last completed candle OK:`, {
+                timestamp: new Date(lastCompleted.timestamp).toISOString(),
+                rsi: lastCompleted.rsi?.toFixed(1),
+                macd: lastCompleted.macd?.toFixed(1),
+                ema20: lastCompleted.ema20?.toFixed(0)
+              });
+            } else {
+              console.error(`   ❌ Last completed candle MISSING indicators:`, {
+                timestamp: new Date(lastCompleted.timestamp).toISOString(),
+                rsi: lastCompleted.rsi,
+                macd: lastCompleted.macd,
+                ema20: lastCompleted.ema20
+              });
+            }
           }
 
           return { ...prev, [timeframeKey]: merged };
@@ -610,7 +648,22 @@ function App() {
       }
     });
 
+    let assetUpdateCount = 0;
+    let lastAssetLogTime = Date.now();
+
     const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {
+      assetUpdateCount++;
+
+      // 10초마다 통계 출력
+      const now = Date.now();
+      if (now - lastAssetLogTime >= 10000) {
+        const elapsed = (now - lastAssetLogTime) / 1000;
+        const rate = assetUpdateCount / elapsed;
+        console.log(`💰 Asset updates: ${assetUpdateCount} in ${elapsed.toFixed(1)}s (${rate.toFixed(2)}/s)`);
+        assetUpdateCount = 0;
+        lastAssetLogTime = now;
+      }
+
       setData((prevData) => {
         if (!prevData) return prevData;
         if (update.accountId !== selectedAccount) return prevData;
