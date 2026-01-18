@@ -4,6 +4,29 @@ const getApiUrl = () => {
   return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 };
 
+export interface DashboardQuick {
+  currentPrice: number;
+  currentPrediction: {
+    takeProfitProb: number;
+    stopLossProb?: number;
+    v5MoeTakeProfitProb?: number;
+    predictionCalculatedAt: number;
+  };
+  accounts: Array<{
+    accountId: string;
+    btcBalance: number;
+    btcFree: number;
+    btcLocked: number;
+    usdcBalance: number;
+    btcValue: number;
+    totalAsset: number;
+  }>;
+  totalBtc: number;
+  totalUsdc: number;
+  totalAsset: number;
+  timestamp: number;
+}
+
 const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: boolean, entryTime?: number): TradeEvent[] => {
   const events: TradeEvent[] = [];
 
@@ -329,6 +352,33 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
     };
   } catch (error) {
     console.error(`❌ Failed to fetch ${timeframe} chart data:`, error);
+    throw error;
+  }
+};
+
+export const fetchDashboardQuick = async (): Promise<DashboardQuick> => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/dashboard/quick`;
+
+  console.log('⚡ Fetching quick dashboard data from:', url);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch quick dashboard: ${response.status} ${response.statusText}`);
+    }
+
+    const data: DashboardQuick = await response.json();
+    console.log('✅ Quick dashboard data received:', data ? 'Valid' : 'Empty');
+
+    return data;
+  } catch (error) {
+    console.error('❌ Failed to fetch quick dashboard data:', error);
     throw error;
   }
 };
