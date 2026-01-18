@@ -35,6 +35,10 @@ function App() {
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
 
+  // BTC 수량과 USDC 수량을 저장 (가격 업데이트 시 자산 재계산용)
+  const btcBalanceRef = useRef<number>(0);
+  const usdcBalanceRef = useRef<number>(0);
+
   // 갭 감지 및 자동 채우기
   const detectAndFillGap = useCallback(async (
     timeframe: string,
@@ -143,6 +147,15 @@ function App() {
 
       // Set initial data with 5m chart
       setData({ ...dashboardData });
+
+      // 초기 BTC 수량과 USDC 수량 계산 및 저장
+      if (dashboardData.currentBTC !== undefined && dashboardData.currentPrice) {
+        btcBalanceRef.current = dashboardData.currentBTC / dashboardData.currentPrice;
+      }
+      if (dashboardData.currentCash !== undefined) {
+        usdcBalanceRef.current = dashboardData.currentCash;
+      }
+
       setLoading(false);
 
       // 3. Load other timeframes in background
@@ -367,10 +380,17 @@ function App() {
           };
         }
 
+        // 가격이 업데이트될 때마다 자산 재계산 (1초마다)
+        const btcValue = btcBalanceRef.current * priceData.currentPrice;
+        const totalAsset = btcValue + usdcBalanceRef.current;
+
         return {
           ...prevData,
           currentPrice: priceData.currentPrice,
           currentTime: priceData.currentTime,
+          currentAsset: totalAsset,
+          currentBTC: btcValue,
+          currentCash: usdcBalanceRef.current,
           holding: updatedHolding,
         };
       });
@@ -730,6 +750,10 @@ function App() {
     });
 
     const unsubscribeDashboardUpdate = websocketService.onDashboardUpdate((update) => {
+      // BTC 수량과 USDC 수량 저장 (가격 변동 시 재계산용)
+      btcBalanceRef.current = update.btcBalance;
+      usdcBalanceRef.current = update.usdcBalance;
+
       setData((prevData) => {
         if (!prevData) return prevData;
 
