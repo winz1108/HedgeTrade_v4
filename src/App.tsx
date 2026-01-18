@@ -400,43 +400,51 @@ function App() {
             }
           }
         } else {
-          // 진행 중인 봉: 지표는 마지막 완성봉 것을 복사
+          // 진행 중인 봉
           const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
 
-          if (lastCandle && lastCandle.isComplete !== false) {
-            // 마지막 캔들이 완성봉이면 지표 복사
-            newCandle.ema20 = lastCandle.ema20;
-            newCandle.ema50 = lastCandle.ema50;
-            newCandle.bbUpper = lastCandle.bbUpper;
-            newCandle.bbMiddle = lastCandle.bbMiddle;
-            newCandle.bbLower = lastCandle.bbLower;
-            newCandle.bbWidth = lastCandle.bbWidth;
-            newCandle.macd = lastCandle.macd;
-            newCandle.signal = lastCandle.signal;
-            newCandle.histogram = lastCandle.histogram;
-            newCandle.rsi = lastCandle.rsi;
-          } else if (lastCandle && lastCandle.isComplete === false) {
-            // 마지막 캔들이 진행 중인 봉이면 그 지표를 그대로 유지
-            newCandle.ema20 = lastCandle.ema20;
-            newCandle.ema50 = lastCandle.ema50;
-            newCandle.bbUpper = lastCandle.bbUpper;
-            newCandle.bbMiddle = lastCandle.bbMiddle;
-            newCandle.bbLower = lastCandle.bbLower;
-            newCandle.bbWidth = lastCandle.bbWidth;
-            newCandle.macd = lastCandle.macd;
-            newCandle.signal = lastCandle.signal;
-            newCandle.histogram = lastCandle.histogram;
-            newCandle.rsi = lastCandle.rsi;
-          }
-
-          // 진행 중인 봉: 마지막이 진행 중인 봉이면 업데이트, 아니면 추가
-          if (candles.length === 0) {
+          if (!lastCandle) {
+            // 캔들이 없으면 추가
             candles.push(newCandle);
-          } else if (lastCandle && lastCandle.isComplete === false) {
-            // 마지막 캔들이 진행 중인 봉이면 업데이트
+          } else if (lastCandle.timestamp === newCandle.timestamp) {
+            // 타임스탬프가 같으면 덮어씌우기 (CSV 진행봉 → 웹소켓 진행봉)
+            // 지표는 기존 것을 유지
+            newCandle.ema20 = lastCandle.ema20;
+            newCandle.ema50 = lastCandle.ema50;
+            newCandle.bbUpper = lastCandle.bbUpper;
+            newCandle.bbMiddle = lastCandle.bbMiddle;
+            newCandle.bbLower = lastCandle.bbLower;
+            newCandle.bbWidth = lastCandle.bbWidth;
+            newCandle.macd = lastCandle.macd;
+            newCandle.signal = lastCandle.signal;
+            newCandle.histogram = lastCandle.histogram;
+            newCandle.rsi = lastCandle.rsi;
+
             candles[candles.length - 1] = newCandle;
           } else {
-            // 마지막 캔들이 완성봉이면 새 진행 중인 봉 추가
+            // 타임스탬프가 다르면 새 봉 (CSV 진행봉이 완성되고 새 봉 시작)
+            // CSV의 마지막 진행봉을 완성봉으로 전환
+            if (lastCandle.isComplete === false) {
+              lastCandle.isComplete = true;
+            }
+
+            // 지표는 마지막 완성봉에서 복사
+            const completedCandles = candles.filter(c => c.isComplete !== false);
+            const lastCompleted = completedCandles.length > 0
+              ? completedCandles[completedCandles.length - 1]
+              : lastCandle;
+
+            newCandle.ema20 = lastCompleted.ema20;
+            newCandle.ema50 = lastCompleted.ema50;
+            newCandle.bbUpper = lastCompleted.bbUpper;
+            newCandle.bbMiddle = lastCompleted.bbMiddle;
+            newCandle.bbLower = lastCompleted.bbLower;
+            newCandle.bbWidth = lastCompleted.bbWidth;
+            newCandle.macd = lastCompleted.macd;
+            newCandle.signal = lastCompleted.signal;
+            newCandle.histogram = lastCompleted.histogram;
+            newCandle.rsi = lastCompleted.rsi;
+
             candles.push(newCandle);
             // 500개 초과 시 앞에서 삭제
             if (candles.length > 500) {

@@ -81,7 +81,7 @@ const convertApiResponseToDashboardData = (
     const mapCandles = (candles: any[]) => {
       if (!candles || !Array.isArray(candles)) return [];
 
-      const mapped = candles.map(c => ({
+      return candles.map(c => ({
         timestamp: c.timestamp,
         open: c.open,
         high: c.high,
@@ -102,14 +102,6 @@ const convertApiResponseToDashboardData = (
         rsi: c.rsi,
         isComplete: c.isComplete !== undefined ? c.isComplete : true,
       }));
-
-      // CSV의 마지막 미완성 봉은 웹소켓이 실시간으로 업데이트하므로 제거
-      const lastCandle = mapped[mapped.length - 1];
-      if (lastCandle && lastCandle.isComplete === false) {
-        mapped.pop();
-      }
-
-      return mapped;
     };
 
     return {
@@ -174,7 +166,7 @@ const convertApiResponseToDashboardData = (
   const mapCandlesSingle = (candles: any[]) => {
     if (!candles || !Array.isArray(candles)) return [];
 
-    const mapped = candles.map(c => ({
+    return candles.map(c => ({
       timestamp: c.timestamp,
       open: c.open,
       high: c.high,
@@ -195,14 +187,6 @@ const convertApiResponseToDashboardData = (
       rsi: c.rsi,
       isComplete: c.isComplete !== undefined ? c.isComplete : true,
     }));
-
-    // CSV의 마지막 미완성 봉은 웹소켓이 실시간으로 업데이트하므로 제거
-    const lastCandle = mapped[mapped.length - 1];
-    if (lastCandle && lastCandle.isComplete === false) {
-      mapped.pop();
-    }
-
-    return mapped;
   };
 
   // priceHistory1m 등이 최상위에 있는 경우
@@ -319,15 +303,7 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
 
     const mappedCandles = mapCandles(chartResponse.candles);
 
-    // CSV의 마지막 미완성 봉은 웹소켓이 실시간으로 업데이트하므로 제거
-    // 웹소켓이 완성봉을 받으면 자동으로 추가됨
-    const lastCandle = mappedCandles[mappedCandles.length - 1];
-    if (lastCandle && lastCandle.isComplete === false) {
-      console.log(`⚠️ ${timeframe} chart: Removing last incomplete candle from CSV (websocket will handle it)`);
-      mappedCandles.pop();
-    }
-
-    console.log(`✅ ${timeframe} chart data loaded: ${mappedCandles.length} candles (excluding incomplete)`);
+    console.log(`✅ ${timeframe} chart data loaded: ${mappedCandles.length} candles`);
 
     return {
       timeframe: chartResponse.timeframe,
