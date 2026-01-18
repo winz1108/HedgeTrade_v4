@@ -190,11 +190,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                       </span>
                     )}
                   </div>
-                  {data.currentPrediction?.predictionCalculatedAt && (
-                    <div className="text-[7px] text-slate-600 font-mono">
-                      RAW: {data.currentPrediction.predictionCalculatedAt} | {new Date(data.currentPrediction.predictionCalculatedAt).toISOString()}
-                    </div>
-                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
