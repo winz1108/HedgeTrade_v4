@@ -764,22 +764,13 @@ function App() {
     const unsubscribePredictionUpdate = websocketService.onPredictionUpdate((update) => {
       console.log('🔮 RAW Prediction Update received:', JSON.stringify(update, null, 2));
 
-      if (!update.success) {
-        console.warn('⚠️ Prediction update success=false, skipping');
-        return;
-      }
-
-      if (!update.prediction) {
-        console.warn('⚠️ Prediction update has no prediction object, skipping');
-        return;
-      }
-
-      const newCalculatedAt = update.prediction.predictionCalculatedAt;
+      const newCalculatedAt = update.predictionCalculatedAt;
 
       console.log('🔮 Prediction Update from WebSocket:');
-      console.log('  - Probability:', (update.prediction.prob * 100).toFixed(2) + '%');
+      console.log('  - Probability:', (update.probability * 100).toFixed(2) + '%');
       console.log('  - Calculated At:', newCalculatedAt, '→', new Date(newCalculatedAt).toLocaleString());
-      console.log('  - Target Timestamp:', new Date(update.prediction.predictionTargetTimestampMs).toLocaleString());
+      console.log('  - Version:', update.version);
+      console.log('  - Timestamp:', new Date(update.timestamp).toLocaleString());
 
       setData((prevData) => {
         if (!prevData) return prevData;
@@ -791,21 +782,21 @@ function App() {
         const updated = {
           ...prevData,
           currentPrediction: {
-            takeProfitProb: update.prediction!.prob,
-            stopLossProb: update.prediction!.stopLossProb,
-            v5MoeTakeProfitProb: update.prediction!.prob,
-            predictionDataTimestamp: update.prediction!.predictionTargetTimestampMs,
+            takeProfitProb: update.probability,
+            stopLossProb: update.stopLossProb || 0,
+            v5MoeTakeProfitProb: update.probability,
+            predictionDataTimestamp: update.timestamp,
             predictionCalculatedAt: newCalculatedAt,
           },
           lastPredictionUpdateTime: newCalculatedAt,
-          marketState: update.prediction!.market_state,
-          gateWeights: update.prediction!.gate_weights,
+          marketState: update.market_state,
+          gateWeights: update.gate_weights,
           holding: {
             ...prevData.holding,
-            v5MoeTakeProfitProb: update.prediction!.prob,
+            v5MoeTakeProfitProb: update.probability,
             latestPrediction: {
-              takeProfitProb: update.prediction!.prob,
-              stopLossProb: update.prediction!.stopLossProb,
+              takeProfitProb: update.probability,
+              stopLossProb: update.stopLossProb || 0,
             },
           },
         };

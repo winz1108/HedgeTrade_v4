@@ -54,17 +54,13 @@ export interface BinanceServerTime {
 }
 
 export interface PredictionUpdate {
-  success: boolean;
-  prediction?: {
-    prob: number;
-    stopLossProb: number;
-    predictionCalculatedAt: number;
-    predictionTargetTimestampMs: number;
-    model_version: string;
-    market_state?: any;
-    gate_weights?: number[];
-  };
-  timestamp: string;
+  probability: number;
+  version: string;
+  timestamp: number;
+  predictionCalculatedAt: number;
+  stopLossProb?: number;
+  market_state?: any;
+  gate_weights?: number[];
 }
 
 export interface AccountBalance {
