@@ -373,15 +373,45 @@ function App() {
         const candles = [...existingCandles];
 
         if (update.isFinal) {
-          // 완성봉: 갭 감지만 수행, 실제 추가는 onCandleComplete에서 처리
-          const completedCandles = candles.filter(c => c.isComplete !== false);
-          if (completedCandles.length > 0) {
-            const lastCompleted = completedCandles[completedCandles.length - 1];
-            detectAndFillGap(update.timeframe, lastCompleted.timestamp, newCandle.timestamp);
-          }
+          // 완성봉: 진행봉이었던 캔들을 완성봉으로 전환하고 기술지표 업데이트
+          const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
 
-          // 완성봉은 onCandleComplete 이벤트에서 CSV 데이터(기술지표 포함)로 처리
-          return prevData;
+          if (lastCandle && lastCandle.timestamp === newCandle.timestamp) {
+            // 마지막 진행봉이 완성봉이 된 경우: 기술지표 업데이트
+            console.log('🔄 진행봉→완성봉 전환:', {
+              timeframe: update.timeframe,
+              time: new Date(update.openTime).toLocaleTimeString(),
+              rsi: update.rsi ?? 'missing',
+              macd: update.macd ?? 'missing',
+              ema20: update.ema20 ?? 'missing',
+            });
+
+            lastCandle.isComplete = true;
+            lastCandle.close = newCandle.close;
+            lastCandle.high = newCandle.high;
+            lastCandle.low = newCandle.low;
+            lastCandle.volume = newCandle.volume;
+
+            // 기술지표 업데이트 (백엔드가 보낸 값 사용)
+            if (update.rsi !== undefined) lastCandle.rsi = update.rsi;
+            if (update.macd !== undefined) lastCandle.macd = update.macd;
+            if (update.macdSignal !== undefined) lastCandle.signal = update.macdSignal;
+            if (update.macdHistogram !== undefined) lastCandle.histogram = update.macdHistogram;
+            if (update.ema20 !== undefined) lastCandle.ema20 = update.ema20;
+            if (update.ema50 !== undefined) lastCandle.ema50 = update.ema50;
+            if (update.bbUpper !== undefined) lastCandle.bbUpper = update.bbUpper;
+            if (update.bbMiddle !== undefined) lastCandle.bbMiddle = update.bbMiddle;
+            if (update.bbLower !== undefined) lastCandle.bbLower = update.bbLower;
+            if (update.bbWidth !== undefined) lastCandle.bbWidth = update.bbWidth;
+          } else {
+            // 갭 발생: onCandleComplete에서 처리
+            const completedCandles = candles.filter(c => c.isComplete !== false);
+            if (completedCandles.length > 0) {
+              const lastCompleted = completedCandles[completedCandles.length - 1];
+              detectAndFillGap(update.timeframe, lastCompleted.timestamp, newCandle.timestamp);
+            }
+            return prevData;
+          }
         } else {
           // 진행 중인 봉
           const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
@@ -661,6 +691,10 @@ function App() {
       setData((prevData) => {
         if (!prevData) return prevData;
         if (update.accountId !== selectedAccount) return prevData;
+        if (!update.asset) {
+          console.error('❌ account_assets_update: asset 객체 없음', update);
+          return prevData;
+        }
 
         return {
           ...prevData,

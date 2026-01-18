@@ -224,6 +224,12 @@ class WebSocketService {
     this.socket.on('account_assets_update', (data: AccountAssetsUpdate) => {
       this.eventStats.account_assets_update.count++;
       this.eventStats.account_assets_update.lastTime = Date.now();
+
+      if (!data || !data.asset) {
+        console.error('❌ account_assets_update: 잘못된 데이터 구조', data);
+        return;
+      }
+
       console.log('💰 account_assets_update received:', {
         accountId: data.accountId,
         currentAsset: data.asset.currentAsset,
