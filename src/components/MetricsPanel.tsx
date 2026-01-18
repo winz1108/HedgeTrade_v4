@@ -1,7 +1,7 @@
 import { TrendingUp, TrendingDown, DollarSign, Activity, History } from 'lucide-react';
 import { DashboardData } from '../types/dashboard';
 import { formatLocalTime, formatLocalDateTime } from '../utils/time';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface MetricsPanelProps {
   data: DashboardData;
@@ -9,6 +9,14 @@ interface MetricsPanelProps {
 }
 
 export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
+  useEffect(() => {
+    if (position === 'left' && data.currentPrediction) {
+      console.log('📊 MetricsPanel rendering with prediction:');
+      console.log('  - Probability:', (data.currentPrediction.takeProfitProb * 100).toFixed(2) + '%');
+      console.log('  - Calculated At:', data.currentPrediction.predictionCalculatedAt);
+      console.log('  - Formatted:', formatLocalTime(data.currentPrediction.predictionCalculatedAt));
+    }
+  }, [data.currentPrediction, position]);
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

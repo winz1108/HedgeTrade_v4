@@ -757,6 +757,11 @@ function App() {
     const unsubscribePredictionUpdate = websocketService.onPredictionUpdate((update) => {
       if (!update.success || !update.prediction) return;
 
+      console.log('🔮 Prediction Update from WebSocket:');
+      console.log('  - Probability:', (update.prediction.prob * 100).toFixed(2) + '%');
+      console.log('  - Calculated At:', new Date(update.prediction.predictionCalculatedAt).toLocaleString());
+      console.log('  - Target Timestamp:', new Date(update.prediction.predictionTargetTimestampMs).toLocaleString());
+
       setData((prevData) => {
         if (!prevData) return prevData;
         return {
