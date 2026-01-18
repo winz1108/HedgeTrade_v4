@@ -18,6 +18,44 @@ const TIMEFRAME_INTERVALS: Record<string, number> = {
   '1d': 24 * 60 * 60 * 1000,
 };
 
+function fillMissingCandlesInArray(candles: Candle[], timeframe: string): Candle[] {
+  if (candles.length === 0) return candles;
+
+  const interval = TIMEFRAME_INTERVALS[timeframe];
+  if (!interval) return candles;
+
+  const sortedCandles = [...candles].sort((a, b) => a.timestamp - b.timestamp);
+  const filled: Candle[] = [sortedCandles[0]];
+
+  for (let i = 1; i < sortedCandles.length; i++) {
+    const prevCandle = filled[filled.length - 1];
+    const currentCandle = sortedCandles[i];
+    const gap = currentCandle.timestamp - prevCandle.timestamp;
+
+    if (gap > interval * 1.5) {
+      const missedCount = Math.floor(gap / interval) - 1;
+
+      for (let j = 1; j <= missedCount; j++) {
+        const missingTimestamp = prevCandle.timestamp + (interval * j);
+        const fillerCandle: Candle = {
+          timestamp: missingTimestamp,
+          open: prevCandle.close,
+          high: prevCandle.close,
+          low: prevCandle.close,
+          close: prevCandle.close,
+          volume: 0,
+          isComplete: true,
+        };
+        filled.push(fillerCandle);
+      }
+    }
+
+    filled.push(currentCandle);
+  }
+
+  return filled;
+}
+
 function App() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,13 +120,14 @@ function App() {
           }
 
           merged.sort((a, b) => a.timestamp - b.timestamp);
+          const filledMerged = fillMissingCandlesInArray(merged, timeframe);
 
-          if (merged.length > 500) {
-            merged.splice(0, merged.length - 500);
+          if (filledMerged.length > 500) {
+            filledMerged.splice(0, filledMerged.length - 500);
           }
 
           console.log(`✅ Filled ${addedCount} missing candles in ${timeframe}`);
-          return { ...prev, [timeframeKey]: merged };
+          return { ...prev, [timeframeKey]: filledMerged };
         });
       } catch (error) {
         console.error(`❌ Failed to fill gap in ${timeframe}:`, error);
@@ -116,8 +155,9 @@ function App() {
       console.log('📊 Step 2: Loading 5m chart data (priority)...');
       try {
         const chart5m = await fetchChartData('5m', 500);
-        dashboardData.priceHistory5m = chart5m.candles as Candle[];
-        console.log('✅ 5m chart loaded:', chart5m.candles.length, 'candles');
+        const filledCandles = fillMissingCandlesInArray(chart5m.candles as Candle[], '5m');
+        dashboardData.priceHistory5m = filledCandles;
+        console.log('✅ 5m chart loaded:', filledCandles.length, 'candles (filled)');
       } catch (chartError) {
         console.error('⚠️ Failed to load 5m chart:', chartError);
       }
@@ -133,7 +173,8 @@ function App() {
       for (const timeframe of timeframes) {
         try {
           const chart = await fetchChartData(timeframe, 500);
-          console.log(`✅ ${timeframe} chart loaded:`, chart.candles.length, 'candles');
+          const filledCandles = fillMissingCandlesInArray(chart.candles as Candle[], timeframe);
+          console.log(`✅ ${timeframe} chart loaded:`, filledCandles.length, 'candles (filled)');
 
           // Update data with new timeframe
           setData(prev => {
@@ -142,22 +183,22 @@ function App() {
 
             switch (timeframe) {
               case '1m':
-                updated.priceHistory1m = chart.candles as Candle[];
+                updated.priceHistory1m = filledCandles;
                 break;
               case '15m':
-                updated.priceHistory15m = chart.candles as Candle[];
+                updated.priceHistory15m = filledCandles;
                 break;
               case '30m':
-                updated.priceHistory30m = chart.candles as Candle[];
+                updated.priceHistory30m = filledCandles;
                 break;
               case '1h':
-                updated.priceHistory1h = chart.candles as Candle[];
+                updated.priceHistory1h = filledCandles;
                 break;
               case '4h':
-                updated.priceHistory4h = chart.candles as Candle[];
+                updated.priceHistory4h = filledCandles;
                 break;
               case '1d':
-                updated.priceHistory1d = chart.candles as Candle[];
+                updated.priceHistory1d = filledCandles;
                 break;
             }
 
@@ -267,7 +308,8 @@ function App() {
 
           if (!existingCandles || existingCandles.length === 0) {
             console.log(`📊 Loading initial ${timeframe} data (100 candles)`);
-            return { ...prev, [timeframeKey]: chart.candles as Candle[] };
+            const filledCandles = fillMissingCandlesInArray(chart.candles as Candle[], timeframe);
+            return { ...prev, [timeframeKey]: filledCandles };
           }
 
           const newCandles = chart.candles as Candle[];
@@ -289,15 +331,17 @@ function App() {
             }
           }
 
-          if (merged.length > 500) {
-            merged.splice(0, merged.length - 500);
+          const filledMerged = fillMissingCandlesInArray(merged, timeframe);
+
+          if (filledMerged.length > 500) {
+            filledMerged.splice(0, filledMerged.length - 500);
           }
 
           if (addedCount > 0) {
             console.log(`✅ ${timeframe}: Added ${addedCount} missing candles`);
           }
 
-          return { ...prev, [timeframeKey]: merged };
+          return { ...prev, [timeframeKey]: filledMerged };
         });
       } catch (error) {
         console.error(`❌ Failed to refill ${timeframe}:`, error);
