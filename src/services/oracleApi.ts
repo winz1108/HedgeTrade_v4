@@ -78,26 +78,39 @@ const convertApiResponseToDashboardData = (
       account = apiResponse.accounts[0];
     }
 
-    const mapCandles = (candles: any[]) => candles?.map(c => ({
-      timestamp: c.timestamp,
-      open: c.open,
-      high: c.high,
-      low: c.low,
-      close: c.close,
-      volume: c.volume,
-      ema20: c.ema20,
-      ema50: c.ema50,
-      bb_upper: c.bb_upper,
-      bb_lower: c.bb_lower,
-      bbUpper: c.bbUpper || c.bb_upper,
-      bbMiddle: c.bbMiddle || c.bb_middle,
-      bbLower: c.bbLower || c.bb_lower,
-      bbWidth: c.bbWidth || c.bb_width,
-      macd: c.macd,
-      signal: c.signal || c.macd_signal,
-      histogram: c.histogram || c.macd_histogram,
-      rsi: c.rsi,
-    })) || [];
+    const mapCandles = (candles: any[]) => {
+      if (!candles || !Array.isArray(candles)) return [];
+
+      const mapped = candles.map(c => ({
+        timestamp: c.timestamp,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+        volume: c.volume,
+        ema20: c.ema20,
+        ema50: c.ema50,
+        bb_upper: c.bb_upper,
+        bb_lower: c.bb_lower,
+        bbUpper: c.bbUpper || c.bb_upper,
+        bbMiddle: c.bbMiddle || c.bb_middle,
+        bbLower: c.bbLower || c.bb_lower,
+        bbWidth: c.bbWidth || c.bb_width,
+        macd: c.macd,
+        signal: c.signal || c.macd_signal,
+        histogram: c.histogram || c.macd_histogram,
+        rsi: c.rsi,
+        isComplete: c.isComplete !== undefined ? c.isComplete : true,
+      }));
+
+      // CSV의 마지막 미완성 봉은 웹소켓이 실시간으로 업데이트하므로 제거
+      const lastCandle = mapped[mapped.length - 1];
+      if (lastCandle && lastCandle.isComplete === false) {
+        mapped.pop();
+      }
+
+      return mapped;
+    };
 
     return {
       version: apiResponse.version,
@@ -158,26 +171,39 @@ const convertApiResponseToDashboardData = (
   }
 
   // 단일 구조 (API_SPEC.md 형식)
-  const mapCandles = (candles: any[]) => candles?.map(c => ({
-    timestamp: c.timestamp,
-    open: c.open,
-    high: c.high,
-    low: c.low,
-    close: c.close,
-    volume: c.volume,
-    ema20: c.ema20,
-    ema50: c.ema50,
-    bb_upper: c.bb_upper,
-    bb_lower: c.bb_lower,
-    bbUpper: c.bbUpper,
-    bbMiddle: c.bbMiddle,
-    bbLower: c.bbLower,
-    bbWidth: c.bbWidth,
-    macd: c.macd,
-    signal: c.signal,
-    histogram: c.histogram,
-    rsi: c.rsi,
-  })) || [];
+  const mapCandlesSingle = (candles: any[]) => {
+    if (!candles || !Array.isArray(candles)) return [];
+
+    const mapped = candles.map(c => ({
+      timestamp: c.timestamp,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+      ema20: c.ema20,
+      ema50: c.ema50,
+      bb_upper: c.bb_upper,
+      bb_lower: c.bb_lower,
+      bbUpper: c.bbUpper,
+      bbMiddle: c.bbMiddle,
+      bbLower: c.bbLower,
+      bbWidth: c.bbWidth,
+      macd: c.macd,
+      signal: c.signal,
+      histogram: c.histogram,
+      rsi: c.rsi,
+      isComplete: c.isComplete !== undefined ? c.isComplete : true,
+    }));
+
+    // CSV의 마지막 미완성 봉은 웹소켓이 실시간으로 업데이트하므로 제거
+    const lastCandle = mapped[mapped.length - 1];
+    if (lastCandle && lastCandle.isComplete === false) {
+      mapped.pop();
+    }
+
+    return mapped;
+  };
 
   // priceHistory1m 등이 최상위에 있는 경우
   const trades = Array.isArray(apiResponse.trades)
@@ -202,14 +228,14 @@ const convertApiResponseToDashboardData = (
     initialAsset: (apiResponse as any).initialAsset ?? 0,
     currentTime: apiResponse.currentTime,
     currentPrice: apiResponse.currentPrice,
-    priceHistory1m: (apiResponse as any).priceHistory1m ? mapCandles((apiResponse as any).priceHistory1m) : [],
-    priceHistory5m: (apiResponse as any).priceHistory5m ? mapCandles((apiResponse as any).priceHistory5m) : undefined,
-    priceHistory15m: (apiResponse as any).priceHistory15m ? mapCandles((apiResponse as any).priceHistory15m) : undefined,
-    priceHistory30m: (apiResponse as any).priceHistory30m ? mapCandles((apiResponse as any).priceHistory30m) : undefined,
-    priceHistory1h: (apiResponse as any).priceHistory1h ? mapCandles((apiResponse as any).priceHistory1h) : undefined,
-    priceHistory4h: (apiResponse as any).priceHistory4h ? mapCandles((apiResponse as any).priceHistory4h) : undefined,
-    priceHistory1d: (apiResponse as any).priceHistory1d ? mapCandles((apiResponse as any).priceHistory1d) : undefined,
-    pricePredictions: (apiResponse as any).pricePredictions ? mapCandles((apiResponse as any).pricePredictions) : [],
+    priceHistory1m: (apiResponse as any).priceHistory1m ? mapCandlesSingle((apiResponse as any).priceHistory1m) : [],
+    priceHistory5m: (apiResponse as any).priceHistory5m ? mapCandlesSingle((apiResponse as any).priceHistory5m) : undefined,
+    priceHistory15m: (apiResponse as any).priceHistory15m ? mapCandlesSingle((apiResponse as any).priceHistory15m) : undefined,
+    priceHistory30m: (apiResponse as any).priceHistory30m ? mapCandlesSingle((apiResponse as any).priceHistory30m) : undefined,
+    priceHistory1h: (apiResponse as any).priceHistory1h ? mapCandlesSingle((apiResponse as any).priceHistory1h) : undefined,
+    priceHistory4h: (apiResponse as any).priceHistory4h ? mapCandlesSingle((apiResponse as any).priceHistory4h) : undefined,
+    priceHistory1d: (apiResponse as any).priceHistory1d ? mapCandlesSingle((apiResponse as any).priceHistory1d) : undefined,
+    pricePredictions: (apiResponse as any).pricePredictions ? mapCandlesSingle((apiResponse as any).pricePredictions) : [],
     trades,
     holding: {
       isHolding: (apiResponse as any).holding?.isHolding ?? false,
@@ -288,13 +314,24 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
       signal: c.signal || c.macd_signal,
       histogram: c.histogram || c.macd_histogram,
       rsi: c.rsi,
+      isComplete: c.isComplete !== undefined ? c.isComplete : true,
     })) || [];
 
-    console.log(`✅ ${timeframe} chart data loaded: ${chartResponse.candles.length} candles`);
+    const mappedCandles = mapCandles(chartResponse.candles);
+
+    // CSV의 마지막 미완성 봉은 웹소켓이 실시간으로 업데이트하므로 제거
+    // 웹소켓이 완성봉을 받으면 자동으로 추가됨
+    const lastCandle = mappedCandles[mappedCandles.length - 1];
+    if (lastCandle && lastCandle.isComplete === false) {
+      console.log(`⚠️ ${timeframe} chart: Removing last incomplete candle from CSV (websocket will handle it)`);
+      mappedCandles.pop();
+    }
+
+    console.log(`✅ ${timeframe} chart data loaded: ${mappedCandles.length} candles (excluding incomplete)`);
 
     return {
       timeframe: chartResponse.timeframe,
-      candles: mapCandles(chartResponse.candles),
+      candles: mappedCandles,
       count: chartResponse.count,
       source: chartResponse.source,
     };
