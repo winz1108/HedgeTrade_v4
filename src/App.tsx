@@ -286,9 +286,19 @@ function App() {
         const candles = [...existingCandles];
 
         if (update.isFinal) {
-          candles.shift();
-          candles.push(newCandle);
+          // 완성봉: 기존에 같은 타임스탬프가 있으면 업데이트, 없으면 추가
+          const existingIndex = candles.findIndex(c => c.timestamp === newCandle.timestamp);
+          if (existingIndex >= 0) {
+            candles[existingIndex] = newCandle;
+          } else {
+            candles.push(newCandle);
+            // 500개 초과 시에만 앞에서 삭제
+            if (candles.length > 500) {
+              candles.shift();
+            }
+          }
         } else {
+          // 진행 중인 봉: 지표는 마지막 완성봉 것을 복사
           if (candles.length > 0) {
             const lastCompleteCandle = candles[candles.length - 1];
             newCandle.ema20 = lastCompleteCandle.ema20;
@@ -303,9 +313,12 @@ function App() {
             newCandle.rsi = lastCompleteCandle.rsi;
           }
 
-          if (candles.length === 299) {
+          // 진행 중인 봉 업데이트
+          if (candles.length === 0) {
             candles.push(newCandle);
-          } else if (candles.length >= 300) {
+          } else if (candles.length < 300) {
+            candles.push(newCandle);
+          } else {
             candles[candles.length - 1] = newCandle;
           }
         }
@@ -334,15 +347,19 @@ function App() {
         const candles = [...existingCandles];
 
         if (update.isFinal) {
+          // 완성봉: 기존에 같은 타임스탬프가 있으면 업데이트, 없으면 추가
           const existingIndex = candles.findIndex(c => c.timestamp === newCandle.timestamp);
-
           if (existingIndex >= 0) {
             candles[existingIndex] = newCandle;
           } else {
-            candles.shift();
             candles.push(newCandle);
+            // 500개 초과 시에만 앞에서 삭제
+            if (candles.length > 500) {
+              candles.shift();
+            }
           }
         } else {
+          // 진행 중인 봉: 지표는 마지막 완성봉 것을 복사
           if (candles.length > 0) {
             const lastCompleteCandle = candles[candles.length - 1];
             newCandle.ema20 = lastCompleteCandle.ema20;
@@ -357,9 +374,12 @@ function App() {
             newCandle.rsi = lastCompleteCandle.rsi;
           }
 
-          if (candles.length === 299) {
+          // 진행 중인 봉 업데이트
+          if (candles.length === 0) {
             candles.push(newCandle);
-          } else if (candles.length >= 300) {
+          } else if (candles.length < 300) {
+            candles.push(newCandle);
+          } else {
             candles[candles.length - 1] = newCandle;
           }
         }
