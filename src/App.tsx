@@ -397,6 +397,19 @@ function App() {
     });
 
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
+      // 기술지표 확인 로그
+      if (update.isFinal) {
+        console.log('📊 realtime_candle_update (완성봉):', {
+          timeframe: update.timeframe,
+          time: new Date(update.openTime).toLocaleTimeString(),
+          close: update.close,
+          rsi: update.rsi,
+          macd: update.macd,
+          ema20: update.ema20,
+          bbUpper: update.bbUpper,
+        });
+      }
+
       setData((prevData) => {
         if (!prevData) return prevData;
         if (!update.timeframe) return prevData;
@@ -566,6 +579,19 @@ function App() {
     const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
       if (!update.timeframe) return;
 
+      // 웹소켓으로 받은 원시 데이터 확인
+      console.log('═══════════════════════════════════════');
+      console.log('📦 candle_complete 원시 데이터:');
+      console.log('═══════════════════════════════════════');
+      console.log('⏰ Time:', new Date(update.openTime).toLocaleTimeString());
+      console.log('📊 Timeframe:', update.timeframe);
+      console.log('💰 Close:', update.close);
+      console.log('📉 RSI:', update.rsi);
+      console.log('📈 MACD:', update.macd, '/ Signal:', update.macdSignal, '/ Histogram:', update.macdHistogram);
+      console.log('📊 EMA20:', update.ema20, '/ EMA50:', update.ema50);
+      console.log('📊 BB Upper:', update.bbUpper, '/ Middle:', update.bbMiddle, '/ Lower:', update.bbLower);
+      console.log('═══════════════════════════════════════');
+
       // 기술지표 누락 감지
       const hasIndicators = update.rsi !== undefined &&
                            update.macd !== undefined &&
@@ -573,23 +599,10 @@ function App() {
                            update.ema50 !== undefined;
 
       if (!hasIndicators) {
-        console.error('═══════════════════════════════════════');
-        console.error('❌ CRITICAL: Candle WITHOUT indicators!');
-        console.error('═══════════════════════════════════════');
-        console.error('⏰ Time:', new Date(update.openTime).toLocaleTimeString());
-        console.error('📊 Timeframe:', update.timeframe);
-        console.error('💰 Close:', update.close);
-        console.error('📉 RSI:', update.rsi);
-        console.error('📈 MACD:', update.macd);
-        console.error('📊 EMA20:', update.ema20);
-        console.error('📊 EMA50:', update.ema50);
-        console.error('═══════════════════════════════════════');
-        console.error('🔧 ACTION REQUIRED:');
+        console.error('❌ CRITICAL: 기술지표 누락!');
         console.error('   백엔드에서 기술지표를 계산해서 보내야 합니다!');
-        console.error('   자세한 내용: TECHNICAL_INDICATOR_ROOT_CAUSE.md');
-        console.error('═══════════════════════════════════════');
       } else {
-        console.log(`✅ Candle complete: ${update.timeframe} at ${new Date(update.openTime).toLocaleTimeString()} (RSI=${update.rsi?.toFixed(1)}, MACD=${update.macd?.toFixed(1)})`);
+        console.log(`✅ 기술지표 모두 존재 (RSI=${update.rsi?.toFixed(1)}, MACD=${update.macd?.toFixed(1)})`);
       }
 
       // 완성봉 이벤트 발생 시 해당 타임프레임만 최신 5개 검증
