@@ -39,6 +39,9 @@ function App() {
   const btcBalanceRef = useRef<number>(0);
   const usdcBalanceRef = useRef<number>(0);
 
+  // 예측 계산 시점 추적 (5분마다 업데이트 감지용)
+  const lastPredictionCalculatedAtRef = useRef<number>(0);
+
   // 갭 감지 및 자동 채우기
   const detectAndFillGap = useCallback(async (
     timeframe: string,
@@ -764,6 +767,72 @@ function App() {
       websocketService.disconnect();
     };
   }, [selectedAccount, refillMissingCandles]);
+
+  // 5분 정각마다 예측 업데이트 체크
+  useEffect(() => {
+    let pollingInterval: NodeJS.Timeout | null = null;
+    let nextCheckTimeout: NodeJS.Timeout | null = null;
+
+    const checkPredictionUpdate = async () => {
+      try {
+        const response = await fetchDashboardData(selectedAccount);
+        const newCalculatedAt = response.currentPrediction?.predictionCalculatedAt;
+
+        if (newCalculatedAt && newCalculatedAt !== lastPredictionCalculatedAtRef.current) {
+          console.log('✅ 예측 업데이트 감지:', new Date(newCalculatedAt).toLocaleString());
+          lastPredictionCalculatedAtRef.current = newCalculatedAt;
+
+          setData((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              currentPrediction: response.currentPrediction,
+              lastPredictionUpdateTime: newCalculatedAt,
+            };
+          });
+
+          // 업데이트 감지되면 폴링 중단하고 다음 정각까지 대기
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+          }
+          scheduleNextCheck();
+        }
+      } catch (error) {
+        console.error('예측 업데이트 체크 실패:', error);
+      }
+    };
+
+    const scheduleNextCheck = () => {
+      const now = new Date();
+      const currentMinutes = now.getMinutes();
+      const currentSeconds = now.getSeconds();
+      const currentMs = now.getMilliseconds();
+
+      // 다음 5분 정각 계산 (00, 05, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
+      const nextMinute = Math.ceil((currentMinutes + 1) / 5) * 5;
+      const minutesUntilNext = (nextMinute - currentMinutes + 60) % 60;
+      const msUntilNext = (minutesUntilNext * 60 - currentSeconds) * 1000 - currentMs;
+
+      console.log(`⏰ 다음 예측 체크: ${minutesUntilNext}분 ${Math.floor((msUntilNext % 60000) / 1000)}초 후 (${nextMinute}분)`);
+
+      nextCheckTimeout = setTimeout(() => {
+        console.log('🔍 정각 도달 - 1초마다 예측 업데이트 체크 시작');
+        checkPredictionUpdate(); // 즉시 체크
+        pollingInterval = setInterval(checkPredictionUpdate, 1000); // 1초마다 체크
+      }, msUntilNext);
+    };
+
+    if (data?.currentPrediction?.predictionCalculatedAt) {
+      lastPredictionCalculatedAtRef.current = data.currentPrediction.predictionCalculatedAt;
+      scheduleNextCheck();
+    }
+
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+      if (nextCheckTimeout) clearTimeout(nextCheckTimeout);
+    };
+  }, [selectedAccount, data?.currentPrediction?.predictionCalculatedAt]);
 
   if (loading) {
     return (
