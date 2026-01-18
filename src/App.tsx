@@ -178,6 +178,61 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [selectedAccount]);
 
+  const refillMissingCandles = useCallback(async () => {
+    console.log('🔄 Refilling missing candles...');
+    const timeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const;
+
+    for (const timeframe of timeframes) {
+      try {
+        const chart = await fetchChartData(timeframe, 100);
+        const timeframeLower = timeframe.toLowerCase();
+        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
+
+        setData(prev => {
+          if (!prev) return prev;
+
+          const existingCandles = prev[timeframeKey] as Candle[] | undefined;
+
+          if (!existingCandles || existingCandles.length === 0) {
+            console.log(`📊 Loading initial ${timeframe} data (100 candles)`);
+            return { ...prev, [timeframeKey]: chart.candles as Candle[] };
+          }
+
+          const newCandles = chart.candles as Candle[];
+          const merged = [...existingCandles];
+          let addedCount = 0;
+
+          for (const newCandle of newCandles) {
+            const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
+            if (existingIndex === -1) {
+              const insertIndex = merged.findIndex(c => c.timestamp > newCandle.timestamp);
+              if (insertIndex === -1) {
+                merged.push(newCandle);
+              } else {
+                merged.splice(insertIndex, 0, newCandle);
+              }
+              addedCount++;
+            } else {
+              merged[existingIndex] = newCandle;
+            }
+          }
+
+          if (merged.length > 500) {
+            merged.splice(0, merged.length - 500);
+          }
+
+          if (addedCount > 0) {
+            console.log(`✅ ${timeframe}: Added ${addedCount} missing candles`);
+          }
+
+          return { ...prev, [timeframeKey]: merged };
+        });
+      } catch (error) {
+        console.error(`❌ Failed to refill ${timeframe}:`, error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     websocketService.connect();
 
@@ -316,28 +371,8 @@ function App() {
       });
     });
 
-    const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
-      if (!update.timeframe) return;
-
-      console.log(`🔄 Candle complete for ${update.timeframe}, refreshing chart data...`);
-
-      try {
-        const chart = await fetchChartData(update.timeframe, 500);
-        const timeframeLower = update.timeframe.toLowerCase();
-        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
-
-        setData((prevData) => {
-          if (!prevData) return prevData;
-          return {
-            ...prevData,
-            [timeframeKey]: chart.candles as Candle[],
-          };
-        });
-
-        console.log(`✅ ${update.timeframe} chart refreshed with ${chart.candles.length} candles`);
-      } catch (error) {
-        console.error(`❌ Failed to refresh ${update.timeframe} chart:`, error);
-      }
+    const unsubscribeCandleComplete = websocketService.onCandleComplete((update) => {
+      console.log(`✅ Candle complete: ${update.timeframe} at ${new Date(update.openTime).toLocaleTimeString()}`);
     });
 
     const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {
@@ -405,9 +440,20 @@ function App() {
       });
     });
 
+    let isInitialConnection = true;
+
     const unsubscribeConnectionStatus = websocketService.onConnectionStatus((connected) => {
       setWsConnected(connected);
       console.log('🔌 WebSocket connection status:', connected ? 'Connected' : 'Disconnected');
+
+      if (connected && !isInitialConnection) {
+        console.log('🔄 WebSocket reconnected, checking for missing candles...');
+        setTimeout(() => refillMissingCandles(), 1000);
+      }
+
+      if (connected) {
+        isInitialConnection = false;
+      }
     });
 
     return () => {
@@ -422,7 +468,7 @@ function App() {
       unsubscribeConnectionStatus();
       websocketService.disconnect();
     };
-  }, [selectedAccount]);
+  }, [selectedAccount, refillMissingCandles]);
 
 
   if (loading) {
