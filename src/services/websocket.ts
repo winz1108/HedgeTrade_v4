@@ -42,11 +42,39 @@ export interface AccountAsset {
   currentBTC: number;
   currentCash: number;
   initialAsset: number;
+  btcQuantity?: number;
+  usdcFree?: number;
+  usdcLocked?: number;
+}
+
+export interface AccountHolding {
+  hasPosition: boolean;
+  entryPrice?: number;
+  quantity?: number;
+  currentPrice?: number;
+  unrealizedPnl?: number;
+  unrealizedPnlPct?: number;
+  tpPrice?: number;
+  slPrice?: number;
+  entryTime?: number;
+  initialTakeProfitProb?: number;
+}
+
+export interface AccountMetrics {
+  portfolioReturn: number;
+  portfolioReturnWithCommission?: number;
+  totalTrades: number;
+  winningTrades: number;
+  winRate: number;
+  totalPnl?: number;
+  avgPnl?: number;
 }
 
 export interface AccountAssetsUpdate {
   accountId: string;
   asset: AccountAsset;
+  holding?: AccountHolding;
+  metrics?: AccountMetrics;
 }
 
 export interface BinanceServerTime {

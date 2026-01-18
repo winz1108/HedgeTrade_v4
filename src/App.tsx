@@ -615,13 +615,41 @@ function App() {
         if (!prevData) return prevData;
         if (update.accountId !== selectedAccount) return prevData;
 
-        return {
+        const updatedData: any = {
           ...prevData,
           currentAsset: update.asset.currentAsset,
           currentBTC: update.asset.currentBTC,
           currentCash: update.asset.currentCash,
           initialAsset: update.asset.initialAsset,
         };
+
+        // 보유 정보 업데이트 (백엔드에서 제공하는 경우)
+        if (update.holding) {
+          updatedData.holding = {
+            ...prevData.holding,
+            isHolding: update.holding.hasPosition,
+            buyPrice: update.holding.entryPrice,
+            buyTime: update.holding.entryTime,
+            currentProfit: update.holding.unrealizedPnlPct,
+            takeProfitPrice: update.holding.tpPrice,
+            stopLossPrice: update.holding.slPrice,
+            initialTakeProfitProb: update.holding.initialTakeProfitProb,
+          };
+        }
+
+        // 메트릭 업데이트 (백엔드에서 제공하는 경우)
+        if (update.metrics) {
+          updatedData.metrics = {
+            ...prevData.metrics,
+            portfolioReturn: update.metrics.portfolioReturn,
+            portfolioReturnWithCommission: update.metrics.portfolioReturnWithCommission,
+            avgTradeReturn: update.metrics.avgPnl || prevData.metrics.avgTradeReturn,
+            takeProfitCount: update.metrics.winningTrades,
+            stopLossCount: (update.metrics.totalTrades - update.metrics.winningTrades),
+          };
+        }
+
+        return updatedData;
       });
     });
 
