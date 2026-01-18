@@ -775,20 +775,39 @@ function App() {
 
     const checkPredictionUpdate = async () => {
       try {
+        console.log('🔍 예측 업데이트 체크 중...');
         const response = await fetchDashboardData(selectedAccount);
         const newCalculatedAt = response.currentPrediction?.predictionCalculatedAt;
 
+        console.log('  - 이전:', lastPredictionCalculatedAtRef.current, new Date(lastPredictionCalculatedAtRef.current).toLocaleString());
+        console.log('  - 현재:', newCalculatedAt, new Date(newCalculatedAt || 0).toLocaleString());
+
         if (newCalculatedAt && newCalculatedAt !== lastPredictionCalculatedAtRef.current) {
-          console.log('✅ 예측 업데이트 감지:', new Date(newCalculatedAt).toLocaleString());
+          console.log('✅ 예측 업데이트 감지! UI 강제 업데이트');
           lastPredictionCalculatedAtRef.current = newCalculatedAt;
 
           setData((prev) => {
             if (!prev) return prev;
-            return {
+
+            // 완전히 새로운 객체 생성으로 React 리렌더링 강제
+            const updated = {
               ...prev,
-              currentPrediction: response.currentPrediction,
+              currentPrediction: {
+                ...response.currentPrediction,
+                // 명시적으로 필드 설정
+                predictionCalculatedAt: newCalculatedAt,
+              },
               lastPredictionUpdateTime: newCalculatedAt,
+              // 타임스탬프 추가로 강제 리렌더링
+              _updateTimestamp: Date.now(),
             };
+
+            console.log('🔄 State 업데이트 완료:', {
+              old: prev.currentPrediction?.predictionCalculatedAt,
+              new: updated.currentPrediction?.predictionCalculatedAt,
+            });
+
+            return updated;
           });
 
           // 업데이트 감지되면 폴링 중단하고 다음 정각까지 대기
@@ -797,9 +816,11 @@ function App() {
             pollingInterval = null;
           }
           scheduleNextCheck();
+        } else {
+          console.log('  ℹ️  변경사항 없음');
         }
       } catch (error) {
-        console.error('예측 업데이트 체크 실패:', error);
+        console.error('❌ 예측 업데이트 체크 실패:', error);
       }
     };
 
@@ -816,15 +837,23 @@ function App() {
 
       console.log(`⏰ 다음 예측 체크: ${minutesUntilNext}분 ${Math.floor((msUntilNext % 60000) / 1000)}초 후 (${nextMinute}분)`);
 
+      if (nextCheckTimeout) clearTimeout(nextCheckTimeout);
+
       nextCheckTimeout = setTimeout(() => {
         console.log('🔍 정각 도달 - 1초마다 예측 업데이트 체크 시작');
         checkPredictionUpdate(); // 즉시 체크
+
+        if (pollingInterval) clearInterval(pollingInterval);
         pollingInterval = setInterval(checkPredictionUpdate, 1000); // 1초마다 체크
       }, msUntilNext);
     };
 
+    // 초기화 시 한 번만 스케줄 설정
     if (data?.currentPrediction?.predictionCalculatedAt) {
-      lastPredictionCalculatedAtRef.current = data.currentPrediction.predictionCalculatedAt;
+      if (lastPredictionCalculatedAtRef.current === 0) {
+        lastPredictionCalculatedAtRef.current = data.currentPrediction.predictionCalculatedAt;
+        console.log('🎯 초기 예측 시간 설정:', new Date(lastPredictionCalculatedAtRef.current).toLocaleString());
+      }
       scheduleNextCheck();
     }
 
@@ -832,7 +861,7 @@ function App() {
       if (pollingInterval) clearInterval(pollingInterval);
       if (nextCheckTimeout) clearTimeout(nextCheckTimeout);
     };
-  }, [selectedAccount, data?.currentPrediction?.predictionCalculatedAt]);
+  }, [selectedAccount]); // data 의존성 제거!
 
   if (loading) {
     return (

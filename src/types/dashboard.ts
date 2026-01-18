@@ -204,4 +204,5 @@ export interface DashboardData {
   accountId?: string;
   accountName?: string;
   availableAccounts?: Array<{ id: string; name: string }>;
+  _updateTimestamp?: number; // 강제 리렌더링용 타임스탬프
 }
