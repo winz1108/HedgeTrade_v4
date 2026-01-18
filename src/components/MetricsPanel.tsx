@@ -11,12 +11,13 @@ interface MetricsPanelProps {
 export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   useEffect(() => {
     if (position === 'left' && data.currentPrediction) {
-      console.log('📊 MetricsPanel rendering with prediction:');
+      console.log('📊 MetricsPanel RENDER:', new Date().toLocaleTimeString());
       console.log('  - Probability:', (data.currentPrediction.takeProfitProb * 100).toFixed(2) + '%');
-      console.log('  - Calculated At:', data.currentPrediction.predictionCalculatedAt);
-      console.log('  - Formatted:', formatLocalTime(data.currentPrediction.predictionCalculatedAt));
+      console.log('  - Calculated At (raw):', data.currentPrediction.predictionCalculatedAt);
+      console.log('  - Calculated At (formatted):', formatLocalTime(data.currentPrediction.predictionCalculatedAt || 0));
+      console.log('  - Data Timestamp (raw):', data.currentPrediction.predictionDataTimestamp);
     }
-  }, [data.currentPrediction, position]);
+  }, [data.currentPrediction?.predictionCalculatedAt, data.currentPrediction?.takeProfitProb, position]);
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -178,14 +179,21 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               )}
 
               <div className="bg-slate-700/30 rounded-lg p-2 border border-slate-600/50">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] text-slate-400 font-semibold">
-                    {data.holding.isHolding ? 'Current' : 'Current Prediction'}
-                  </span>
-                  {data.currentPrediction?.predictionCalculatedAt && (
-                    <span className="text-[9px] text-slate-500 font-mono">
-                      {formatLocalTime(data.currentPrediction.predictionCalculatedAt)}
+                <div className="flex flex-col gap-0.5 mb-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 font-semibold">
+                      {data.holding.isHolding ? 'Current' : 'Current Prediction'}
                     </span>
+                    {data.currentPrediction?.predictionCalculatedAt && (
+                      <span className="text-[9px] text-slate-500 font-mono">
+                        {formatLocalTime(data.currentPrediction.predictionCalculatedAt)}
+                      </span>
+                    )}
+                  </div>
+                  {data.currentPrediction?.predictionCalculatedAt && (
+                    <div className="text-[7px] text-slate-600 font-mono">
+                      RAW: {data.currentPrediction.predictionCalculatedAt} | {new Date(data.currentPrediction.predictionCalculatedAt).toISOString()}
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center gap-2">

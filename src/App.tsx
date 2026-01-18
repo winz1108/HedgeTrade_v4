@@ -735,23 +735,30 @@ function App() {
     const unsubscribePredictionUpdate = websocketService.onPredictionUpdate((update) => {
       if (!update.success || !update.prediction) return;
 
+      const newCalculatedAt = update.prediction.predictionCalculatedAt;
+
       console.log('🔮 Prediction Update from WebSocket:');
       console.log('  - Probability:', (update.prediction.prob * 100).toFixed(2) + '%');
-      console.log('  - Calculated At:', new Date(update.prediction.predictionCalculatedAt).toLocaleString());
+      console.log('  - Calculated At:', newCalculatedAt, '→', new Date(newCalculatedAt).toLocaleString());
       console.log('  - Target Timestamp:', new Date(update.prediction.predictionTargetTimestampMs).toLocaleString());
 
       setData((prevData) => {
         if (!prevData) return prevData;
-        return {
+
+        console.log('  - Previous predictionCalculatedAt:', prevData.currentPrediction?.predictionCalculatedAt);
+        console.log('  - New predictionCalculatedAt:', newCalculatedAt);
+        console.log('  - Changed:', prevData.currentPrediction?.predictionCalculatedAt !== newCalculatedAt);
+
+        const updated = {
           ...prevData,
           currentPrediction: {
             takeProfitProb: update.prediction!.prob,
             stopLossProb: update.prediction!.stopLossProb,
             v5MoeTakeProfitProb: update.prediction!.prob,
             predictionDataTimestamp: update.prediction!.predictionTargetTimestampMs,
-            predictionCalculatedAt: update.prediction!.predictionCalculatedAt,
+            predictionCalculatedAt: newCalculatedAt,
           },
-          lastPredictionUpdateTime: update.prediction!.predictionCalculatedAt,
+          lastPredictionUpdateTime: newCalculatedAt,
           marketState: update.prediction!.market_state,
           gateWeights: update.prediction!.gate_weights,
           holding: {
@@ -763,6 +770,9 @@ function App() {
             },
           },
         };
+
+        console.log('  - Updated state:', updated.currentPrediction?.predictionCalculatedAt);
+        return updated;
       });
     });
 
