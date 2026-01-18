@@ -4,7 +4,6 @@ import { DashboardData, TradeEvent, Candle } from './types/dashboard';
 import { fetchDashboardData, fetchChartData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
-import { AccountsPanel } from './components/AccountsPanel';
 import { formatLocalTime } from './utils/time';
 import { websocketService, CandleData } from './services/websocket';
 
@@ -39,19 +38,6 @@ function App() {
   // BTC 수량과 USDC 수량을 저장 (가격 업데이트 시 자산 재계산용)
   const btcBalanceRef = useRef<number>(0);
   const usdcBalanceRef = useRef<number>(0);
-
-  // 계정별 자산 정보
-  const [accountBalances, setAccountBalances] = useState<Array<{
-    accountId: 'Account_A' | 'Account_B';
-    btcBalance: number;
-    btcFree: number;
-    btcLocked: number;
-    usdcBalance: number;
-    usdcFree: number;
-    usdcLocked: number;
-    btcValue: number;
-    totalAsset: number;
-  }>>([]);
 
   // 갭 감지 및 자동 채우기
   const detectAndFillGap = useCallback(async (
@@ -779,46 +765,26 @@ function App() {
     });
 
     const unsubscribeDashboardUpdate = websocketService.onDashboardUpdate((update) => {
-      // 새로운 계정별 데이터 처리
       if (update.accounts && update.accounts.length > 0) {
-        setAccountBalances(update.accounts);
+        const accountData = update.accounts.find(acc => acc.accountId === selectedAccount);
 
-        // 전체 합계를 메인 자산으로 사용
-        btcBalanceRef.current = update.totalBtc;
-        usdcBalanceRef.current = update.totalUsdc;
+        if (accountData) {
+          btcBalanceRef.current = accountData.btcBalance;
+          usdcBalanceRef.current = accountData.usdcBalance;
 
-        setData((prevData) => {
-          if (!prevData) return prevData;
+          setData((prevData) => {
+            if (!prevData) return prevData;
 
-          return {
-            ...prevData,
-            currentPrice: update.currentPrice,
-            currentTime: update.serverTime,
-            currentAsset: update.totalAsset,
-            currentBTC: update.totalBtc * update.currentPrice,
-            currentCash: update.totalUsdc,
-          };
-        });
-      } else if (update.btcBalance !== undefined && update.btcPrice !== undefined && update.usdcBalance !== undefined) {
-        // 레거시 형식 지원
-        btcBalanceRef.current = update.btcBalance;
-        usdcBalanceRef.current = update.usdcBalance;
-
-        setData((prevData) => {
-          if (!prevData) return prevData;
-
-          const btcValue = update.btcBalance * update.btcPrice;
-          const totalAsset = btcValue + update.usdcBalance;
-
-          return {
-            ...prevData,
-            currentPrice: update.btcPrice,
-            currentTime: update.timestamp,
-            currentAsset: totalAsset,
-            currentBTC: btcValue,
-            currentCash: update.usdcBalance,
-          };
-        });
+            return {
+              ...prevData,
+              currentPrice: update.currentPrice,
+              currentTime: update.serverTime,
+              currentAsset: accountData.totalAsset,
+              currentBTC: accountData.btcValue,
+              currentCash: accountData.usdcBalance,
+            };
+          });
+        }
       }
     });
 
@@ -1085,12 +1051,6 @@ function App() {
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
           <div className="flex flex-col gap-2 order-2 lg:order-1">
-            {accountBalances.length > 0 && (
-              <AccountsPanel
-                accounts={accountBalances}
-                totalAsset={data.currentAsset}
-              />
-            )}
             <MetricsPanel data={data} position="left" />
           </div>
           <div className="min-w-0 order-1 lg:order-2">
