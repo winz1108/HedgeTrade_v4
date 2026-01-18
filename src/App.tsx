@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { RefreshCw, X, Bug, BarChart3, Wifi, WifiOff } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from './types/dashboard';
-import { fetchDashboardData, fetchDashboardQuick, fetchChartData, DashboardQuick } from './services/oracleApi';
+import { fetchDashboardData, fetchChartData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
 import { ChartSkeleton, MetricsSkeleton } from './components/ChartSkeleton';
@@ -106,87 +106,14 @@ function App() {
     try {
       setError(null);
 
-      // STAGE 1: Quick API + 5m Chart (0.5초) ⚡
-      console.log('⚡ Stage 1: Loading essential data (quick)...');
+      console.log('⚡ Loading dashboard with parallel requests...');
       const startTime = performance.now();
 
-      const [quickData, chart5m] = await Promise.all([
-        fetchDashboardQuick(),
-        fetchChartData('5m', 100)
-      ]);
-
-      const stage1Time = performance.now() - startTime;
-      console.log(`✅ Stage 1 completed in ${(stage1Time / 1000).toFixed(2)}s`);
-
-      const accountData = quickData.accounts.find(acc => acc.accountId === selectedAccount) || quickData.accounts[0];
-
-      if (!selectedAccount && accountData) {
-        setSelectedAccount(accountData.accountId);
-      }
-
-      btcBalanceRef.current = accountData.btcBalance;
-      usdcBalanceRef.current = accountData.usdcBalance;
-
-      const quickDashboard: DashboardData = {
-        version: 'quick',
-        currentAsset: accountData.totalAsset,
-        currentBTC: accountData.btcValue,
-        currentCash: accountData.usdcBalance,
-        initialAsset: accountData.totalAsset,
-        currentTime: quickData.timestamp,
-        currentPrice: quickData.currentPrice,
-        priceHistory1m: [],
-        priceHistory5m: chart5m.candles as Candle[],
-        priceHistory15m: undefined,
-        priceHistory30m: undefined,
-        priceHistory1h: undefined,
-        priceHistory4h: undefined,
-        priceHistory1d: undefined,
-        pricePredictions: [],
-        trades: [],
-        holding: {
-          isHolding: false,
-          latestPrediction: {
-            takeProfitProb: quickData.currentPrediction.takeProfitProb,
-            stopLossProb: quickData.currentPrediction.stopLossProb || 0,
-          },
-          v5MoeTakeProfitProb: quickData.currentPrediction.v5MoeTakeProfitProb || quickData.currentPrediction.takeProfitProb,
-        },
-        currentPrediction: {
-          takeProfitProb: quickData.currentPrediction.takeProfitProb,
-          stopLossProb: quickData.currentPrediction.stopLossProb || 0,
-          v5MoeTakeProfitProb: quickData.currentPrediction.v5MoeTakeProfitProb,
-          predictionCalculatedAt: quickData.currentPrediction.predictionCalculatedAt,
-        },
-        lastPredictionUpdateTime: quickData.currentPrediction.predictionCalculatedAt,
-        metrics: {
-          portfolioReturn: 0,
-          portfolioReturnWithCommission: 0,
-          marketReturn: 0,
-          avgTradeReturn: 0,
-          takeProfitCount: 0,
-          stopLossCount: 0,
-        },
-        accountId: accountData.accountId,
-        accountName: accountData.accountId,
-        availableAccounts: quickData.accounts.map(acc => ({
-          id: acc.accountId,
-          name: acc.accountId
-        })),
-      };
-
-      setData(quickDashboard);
-      setLoading(false);
-
-      console.log('🎉 UI ready! User can interact now.');
-
-      // STAGE 2: Full Dashboard + All Charts (2-3초, background)
-      console.log('📊 Stage 2: Loading full data in background...');
-      const stage2StartTime = performance.now();
-
-      const [fullDashboard, ...otherCharts] = await Promise.all([
-        fetchDashboardData(selectedAccount || accountData.accountId),
+      // Load Full Dashboard + All Charts in parallel (2-3초)
+      const [dashboardData, chart1m, chart5m, chart15m, chart30m, chart1h, chart4h, chart1d] = await Promise.all([
+        fetchDashboardData(selectedAccount),
         fetchChartData('1m', 500),
+        fetchChartData('5m', 500),
         fetchChartData('15m', 500),
         fetchChartData('30m', 500),
         fetchChartData('1h', 500),
@@ -194,28 +121,43 @@ function App() {
         fetchChartData('1d', 500)
       ]);
 
-      const stage2Time = performance.now() - stage2StartTime;
-      console.log(`✅ Stage 2 completed in ${(stage2Time / 1000).toFixed(2)}s`);
-      console.log(`✅ Total loading time: ${((stage1Time + stage2Time) / 1000).toFixed(2)}s`);
+      const loadTime = performance.now() - startTime;
+      console.log(`✅ All data loaded in ${(loadTime / 1000).toFixed(2)}s`);
 
-      fullDashboard.priceHistory1m = otherCharts[0].candles as Candle[];
-      fullDashboard.priceHistory15m = otherCharts[1].candles as Candle[];
-      fullDashboard.priceHistory30m = otherCharts[2].candles as Candle[];
-      fullDashboard.priceHistory1h = otherCharts[3].candles as Candle[];
-      fullDashboard.priceHistory4h = otherCharts[4].candles as Candle[];
-      fullDashboard.priceHistory1d = otherCharts[5].candles as Candle[];
-      fullDashboard.priceHistory5m = chart5m.candles as Candle[];
-
-      if (fullDashboard.currentBTC !== undefined && fullDashboard.currentPrice) {
-        btcBalanceRef.current = fullDashboard.currentBTC / fullDashboard.currentPrice;
-      }
-      if (fullDashboard.currentCash !== undefined) {
-        usdcBalanceRef.current = fullDashboard.currentCash;
+      if (!dashboardData || !dashboardData.metrics) {
+        throw new Error('Invalid data structure received from API');
       }
 
-      setData(fullDashboard);
+      if (!selectedAccount && dashboardData.accountId) {
+        setSelectedAccount(dashboardData.accountId);
+      }
 
-      console.log('✅ All data loaded and updated');
+      // Attach all chart data
+      dashboardData.priceHistory1m = chart1m.candles as Candle[];
+      dashboardData.priceHistory5m = chart5m.candles as Candle[];
+      dashboardData.priceHistory15m = chart15m.candles as Candle[];
+      dashboardData.priceHistory30m = chart30m.candles as Candle[];
+      dashboardData.priceHistory1h = chart1h.candles as Candle[];
+      dashboardData.priceHistory4h = chart4h.candles as Candle[];
+      dashboardData.priceHistory1d = chart1d.candles as Candle[];
+
+      console.log('✅ Dashboard data:');
+      console.log('  - Account:', dashboardData.accountName);
+      console.log('  - Trades:', dashboardData.trades?.length || 0);
+      console.log('  - Charts loaded:', [chart1m, chart5m, chart15m, chart30m, chart1h, chart4h, chart1d].filter(c => c.candles.length > 0).length, '/ 7');
+
+      // Set BTC and USDC balance refs
+      if (dashboardData.currentBTC !== undefined && dashboardData.currentPrice) {
+        btcBalanceRef.current = dashboardData.currentBTC / dashboardData.currentPrice;
+      }
+      if (dashboardData.currentCash !== undefined) {
+        usdcBalanceRef.current = dashboardData.currentCash;
+      }
+
+      setData(dashboardData);
+      setLoading(false);
+
+      console.log('🎉 Dashboard ready!');
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
