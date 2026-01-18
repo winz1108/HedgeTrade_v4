@@ -32,7 +32,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   if (position === 'left') {
     return (
       <div className="flex flex-col gap-2">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 hover:shadow-cyan-500/10 transition-all duration-300">
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg shadow-xl p-3 hover:shadow-blue-500/20 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-white">Current Status</h3>
             <div className="p-1 bg-cyan-500/20 rounded-lg">
