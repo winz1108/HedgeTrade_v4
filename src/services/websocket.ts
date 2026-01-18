@@ -256,6 +256,7 @@ class WebSocketService {
     this.socket.on('prediction_update', (data: PredictionUpdate) => {
       this.eventStats.prediction_update.count++;
       this.eventStats.prediction_update.lastTime = Date.now();
+      console.log('📨 WebSocket received prediction_update event, forwarding to', this.predictionUpdateCallbacks.size, 'callbacks');
       this.predictionUpdateCallbacks.forEach(cb => cb(data));
     });
 
@@ -324,14 +325,15 @@ class WebSocketService {
       console.log(`⏱️  Running time: ${elapsed.toFixed(1)}s`);
       console.log('');
 
-      const importantEvents = ['dashboard_update', 'account_assets_update', 'price_update'];
+      const importantEvents = ['dashboard_update', 'account_assets_update', 'price_update', 'prediction_update'];
       const otherEvents: string[] = [];
 
       importantEvents.forEach((eventName) => {
         const stats = this.eventStats[eventName as keyof typeof this.eventStats];
         if (stats.count > 0) {
           const rate = stats.count / elapsed;
-          console.log(`✅ ${eventName}: ${stats.count} events (${rate.toFixed(2)}/s)`);
+          const lastAgo = stats.lastTime > 0 ? ((Date.now() - stats.lastTime) / 1000).toFixed(1) + 's ago' : 'never';
+          console.log(`✅ ${eventName}: ${stats.count} events (${rate.toFixed(2)}/s) - last: ${lastAgo}`);
         } else {
           console.log(`❌ ${eventName}: NOT RECEIVING`);
         }

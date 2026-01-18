@@ -7,6 +7,7 @@ import { MetricsPanel } from './components/MetricsPanel';
 import { ChartSkeleton, MetricsSkeleton } from './components/ChartSkeleton';
 import { formatLocalTime } from './utils/time';
 import { websocketService, CandleData } from './services/websocket';
+import { dataCache } from './services/dataCache';
 
 // 타임프레임별 예상 간격(ms)
 const TIMEFRAME_INTERVALS: Record<string, number> = {
@@ -108,6 +109,19 @@ function App() {
     try {
       setError(null);
 
+      const cached = dataCache.load();
+      if (cached) {
+        console.log('💾 Using cached data while loading fresh data');
+        setData(prev => prev ? {
+          ...prev,
+          currentAsset: cached.currentAsset ?? prev.currentAsset,
+          currentBTC: cached.currentBTC ?? prev.currentBTC,
+          currentCash: cached.currentCash ?? prev.currentCash,
+          initialAsset: cached.initialAsset ?? prev.initialAsset,
+          currentPrice: cached.currentPrice ?? prev.currentPrice,
+        } : prev);
+      }
+
       console.log('📊 Loading dashboard data...');
       const startTime = performance.now();
 
@@ -139,6 +153,14 @@ function App() {
       if (fullDashboard.currentCash !== undefined) {
         usdcBalanceRef.current = fullDashboard.currentCash;
       }
+
+      dataCache.save({
+        currentAsset: fullDashboard.currentAsset,
+        currentBTC: fullDashboard.currentBTC,
+        currentCash: fullDashboard.currentCash,
+        initialAsset: fullDashboard.initialAsset,
+        currentPrice: fullDashboard.currentPrice,
+      });
 
       console.log('📋 Dashboard Data:');
       console.log('  - Account Name:', fullDashboard.accountName);
@@ -694,7 +716,6 @@ function App() {
     const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {
       assetUpdateCount++;
 
-      // 10초마다 통계 출력
       const now = Date.now();
       if (now - lastAssetLogTime >= 10000) {
         const elapsed = (now - lastAssetLogTime) / 1000;
@@ -711,6 +732,14 @@ function App() {
           console.error('❌ account_assets_update: asset 객체 없음', update);
           return prevData;
         }
+
+        dataCache.save({
+          currentAsset: update.asset.currentAsset,
+          currentBTC: update.asset.currentBTC,
+          currentCash: update.asset.currentCash,
+          initialAsset: update.asset.initialAsset,
+          currentPrice: prevData.currentPrice,
+        });
 
         return {
           ...prevData,
@@ -733,7 +762,17 @@ function App() {
     });
 
     const unsubscribePredictionUpdate = websocketService.onPredictionUpdate((update) => {
-      if (!update.success || !update.prediction) return;
+      console.log('🔮 RAW Prediction Update received:', JSON.stringify(update, null, 2));
+
+      if (!update.success) {
+        console.warn('⚠️ Prediction update success=false, skipping');
+        return;
+      }
+
+      if (!update.prediction) {
+        console.warn('⚠️ Prediction update has no prediction object, skipping');
+        return;
+      }
 
       const newCalculatedAt = update.prediction.predictionCalculatedAt;
 
@@ -787,11 +826,17 @@ function App() {
           setData((prevData) => {
             if (!prevData) return prevData;
 
-            // 백엔드가 보내는 구조에 따라 안전하게 처리
-            // asset 객체가 있으면 사용, 없으면 flat 필드 사용
             const currentAsset = (accountData as any).asset?.currentAsset ?? accountData.totalAsset ?? prevData.currentAsset;
             const currentBTC = (accountData as any).asset?.currentBTC ?? accountData.btcValue ?? prevData.currentBTC;
             const currentCash = (accountData as any).asset?.currentCash ?? accountData.usdcBalance ?? prevData.currentCash;
+
+            dataCache.save({
+              currentAsset,
+              currentBTC,
+              currentCash,
+              initialAsset: prevData.initialAsset,
+              currentPrice: update.currentPrice,
+            });
 
             return {
               ...prevData,
