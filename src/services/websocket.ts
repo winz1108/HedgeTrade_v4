@@ -201,6 +201,12 @@ class WebSocketService {
     this.socket.on('account_assets_update', (data: AccountAssetsUpdate) => {
       this.eventStats.account_assets_update.count++;
       this.eventStats.account_assets_update.lastTime = Date.now();
+      console.log('💰 account_assets_update received:', {
+        accountId: data.accountId,
+        currentAsset: data.asset.currentAsset,
+        currentBTC: data.asset.currentBTC,
+        currentCash: data.asset.currentCash,
+      });
       this.accountAssetsUpdateCallbacks.forEach(cb => cb(data));
     });
 
@@ -219,6 +225,10 @@ class WebSocketService {
     this.socket.on('dashboard_update', (data: DashboardUpdate) => {
       this.eventStats.dashboard_update.count++;
       this.eventStats.dashboard_update.lastTime = Date.now();
+      console.log('📊 dashboard_update received:', {
+        accountId: data.accountId,
+        version: data.version,
+      });
       this.dashboardUpdateCallbacks.forEach(cb => cb(data));
     });
 
@@ -274,15 +284,43 @@ class WebSocketService {
     const startTime = Date.now();
     this.statsInterval = setInterval(() => {
       const elapsed = (Date.now() - startTime) / 1000;
-      console.log('\n📊 WebSocket Statistics (30s):');
+      console.log('\n═══════════════════════════════════════');
+      console.log('📊 WebSocket Statistics');
+      console.log('═══════════════════════════════════════');
+      console.log(`⏱️  Running time: ${elapsed.toFixed(1)}s`);
+      console.log('');
 
-      Object.entries(this.eventStats).forEach(([eventName, stats]) => {
+      const importantEvents = ['dashboard_update', 'account_assets_update', 'price_update'];
+      const otherEvents: string[] = [];
+
+      importantEvents.forEach((eventName) => {
+        const stats = this.eventStats[eventName as keyof typeof this.eventStats];
         if (stats.count > 0) {
           const rate = stats.count / elapsed;
-          console.log(`${eventName}: ${stats.count} events (${rate.toFixed(2)}/s)`);
+          console.log(`✅ ${eventName}: ${stats.count} events (${rate.toFixed(2)}/s)`);
+        } else {
+          console.log(`❌ ${eventName}: NOT RECEIVING`);
         }
       });
-    }, 30000);
+
+      console.log('');
+      Object.entries(this.eventStats).forEach(([eventName, stats]) => {
+        if (!importantEvents.includes(eventName) && stats.count > 0) {
+          otherEvents.push(eventName);
+        }
+      });
+
+      if (otherEvents.length > 0) {
+        console.log('Other events:');
+        otherEvents.forEach((eventName) => {
+          const stats = this.eventStats[eventName as keyof typeof this.eventStats];
+          const rate = stats.count / elapsed;
+          console.log(`  ${eventName}: ${stats.count} (${rate.toFixed(2)}/s)`);
+        });
+      }
+
+      console.log('═══════════════════════════════════════\n');
+    }, 10000);
   }
 
   onCandleUpdate(callback: CandleUpdateCallback) {
