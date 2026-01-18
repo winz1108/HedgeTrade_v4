@@ -129,17 +129,6 @@ class WebSocketService {
     // Nginx will automatically proxy WebSocket connections to the backend
     const wsUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
 
-    console.log('═══════════════════════════════════════');
-    console.log('🔌 WebSocket Connection Attempt');
-    console.log('═══════════════════════════════════════');
-    console.log('📍 URL:', wsUrl);
-    console.log('📍 Full path:', `${wsUrl}/ws/dashboard`);
-    console.log('📍 Namespace: /ws/dashboard');
-    console.log('📍 Socket.IO path: /socket.io/');
-    console.log('📍 Socket.IO version:', io.version);
-    console.log('📍 Transports: websocket, polling');
-    console.log('═══════════════════════════════════════');
-
     this.socket = io(`${wsUrl}/ws/dashboard`, {
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -155,34 +144,12 @@ class WebSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('═══════════════════════════════════════');
-      console.log('✅ WebSocket CONNECTED');
-      console.log('═══════════════════════════════════════');
-      console.log('🔌 Socket ID:', this.socket?.id);
-      console.log('🌐 Connected to:', wsUrl);
-      console.log('🔌 Transport:', this.socket?.io?.engine?.transport?.name);
-      console.log('⏰ Connected at:', new Date().toLocaleString());
-      console.log('═══════════════════════════════════════');
       this.connectionStatusCallbacks.forEach(cb => cb(true));
       this.startStatsTracking();
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('═══════════════════════════════════════');
-      console.log('❌ WebSocket DISCONNECTED');
-      console.log('═══════════════════════════════════════');
-      console.log('❌ Reason:', reason);
-      console.log('⏰ Disconnected at:', new Date().toLocaleString());
-      console.log('═══════════════════════════════════════');
       this.connectionStatusCallbacks.forEach(cb => cb(false));
-    });
-
-    this.socket.on('reconnect_attempt', (attemptNumber) => {
-      console.log(`🔄 Reconnection attempt #${attemptNumber}`);
-    });
-
-    this.socket.on('reconnect', (attemptNumber) => {
-      console.log(`✅ Reconnected after ${attemptNumber} attempts`);
     });
 
     this.socket.on('reconnect_error', (error) => {
@@ -224,7 +191,6 @@ class WebSocketService {
       // 백엔드가 잘못된 형식으로 보내는 경우 (dashboard_update 형식)
       if (data.accounts && data.totalAsset) {
         console.warn('⚠️ account_assets_update: 백엔드가 dashboard_update 형식으로 보냄 - 무시');
-        console.warn('   백엔드 수정 필요: { accountId, asset: { currentAsset, currentBTC, currentCash, initialAsset } }');
         return;
       }
 
@@ -234,12 +200,6 @@ class WebSocketService {
         return;
       }
 
-      console.log('💰 account_assets_update received:', {
-        accountId: data.accountId,
-        currentAsset: data.asset.currentAsset,
-        currentBTC: data.asset.currentBTC,
-        currentCash: data.asset.currentCash,
-      });
       this.accountAssetsUpdateCallbacks.forEach(cb => cb(data));
     });
 
@@ -252,7 +212,6 @@ class WebSocketService {
     this.socket.on('prediction_update', (data: PredictionUpdate) => {
       this.eventStats.prediction_update.count++;
       this.eventStats.prediction_update.lastTime = Date.now();
-      console.log('📨 WebSocket received prediction_update event, forwarding to', this.predictionUpdateCallbacks.size, 'callbacks');
       this.predictionUpdateCallbacks.forEach(cb => cb(data));
     });
 
@@ -264,22 +223,7 @@ class WebSocketService {
     });
 
     this.socket.on('connect_error', (error) => {
-      console.log('═══════════════════════════════════════');
-      console.error('❌ WebSocket CONNECTION ERROR');
-      console.log('═══════════════════════════════════════');
-      console.error('❌ Error:', error);
-      console.error('❌ Message:', error.message);
-      console.error('❌ Type:', error.type);
-      console.error('❌ Description:', error.description);
-      console.error('⏰ Error at:', new Date().toLocaleString());
-      console.log('═══════════════════════════════════════');
-      console.log('🔍 DIAGNOSIS:');
-      console.log('  1. Check if backend server is running');
-      console.log('  2. Check backend logs for errors');
-      console.log('  3. Verify WebSocket endpoint: /ws/dashboard');
-      console.log('  4. Verify Socket.IO namespace is registered');
-      console.log('  5. Check CORS configuration');
-      console.log('═══════════════════════════════════════');
+      console.error('❌ WebSocket CONNECTION ERROR:', error.message);
     });
 
     this.socket.on('error', (error) => {
@@ -288,11 +232,6 @@ class WebSocketService {
 
     this.socket.io.on('error', (error) => {
       console.error('❌ Socket.IO Manager error:', error);
-    });
-
-    this.socket.io.on('reconnect_attempt', () => {
-      console.log('🔄 Manager reconnect attempt');
-      console.log('🔌 Available transports:', this.socket?.io?.opts?.transports);
     });
   }
 
@@ -312,46 +251,9 @@ class WebSocketService {
       clearInterval(this.statsInterval);
     }
 
-    const startTime = Date.now();
+    // 통계 추적만 하고 콘솔에 출력하지 않음
     this.statsInterval = setInterval(() => {
-      const elapsed = (Date.now() - startTime) / 1000;
-      console.log('\n═══════════════════════════════════════');
-      console.log('📊 WebSocket Statistics');
-      console.log('═══════════════════════════════════════');
-      console.log(`⏱️  Running time: ${elapsed.toFixed(1)}s`);
-      console.log('');
-
-      const importantEvents = ['dashboard_update', 'account_assets_update', 'price_update', 'prediction_update'];
-      const otherEvents: string[] = [];
-
-      importantEvents.forEach((eventName) => {
-        const stats = this.eventStats[eventName as keyof typeof this.eventStats];
-        if (stats.count > 0) {
-          const rate = stats.count / elapsed;
-          const lastAgo = stats.lastTime > 0 ? ((Date.now() - stats.lastTime) / 1000).toFixed(1) + 's ago' : 'never';
-          console.log(`✅ ${eventName}: ${stats.count} events (${rate.toFixed(2)}/s) - last: ${lastAgo}`);
-        } else {
-          console.log(`❌ ${eventName}: NOT RECEIVING`);
-        }
-      });
-
-      console.log('');
-      Object.entries(this.eventStats).forEach(([eventName, stats]) => {
-        if (!importantEvents.includes(eventName) && stats.count > 0) {
-          otherEvents.push(eventName);
-        }
-      });
-
-      if (otherEvents.length > 0) {
-        console.log('Other events:');
-        otherEvents.forEach((eventName) => {
-          const stats = this.eventStats[eventName as keyof typeof this.eventStats];
-          const rate = stats.count / elapsed;
-          console.log(`  ${eventName}: ${stats.count} (${rate.toFixed(2)}/s)`);
-        });
-      }
-
-      console.log('═══════════════════════════════════════\n');
+      // 통계만 유지
     }, 10000);
   }
 
@@ -406,7 +308,6 @@ class WebSocketService {
 
   requestTimeframeData(timeframe: string) {
     if (this.socket && this.socket.connected) {
-      console.log(`📊 Requesting ${timeframe} candle data from server`);
       this.socket.emit('request_timeframe', { timeframe });
     } else {
       console.warn('⚠️ Cannot request timeframe data: WebSocket not connected');

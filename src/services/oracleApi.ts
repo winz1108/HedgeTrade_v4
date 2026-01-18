@@ -285,8 +285,6 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
   const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}`;
 
-  console.log(`📊 Fetching ${timeframe} chart data from:`, url);
-
   try {
     const response = await fetch(url, {
       headers: {
@@ -328,22 +326,6 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
 
     const mappedCandles = mapCandles(chartResponse.candles);
 
-    console.log(`✅ ${timeframe} chart data loaded: ${mappedCandles.length} candles`);
-
-    // 기술지표 확인 로그
-    if (mappedCandles.length > 0) {
-      const lastCandle = mappedCandles[mappedCandles.length - 1];
-      console.log(`   📈 Last candle indicators:`, {
-        timestamp: new Date(lastCandle.timestamp).toISOString(),
-        ema20: lastCandle.ema20,
-        ema50: lastCandle.ema50,
-        bbUpper: lastCandle.bbUpper,
-        bbLower: lastCandle.bbLower,
-        macd: lastCandle.macd,
-        rsi: lastCandle.rsi
-      });
-    }
-
     return {
       timeframe: chartResponse.timeframe,
       candles: mappedCandles,
@@ -360,8 +342,6 @@ export const fetchDashboardQuick = async (): Promise<DashboardQuick> => {
   const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/dashboard/quick`;
 
-  console.log('⚡ Fetching quick dashboard data from:', url);
-
   try {
     const response = await fetch(url, {
       headers: {
@@ -374,7 +354,6 @@ export const fetchDashboardQuick = async (): Promise<DashboardQuick> => {
     }
 
     const data: DashboardQuick = await response.json();
-    console.log('✅ Quick dashboard data received:', data ? 'Valid' : 'Empty');
 
     return data;
   } catch (error) {
@@ -387,8 +366,6 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
   const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/dashboard?_=${Date.now()}`;
 
-  console.log('🔍 Fetching dashboard data from:', url);
-
   try {
     const response = await fetch(url, {
       headers: {
@@ -398,21 +375,17 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
       },
     });
 
-    console.log('✅ API Response status:', response.status);
-
     if (!response.ok) {
       throw new Error(`Oracle VM unavailable: ${response.status} ${response.statusText}`);
     }
 
     const apiResponse: ApiResponse = await response.json();
-    console.log('✅ API Response received:', apiResponse ? 'Valid' : 'Empty');
 
     if (!apiResponse) {
       throw new Error('Empty API response');
     }
 
     const dashboardData = convertApiResponseToDashboardData(apiResponse, accountId);
-    console.log('✅ Dashboard data converted successfully');
 
     return dashboardData;
   } catch (error) {

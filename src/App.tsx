@@ -57,10 +57,6 @@ function App() {
     // 예상 간격의 1.5배 이상 차이나면 갭으로 판단
     if (gap > interval * 1.5) {
       const missedCandles = Math.floor(gap / interval) - 1;
-      console.warn(`⚠️ GAP DETECTED in ${timeframe}: ${missedCandles} candles missing`);
-      console.log(`   Last: ${new Date(lastTimestamp).toLocaleTimeString()}`);
-      console.log(`   New: ${new Date(newTimestamp).toLocaleTimeString()}`);
-      console.log(`   Gap: ${(gap / 1000 / 60).toFixed(1)} minutes`);
 
       // 갭 채우기: 누락된 개수 + 여유분 5개 요청
       try {
@@ -74,7 +70,6 @@ function App() {
 
           const existingCandles = (prev[timeframeKey] as Candle[] | undefined) || [];
           const merged = [...existingCandles];
-          let addedCount = 0;
 
           for (const newCandle of chart.candles as Candle[]) {
             const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
@@ -85,18 +80,16 @@ function App() {
               } else {
                 merged.splice(insertIndex, 0, newCandle);
               }
-              addedCount++;
             }
           }
 
           merged.sort((a, b) => a.timestamp - b.timestamp);
-          
+
 
           if (merged.length > 500) {
             merged.splice(0, merged.length - 500);
           }
 
-          console.log(`✅ Filled ${addedCount} missing candles in ${timeframe}`);
           return { ...prev, [timeframeKey]: merged };
         });
       } catch (error) {
@@ -111,7 +104,6 @@ function App() {
 
       const cached = dataCache.load();
       if (cached) {
-        console.log('💾 Using cached data while loading fresh data', cached);
         setData(prev => prev ? {
           ...prev,
           currentAsset: (cached.currentAsset && cached.currentAsset > 0) ? cached.currentAsset : prev.currentAsset,
@@ -121,9 +113,6 @@ function App() {
           currentPrice: (cached.currentPrice && cached.currentPrice > 0) ? cached.currentPrice : prev.currentPrice,
         } : prev);
       }
-
-      console.log('📊 Loading dashboard data...');
-      const startTime = performance.now();
 
       const [fullDashboard, ...charts] = await Promise.all([
         fetchDashboardData(selectedAccount),
@@ -135,9 +124,6 @@ function App() {
         fetchChartData('4h', 500),
         fetchChartData('1d', 500)
       ]);
-
-      const loadTime = performance.now() - startTime;
-      console.log(`✅ All data loaded in ${(loadTime / 1000).toFixed(2)}s`);
 
       fullDashboard.priceHistory1m = charts[0].candles as Candle[];
       fullDashboard.priceHistory5m = charts[1].candles as Candle[];
@@ -162,15 +148,8 @@ function App() {
         currentPrice: fullDashboard.currentPrice,
       });
 
-      console.log('📋 Dashboard Data:');
-      console.log('  - Account Name:', fullDashboard.accountName);
-      console.log('  - Trades:', fullDashboard.trades?.length || 0);
-      console.log('  - Metrics loaded:', fullDashboard.metrics ? '✅' : '❌');
-
       setData(fullDashboard);
       setLoading(false);
-
-      console.log('✅ Dashboard ready');
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
@@ -253,7 +232,6 @@ function App() {
   }, [selectedAccount]);
 
   const refillMissingCandles = useCallback(async () => {
-    console.log('🔄 Refilling missing candles...');
     const timeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const;
 
     for (const timeframe of timeframes) {
@@ -268,14 +246,11 @@ function App() {
           const existingCandles = prev[timeframeKey] as Candle[] | undefined;
 
           if (!existingCandles || existingCandles.length === 0) {
-            console.log(`📊 Loading initial ${timeframe} data (100 candles)`);
-            
             return { ...prev, [timeframeKey]: chart.candles as Candle[] };
           }
 
           const newCandles = chart.candles as Candle[];
           const merged = [...existingCandles];
-          let addedCount = 0;
 
           for (const newCandle of newCandles) {
             const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
@@ -286,20 +261,13 @@ function App() {
               } else {
                 merged.splice(insertIndex, 0, newCandle);
               }
-              addedCount++;
             } else {
               merged[existingIndex] = newCandle;
             }
           }
 
-          
-
           if (merged.length > 500) {
             merged.splice(0, merged.length - 500);
-          }
-
-          if (addedCount > 0) {
-            console.log(`✅ ${timeframe}: Added ${addedCount} missing candles`);
           }
 
           return { ...prev, [timeframeKey]: merged };
@@ -366,25 +334,6 @@ function App() {
     });
 
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
-      // 기술지표 확인 로그 (진행봉/완성봉 모두)
-      const indicatorStatus = {
-        timeframe: update.timeframe,
-        time: new Date(update.openTime).toLocaleTimeString(),
-        isFinal: update.isFinal,
-        close: update.close,
-        rsi: update.rsi ?? '❌',
-        macd: update.macd ?? '❌',
-        ema20: update.ema20 ?? '❌',
-        bbUpper: update.bbUpper ?? '❌',
-      };
-
-      if (update.isFinal) {
-        console.log('🔴 realtime_candle_update (완성봉 isFinal=true):', indicatorStatus);
-        console.log('   원시 데이터 전체:', update);
-      } else if (Math.random() < 0.05) { // 진행봉은 5%만 로그
-        console.log('🟡 realtime_candle_update (진행봉 isFinal=false):', indicatorStatus);
-      }
-
       setData((prevData) => {
         if (!prevData) return prevData;
         if (!update.timeframe) return prevData;
@@ -406,17 +355,6 @@ function App() {
 
           if (lastCandle && lastCandle.timestamp === newCandle.timestamp) {
             // 마지막 진행봉이 완성봉이 된 경우: 기술지표 업데이트
-            console.log('🔄 진행봉→완성봉 전환 [BEFORE UPDATE]:', {
-              timeframe: update.timeframe,
-              time: new Date(update.openTime).toLocaleTimeString(),
-              oldRSI: lastCandle.rsi ?? '❌',
-              oldMACD: lastCandle.macd ?? '❌',
-              oldEMA20: lastCandle.ema20 ?? '❌',
-              newRSI: update.rsi ?? '❌',
-              newMACD: update.macd ?? '❌',
-              newEMA20: update.ema20 ?? '❌',
-            });
-
             lastCandle.isComplete = true;
             lastCandle.close = newCandle.close;
             lastCandle.high = newCandle.high;
@@ -424,23 +362,16 @@ function App() {
             lastCandle.volume = newCandle.volume;
 
             // 기술지표 업데이트 (백엔드가 보낸 값 사용)
-            let updatedCount = 0;
-            if (update.rsi !== undefined) { lastCandle.rsi = update.rsi; updatedCount++; }
-            if (update.macd !== undefined) { lastCandle.macd = update.macd; updatedCount++; }
-            if (update.macdSignal !== undefined) { lastCandle.signal = update.macdSignal; updatedCount++; }
-            if (update.macdHistogram !== undefined) { lastCandle.histogram = update.macdHistogram; updatedCount++; }
-            if (update.ema20 !== undefined) { lastCandle.ema20 = update.ema20; updatedCount++; }
-            if (update.ema50 !== undefined) { lastCandle.ema50 = update.ema50; updatedCount++; }
-            if (update.bbUpper !== undefined) { lastCandle.bbUpper = update.bbUpper; updatedCount++; }
-            if (update.bbMiddle !== undefined) { lastCandle.bbMiddle = update.bbMiddle; updatedCount++; }
-            if (update.bbLower !== undefined) { lastCandle.bbLower = update.bbLower; updatedCount++; }
-            if (update.bbWidth !== undefined) { lastCandle.bbWidth = update.bbWidth; updatedCount++; }
-
-            console.log(`   ✅ ${updatedCount}개 지표 업데이트 완료 [AFTER UPDATE]:`, {
-              rsi: lastCandle.rsi ?? '❌',
-              macd: lastCandle.macd ?? '❌',
-              ema20: lastCandle.ema20 ?? '❌',
-            });
+            if (update.rsi !== undefined) { lastCandle.rsi = update.rsi; }
+            if (update.macd !== undefined) { lastCandle.macd = update.macd; }
+            if (update.macdSignal !== undefined) { lastCandle.signal = update.macdSignal; }
+            if (update.macdHistogram !== undefined) { lastCandle.histogram = update.macdHistogram; }
+            if (update.ema20 !== undefined) { lastCandle.ema20 = update.ema20; }
+            if (update.ema50 !== undefined) { lastCandle.ema50 = update.ema50; }
+            if (update.bbUpper !== undefined) { lastCandle.bbUpper = update.bbUpper; }
+            if (update.bbMiddle !== undefined) { lastCandle.bbMiddle = update.bbMiddle; }
+            if (update.bbLower !== undefined) { lastCandle.bbLower = update.bbLower; }
+            if (update.bbWidth !== undefined) { lastCandle.bbWidth = update.bbWidth; }
           } else {
             // 갭 발생: onCandleComplete에서 처리
             const completedCandles = candles.filter(c => c.isComplete !== false);
@@ -594,19 +525,6 @@ function App() {
     const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
       if (!update.timeframe) return;
 
-      // 웹소켓으로 받은 원시 데이터 확인
-      console.log('═══════════════════════════════════════');
-      console.log('📦 candle_complete 원시 데이터:');
-      console.log('═══════════════════════════════════════');
-      console.log('⏰ Time:', new Date(update.openTime).toLocaleTimeString());
-      console.log('📊 Timeframe:', update.timeframe);
-      console.log('💰 Close:', update.close);
-      console.log('📉 RSI:', update.rsi);
-      console.log('📈 MACD:', update.macd, '/ Signal:', update.macdSignal, '/ Histogram:', update.macdHistogram);
-      console.log('📊 EMA20:', update.ema20, '/ EMA50:', update.ema50);
-      console.log('📊 BB Upper:', update.bbUpper, '/ Middle:', update.bbMiddle, '/ Lower:', update.bbLower);
-      console.log('═══════════════════════════════════════');
-
       // 기술지표 누락 감지
       const hasIndicators = update.rsi !== undefined &&
                            update.macd !== undefined &&
@@ -616,10 +534,6 @@ function App() {
       if (!hasIndicators) {
         console.error('❌ CRITICAL: 기술지표 누락!');
         console.error('   백엔드에서 기술지표를 계산해서 보내야 합니다!');
-      } else {
-        const rsiStr = typeof update.rsi === 'number' ? update.rsi.toFixed(1) : update.rsi;
-        const macdStr = typeof update.macd === 'number' ? update.macd.toFixed(1) : update.macd;
-        console.log(`✅ 기술지표 모두 존재 (RSI=${rsiStr}, MACD=${macdStr})`);
       }
 
       // 완성봉 이벤트 발생 시 해당 타임프레임만 최신 5개 검증
@@ -643,7 +557,6 @@ function App() {
           const completedCandlesOnly = newCandles.slice(0, -1);
 
           const merged = [...existingCandles];
-          let addedCount = 0;
           let indicatorMissingCount = 0;
 
           for (const newCandle of completedCandlesOnly) {
@@ -661,7 +574,6 @@ function App() {
               } else {
                 merged.splice(insertIndex, 0, newCandle);
               }
-              addedCount++;
             } else {
               // 기존 캔들 업데이트 (완성봉만)
               merged[existingIndex] = newCandle;
@@ -674,10 +586,6 @@ function App() {
             merged.splice(0, merged.length - 500);
           }
 
-          if (addedCount > 0) {
-            console.log(`🔄 ${update.timeframe}: Added ${addedCount} missing candles on complete event`);
-          }
-
           if (indicatorMissingCount > 0) {
             console.warn(`⚠️ ${update.timeframe}: ${indicatorMissingCount} candles missing indicators`);
           }
@@ -686,14 +594,7 @@ function App() {
           const lastCompleted = merged.filter(c => c.isComplete !== false).pop();
           if (lastCompleted) {
             const hasAllIndicators = lastCompleted.rsi && lastCompleted.macd && lastCompleted.ema20;
-            if (hasAllIndicators) {
-              console.log(`   ✅ Last completed candle OK:`, {
-                timestamp: new Date(lastCompleted.timestamp).toISOString(),
-                rsi: typeof lastCompleted.rsi === 'number' ? lastCompleted.rsi.toFixed(1) : lastCompleted.rsi,
-                macd: typeof lastCompleted.macd === 'number' ? lastCompleted.macd.toFixed(1) : lastCompleted.macd,
-                ema20: typeof lastCompleted.ema20 === 'number' ? lastCompleted.ema20.toFixed(0) : lastCompleted.ema20
-              });
-            } else {
+            if (!hasAllIndicators) {
               console.error(`   ❌ Last completed candle MISSING indicators:`, {
                 timestamp: new Date(lastCompleted.timestamp).toISOString(),
                 rsi: lastCompleted.rsi,
@@ -710,21 +611,7 @@ function App() {
       }
     });
 
-    let assetUpdateCount = 0;
-    let lastAssetLogTime = Date.now();
-
     const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {
-      assetUpdateCount++;
-
-      const now = Date.now();
-      if (now - lastAssetLogTime >= 10000) {
-        const elapsed = (now - lastAssetLogTime) / 1000;
-        const rate = assetUpdateCount / elapsed;
-        console.log(`💰 Asset updates: ${assetUpdateCount} in ${elapsed.toFixed(1)}s (${rate.toFixed(2)}/s)`);
-        assetUpdateCount = 0;
-        lastAssetLogTime = now;
-      }
-
       setData((prevData) => {
         if (!prevData) return prevData;
         if (update.accountId !== selectedAccount) return prevData;
@@ -779,22 +666,10 @@ function App() {
     });
 
     const unsubscribePredictionUpdate = websocketService.onPredictionUpdate((update) => {
-      console.log('🔮 RAW Prediction Update received:', JSON.stringify(update, null, 2));
-
       const newCalculatedAt = update.predictionCalculatedAt;
-
-      console.log('🔮 Prediction Update from WebSocket:');
-      console.log('  - Probability:', (update.probability * 100).toFixed(2) + '%');
-      console.log('  - Calculated At:', newCalculatedAt, '→', new Date(newCalculatedAt).toLocaleString());
-      console.log('  - Version:', update.version);
-      console.log('  - Timestamp:', new Date(update.timestamp).toLocaleString());
 
       setData((prevData) => {
         if (!prevData) return prevData;
-
-        console.log('  - Previous predictionCalculatedAt:', prevData.currentPrediction?.predictionCalculatedAt);
-        console.log('  - New predictionCalculatedAt:', newCalculatedAt);
-        console.log('  - Changed:', prevData.currentPrediction?.predictionCalculatedAt !== newCalculatedAt);
 
         const updated = {
           ...prevData,
@@ -818,7 +693,6 @@ function App() {
           },
         };
 
-        console.log('  - Updated state:', updated.currentPrediction?.predictionCalculatedAt);
         return updated;
       });
     });
@@ -858,12 +732,6 @@ function App() {
                 currentPrice: update.currentPrice,
               });
             }
-
-            console.log('📊 dashboard_update:', {
-              received: { asset: newAsset, btc: newBTC, cash: newCash },
-              applied: { asset: currentAsset, btc: currentBTC, cash: currentCash },
-              previous: { asset: prevData.currentAsset, btc: prevData.currentBTC, cash: prevData.currentCash },
-            });
 
             return {
               ...prevData,
@@ -913,15 +781,10 @@ function App() {
 
     const checkPredictionUpdate = async () => {
       try {
-        console.log('🔍 예측 업데이트 체크 중...');
         const response = await fetchDashboardData(selectedAccount);
         const newCalculatedAt = response.currentPrediction?.predictionCalculatedAt;
 
-        console.log('  - 이전:', lastPredictionCalculatedAtRef.current, new Date(lastPredictionCalculatedAtRef.current).toLocaleString());
-        console.log('  - 현재:', newCalculatedAt, new Date(newCalculatedAt || 0).toLocaleString());
-
         if (newCalculatedAt && newCalculatedAt !== lastPredictionCalculatedAtRef.current) {
-          console.log('✅ 예측 업데이트 감지! UI 강제 업데이트');
           lastPredictionCalculatedAtRef.current = newCalculatedAt;
 
           setData((prev) => {
@@ -940,11 +803,6 @@ function App() {
               _updateTimestamp: Date.now(),
             };
 
-            console.log('🔄 State 업데이트 완료:', {
-              old: prev.currentPrediction?.predictionCalculatedAt,
-              new: updated.currentPrediction?.predictionCalculatedAt,
-            });
-
             return updated;
           });
 
@@ -954,8 +812,6 @@ function App() {
             pollingInterval = null;
           }
           scheduleNextCheck();
-        } else {
-          console.log('  ℹ️  변경사항 없음');
         }
       } catch (error) {
         console.error('❌ 예측 업데이트 체크 실패:', error);
@@ -973,12 +829,9 @@ function App() {
       const minutesUntilNext = (nextMinute - currentMinutes + 60) % 60;
       const msUntilNext = (minutesUntilNext * 60 - currentSeconds) * 1000 - currentMs;
 
-      console.log(`⏰ 다음 예측 체크: ${minutesUntilNext}분 ${Math.floor((msUntilNext % 60000) / 1000)}초 후 (${nextMinute}분)`);
-
       if (nextCheckTimeout) clearTimeout(nextCheckTimeout);
 
       nextCheckTimeout = setTimeout(() => {
-        console.log('🔍 정각 도달 - 1초마다 예측 업데이트 체크 시작');
         checkPredictionUpdate(); // 즉시 체크
 
         if (pollingInterval) clearInterval(pollingInterval);
@@ -990,7 +843,6 @@ function App() {
     if (data?.currentPrediction?.predictionCalculatedAt) {
       if (lastPredictionCalculatedAtRef.current === 0) {
         lastPredictionCalculatedAtRef.current = data.currentPrediction.predictionCalculatedAt;
-        console.log('🎯 초기 예측 시간 설정:', new Date(lastPredictionCalculatedAtRef.current).toLocaleString());
       }
       scheduleNextCheck();
     }

@@ -1632,7 +1632,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 }
 
                 if (candleIndex === -1) {
-                  console.log(`Trade marker not rendered - Trade timestamp: ${new Date(trade.timestamp).toISOString()}, Type: ${trade.type}, Timeframe: ${timeframe}, Visible range: ${new Date(visibleTimeRangeStart).toISOString()} - ${new Date(visibleTimeRangeEnd).toISOString()}`);
                   return null;
                 }
 

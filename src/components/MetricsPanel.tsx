@@ -9,15 +9,6 @@ interface MetricsPanelProps {
 }
 
 export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
-  useEffect(() => {
-    if (position === 'left' && data.currentPrediction) {
-      console.log('📊 MetricsPanel RENDER:', new Date().toLocaleTimeString());
-      console.log('  - Probability:', (data.currentPrediction.takeProfitProb * 100).toFixed(2) + '%');
-      console.log('  - Calculated At (raw):', data.currentPrediction.predictionCalculatedAt);
-      console.log('  - Calculated At (formatted):', formatLocalTime(data.currentPrediction.predictionCalculatedAt || 0));
-      console.log('  - Data Timestamp (raw):', data.currentPrediction.predictionDataTimestamp);
-    }
-  }, [data.currentPrediction?.predictionCalculatedAt, data.currentPrediction?.takeProfitProb, position]);
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
