@@ -236,25 +236,31 @@ function App() {
   useEffect(() => {
     websocketService.connect();
 
-    const convertCandleData = (candleData: CandleData): Candle => ({
-      timestamp: candleData.openTime,
-      open: candleData.open,
-      high: candleData.high,
-      low: candleData.low,
-      close: candleData.close,
-      volume: candleData.volume,
-      isComplete: candleData.isFinal,
-      ema20: candleData.ema20,
-      ema50: candleData.ema50,
-      bbUpper: candleData.bbUpper,
-      bbMiddle: candleData.bbMiddle,
-      bbLower: candleData.bbLower,
-      bbWidth: candleData.bbWidth,
-      macd: candleData.macd,
-      signal: candleData.macdSignal,
-      histogram: candleData.macdHistogram,
-      rsi: candleData.rsi,
-    });
+    const convertCandleData = (candleData: CandleData): Candle => {
+      const timestamp = typeof candleData.openTime === 'string'
+        ? parseInt(candleData.openTime, 10)
+        : candleData.openTime;
+
+      return {
+        timestamp,
+        open: candleData.open,
+        high: candleData.high,
+        low: candleData.low,
+        close: candleData.close,
+        volume: candleData.volume,
+        isComplete: candleData.isFinal,
+        ema20: candleData.ema20,
+        ema50: candleData.ema50,
+        bbUpper: candleData.bbUpper,
+        bbMiddle: candleData.bbMiddle,
+        bbLower: candleData.bbLower,
+        bbWidth: candleData.bbWidth,
+        macd: candleData.macd,
+        signal: candleData.macdSignal,
+        histogram: candleData.macdHistogram,
+        rsi: candleData.rsi,
+      };
+    };
 
     const unsubscribePriceUpdate = websocketService.onPriceUpdate((priceData) => {
       document.title = `HedgeTrade - $${priceData.currentPrice.toFixed(2)}`;
@@ -392,11 +398,17 @@ function App() {
           const newCandles = chart.candles as Candle[];
           const merged = [...existingCandles];
 
+          console.log(`🔍 Merging ${update.timeframe}:`);
+          console.log(`  Existing candles: ${merged.length}, last timestamp:`, merged[merged.length - 1]?.timestamp);
+          console.log(`  New candles: ${newCandles.length}, timestamps:`, newCandles.map(c => c.timestamp));
+
           for (const newCandle of newCandles) {
             const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
             if (existingIndex === -1) {
+              console.log(`  ➕ Adding new candle at ${newCandle.timestamp}`);
               merged.push(newCandle);
             } else {
+              console.log(`  🔄 Updating existing candle at ${newCandle.timestamp}`);
               merged[existingIndex] = newCandle;
             }
           }
@@ -406,6 +418,8 @@ function App() {
           if (merged.length > 500) {
             merged.splice(0, merged.length - 500);
           }
+
+          console.log(`  Final: ${merged.length} candles, last timestamp:`, merged[merged.length - 1]?.timestamp);
 
           return { ...prev, [timeframeKey]: merged };
         });

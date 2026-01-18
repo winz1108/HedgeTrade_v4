@@ -11,8 +11,14 @@ const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: bo
     return events;
   }
 
+  // timestamp를 숫자로 정규화
+  const normalizedTrades = accountTrades.map(t => ({
+    ...t,
+    timestamp: typeof t.timestamp === 'string' ? parseInt(t.timestamp, 10) : t.timestamp
+  }));
+
   // 시간순 정렬
-  const sortedTrades = [...accountTrades].sort((a, b) => a.timestamp - b.timestamp);
+  const sortedTrades = [...normalizedTrades].sort((a, b) => a.timestamp - b.timestamp);
 
   // Entry-Exit 페어 생성
   const entries: any[] = [];
@@ -79,7 +85,7 @@ const convertApiResponseToDashboardData = (
     }
 
     const mapCandles = (candles: any[]) => candles?.map(c => ({
-      timestamp: c.timestamp,
+      timestamp: typeof c.timestamp === 'string' ? parseInt(c.timestamp, 10) : c.timestamp,
       open: c.open,
       high: c.high,
       low: c.low,
@@ -159,7 +165,7 @@ const convertApiResponseToDashboardData = (
 
   // 단일 구조 (API_SPEC.md 형식)
   const mapCandles = (candles: any[]) => candles?.map(c => ({
-    timestamp: c.timestamp,
+    timestamp: typeof c.timestamp === 'string' ? parseInt(c.timestamp, 10) : c.timestamp,
     open: c.open,
     high: c.high,
     low: c.low,
@@ -182,9 +188,10 @@ const convertApiResponseToDashboardData = (
   // priceHistory1m 등이 최상위에 있는 경우
   const trades = Array.isArray(apiResponse.trades)
     ? apiResponse.trades.map((t: any, index: number) => {
-        const pairId = t.pairId || `pair_${t.timestamp}_${index}`;
+        const timestamp = typeof t.timestamp === 'string' ? parseInt(t.timestamp, 10) : t.timestamp;
+        const pairId = t.pairId || `pair_${timestamp}_${index}`;
         return {
-          timestamp: t.timestamp,
+          timestamp,
           type: t.type,
           price: t.price,
           profit: t.profit,
@@ -269,32 +276,40 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
       throw new Error(chartResponse.error || 'Failed to load chart data');
     }
 
-    const mapCandles = (candles: any[]) => candles?.map(c => ({
-      timestamp: c.timestamp,
-      open: c.open,
-      high: c.high,
-      low: c.low,
-      close: c.close,
-      volume: c.volume,
-      ema20: c.ema20,
-      ema50: c.ema50,
-      bb_upper: c.bb_upper,
-      bb_lower: c.bb_lower,
-      bbUpper: c.bbUpper || c.bb_upper,
-      bbMiddle: c.bbMiddle || c.bb_middle,
-      bbLower: c.bbLower || c.bb_lower,
-      bbWidth: c.bbWidth || c.bb_width,
-      macd: c.macd,
-      signal: c.signal || c.macd_signal,
-      histogram: c.histogram || c.macd_histogram,
-      rsi: c.rsi,
-    })) || [];
+    const mapCandles = (candles: any[]) => {
+      if (candles.length > 0) {
+        const firstCandle = candles[0];
+        console.log(`🔍 First candle timestamp type: ${typeof firstCandle.timestamp}, value:`, firstCandle.timestamp);
+      }
 
-    console.log(`✅ ${timeframe} chart data loaded: ${chartResponse.candles.length} candles`);
+      return candles?.map(c => ({
+        timestamp: typeof c.timestamp === 'string' ? parseInt(c.timestamp, 10) : c.timestamp,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+        volume: c.volume,
+        ema20: c.ema20,
+        ema50: c.ema50,
+        bb_upper: c.bb_upper,
+        bb_lower: c.bb_lower,
+        bbUpper: c.bbUpper || c.bb_upper,
+        bbMiddle: c.bbMiddle || c.bb_middle,
+        bbLower: c.bbLower || c.bb_lower,
+        bbWidth: c.bbWidth || c.bb_width,
+        macd: c.macd,
+        signal: c.signal || c.macd_signal,
+        histogram: c.histogram || c.macd_histogram,
+        rsi: c.rsi,
+      })) || [];
+    };
+
+    const mappedCandles = mapCandles(chartResponse.candles);
+    console.log(`✅ ${timeframe} chart data loaded: ${mappedCandles.length} candles`);
 
     return {
       timeframe: chartResponse.timeframe,
-      candles: mapCandles(chartResponse.candles),
+      candles: mappedCandles,
       count: chartResponse.count,
       source: chartResponse.source,
     };
