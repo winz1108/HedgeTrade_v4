@@ -371,8 +371,49 @@ function App() {
       });
     });
 
-    const unsubscribeCandleComplete = websocketService.onCandleComplete((update) => {
+    const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
+      if (!update.timeframe) return;
+
       console.log(`✅ Candle complete: ${update.timeframe} at ${new Date(update.openTime).toLocaleTimeString()}`);
+
+      try {
+        const chart = await fetchChartData(update.timeframe, 2);
+        const timeframeLower = update.timeframe.toLowerCase();
+        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
+
+        setData(prev => {
+          if (!prev) return prev;
+
+          const existingCandles = prev[timeframeKey] as Candle[] | undefined;
+          if (!existingCandles || existingCandles.length === 0) {
+            return { ...prev, [timeframeKey]: chart.candles as Candle[] };
+          }
+
+          const newCandles = chart.candles as Candle[];
+          const merged = [...existingCandles];
+
+          for (const newCandle of newCandles) {
+            const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
+            if (existingIndex === -1) {
+              merged.push(newCandle);
+            } else {
+              merged[existingIndex] = newCandle;
+            }
+          }
+
+          merged.sort((a, b) => a.timestamp - b.timestamp);
+
+          if (merged.length > 500) {
+            merged.splice(0, merged.length - 500);
+          }
+
+          return { ...prev, [timeframeKey]: merged };
+        });
+
+        console.log(`🔄 ${update.timeframe}: Verified latest 2 candles`);
+      } catch (error) {
+        console.error(`❌ Failed to verify ${update.timeframe} candles:`, error);
+      }
     });
 
     const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {
