@@ -720,20 +720,26 @@ function App() {
       if (update.accounts && update.accounts.length > 0) {
         const accountData = update.accounts.find(acc => acc.accountId === selectedAccount);
 
-        if (accountData && accountData.asset) {
+        if (accountData) {
           btcBalanceRef.current = accountData.btcBalance || 0;
           usdcBalanceRef.current = accountData.usdcBalance || 0;
 
           setData((prevData) => {
             if (!prevData) return prevData;
 
+            // 백엔드가 보내는 구조에 따라 안전하게 처리
+            // asset 객체가 있으면 사용, 없으면 flat 필드 사용
+            const currentAsset = (accountData as any).asset?.currentAsset ?? accountData.totalAsset ?? prevData.currentAsset;
+            const currentBTC = (accountData as any).asset?.currentBTC ?? accountData.btcValue ?? prevData.currentBTC;
+            const currentCash = (accountData as any).asset?.currentCash ?? accountData.usdcBalance ?? prevData.currentCash;
+
             return {
               ...prevData,
               currentPrice: update.currentPrice,
               currentTime: update.serverTime,
-              currentAsset: accountData.asset?.currentAsset ?? prevData.currentAsset,
-              currentBTC: accountData.asset?.currentBTC ?? prevData.currentBTC,
-              currentCash: accountData.asset?.currentCash ?? prevData.currentCash,
+              currentAsset,
+              currentBTC,
+              currentCash,
             };
           });
         }
