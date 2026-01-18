@@ -431,62 +431,61 @@ function App() {
       });
     });
 
-    const unsubscribeCandleComplete = websocketService.onCandleComplete((update) => {
+    const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
       if (!update.timeframe) return;
 
       console.log(`✅ Candle complete: ${update.timeframe} at ${new Date(update.openTime).toLocaleTimeString()}`);
 
-      const fetchLatestCandles = async (attempt: number) => {
-        try {
-          const chart = await fetchChartData(update.timeframe, 10);
-          const timeframeLower = update.timeframe.toLowerCase();
-          const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
+      // 완성봉 이벤트 발생 시 해당 타임프레임만 최신 5개 검증
+      try {
+        const chart = await fetchChartData(update.timeframe, 5);
+        const timeframeLower = update.timeframe.toLowerCase();
+        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
 
-          setData(prev => {
-            if (!prev) return prev;
+        setData(prev => {
+          if (!prev) return prev;
 
-            const existingCandles = prev[timeframeKey] as Candle[] | undefined;
-            if (!existingCandles || existingCandles.length === 0) {
-              return { ...prev, [timeframeKey]: chart.candles as Candle[] };
-            }
+          const existingCandles = prev[timeframeKey] as Candle[] | undefined;
+          if (!existingCandles || existingCandles.length === 0) {
+            return { ...prev, [timeframeKey]: chart.candles as Candle[] };
+          }
 
-            const newCandles = chart.candles as Candle[];
-            const merged = [...existingCandles];
-            let addedCount = 0;
+          const newCandles = chart.candles as Candle[];
+          const merged = [...existingCandles];
+          let addedCount = 0;
 
-            for (const newCandle of newCandles) {
-              const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
-              if (existingIndex === -1) {
-                const insertIndex = merged.findIndex(c => c.timestamp > newCandle.timestamp);
-                if (insertIndex === -1) {
-                  merged.push(newCandle);
-                } else {
-                  merged.splice(insertIndex, 0, newCandle);
-                }
-                addedCount++;
+          for (const newCandle of newCandles) {
+            const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
+            if (existingIndex === -1) {
+              // 타임스탬프 순서대로 삽입
+              const insertIndex = merged.findIndex(c => c.timestamp > newCandle.timestamp);
+              if (insertIndex === -1) {
+                merged.push(newCandle);
               } else {
-                merged[existingIndex] = newCandle;
+                merged.splice(insertIndex, 0, newCandle);
               }
+              addedCount++;
+            } else {
+              // 기존 캔들 업데이트
+              merged[existingIndex] = newCandle;
             }
+          }
 
-            merged.sort((a, b) => a.timestamp - b.timestamp);
+          merged.sort((a, b) => a.timestamp - b.timestamp);
 
-            if (merged.length > 500) {
-              merged.splice(0, merged.length - 500);
-            }
+          if (merged.length > 500) {
+            merged.splice(0, merged.length - 500);
+          }
 
-            if (addedCount > 0) {
-              console.log(`🔄 ${update.timeframe}: Added ${addedCount} missing candles (attempt ${attempt})`);
-            }
+          if (addedCount > 0) {
+            console.log(`🔄 ${update.timeframe}: Added ${addedCount} missing candles on complete event`);
+          }
 
-            return { ...prev, [timeframeKey]: merged };
-          });
-        } catch (error) {
-          console.error(`❌ Failed to verify ${update.timeframe} candles (attempt ${attempt}):`, error);
-        }
-      };
-
-      fetchLatestCandles(1);
+          return { ...prev, [timeframeKey]: merged };
+        });
+      } catch (error) {
+        console.error(`❌ Failed to verify ${update.timeframe} on complete:`, error);
+      }
     });
 
     const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {
@@ -566,63 +565,6 @@ function App() {
       }
     });
 
-    // 1초마다 모든 타임프레임의 최신 3개 캔들 체크
-    const quickCheckInterval = setInterval(async () => {
-      if (!wsConnected || !data) return;
-
-      const timeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const;
-
-      for (const timeframe of timeframes) {
-        try {
-          const chart = await fetchChartData(timeframe, 3);
-          const timeframeLower = timeframe.toLowerCase();
-          const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
-
-          setData(prev => {
-            if (!prev) return prev;
-
-            const existingCandles = prev[timeframeKey] as Candle[] | undefined;
-            if (!existingCandles || existingCandles.length === 0) {
-              return { ...prev, [timeframeKey]: chart.candles as Candle[] };
-            }
-
-            const newCandles = chart.candles as Candle[];
-            const merged = [...existingCandles];
-            let addedCount = 0;
-
-            for (const newCandle of newCandles) {
-              const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
-              if (existingIndex === -1) {
-                const insertIndex = merged.findIndex(c => c.timestamp > newCandle.timestamp);
-                if (insertIndex === -1) {
-                  merged.push(newCandle);
-                } else {
-                  merged.splice(insertIndex, 0, newCandle);
-                }
-                addedCount++;
-              } else {
-                merged[existingIndex] = newCandle;
-              }
-            }
-
-            merged.sort((a, b) => a.timestamp - b.timestamp);
-
-            if (merged.length > 500) {
-              merged.splice(0, merged.length - 500);
-            }
-
-            if (addedCount > 0) {
-              console.log(`⚡ Quick check ${timeframe}: Added ${addedCount} missing candles`);
-            }
-
-            return { ...prev, [timeframeKey]: merged };
-          });
-        } catch (error) {
-          // 에러는 조용히 무시 (너무 많은 로그 방지)
-        }
-      }
-    }, 1000);
-
     // 주기적으로 갭 체크 및 자동 채우기 (30초마다)
     const gapCheckInterval = setInterval(() => {
       if (wsConnected && data) {
@@ -640,7 +582,6 @@ function App() {
       unsubscribePredictionUpdate();
       unsubscribeDashboardUpdate();
       unsubscribeConnectionStatus();
-      clearInterval(quickCheckInterval);
       clearInterval(gapCheckInterval);
       websocketService.disconnect();
     };
