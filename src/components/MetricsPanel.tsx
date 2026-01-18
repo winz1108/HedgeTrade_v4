@@ -43,19 +43,28 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           <div className="space-y-2">
             <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/50">
               <div className="text-[10px] text-slate-400 mb-1">Total Asset</div>
-              <div className="text-2xl font-bold text-white mb-2">
+              <div
+                key={`asset-${data.currentAsset}`}
+                className="text-2xl font-bold text-white mb-2"
+              >
                 {formatCurrency(data.currentAsset)}
               </div>
               <div className="space-y-1 pt-2 border-t border-slate-600/50">
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-400">BTC</span>
-                  <span className="text-xs font-semibold text-amber-400">
+                  <span
+                    key={`btc-${data.currentBTC}`}
+                    className="text-xs font-semibold text-amber-400"
+                  >
                     {formatCurrency(data.currentBTC || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-400">USDC</span>
-                  <span className="text-xs font-semibold text-emerald-400">
+                  <span
+                    key={`cash-${data.currentCash}`}
+                    className="text-xs font-semibold text-emerald-400"
+                  >
                     {formatCurrency(data.currentCash || 0)}
                   </span>
                 </div>

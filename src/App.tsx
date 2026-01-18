@@ -356,10 +356,22 @@ function App() {
 
       setData((prevData) => {
         if (!prevData) return prevData;
+
+        // 홀딩 중이면 미실현 수익률 재계산
+        let updatedHolding = prevData.holding;
+        if (prevData.holding.isHolding && prevData.holding.buyPrice) {
+          const currentProfit = ((priceData.currentPrice - prevData.holding.buyPrice) / prevData.holding.buyPrice) * 100;
+          updatedHolding = {
+            ...prevData.holding,
+            currentProfit,
+          };
+        }
+
         return {
           ...prevData,
           currentPrice: priceData.currentPrice,
           currentTime: priceData.currentTime,
+          holding: updatedHolding,
         };
       });
     });
