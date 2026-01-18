@@ -732,9 +732,18 @@ function App() {
     const unsubscribeDashboardUpdate = websocketService.onDashboardUpdate((update) => {
       setData((prevData) => {
         if (!prevData) return prevData;
+
+        // 백엔드에서 받은 원시 값으로 계산
+        const btcValue = update.btcBalance * update.btcPrice;
+        const totalAsset = btcValue + update.usdcBalance;
+
         return {
           ...prevData,
-          ...update,
+          currentPrice: update.btcPrice,
+          currentTime: update.timestamp,
+          currentAsset: totalAsset,
+          currentBTC: btcValue,
+          currentCash: update.usdcBalance,
         };
       });
     });

@@ -68,7 +68,12 @@ export interface PredictionUpdate {
 }
 
 export interface DashboardUpdate {
-  [key: string]: any;
+  btcBalance: number;    // BTC 총 수량
+  btcPrice: number;      // BTC 현재가
+  usdcBalance: number;   // USDC 총 수량
+  timestamp: number;     // 서버 시간 (밀리초)
+  accountId?: string;
+  version?: string;
 }
 
 type CandleUpdateCallback = (data: CandleUpdate) => void;
@@ -225,9 +230,14 @@ class WebSocketService {
     this.socket.on('dashboard_update', (data: DashboardUpdate) => {
       this.eventStats.dashboard_update.count++;
       this.eventStats.dashboard_update.lastTime = Date.now();
+      const btcValue = data.btcBalance * data.btcPrice;
+      const totalAsset = btcValue + data.usdcBalance;
       console.log('📊 dashboard_update received:', {
-        accountId: data.accountId,
-        version: data.version,
+        btcBalance: data.btcBalance.toFixed(8),
+        btcPrice: `$${data.btcPrice.toFixed(2)}`,
+        usdcBalance: `$${data.usdcBalance.toFixed(2)}`,
+        '→ BTC가치': `$${btcValue.toFixed(2)}`,
+        '→ 총자산': `$${totalAsset.toFixed(2)}`,
       });
       this.dashboardUpdateCallbacks.forEach(cb => cb(data));
     });
