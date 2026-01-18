@@ -67,11 +67,29 @@ export interface PredictionUpdate {
   timestamp: string;
 }
 
+export interface AccountBalance {
+  accountId: 'Account_A' | 'Account_B';
+  btcBalance: number;
+  btcFree: number;
+  btcLocked: number;
+  usdcBalance: number;
+  usdcFree: number;
+  usdcLocked: number;
+  btcValue: number;
+  totalAsset: number;
+}
+
 export interface DashboardUpdate {
-  btcBalance?: number;    // BTC 총 수량
-  btcPrice?: number;      // BTC 현재가
-  usdcBalance?: number;   // USDC 총 수량
-  timestamp?: number;     // 서버 시간 (밀리초)
+  serverTime: number;
+  currentPrice: number;
+  accounts: AccountBalance[];
+  totalBtc: number;
+  totalUsdc: number;
+  totalAsset: number;
+  btcBalance?: number;
+  btcPrice?: number;
+  usdcBalance?: number;
+  timestamp?: number;
   accountId?: string;
   version?: string;
 }
@@ -231,11 +249,19 @@ class WebSocketService {
       this.eventStats.dashboard_update.count++;
       this.eventStats.dashboard_update.lastTime = Date.now();
 
-      // 안전하게 값 확인
-      if (data.btcBalance !== undefined && data.btcPrice !== undefined && data.usdcBalance !== undefined) {
+      if (data.accounts && data.accounts.length > 0) {
+        console.log('📊 dashboard_update received:');
+        data.accounts.forEach(account => {
+          console.log(`  ${account.accountId}:`);
+          console.log(`    BTC: ${account.btcBalance.toFixed(8)} (Free: ${account.btcFree.toFixed(8)}, Locked: ${account.btcLocked.toFixed(8)})`);
+          console.log(`    USDC: $${account.usdcBalance.toFixed(2)} (Free: $${account.usdcFree.toFixed(2)}, Locked: $${account.usdcLocked.toFixed(2)})`);
+          console.log(`    Total: $${account.totalAsset.toFixed(2)}`);
+        });
+        console.log(`  Total Asset: $${data.totalAsset.toFixed(2)}`);
+      } else if (data.btcBalance !== undefined && data.btcPrice !== undefined && data.usdcBalance !== undefined) {
         const btcValue = data.btcBalance * data.btcPrice;
         const totalAsset = btcValue + data.usdcBalance;
-        console.log('📊 dashboard_update received:', {
+        console.log('📊 dashboard_update received (legacy):', {
           btcBalance: data.btcBalance.toFixed(8),
           btcPrice: `$${data.btcPrice.toFixed(2)}`,
           usdcBalance: `$${data.usdcBalance.toFixed(2)}`,
