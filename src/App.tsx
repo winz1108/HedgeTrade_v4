@@ -403,10 +403,10 @@ function App() {
           timeframe: update.timeframe,
           time: new Date(update.openTime).toLocaleTimeString(),
           close: update.close,
-          rsi: update.rsi,
-          macd: update.macd,
-          ema20: update.ema20,
-          bbUpper: update.bbUpper,
+          rsi: update.rsi ?? 'missing',
+          macd: update.macd ?? 'missing',
+          ema20: update.ema20 ?? 'missing',
+          bbUpper: update.bbUpper ?? 'missing',
         });
       }
 
@@ -602,7 +602,9 @@ function App() {
         console.error('❌ CRITICAL: 기술지표 누락!');
         console.error('   백엔드에서 기술지표를 계산해서 보내야 합니다!');
       } else {
-        console.log(`✅ 기술지표 모두 존재 (RSI=${update.rsi?.toFixed(1)}, MACD=${update.macd?.toFixed(1)})`);
+        const rsiStr = typeof update.rsi === 'number' ? update.rsi.toFixed(1) : update.rsi;
+        const macdStr = typeof update.macd === 'number' ? update.macd.toFixed(1) : update.macd;
+        console.log(`✅ 기술지표 모두 존재 (RSI=${rsiStr}, MACD=${macdStr})`);
       }
 
       // 완성봉 이벤트 발생 시 해당 타임프레임만 최신 5개 검증
@@ -672,9 +674,9 @@ function App() {
             if (hasAllIndicators) {
               console.log(`   ✅ Last completed candle OK:`, {
                 timestamp: new Date(lastCompleted.timestamp).toISOString(),
-                rsi: lastCompleted.rsi?.toFixed(1),
-                macd: lastCompleted.macd?.toFixed(1),
-                ema20: lastCompleted.ema20?.toFixed(0)
+                rsi: typeof lastCompleted.rsi === 'number' ? lastCompleted.rsi.toFixed(1) : lastCompleted.rsi,
+                macd: typeof lastCompleted.macd === 'number' ? lastCompleted.macd.toFixed(1) : lastCompleted.macd,
+                ema20: typeof lastCompleted.ema20 === 'number' ? lastCompleted.ema20.toFixed(0) : lastCompleted.ema20
               });
             } else {
               console.error(`   ❌ Last completed candle MISSING indicators:`, {
