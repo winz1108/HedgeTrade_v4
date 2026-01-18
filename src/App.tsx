@@ -4,6 +4,7 @@ import { DashboardData, TradeEvent, Candle } from './types/dashboard';
 import { fetchDashboardData, fetchChartData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
+import { ChartSkeleton, MetricsSkeleton } from './components/ChartSkeleton';
 import { formatLocalTime } from './utils/time';
 import { websocketService, CandleData } from './services/websocket';
 
@@ -158,20 +159,31 @@ function App() {
 
       setLoading(false);
 
-      // 3. Load other timeframes in background
-      console.log('📊 Step 3: Loading other timeframes in background...');
+      // 3. Load other timeframes in parallel (Promise.all)
+      console.log('📊 Step 3: Loading other timeframes in parallel...');
       const timeframes = ['1m', '15m', '30m', '1h', '4h', '1d'] as const;
 
-      for (const timeframe of timeframes) {
-        try {
-          const chart = await fetchChartData(timeframe, 500);
-          
-          console.log(`✅ ${timeframe} chart loaded:`, chart.candles.length, 'candles');
+      try {
+        const chartPromises = timeframes.map(timeframe =>
+          fetchChartData(timeframe, 500).catch(error => {
+            console.error(`⚠️ Failed to load ${timeframe} chart:`, error);
+            return null;
+          })
+        );
 
-          // Update data with new timeframe
-          setData(prev => {
-            if (!prev) return prev;
-            const updated = { ...prev };
+        const charts = await Promise.all(chartPromises);
+
+        console.log('✅ All chart requests completed');
+
+        setData(prev => {
+          if (!prev) return prev;
+          const updated = { ...prev };
+
+          charts.forEach((chart, index) => {
+            if (!chart) return;
+
+            const timeframe = timeframes[index];
+            console.log(`✅ ${timeframe} chart loaded:`, chart.candles.length, 'candles');
 
             switch (timeframe) {
               case '1m':
@@ -193,15 +205,15 @@ function App() {
                 updated.priceHistory1d = chart.candles as Candle[];
                 break;
             }
-
-            return updated;
           });
-        } catch (chartError) {
-          console.error(`⚠️ Failed to load ${timeframe} chart:`, chartError);
-        }
-      }
 
-      console.log('✅ All chart data loaded');
+          return updated;
+        });
+
+        console.log('✅ All chart data loaded');
+      } catch (error) {
+        console.error('❌ Failed to load charts in parallel:', error);
+      }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
@@ -825,10 +837,30 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="w-16 h-16 animate-spin text-cyan-400 mx-auto mb-6 drop-shadow-lg" />
-          <p className="text-slate-300 text-lg font-semibold">Loading dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+        <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
+          <div className="flex flex-col mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
+                <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                  Loading Dashboard...
+                </h1>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
+            <div className="flex flex-col gap-2 order-2 lg:order-1">
+              <MetricsSkeleton />
+            </div>
+            <div className="min-w-0 order-1 lg:order-2">
+              <ChartSkeleton />
+            </div>
+            <div className="flex flex-col gap-2 order-3 lg:order-3">
+              <MetricsSkeleton />
+            </div>
+          </div>
         </div>
       </div>
     );
