@@ -7,6 +7,17 @@ import { MetricsPanel } from './components/MetricsPanel';
 import { formatLocalTime } from './utils/time';
 import { websocketService, CandleData } from './services/websocket';
 
+// 타임프레임별 예상 간격(ms)
+const TIMEFRAME_INTERVALS: Record<string, number> = {
+  '1m': 60 * 1000,
+  '5m': 5 * 60 * 1000,
+  '15m': 15 * 60 * 1000,
+  '30m': 30 * 60 * 1000,
+  '1h': 60 * 60 * 1000,
+  '4h': 4 * 60 * 60 * 1000,
+  '1d': 24 * 60 * 60 * 1000,
+};
+
 function App() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,6 +34,67 @@ function App() {
   const [performanceResult, setPerformanceResult] = useState<string | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
+
+  // 갭 감지 및 자동 채우기
+  const detectAndFillGap = useCallback(async (
+    timeframe: string,
+    lastTimestamp: number,
+    newTimestamp: number
+  ) => {
+    const interval = TIMEFRAME_INTERVALS[timeframe];
+    if (!interval) return;
+
+    const gap = newTimestamp - lastTimestamp;
+
+    // 예상 간격의 1.5배 이상 차이나면 갭으로 판단
+    if (gap > interval * 1.5) {
+      const missedCandles = Math.floor(gap / interval) - 1;
+      console.warn(`⚠️ GAP DETECTED in ${timeframe}: ${missedCandles} candles missing`);
+      console.log(`   Last: ${new Date(lastTimestamp).toLocaleTimeString()}`);
+      console.log(`   New: ${new Date(newTimestamp).toLocaleTimeString()}`);
+      console.log(`   Gap: ${(gap / 1000 / 60).toFixed(1)} minutes`);
+
+      // 갭 채우기: 누락된 개수 + 여유분 5개 요청
+      try {
+        const limit = Math.min(missedCandles + 5, 100);
+        const chart = await fetchChartData(timeframe, limit);
+        const timeframeLower = timeframe.toLowerCase();
+        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
+
+        setData(prev => {
+          if (!prev) return prev;
+
+          const existingCandles = (prev[timeframeKey] as Candle[] | undefined) || [];
+          const merged = [...existingCandles];
+          let addedCount = 0;
+
+          for (const newCandle of chart.candles as Candle[]) {
+            const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
+            if (existingIndex === -1) {
+              const insertIndex = merged.findIndex(c => c.timestamp > newCandle.timestamp);
+              if (insertIndex === -1) {
+                merged.push(newCandle);
+              } else {
+                merged.splice(insertIndex, 0, newCandle);
+              }
+              addedCount++;
+            }
+          }
+
+          merged.sort((a, b) => a.timestamp - b.timestamp);
+
+          if (merged.length > 500) {
+            merged.splice(0, merged.length - 500);
+          }
+
+          console.log(`✅ Filled ${addedCount} missing candles in ${timeframe}`);
+          return { ...prev, [timeframeKey]: merged };
+        });
+      } catch (error) {
+        console.error(`❌ Failed to fill gap in ${timeframe}:`, error);
+      }
+    }
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
@@ -286,6 +358,13 @@ function App() {
         const candles = [...existingCandles];
 
         if (update.isFinal) {
+          // 완성봉: 갭 감지
+          const completedCandles = candles.filter(c => c.isComplete !== false);
+          if (completedCandles.length > 0) {
+            const lastCompleted = completedCandles[completedCandles.length - 1];
+            detectAndFillGap(update.timeframe, lastCompleted.timestamp, newCandle.timestamp);
+          }
+
           // 완성봉: 기존에 같은 타임스탬프가 있으면 업데이트, 없으면 추가
           const existingIndex = candles.findIndex(c => c.timestamp === newCandle.timestamp);
           if (existingIndex >= 0) {
@@ -367,6 +446,13 @@ function App() {
         const candles = [...existingCandles];
 
         if (update.isFinal) {
+          // 완성봉: 갭 감지
+          const completedCandles = candles.filter(c => c.isComplete !== false);
+          if (completedCandles.length > 0) {
+            const lastCompleted = completedCandles[completedCandles.length - 1];
+            detectAndFillGap(update.timeframe, lastCompleted.timestamp, newCandle.timestamp);
+          }
+
           // 완성봉: 기존에 같은 타임스탬프가 있으면 업데이트, 없으면 추가
           const existingIndex = candles.findIndex(c => c.timestamp === newCandle.timestamp);
           if (existingIndex >= 0) {
