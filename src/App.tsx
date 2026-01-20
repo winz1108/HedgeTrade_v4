@@ -620,8 +620,33 @@ function App() {
                 merged.splice(insertIndex, 0, newCandle);
               }
             } else {
-              // 기존 캔들 업데이트 (완성봉만)
-              merged[existingIndex] = newCandle;
+              // 기존 캔들 업데이트: 기술지표가 있는 경우 우선순위
+              const existingCandle = merged[existingIndex];
+              const existingHasIndicators = existingCandle.rsi && existingCandle.macd && existingCandle.ema20;
+              const newHasIndicators = newCandle.rsi && newCandle.macd && newCandle.ema20;
+
+              if (existingCandle.isComplete && existingHasIndicators && !newHasIndicators) {
+                // 기존 완성봉에 기술지표가 있고, 새 데이터에는 없으면 → 덮어쓰지 않음
+                console.log(`   🔒 기존 완성봉 보존 (웹소켓 기술지표 유지): ${new Date(existingCandle.timestamp).toLocaleTimeString()}`);
+              } else if (newHasIndicators || !existingHasIndicators) {
+                // 새 데이터에 기술지표가 있거나, 기존 데이터에도 없으면 → 업데이트
+                merged[existingIndex] = newCandle;
+              } else {
+                // 둘 다 기술지표가 없으면 → OHLCV만 업데이트, 기술지표는 유지
+                merged[existingIndex] = {
+                  ...newCandle,
+                  rsi: existingCandle.rsi,
+                  macd: existingCandle.macd,
+                  signal: existingCandle.signal,
+                  histogram: existingCandle.histogram,
+                  ema20: existingCandle.ema20,
+                  ema50: existingCandle.ema50,
+                  bbUpper: existingCandle.bbUpper,
+                  bbMiddle: existingCandle.bbMiddle,
+                  bbLower: existingCandle.bbLower,
+                  bbWidth: existingCandle.bbWidth,
+                };
+              }
             }
           }
 
