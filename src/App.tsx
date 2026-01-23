@@ -179,15 +179,38 @@ function App() {
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
-      const url = `${apiUrl}/api/debug/verification/text`;
+      const jsonUrl = `${apiUrl}/api/debug/verification`;
+      const textUrl = `${apiUrl}/api/debug/verification/text`;
 
-      const response = await fetch(url);
+      const [jsonResponse, textResponse] = await Promise.all([
+        fetch(jsonUrl),
+        fetch(textUrl)
+      ]);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!textResponse.ok) {
+        throw new Error(`HTTP error! status: ${textResponse.status}`);
       }
 
-      const text = await response.text();
+      let text = await textResponse.text();
+
+      // JSON 응답에서 prediction.health 정보 추출
+      if (jsonResponse.ok) {
+        try {
+          const jsonData = await jsonResponse.json();
+          if (jsonData.prediction?.health) {
+            const health = jsonData.prediction.health;
+            const healthStatus = `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+              `📊 PREDICTION HEALTH STATUS\n` +
+              `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+              `상태: ${health.status.toUpperCase()}\n` +
+              `메시지: ${health.message}\n`;
+            text = text + healthStatus;
+          }
+        } catch (e) {
+          console.warn('Failed to parse JSON response:', e);
+        }
+      }
+
       setVerificationResult(text);
     } catch (error) {
       console.error('서버 검증 실패:', error);
