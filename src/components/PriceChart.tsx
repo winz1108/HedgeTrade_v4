@@ -1571,7 +1571,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               const visibleTimeRangeEnd = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0;
 
               const unpairedBuyTrades = allTrades.filter(t => t.type === 'buy' && !t.isPaired);
-              const lastUnpairedBuyTimestamp = unpairedBuyTrades.length > 0
+              const lastTrade = data.trades.length > 0 ? data.trades[data.trades.length - 1] : null;
+              const lastUnpairedBuyTimestamp = (unpairedBuyTrades.length > 0 && lastTrade?.type !== 'sell')
                 ? Math.max(...unpairedBuyTrades.map(t => t.timestamp))
                 : null;
 
