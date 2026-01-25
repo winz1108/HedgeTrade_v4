@@ -1570,10 +1570,15 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               const visibleTimeRangeStart = visibleCandles.length > 0 ? visibleCandles[0].timestamp : 0;
               const visibleTimeRangeEnd = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0;
 
-              const unpairedBuyTrades = allTrades.filter(t => t.type === 'buy' && !t.isPaired);
-              const lastTrade = data.trades.length > 0 ? data.trades[data.trades.length - 1] : null;
-              const lastUnpairedBuyTimestamp = (unpairedBuyTrades.length > 0 && lastTrade?.type !== 'sell')
-                ? Math.max(...unpairedBuyTrades.map(t => t.timestamp))
+              const lastSellTrade = [...allTrades].reverse().find(t => t.type === 'sell');
+              const lastSellTimestamp = lastSellTrade ? lastSellTrade.timestamp : 0;
+
+              const unpairedBuyTradesAfterLastSell = allTrades.filter(
+                t => t.type === 'buy' && !t.isPaired && t.timestamp > lastSellTimestamp
+              );
+
+              const lastUnpairedBuyTimestamp = unpairedBuyTradesAfterLastSell.length > 0
+                ? Math.max(...unpairedBuyTradesAfterLastSell.map(t => t.timestamp))
                 : null;
 
               return allTrades.map((trade, idx) => {
