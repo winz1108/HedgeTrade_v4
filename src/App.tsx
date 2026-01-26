@@ -832,6 +832,10 @@ function App() {
               });
             }
 
+            // 거래 및 holding 정보 업데이트
+            const updatedTrades = update.trades || prevData.trades;
+            const updatedHolding = update.holding || prevData.holding;
+
             return {
               ...prevData,
               currentPrice: update.currentPrice,
@@ -839,10 +843,35 @@ function App() {
               currentAsset,
               currentBTC,
               currentCash,
+              trades: updatedTrades,
+              holding: updatedHolding,
             };
           });
         }
       }
+    });
+
+    const unsubscribeTradeEvent = websocketService.onTradeEvent((update) => {
+      console.log('🔔 Trade event in App:', update);
+
+      setData((prevData) => {
+        if (!prevData) return prevData;
+        if (update.accountId !== selectedAccount) return prevData;
+
+        const updatedTrades = update.trades || prevData.trades;
+        const updatedHolding = update.holding || prevData.holding;
+
+        console.log('✅ Updating trades and holding:', {
+          trades: updatedTrades,
+          holding: updatedHolding,
+        });
+
+        return {
+          ...prevData,
+          trades: updatedTrades,
+          holding: updatedHolding,
+        };
+      });
     });
 
     const unsubscribeConnectionStatus = websocketService.onConnectionStatus((connected) => {
@@ -867,6 +896,7 @@ function App() {
       unsubscribeBinanceServerTime();
       unsubscribePredictionUpdate();
       unsubscribeDashboardUpdate();
+      unsubscribeTradeEvent();
       unsubscribeConnectionStatus();
       clearInterval(gapCheckInterval);
       websocketService.disconnect();

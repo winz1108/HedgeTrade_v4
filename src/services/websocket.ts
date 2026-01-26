@@ -88,6 +88,15 @@ export interface DashboardUpdate {
   timestamp?: number;
   accountId?: string;
   version?: string;
+  trades?: any[];
+  holding?: any;
+}
+
+export interface TradeEventUpdate {
+  accountId: string;
+  trade: any;
+  holding: any;
+  trades?: any[];
 }
 
 type CandleUpdateCallback = (data: CandleUpdate) => void;
@@ -98,6 +107,7 @@ type AccountAssetsUpdateCallback = (data: AccountAssetsUpdate) => void;
 type BinanceServerTimeCallback = (data: BinanceServerTime) => void;
 type PredictionUpdateCallback = (data: PredictionUpdate) => void;
 type DashboardUpdateCallback = (data: DashboardUpdate) => void;
+type TradeEventCallback = (data: TradeEventUpdate) => void;
 type ConnectionStatusCallback = (connected: boolean) => void;
 
 class WebSocketService {
@@ -110,6 +120,7 @@ class WebSocketService {
   private binanceServerTimeCallbacks: Set<BinanceServerTimeCallback> = new Set();
   private predictionUpdateCallbacks: Set<PredictionUpdateCallback> = new Set();
   private dashboardUpdateCallbacks: Set<DashboardUpdateCallback> = new Set();
+  private tradeEventCallbacks: Set<TradeEventCallback> = new Set();
   private connectionStatusCallbacks: Set<ConnectionStatusCallback> = new Set();
 
   private eventStats = {
@@ -121,6 +132,7 @@ class WebSocketService {
     binance_server_time: { count: 0, lastTime: 0 },
     prediction_update: { count: 0, lastTime: 0 },
     dashboard_update: { count: 0, lastTime: 0 },
+    trade_event: { count: 0, lastTime: 0 },
   };
   private statsInterval: NodeJS.Timeout | null = null;
 
@@ -222,6 +234,14 @@ class WebSocketService {
       this.dashboardUpdateCallbacks.forEach(cb => cb(data));
     });
 
+    this.socket.on('trade_event', (data: TradeEventUpdate) => {
+      this.eventStats.trade_event.count++;
+      this.eventStats.trade_event.lastTime = Date.now();
+      console.log('🔔 Trade event received:', data);
+
+      this.tradeEventCallbacks.forEach(cb => cb(data));
+    });
+
     this.socket.on('connect_error', (error) => {
       console.error('❌ WebSocket CONNECTION ERROR:', error.message);
     });
@@ -295,6 +315,11 @@ class WebSocketService {
   onDashboardUpdate(callback: DashboardUpdateCallback) {
     this.dashboardUpdateCallbacks.add(callback);
     return () => this.dashboardUpdateCallbacks.delete(callback);
+  }
+
+  onTradeEvent(callback: TradeEventCallback) {
+    this.tradeEventCallbacks.add(callback);
+    return () => this.tradeEventCallbacks.delete(callback);
   }
 
   onConnectionStatus(callback: ConnectionStatusCallback) {
