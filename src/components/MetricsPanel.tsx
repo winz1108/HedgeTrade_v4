@@ -158,11 +158,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-stone-100 rounded-lg h-4 overflow-hidden border border-stone-200 shadow-inner">
                       <div
-                        className="bg-gradient-to-r from-blue-500 to-cyan-400 h-4 transition-all duration-500"
+                        className="bg-gradient-to-r from-amber-500 to-orange-400 h-4 transition-all duration-500"
                         style={{ width: `${data.holding.initialTakeProfitProb! * 100}%` }}
                       />
                     </div>
-                    <span className="text-sm font-bold text-cyan-700 min-w-[50px]">
+                    <span className="text-sm font-bold text-orange-700 min-w-[50px]">
                       {(data.holding.initialTakeProfitProb! * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -185,11 +185,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-stone-100 rounded-lg h-4 overflow-hidden border border-stone-200 shadow-inner">
                     <div
-                      className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-4 transition-all duration-500"
+                      className="bg-gradient-to-r from-teal-500 to-emerald-400 h-4 transition-all duration-500"
                       style={{ width: `${(data.currentPrediction?.takeProfitProb ?? 0) * 100}%` }}
                     />
                   </div>
-                  <span className="text-sm font-bold text-emerald-700 min-w-[50px]">
+                  <span className="text-sm font-bold text-teal-700 min-w-[50px]">
                     {((data.currentPrediction?.takeProfitProb ?? 0) * 100).toFixed(1)}%
                   </span>
                 </div>
@@ -283,7 +283,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
         <div className="space-y-2">
           {data.metrics.portfolioReturnWithCommission !== undefined && (
             <div className="bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 p-3 rounded-lg border-2 border-emerald-500/50 shadow-lg">
-              <div className="text-[10px] text-emerald-300 font-bold mb-1 tracking-wide">ACTUAL PROFIT</div>
+              <div className="text-[10px] text-emerald-900 font-bold mb-1 tracking-wide">ACTUAL PROFIT</div>
               <div
                 className={`text-3xl font-black ${
                   data.metrics.portfolioReturnWithCommission >= 0 ? 'text-emerald-600' : 'text-rose-400'
@@ -354,7 +354,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-stone-100 rounded-lg h-3.5 overflow-hidden border border-stone-200 shadow-inner">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-cyan-400 h-3.5 transition-all duration-500"
+                  className="bg-gradient-to-r from-amber-500 to-orange-400 h-3.5 transition-all duration-500"
                   style={{
                     width: `${
                       data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
@@ -366,7 +366,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   }}
                 />
               </div>
-              <span className="text-sm font-bold text-cyan-700 min-w-[45px]">
+              <span className="text-sm font-bold text-orange-700 min-w-[45px]">
                 {
                   data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
                     ? (

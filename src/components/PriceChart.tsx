@@ -1147,7 +1147,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         <div className="absolute inset-0 overflow-visible">
           {/* OHLC Display */}
           {hoveredCandle && (
-            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg border border-stone-200 shadow-lg">
+            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-white/98 px-3 py-2 rounded-lg border border-stone-200 shadow">
               <div className="flex items-center gap-3">
                 <span className="text-stone-700 font-mono font-medium">{formatChartTime(hoveredCandle.timestamp)}</span>
                 <span className="text-stone-600 font-medium">O <span className="text-stone-900 font-bold">{hoveredCandle.open.toFixed(2)}</span></span>
@@ -1266,24 +1266,24 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={bbUpperPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(196, 181, 253, 0.5)"
-                        strokeWidth="1.5"
+                        stroke="rgba(139, 92, 246, 0.7)"
+                        strokeWidth="2"
                         strokeDasharray="4 4"
                       />
                       {bbMiddlePoints.length > 1 && (
                         <polyline
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
-                          stroke="rgba(196, 181, 253, 0.3)"
-                          strokeWidth="1"
+                          stroke="rgba(139, 92, 246, 0.5)"
+                          strokeWidth="1.5"
                           strokeDasharray="3 3"
                         />
                       )}
                       <polyline
                         points={bbLowerPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(196, 181, 253, 0.5)"
-                        strokeWidth="1.5"
+                        stroke="rgba(139, 92, 246, 0.7)"
+                        strokeWidth="2"
                         strokeDasharray="4 4"
                       />
                     </>
@@ -1508,6 +1508,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   strokeWidth="1"
                   strokeDasharray="4 2"
                   opacity="0.6"
+                  filter="drop-shadow(0 0 3px rgba(59, 130, 246, 0.5))"
                 />
                 {data.holding.takeProfitPrice && (
                   <line
@@ -1519,6 +1520,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     strokeWidth="1"
                     strokeDasharray="4 2"
                     opacity="0.6"
+                    filter="drop-shadow(0 0 3px rgba(14, 203, 129, 0.5))"
                   />
                 )}
                 {data.holding.stopLossPrice && (
@@ -1531,6 +1533,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     strokeWidth="1"
                     strokeDasharray="4 2"
                     opacity="0.6"
+                    filter="drop-shadow(0 0 3px rgba(246, 70, 93, 0.5))"
                   />
                 )}
               </svg>
@@ -1732,20 +1735,25 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   ? `${month}-${day}`
                   : `${hours}:${minutes}`;
 
-                const hoverLabel = `${month}-${day} ${hours}:${minutes}`;
+                const hoverLabel = timeframe === '1d'
+                  ? `${month}-${day}`
+                  : timeframe === '4h'
+                  ? `${month}-${day} ${hours}:${minutes}`
+                  : `${hours}:${minutes}`;
 
                 return (
                   <div
                     key={idx}
                     className="absolute text-[10px] font-mono whitespace-nowrap"
                     style={{
-                      left: `${idx * (candleWidth + candleGap) - 25}px`,
+                      left: `${idx * (candleWidth + candleGap) + candleWidth / 2}px`,
                       top: '2px',
+                      transform: 'translateX(-50%)',
                       zIndex: isHovered ? 100 : 1
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-white/90 border-2 border-white pointer-events-auto" style={{ opacity: 1 }}>
+                      <div className="px-1.5 py-0.5 rounded text-stone-900 text-[11px] font-bold bg-white/95 border border-stone-300 shadow-md pointer-events-auto">
                         {hoverLabel}
                       </div>
                     ) : (
@@ -1822,7 +1830,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               <div className="absolute left-2 top-2 text-xs bg-white/90 px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
                 <span className="text-stone-600 font-medium">Volume</span>
                 {visibleCandles[hoveredCandleIndex] && (
-                  <span className="text-slate-300 font-semibold">
+                  <span className="text-stone-900 font-semibold">
                     {visibleCandles[hoveredCandleIndex].volume.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC
                   </span>
                 )}
@@ -1831,13 +1839,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
 
           <div
-            className="absolute left-0 bg-gradient-to-br from-slate-800/30 via-slate-900/20 to-slate-800/30 rounded-xl border border-slate-700/20"
+            className="absolute left-0"
             style={{
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 1,
-              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
             }}
           >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
@@ -1929,24 +1936,24 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 {visibleCandles[hoveredCandleIndex] && (
                   <>
                     {visibleCandles[hoveredCandleIndex].macd !== undefined && (
-                      <span className="text-blue-400 font-semibold">
+                      <span className="text-blue-600 font-semibold">
                         {visibleCandles[hoveredCandleIndex].macd!.toFixed(2)}
                       </span>
                     )}
                     {visibleCandles[hoveredCandleIndex].signal !== undefined && (
                       <>
-                        <span className="text-slate-600">|</span>
-                        <span className="text-slate-500 text-[10px]">Signal</span>
-                        <span className="text-orange-400 font-semibold">
+                        <span className="text-stone-600">|</span>
+                        <span className="text-stone-600 text-[10px]">Signal</span>
+                        <span className="text-orange-600 font-semibold">
                           {visibleCandles[hoveredCandleIndex].signal!.toFixed(2)}
                         </span>
                       </>
                     )}
                     {visibleCandles[hoveredCandleIndex].histogram !== undefined && (
                       <>
-                        <span className="text-slate-600">|</span>
-                        <span className="text-slate-500 text-[10px]">Hist</span>
-                        <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].histogram! >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        <span className="text-stone-600">|</span>
+                        <span className="text-stone-600 text-[10px]">Hist</span>
+                        <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].histogram! >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {visibleCandles[hoveredCandleIndex].histogram!.toFixed(2)}
                         </span>
                       </>
@@ -1958,13 +1965,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
 
           <div
-            className="absolute left-0 bg-gradient-to-br from-slate-800/30 via-slate-900/20 to-slate-800/30 rounded-xl border border-slate-700/20"
+            className="absolute left-0"
             style={{
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 1,
-              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
             }}
           >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
@@ -2019,9 +2025,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 <span className="text-stone-600 font-medium">RSI</span>
                 {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].rsi !== undefined && (
                   <span className={`font-semibold ${
-                    visibleCandles[hoveredCandleIndex].rsi! >= 70 ? 'text-rose-400' :
-                    visibleCandles[hoveredCandleIndex].rsi! <= 30 ? 'text-emerald-400' :
-                    'text-purple-400'
+                    visibleCandles[hoveredCandleIndex].rsi! >= 70 ? 'text-rose-600' :
+                    visibleCandles[hoveredCandleIndex].rsi! <= 30 ? 'text-emerald-600' :
+                    'text-purple-600'
                   }`}>
                     {visibleCandles[hoveredCandleIndex].rsi!.toFixed(1)}
                   </span>
