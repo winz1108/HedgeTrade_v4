@@ -1767,12 +1767,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
           {/* Volume Chart Border */}
           <div
-            className="absolute left-0 rounded border border-stone-300/50 pointer-events-none"
+            className="absolute left-0 rounded border-2 border-stone-400/70 pointer-events-none"
             style={{
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 0,
+              backgroundColor: 'rgba(250, 250, 250, 0.3)',
             }}
           />
 
@@ -1839,12 +1840,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
           {/* MACD Chart Border */}
           <div
-            className="absolute left-0 rounded border border-stone-300/50 pointer-events-none"
+            className="absolute left-0 rounded border-2 border-stone-400/70 pointer-events-none"
             style={{
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 0,
+              backgroundColor: 'rgba(245, 248, 250, 0.3)',
             }}
           />
 
@@ -1975,12 +1977,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
           {/* RSI Chart Border */}
           <div
-            className="absolute left-0 rounded border border-stone-300/50 pointer-events-none"
+            className="absolute left-0 rounded border-2 border-stone-400/70 pointer-events-none"
             style={{
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 0,
+              backgroundColor: 'rgba(248, 250, 252, 0.3)',
             }}
           />
 
