@@ -1765,7 +1765,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               zIndex: 1
             }}
           >
-            <div className="absolute left-0 flex px-2 py-1 pointer-events-none overflow-hidden" style={{ top: 0, height: '100%', width: '100%' }}>
+            <div className="absolute left-0 flex pointer-events-none overflow-hidden" style={{ top: 0, height: '100%', width: '100%' }}>
               {visibleCandles.map((candle, idx) => {
                 const volumes = visibleCandles.map(c => c.volume || 0);
                 const maxVolume = Math.max(...volumes, 0.001);
