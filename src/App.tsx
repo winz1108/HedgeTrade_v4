@@ -379,15 +379,13 @@ function App() {
     });
 
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
-      // 볼륨 디버깅 로그
-      if (update.timeframe === '1m') {
-        console.log('📊 realtime_candle_update (1m):', {
-          isFinal: update.isFinal,
-          time: new Date(update.openTime).toLocaleTimeString(),
-          close: update.close,
-          volume: update.volume,
-        });
-      }
+      // 볼륨 디버깅 로그 (모든 타임프레임)
+      console.log(`📊 realtime_candle_update (${update.timeframe}):`, {
+        isFinal: update.isFinal,
+        time: new Date(update.openTime).toLocaleTimeString(),
+        close: update.close,
+        volume: update.volume,
+      });
 
       // 기술지표 확인 로그 (완성봉만)
       if (update.isFinal) {
@@ -415,6 +413,7 @@ function App() {
         }
 
         const candles = [...existingCandles];
+        let updatedData = { ...prevData };
 
         if (update.isFinal) {
           // 완성봉: 진행봉이었던 캔들을 완성봉으로 전환하고 기술지표 업데이트
@@ -509,23 +508,85 @@ function App() {
           }
         }
 
-        return {
+        updatedData = {
           ...prevData,
           [timeframeKey]: candles,
         };
+
+        // 1분봉이 업데이트되면 다른 타임프레임의 마지막 캔들도 재집계
+        if (update.timeframe === '1m' && !update.isFinal) {
+          const updated1m = candles;
+          const timeframeConfigs = [
+            { key: 'priceHistory5m' as keyof DashboardData, minutes: 5 },
+            { key: 'priceHistory15m' as keyof DashboardData, minutes: 15 },
+            { key: 'priceHistory30m' as keyof DashboardData, minutes: 30 },
+            { key: 'priceHistory1h' as keyof DashboardData, minutes: 60 },
+            { key: 'priceHistory4h' as keyof DashboardData, minutes: 240 },
+            { key: 'priceHistory1d' as keyof DashboardData, minutes: 1440 },
+          ];
+
+          for (const config of timeframeConfigs) {
+            const existingTfCandles = prevData[config.key] as Candle[] | undefined;
+            if (!existingTfCandles || existingTfCandles.length === 0) continue;
+
+            const tfCandles = [...existingTfCandles];
+            const lastCandle = tfCandles[tfCandles.length - 1];
+
+            // 마지막 캔들의 시간 버킷 계산
+            const timeframeMs = config.minutes * 60000;
+            const lastBucketKey = Math.floor(lastCandle.timestamp / timeframeMs) * timeframeMs;
+
+            // 1분봉에서 해당 버킷에 속하는 캔들들 찾기
+            const candlesInBucket = updated1m.filter(c => {
+              const bucketKey = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
+              return bucketKey === lastBucketKey;
+            });
+
+            if (candlesInBucket.length > 0) {
+              // 마지막 캔들 재집계
+              candlesInBucket.sort((a, b) => a.timestamp - b.timestamp);
+              const aggregated = {
+                timestamp: lastBucketKey,
+                open: candlesInBucket[0].open,
+                high: Math.max(...candlesInBucket.map(c => c.high)),
+                low: Math.min(...candlesInBucket.map(c => c.low)),
+                close: candlesInBucket[candlesInBucket.length - 1].close,
+                volume: candlesInBucket.reduce((sum, c) => sum + (c.volume || 0), 0),
+                isComplete: lastCandle.isComplete,
+                // 기술지표는 기존 것 유지
+                ema20: lastCandle.ema20,
+                ema50: lastCandle.ema50,
+                bbUpper: lastCandle.bbUpper,
+                bbMiddle: lastCandle.bbMiddle,
+                bbLower: lastCandle.bbLower,
+                bbWidth: lastCandle.bbWidth,
+                macd: lastCandle.macd,
+                signal: lastCandle.signal,
+                histogram: lastCandle.histogram,
+                rsi: lastCandle.rsi,
+              };
+
+              tfCandles[tfCandles.length - 1] = aggregated;
+              updatedData = {
+                ...updatedData,
+                [config.key]: tfCandles,
+              };
+            }
+          }
+        }
+
+        return updatedData;
       });
     });
 
     const unsubscribeCandleUpdate = websocketService.onCandleUpdate((update) => {
-      // 볼륨 디버깅 로그
-      if (update.timeframe === '1m') {
-        console.log('📈 candle_update (1m):', {
-          isFinal: update.isFinal,
-          time: new Date(update.openTime).toLocaleTimeString(),
-          close: update.close,
-          volume: update.volume,
-        });
-      }
+      // 볼륨 디버깅 로그 (모든 타임프레임)
+      console.log(`📈 candle_update (${update.timeframe}):`, {
+        isFinal: update.isFinal,
+        time: new Date(update.openTime).toLocaleTimeString(),
+        close: update.close,
+        volume: update.volume,
+      });
 
       setData((prevData) => {
         if (!prevData) return prevData;
