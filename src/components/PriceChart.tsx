@@ -1266,7 +1266,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={bbUpperPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(139, 92, 246, 0.7)"
+                        stroke="rgba(120, 120, 120, 0.8)"
                         strokeWidth="2"
                         strokeDasharray="4 4"
                       />
@@ -1274,7 +1274,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         <polyline
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
-                          stroke="rgba(139, 92, 246, 0.5)"
+                          stroke="rgba(140, 140, 140, 0.6)"
                           strokeWidth="1.5"
                           strokeDasharray="3 3"
                         />
@@ -1282,7 +1282,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={bbLowerPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(139, 92, 246, 0.7)"
+                        stroke="rgba(120, 120, 120, 0.8)"
                         strokeWidth="2"
                         strokeDasharray="4 4"
                       />
@@ -1765,15 +1765,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </div>
           </div>
 
-          {/* Volume Chart Background */}
+          {/* Volume Chart Border */}
           <div
-            className="absolute left-0 bg-gradient-to-br from-slate-800/30 via-slate-900/20 to-slate-800/30 rounded-xl border border-slate-700/20 pointer-events-none"
+            className="absolute left-0 rounded border border-stone-300/50 pointer-events-none"
             style={{
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 0,
-              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
             }}
           />
 
@@ -1838,6 +1837,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
 
+          {/* MACD Chart Border */}
+          <div
+            className="absolute left-0 rounded border border-stone-300/50 pointer-events-none"
+            style={{
+              top: `${priceChartHeight + volumeChartHeight + 36}px`,
+              height: `${macdChartHeight}px`,
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
+              zIndex: 0,
+            }}
+          />
+
           <div
             className="absolute left-0"
             style={{
@@ -1883,7 +1893,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     width={candleWidth}
                     height={height}
                     fill={isPositive ? 'rgba(45, 212, 191, 0.6)' : 'rgba(251, 146, 60, 0.6)'}
-                    filter="drop-shadow(0 0 2px currentColor)"
                   />
                 );
               })}
@@ -1963,6 +1972,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
             )}
           </div>
+
+          {/* RSI Chart Border */}
+          <div
+            className="absolute left-0 rounded border border-stone-300/50 pointer-events-none"
+            style={{
+              top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
+              height: `${rsiChartHeight}px`,
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
+              zIndex: 0,
+            }}
+          />
 
           <div
             className="absolute left-0"
