@@ -1014,13 +1014,13 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
         <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
-          <div className="flex flex-col mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl">
+          <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
-                <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
                   Loading Dashboard...
                 </h1>
               </div>
@@ -1045,7 +1045,7 @@ function App() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="text-red-400 text-6xl mb-4">⚠</div>
           <p className="text-slate-300 text-lg font-semibold mb-2">Failed to load data</p>
@@ -1065,14 +1065,14 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
       {showPerformanceModal && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
           onClick={() => setShowPerformanceModal(false)}
         >
           <div
-            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden"
+            className="bg-white border border-amber-200 rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-4 border-b border-slate-700">
@@ -1095,7 +1095,7 @@ function App() {
                   <span className="ml-3 text-slate-300">계산 중...</span>
                 </div>
               ) : performanceResult ? (
-                <pre className="text-xs text-slate-200 font-mono whitespace-pre-wrap break-words bg-slate-950/50 p-4 rounded-lg border border-slate-700">
+                <pre className="text-xs text-slate-700 font-mono whitespace-pre-wrap break-words bg-amber-50/80 p-4 rounded-lg border border-slate-700">
                   {performanceResult}
                 </pre>
               ) : null}
@@ -1110,7 +1110,7 @@ function App() {
           onClick={() => setShowVerificationModal(false)}
         >
           <div
-            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden"
+            className="bg-white border border-amber-200 rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-4 border-b border-slate-700">
@@ -1133,7 +1133,7 @@ function App() {
                   <span className="ml-3 text-slate-300">검증 중...</span>
                 </div>
               ) : verificationResult ? (
-                <pre className="text-xs text-slate-200 font-mono whitespace-pre-wrap break-words bg-slate-950/50 p-4 rounded-lg border border-slate-700">
+                <pre className="text-xs text-slate-700 font-mono whitespace-pre-wrap break-words bg-amber-50/80 p-4 rounded-lg border border-slate-700">
                   {verificationResult}
                 </pre>
               ) : null}
@@ -1143,10 +1143,10 @@ function App() {
       )}
 
       <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
-        <div className="flex flex-col mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl gap-3">
+        <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+              <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
                 HedgeTrade Dashboard
               </h1>
               {data.version && (

@@ -1151,8 +1151,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               <div className="flex items-center gap-3">
                 <span className="text-slate-300 font-mono font-medium">{formatChartTime(hoveredCandle.timestamp)}</span>
                 <span className="text-slate-400 font-medium">O <span className="text-slate-100 font-bold">{hoveredCandle.open.toFixed(2)}</span></span>
-                <span className="text-slate-400 font-medium">H <span className="text-teal-400 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
-                <span className="text-slate-400 font-medium">L <span className="text-orange-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
+                <span className="text-slate-400 font-medium">H <span className="text-emerald-400 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
+                <span className="text-slate-400 font-medium">L <span className="text-rose-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
                 <span className="text-slate-400 font-medium">C <span className="text-slate-100 font-bold">{hoveredCandle.close.toFixed(2)}</span></span>
                 {hoveredCandle.isComplete === false && (
                   <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded text-[10px] font-bold border border-amber-400/40 animate-pulse shadow-lg">
@@ -1182,31 +1182,19 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           {/* Grid lines - zIndex 1 (bottom layer) */}
           <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 1 }}>
             {(() => {
-              const svgWidth = containerWidth || 1200;
               return Array.from({ length: 6 }).map((_, i) => {
                 const price = minPrice + ((maxPrice - minPrice) / 5) * i;
                 const y = priceToY(price);
                 return (
-                  <g key={i}>
-                    <line
-                      x1="0"
-                      y1={y}
-                      x2="100%"
-                      y2={y}
-                      stroke="rgba(71, 85, 105, 0.15)"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={svgWidth - 8}
-                      y={y - 4}
-                      textAnchor="end"
-                      className="text-[11px] font-medium"
-                      fill="rgba(148, 163, 184, 0.8)"
-                      style={{ fontFamily: 'ui-monospace, monospace' }}
-                    >
-                      ${price.toFixed(2)}
-                    </text>
-                  </g>
+                  <line
+                    key={i}
+                    x1="0"
+                    y1={y}
+                    x2="100%"
+                    y2={y}
+                    stroke="rgba(71, 85, 105, 0.15)"
+                    strokeWidth="1"
+                  />
                 );
               });
             })()}
@@ -1279,16 +1267,15 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         points={bbUpperPoints.join(' ')}
                         fill="none"
                         stroke="rgba(196, 181, 253, 0.5)"
-                        strokeWidth="2"
+                        strokeWidth="1.5"
                         strokeDasharray="4 4"
-                        filter="drop-shadow(0 0 2px rgba(196, 181, 253, 0.3))"
                       />
                       {bbMiddlePoints.length > 1 && (
                         <polyline
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
                           stroke="rgba(196, 181, 253, 0.3)"
-                          strokeWidth="1.5"
+                          strokeWidth="1"
                           strokeDasharray="3 3"
                         />
                       )}
@@ -1296,9 +1283,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         points={bbLowerPoints.join(' ')}
                         fill="none"
                         stroke="rgba(196, 181, 253, 0.5)"
-                        strokeWidth="2"
+                        strokeWidth="1.5"
                         strokeDasharray="4 4"
-                        filter="drop-shadow(0 0 2px rgba(196, 181, 253, 0.3))"
                       />
                     </>
                   )}
@@ -1308,9 +1294,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       points={ema20Points.join(' ')}
                       fill="none"
                       stroke="#fbbf24"
-                      strokeWidth="2.5"
+                      strokeWidth="1.5"
                       opacity="0.9"
-                      filter="drop-shadow(0 0 4px rgba(251, 191, 36, 0.4))"
                     />
                   )}
 
@@ -1319,9 +1304,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       points={ema50Points.join(' ')}
                       fill="none"
                       stroke="#a78bfa"
-                      strokeWidth="2.5"
+                      strokeWidth="1.5"
                       opacity="0.9"
-                      filter="drop-shadow(0 0 4px rgba(167, 139, 250, 0.4))"
                     />
                   )}
                 </>
@@ -1403,7 +1387,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   }}
                 >
                   <div
-                    className={isGreen ? 'bg-teal-400' : 'bg-orange-400'}
+                    className={isGreen ? 'bg-emerald-400' : 'bg-rose-400'}
                     style={{
                       position: 'absolute',
                       left: '50%',
@@ -1417,8 +1401,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div
                     className={`${
                       isGreen
-                        ? 'bg-gradient-to-b from-teal-400 to-teal-500 border-teal-300'
-                        : 'bg-gradient-to-b from-orange-400 to-orange-500 border-orange-300'
+                        ? 'bg-gradient-to-b from-emerald-400 to-emerald-500 border-emerald-300'
+                        : 'bg-gradient-to-b from-rose-400 to-rose-500 border-rose-300'
                     } ${candle.isPrediction ? 'opacity-40 border-dashed' : ''} ${
                       isHovered ? 'ring-2 ring-amber-400/50 shadow-lg' : ''
                     }`}
@@ -1775,7 +1759,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
           {/* Volume Chart Background */}
           <div
-            className="absolute left-0 bg-gradient-to-br from-slate-800/30 via-slate-900/20 to-slate-800/30 rounded-xl border border-slate-700/20 pointer-events-none backdrop-blur-sm"
+            className="absolute left-0 bg-gradient-to-br from-slate-800/30 via-slate-900/20 to-slate-800/30 rounded-xl border border-slate-700/20 pointer-events-none"
             style={{
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
@@ -1783,31 +1767,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               zIndex: 0,
               boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
             }}
-          >
-            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
-              {(() => {
-                const svgWidth = containerWidth || 1200;
-                const volumes = visibleCandles.map(c => c.volume || 0);
-                const maxVolume = Math.max(...volumes, 0.001);
-                return [maxVolume, maxVolume / 2].map((vol, i) => {
-                  const y = (1 - vol / maxVolume) * volumeChartHeight * 0.7 + volumeChartHeight * 0.15;
-                  return (
-                    <text
-                      key={i}
-                      x={svgWidth - 8}
-                      y={y}
-                      textAnchor="end"
-                      className="text-[10px] font-medium"
-                      fill="rgba(148, 163, 184, 0.6)"
-                      style={{ fontFamily: 'ui-monospace, monospace' }}
-                    >
-                      {vol.toFixed(0)}
-                    </text>
-                  );
-                });
-              })()}
-            </svg>
-          </div>
+          />
 
           {/* Volume Bars */}
           <div
@@ -1845,12 +1805,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   >
                     <div
                       className={`${
-                        isGreen ? 'bg-gradient-to-t from-teal-500/60 to-teal-400/40' : 'bg-gradient-to-t from-orange-500/60 to-orange-400/40'
+                        isGreen ? 'bg-gradient-to-t from-emerald-500/60 to-emerald-400/40' : 'bg-gradient-to-t from-rose-500/60 to-rose-400/40'
                       } ${candle.isPrediction ? 'opacity-20' : 'opacity-80'}`}
                       style={{
                         height: `${barHeight}px`,
                         width: '100%',
-                        boxShadow: isGreen ? '0 0 8px rgba(20, 184, 166, 0.3)' : '0 0 8px rgba(251, 146, 60, 0.3)',
+                        boxShadow: isGreen ? '0 0 8px rgba(52, 211, 153, 0.3)' : '0 0 8px rgba(251, 113, 133, 0.3)',
                       }}
                     />
                   </div>
@@ -1871,7 +1831,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
 
           <div
-            className="absolute left-0 bg-gradient-to-br from-slate-800/30 via-slate-900/20 to-slate-800/30 rounded-xl border border-slate-700/20 backdrop-blur-sm"
+            className="absolute left-0 bg-gradient-to-br from-slate-800/30 via-slate-900/20 to-slate-800/30 rounded-xl border border-slate-700/20"
             style={{
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
@@ -1887,26 +1847,15 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   const y = macdToY(value);
                   const isZero = value === 0;
                   return (
-                    <g key={i}>
-                      <line
-                        x1="0"
-                        y1={y}
-                        x2="100%"
-                        y2={y}
-                        stroke={isZero ? 'rgba(251, 191, 36, 0.25)' : 'rgba(71, 85, 105, 0.15)'}
-                        strokeWidth={isZero ? '1.5' : '1'}
-                      />
-                      <text
-                        x={svgWidth - 8}
-                        y={y - 4}
-                        textAnchor="end"
-                        className="text-[10px] font-medium"
-                        fill={isZero ? 'rgba(251, 191, 36, 0.6)' : 'rgba(148, 163, 184, 0.6)'}
-                        style={{ fontFamily: 'ui-monospace, monospace' }}
-                      >
-                        {value.toFixed(0)}
-                      </text>
-                    </g>
+                    <line
+                      key={i}
+                      x1="0"
+                      y1={y}
+                      x2="100%"
+                      y2={y}
+                      stroke={isZero ? 'rgba(251, 191, 36, 0.25)' : 'rgba(71, 85, 105, 0.15)'}
+                      strokeWidth={isZero ? '1.5' : '1'}
+                    />
                   );
                 });
               })()}
@@ -1957,9 +1906,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         points={macdPoints.join(' ')}
                         fill="none"
                         stroke="#2dd4bf"
-                        strokeWidth="2"
+                        strokeWidth="1.5"
                         opacity="0.95"
-                        filter="drop-shadow(0 0 3px rgba(45, 212, 191, 0.4))"
                       />
                     )}
                     {signalPoints.length > 1 && (
@@ -1967,9 +1915,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         points={signalPoints.join(' ')}
                         fill="none"
                         stroke="#fb923c"
-                        strokeWidth="2"
+                        strokeWidth="1.5"
                         opacity="0.95"
-                        filter="drop-shadow(0 0 3px rgba(251, 146, 60, 0.4))"
                       />
                     )}
                   </>
@@ -2011,7 +1958,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
 
           <div
-            className="absolute left-0 bg-gradient-to-br from-slate-800/30 via-slate-900/20 to-slate-800/30 rounded-xl border border-slate-700/20 backdrop-blur-sm"
+            className="absolute left-0 bg-gradient-to-br from-slate-800/30 via-slate-900/20 to-slate-800/30 rounded-xl border border-slate-700/20"
             style={{
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
@@ -2028,27 +1975,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   const isThreshold = value === 30 || value === 70;
                   const isMid = value === 50;
                   return (
-                    <g key={value}>
-                      <line
-                        x1="0"
-                        y1={y}
-                        x2="100%"
-                        y2={y}
-                        stroke={isMid ? 'rgba(251, 191, 36, 0.3)' : isThreshold ? 'rgba(239, 68, 68, 0.25)' : 'rgba(71, 85, 105, 0.15)'}
-                        strokeWidth={isMid ? '1.5' : isThreshold ? '1.5' : '1'}
-                        strokeDasharray={isThreshold ? '5 3' : '0'}
-                      />
-                      <text
-                        x={svgWidth - 8}
-                        y={y - 4}
-                        textAnchor="end"
-                        className="text-[10px] font-medium"
-                        fill={isMid ? 'rgba(251, 191, 36, 0.6)' : isThreshold ? 'rgba(239, 68, 68, 0.6)' : 'rgba(148, 163, 184, 0.6)'}
-                        style={{ fontFamily: 'ui-monospace, monospace' }}
-                      >
-                        {value}
-                      </text>
-                    </g>
+                    <line
+                      key={value}
+                      x1="0"
+                      y1={y}
+                      x2="100%"
+                      y2={y}
+                      stroke={isMid ? 'rgba(251, 191, 36, 0.3)' : isThreshold ? 'rgba(239, 68, 68, 0.25)' : 'rgba(71, 85, 105, 0.15)'}
+                      strokeWidth={isMid ? '1.5' : isThreshold ? '1.5' : '1'}
+                      strokeDasharray={isThreshold ? '5 3' : '0'}
+                    />
                   );
                 });
               })()}
@@ -2070,9 +2006,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         points={rsiPoints.join(' ')}
                         fill="none"
                         stroke="#c084fc"
-                        strokeWidth="2.5"
+                        strokeWidth="1.5"
                         opacity="0.95"
-                        filter="drop-shadow(0 0 4px rgba(192, 132, 252, 0.4))"
                       />
                     )}
                   </>
