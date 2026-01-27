@@ -195,24 +195,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 </div>
               </div>
 
-              {data.holding.isHolding && data.holding.initialTakeProfitProb !== undefined && data.currentPrediction && (
-                <div className="bg-slate-700/20 rounded-lg p-2 border border-slate-600/30">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-semibold">Change</span>
-                    <span
-                      className={`text-sm font-bold ${
-                        (data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb) >= 0
-                          ? 'text-emerald-400'
-                          : 'text-rose-400'
-                      }`}
-                    >
-                      {((data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb) * 100) >= 0 ? '+' : ''}
-                      {((data.currentPrediction.takeProfitProb - data.holding.initialTakeProfitProb) * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-
               {!data.holding.isHolding && (
                 <div className="text-[10px] text-slate-500 text-center">
                   No active position
