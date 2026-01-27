@@ -452,7 +452,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     if (isMobileView) {
       return createPortal(
         <div
-          className="fixed left-2 right-2 bottom-4 bg-[#1e2329]/90 backdrop-blur-md border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto"
+          className="fixed left-2 right-2 bottom-4 bg-white/90/90 backdrop-blur-md border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto"
           style={{
             zIndex: 999999,
           }}
@@ -741,7 +741,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
     return createPortal(
       <div
-        className="fixed bg-[#1e2329]/90 backdrop-blur-md border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto"
+        className="fixed bg-white/90/90 backdrop-blur-md border-2 border-[#0ecb81] text-white text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto"
         style={{
           left: `${leftPos}px`,
           top: `${topPos}px`,
@@ -1126,7 +1126,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         </div>
       </div>
 
-      <div className="flex bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-visible" style={{ height: `${chartHeight}px` }}>
+      <div className="flex bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50 overflow-visible" style={{ height: `${chartHeight}px` }}>
       <div
         ref={containerRef}
         className="relative select-none flex-shrink-0 flex-1"
@@ -1147,13 +1147,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
         <div className="absolute inset-0 overflow-visible">
           {/* OHLC Display */}
           {hoveredCandle && (
-            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-600/40 shadow-2xl">
+            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg border border-stone-200 shadow-lg">
               <div className="flex items-center gap-3">
-                <span className="text-slate-300 font-mono font-medium">{formatChartTime(hoveredCandle.timestamp)}</span>
-                <span className="text-stone-600 font-medium">O <span className="text-slate-100 font-bold">{hoveredCandle.open.toFixed(2)}</span></span>
-                <span className="text-stone-600 font-medium">H <span className="text-emerald-400 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
-                <span className="text-stone-600 font-medium">L <span className="text-rose-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
-                <span className="text-stone-600 font-medium">C <span className="text-slate-100 font-bold">{hoveredCandle.close.toFixed(2)}</span></span>
+                <span className="text-stone-700 font-mono font-medium">{formatChartTime(hoveredCandle.timestamp)}</span>
+                <span className="text-stone-600 font-medium">O <span className="text-stone-900 font-bold">{hoveredCandle.open.toFixed(2)}</span></span>
+                <span className="text-stone-600 font-medium">H <span className="text-emerald-600 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
+                <span className="text-stone-600 font-medium">L <span className="text-rose-600 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
+                <span className="text-stone-600 font-medium">C <span className="text-stone-900 font-bold">{hoveredCandle.close.toFixed(2)}</span></span>
                 {hoveredCandle.isComplete === false && (
                   <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded text-[10px] font-bold border border-amber-400/40 animate-pulse shadow-lg">
                     진행 중
@@ -1162,17 +1162,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
               <div className="flex items-center gap-3 text-[10px]">
                 {hoveredCandle.ema20 && (
-                  <span className="text-stone-600 font-medium">EMA20 <span className="text-amber-400 font-bold">{hoveredCandle.ema20.toFixed(2)}</span></span>
+                  <span className="text-stone-600 font-medium">EMA20 <span className="text-amber-600 font-bold">{hoveredCandle.ema20.toFixed(2)}</span></span>
                 )}
                 {hoveredCandle.ema50 && (
-                  <span className="text-stone-600 font-medium">EMA50 <span className="text-violet-400 font-bold">{hoveredCandle.ema50.toFixed(2)}</span></span>
+                  <span className="text-stone-600 font-medium">EMA50 <span className="text-cyan-600 font-bold">{hoveredCandle.ema50.toFixed(2)}</span></span>
                 )}
                 {(hoveredCandle.bbUpper || hoveredCandle.bb_upper) && (
                   <>
-                    <span className="text-slate-600">|</span>
-                    <span className="text-stone-600 font-medium">BB <span className="text-violet-300 font-bold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
-                    <span className="text-stone-600 font-medium">/ <span className="text-violet-300 font-bold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
-                    <span className="text-stone-600 font-medium">/ <span className="text-violet-300 font-bold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
+                    <span className="text-stone-600">|</span>
+                    <span className="text-stone-600 font-medium">BB <span className="text-violet-600 font-bold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
+                    <span className="text-stone-600 font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
+                    <span className="text-stone-600 font-medium">/ <span className="text-violet-600 font-bold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
                   </>
                 )}
               </div>
@@ -1192,7 +1192,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     y1={y}
                     x2="100%"
                     y2={y}
-                    stroke="rgba(71, 85, 105, 0.15)"
+                    stroke="rgba(120, 113, 108, 0.15)"
                     strokeWidth="1"
                   />
                 );
@@ -1745,11 +1745,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border-2 border-white pointer-events-auto" style={{ opacity: 1 }}>
+                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-white/90 border-2 border-white pointer-events-auto" style={{ opacity: 1 }}>
                         {hoverLabel}
                       </div>
                     ) : (
-                      <span className="text-[#848e9c]">{timeLabel}</span>
+                      <span className="text-stone-700">{timeLabel}</span>
                     )}
                   </div>
                 );
@@ -1819,7 +1819,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </div>
 
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs bg-[#1e2329] px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
+              <div className="absolute left-2 top-2 text-xs bg-white/90 px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
                 <span className="text-stone-600 font-medium">Volume</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <span className="text-slate-300 font-semibold">
@@ -1924,7 +1924,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               })()}
             </svg>
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs bg-[#1e2329] px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
+              <div className="absolute left-2 top-2 text-xs bg-white/90 px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
                 <span className="text-stone-600 font-medium">MACD</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <>
@@ -2015,7 +2015,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               })()}
             </svg>
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs bg-[#1e2329] px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
+              <div className="absolute left-2 top-2 text-xs bg-white/90 px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
                 <span className="text-stone-600 font-medium">RSI</span>
                 {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].rsi !== undefined && (
                   <span className={`font-semibold ${
@@ -2034,7 +2034,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       </div>
 
       {/* Y-Axis */}
-      <div className="w-16 bg-[#1a1d24] relative border-l border-slate-800/50" style={{ height: `${chartHeight}px`, zIndex: 10 }}>
+      <div className="w-16 bg-white/80 relative border-l border-stone-200" style={{ height: `${chartHeight}px`, zIndex: 10 }}>
         <div className="relative" style={{ height: `${priceChartHeight}px` }}>
           {Array.from({ length: 6 }).map((_, i) => {
             if (i === 0 || i === 5) return null;
@@ -2043,7 +2043,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             return (
               <div
                 key={i}
-                className="absolute right-0 w-full text-left pl-2 text-[#848e9c] text-[11px]"
+                className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[11px]"
                 style={{ top: `${y - 6}px` }}
               >
                 {price.toFixed(2)}
@@ -2075,7 +2075,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               className="absolute left-0 right-0 flex items-center justify-center z-50"
               style={{ top: `${crosshairPosition.y - 10}px` }}
             >
-              <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border border-white">
+              <div className="px-1.5 py-0.5 rounded text-stone-900 text-[11px] font-bold bg-white/95 border border-stone-300 shadow-md">
                 {yToPrice(crosshairPosition.y).toFixed(2)}
               </div>
             </div>
@@ -2095,7 +2095,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               return (
                 <div
                   key={i}
-                  className="absolute right-0 w-full text-left pl-2 text-[#848e9c] text-[10px]"
+                  className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[10px]"
                   style={{ top: `${y - 6}px` }}
                 >
                   {volume >= 1000 ? `${(volume / 1000).toFixed(1)}K` : volume.toFixed(0)}
@@ -2112,7 +2112,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             return (
               <div
                 key={i}
-                className="absolute right-0 w-full text-left pl-2 text-[#848e9c] text-[10px]"
+                className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[10px]"
                 style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
               >
                 {value.toFixed(2)}
@@ -2128,7 +2128,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             return (
               <div
                 key={value}
-                className="absolute right-0 w-full text-left pl-2 text-[#848e9c] text-[10px]"
+                className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[10px]"
                 style={{ top: `${value === 0 ? y - 12 : value === 100 ? y : y - 6}px` }}
               >
                 {value}

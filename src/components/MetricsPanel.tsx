@@ -102,7 +102,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   </div>
                 </div>
               ) : (
-                <div className="px-2 py-1 bg-slate-700/20 text-slate-600 rounded-lg text-[10px] font-semibold inline-block border border-amber-200">
+                <div className="px-2 py-1 bg-stone-200/50/20 text-slate-600 rounded-lg text-[10px] font-semibold inline-block border border-amber-200">
                   NOT HOLDING
                 </div>
               )}
@@ -156,13 +156,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
+                    <div className="flex-1 bg-stone-100 rounded-lg h-4 overflow-hidden border border-stone-200 shadow-inner">
                       <div
-                        className="bg-gradient-to-r from-blue-400 to-cyan-300 h-3 rounded-full transition-all duration-500 shadow-sm"
+                        className="bg-gradient-to-r from-blue-500 to-cyan-400 h-4 transition-all duration-500"
                         style={{ width: `${data.holding.initialTakeProfitProb! * 100}%` }}
                       />
                     </div>
-                    <span className="text-sm font-bold text-cyan-600 min-w-[50px]">
+                    <span className="text-sm font-bold text-cyan-700 min-w-[50px]">
                       {(data.holding.initialTakeProfitProb! * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -183,13 +183,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
+                  <div className="flex-1 bg-stone-100 rounded-lg h-4 overflow-hidden border border-stone-200 shadow-inner">
                     <div
-                      className="bg-gradient-to-r from-emerald-400 to-emerald-300 h-3 rounded-full transition-all duration-500 shadow-sm"
+                      className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-4 transition-all duration-500"
                       style={{ width: `${(data.currentPrediction?.takeProfitProb ?? 0) * 100}%` }}
                     />
                   </div>
-                  <span className="text-sm font-bold text-emerald-600 min-w-[50px]">
+                  <span className="text-sm font-bold text-emerald-700 min-w-[50px]">
                     {((data.currentPrediction?.takeProfitProb ?? 0) * 100).toFixed(1)}%
                   </span>
                 </div>
@@ -352,9 +352,9 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           <div className="border-t border-amber-200 pt-2">
             <div className="text-[10px] text-slate-600 mb-1 font-semibold">Win Rate</div>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-slate-700 rounded-full h-2.5 overflow-hidden">
+              <div className="flex-1 bg-stone-100 rounded-lg h-3.5 overflow-hidden border border-stone-200 shadow-inner">
                 <div
-                  className="bg-gradient-to-r from-blue-400 to-cyan-300 h-2.5 rounded-full transition-all duration-500 shadow-sm"
+                  className="bg-gradient-to-r from-blue-500 to-cyan-400 h-3.5 transition-all duration-500"
                   style={{
                     width: `${
                       data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
@@ -366,7 +366,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   }}
                 />
               </div>
-              <span className="text-sm font-bold text-cyan-600 min-w-[45px]">
+              <span className="text-sm font-bold text-cyan-700 min-w-[45px]">
                 {
                   data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
                     ? (

@@ -1017,16 +1017,16 @@ function App() {
   if (error || !data) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="text-red-400 text-6xl mb-4">⚠</div>
-          <p className="text-slate-300 text-lg font-semibold mb-2">Failed to load data</p>
-          <p className="text-slate-400 text-sm mb-6">{error || 'No data available'}</p>
+        <div className="text-center max-w-md bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-stone-200">
+          <div className="text-rose-600 text-6xl mb-4">⚠</div>
+          <p className="text-stone-900 text-xl font-bold mb-2">Failed to load data</p>
+          <p className="text-stone-700 text-sm mb-6">{error || 'No data available'}</p>
           <button
             onClick={() => {
               setLoading(true);
               loadData();
             }}
-            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 shadow-lg font-semibold"
+            className="px-8 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg hover:from-amber-500 hover:to-orange-500 transition-all duration-200 shadow-md font-semibold"
           >
             Retry
           </button>
@@ -1150,7 +1150,7 @@ function App() {
                       onClick={() => setSelectedAccount(account.id)}
                       className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                         selectedAccount === account.id
-                          ? 'bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-md'
+                          ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md'
                           : 'bg-stone-200/60 text-stone-600 hover:bg-stone-300/60 hover:text-stone-800'
                       }`}
                     >
@@ -1187,11 +1187,11 @@ function App() {
             <span className="text-[10px] text-stone-600 mr-1 whitespace-nowrap">Market:</span>
             <div className="flex gap-1">
               {[
-                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-300', inactive: 'bg-emerald-950/30 text-emerald-700/40 border-emerald-900/40' } },
-                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-600 text-white border-emerald-400', inactive: 'bg-emerald-950/40 text-emerald-700/50 border-emerald-900/50' } },
-                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-500 text-white border-amber-300', inactive: 'bg-amber-950/30 text-amber-700/40 border-amber-900/40' } },
-                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-600 text-white border-rose-400', inactive: 'bg-rose-950/40 text-rose-700/50 border-rose-900/50' } },
-                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-rose-500 text-white border-rose-300', inactive: 'bg-rose-950/30 text-rose-700/40 border-rose-900/40' } }
+                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-400 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } },
+                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-600 text-white border-emerald-500 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } },
+                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-500 text-white border-amber-400 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } },
+                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-600 text-white border-rose-500 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } },
+                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-rose-500 text-white border-rose-400 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } }
               ].map((state) => {
                 const isActive = state.value > 0.5;
                 return (
