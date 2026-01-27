@@ -692,104 +692,46 @@ function App() {
         console.log(`✅ 기술지표 존재 (RSI=${update.rsi?.toFixed(1)}, MACD=${update.macd?.toFixed(1)})`);
       }
 
-      // 완성봉 이벤트 발생 시 해당 타임프레임만 최신 5개 검증
-      // 단, 마지막 진행봉은 제외하고 완성봉만 병합 (진행봉은 웹소켓만 신뢰)
-      try {
-        const chart = await fetchChartData(update.timeframe, 5);
-        const timeframeLower = update.timeframe.toLowerCase();
-        const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
+      // 웹소켓으로 받은 완성봉 데이터를 직접 사용 (백엔드가 기술지표 포함해서 보냄)
+      const timeframeLower = update.timeframe.toLowerCase();
+      const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
+      const newCandle = convertCandleData(update);
 
-        setData(prev => {
-          if (!prev) return prev;
+      setData(prev => {
+        if (!prev) return prev;
 
-          const existingCandles = prev[timeframeKey] as Candle[] | undefined;
-          if (!existingCandles || existingCandles.length === 0) {
-            return { ...prev, [timeframeKey]: chart.candles as Candle[] };
+        const existingCandles = prev[timeframeKey] as Candle[] | undefined;
+        if (!existingCandles || existingCandles.length === 0) {
+          return { ...prev, [timeframeKey]: [newCandle] };
+        }
+
+        const merged = [...existingCandles];
+        const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
+
+        if (existingIndex === -1) {
+          // 새 완성봉 추가
+          const insertIndex = merged.findIndex(c => c.timestamp > newCandle.timestamp);
+          if (insertIndex === -1) {
+            merged.push(newCandle);
+          } else {
+            merged.splice(insertIndex, 0, newCandle);
           }
+          console.log(`✅ 새 완성봉 추가: ${new Date(newCandle.timestamp).toLocaleTimeString()}`);
+        } else {
+          // 기존 캔들 업데이트 (진행봉 → 완성봉 전환)
+          merged[existingIndex] = newCandle;
+          console.log(`✅ 진행봉→완성봉 전환: ${new Date(newCandle.timestamp).toLocaleTimeString()}`);
+        }
 
-          const newCandles = chart.candles as Candle[];
+        merged.sort((a, b) => a.timestamp - b.timestamp);
 
-          // 마지막 진행봉 제외하고 완성봉만 병합
-          const completedCandlesOnly = newCandles.slice(0, -1);
+        // 최대 500개만 유지
+        if (merged.length > 500) {
+          merged.splice(0, merged.length - 500);
+        }
 
-          const merged = [...existingCandles];
-          let indicatorMissingCount = 0;
-
-          for (const newCandle of completedCandlesOnly) {
-            // 기술지표 누락 체크
-            if (!newCandle.rsi || !newCandle.macd || !newCandle.ema20) {
-              indicatorMissingCount++;
-            }
-
-            const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
-            if (existingIndex === -1) {
-              // 타임스탬프 순서대로 삽입
-              const insertIndex = merged.findIndex(c => c.timestamp > newCandle.timestamp);
-              if (insertIndex === -1) {
-                merged.push(newCandle);
-              } else {
-                merged.splice(insertIndex, 0, newCandle);
-              }
-            } else {
-              // 기존 캔들 업데이트: 기술지표가 있는 경우 우선순위
-              const existingCandle = merged[existingIndex];
-              const existingHasIndicators = existingCandle.rsi && existingCandle.macd && existingCandle.ema20;
-              const newHasIndicators = newCandle.rsi && newCandle.macd && newCandle.ema20;
-
-              if (existingCandle.isComplete && existingHasIndicators && !newHasIndicators) {
-                // 기존 완성봉에 기술지표가 있고, 새 데이터에는 없으면 → 덮어쓰지 않음
-                console.log(`   🔒 기존 완성봉 보존 (웹소켓 기술지표 유지): ${new Date(existingCandle.timestamp).toLocaleTimeString()}`);
-              } else if (newHasIndicators || !existingHasIndicators) {
-                // 새 데이터에 기술지표가 있거나, 기존 데이터에도 없으면 → 업데이트
-                merged[existingIndex] = newCandle;
-              } else {
-                // 둘 다 기술지표가 없으면 → OHLCV만 업데이트, 기술지표는 유지
-                merged[existingIndex] = {
-                  ...newCandle,
-                  rsi: existingCandle.rsi,
-                  macd: existingCandle.macd,
-                  signal: existingCandle.signal,
-                  histogram: existingCandle.histogram,
-                  ema20: existingCandle.ema20,
-                  ema50: existingCandle.ema50,
-                  bbUpper: existingCandle.bbUpper,
-                  bbMiddle: existingCandle.bbMiddle,
-                  bbLower: existingCandle.bbLower,
-                  bbWidth: existingCandle.bbWidth,
-                };
-              }
-            }
-          }
-
-          merged.sort((a, b) => a.timestamp - b.timestamp);
-
-          if (merged.length > 500) {
-            merged.splice(0, merged.length - 500);
-          }
-
-          if (indicatorMissingCount > 0) {
-            console.warn(`⚠️ ${update.timeframe}: ${indicatorMissingCount} candles missing indicators`);
-          }
-
-          // 최종 병합된 마지막 완성봉의 기술지표 확인
-          const lastCompleted = merged.filter(c => c.isComplete !== false).pop();
-          if (lastCompleted) {
-            const hasAllIndicators = lastCompleted.rsi && lastCompleted.macd && lastCompleted.ema20;
-            if (!hasAllIndicators) {
-              console.error(`   ❌ Last completed candle MISSING indicators:`, {
-                timestamp: new Date(lastCompleted.timestamp).toISOString(),
-                rsi: lastCompleted.rsi,
-                macd: lastCompleted.macd,
-                ema20: lastCompleted.ema20
-              });
-            }
-          }
-
-          return { ...prev, [timeframeKey]: merged };
-        });
-      } catch (error) {
-        console.error(`❌ Failed to verify ${update.timeframe} on complete:`, error);
-      }
+        return { ...prev, [timeframeKey]: merged };
+      });
     });
 
     const unsubscribeAccountAssetsUpdate = websocketService.onAccountAssetsUpdate((update) => {

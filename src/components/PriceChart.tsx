@@ -1151,8 +1151,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               <div className="flex items-center gap-3">
                 <span className="text-slate-300 font-mono font-medium">{formatChartTime(hoveredCandle.timestamp)}</span>
                 <span className="text-slate-400 font-medium">O <span className="text-slate-100 font-bold">{hoveredCandle.open.toFixed(2)}</span></span>
-                <span className="text-slate-400 font-medium">H <span className="text-emerald-400 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
-                <span className="text-slate-400 font-medium">L <span className="text-rose-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
+                <span className="text-slate-400 font-medium">H <span className="text-teal-400 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
+                <span className="text-slate-400 font-medium">L <span className="text-orange-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
                 <span className="text-slate-400 font-medium">C <span className="text-slate-100 font-bold">{hoveredCandle.close.toFixed(2)}</span></span>
                 {hoveredCandle.isComplete === false && (
                   <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded text-[10px] font-bold border border-amber-400/40 animate-pulse shadow-lg">
@@ -1165,14 +1165,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <span className="text-slate-400 font-medium">EMA20 <span className="text-amber-400 font-bold">{hoveredCandle.ema20.toFixed(2)}</span></span>
                 )}
                 {hoveredCandle.ema50 && (
-                  <span className="text-slate-400 font-medium">EMA50 <span className="text-cyan-400 font-bold">{hoveredCandle.ema50.toFixed(2)}</span></span>
+                  <span className="text-slate-400 font-medium">EMA50 <span className="text-violet-400 font-bold">{hoveredCandle.ema50.toFixed(2)}</span></span>
                 )}
                 {(hoveredCandle.bbUpper || hoveredCandle.bb_upper) && (
                   <>
                     <span className="text-slate-600">|</span>
-                    <span className="text-slate-400 font-medium">BB <span className="text-violet-400 font-bold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
-                    <span className="text-slate-400 font-medium">/ <span className="text-violet-400 font-bold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
-                    <span className="text-slate-400 font-medium">/ <span className="text-violet-400 font-bold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
+                    <span className="text-slate-400 font-medium">BB <span className="text-violet-300 font-bold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
+                    <span className="text-slate-400 font-medium">/ <span className="text-violet-300 font-bold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
+                    <span className="text-slate-400 font-medium">/ <span className="text-violet-300 font-bold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
                   </>
                 )}
               </div>
@@ -1196,6 +1196,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       stroke="rgba(71, 85, 105, 0.15)"
                       strokeWidth="1"
                     />
+                    <text
+                      x={svgWidth - 8}
+                      y={y - 4}
+                      textAnchor="end"
+                      className="text-[11px] font-medium"
+                      fill="rgba(148, 163, 184, 0.8)"
+                      style={{ fontFamily: 'ui-monospace, monospace' }}
+                    >
+                      ${price.toFixed(2)}
+                    </text>
                   </g>
                 );
               });
@@ -1268,16 +1278,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={bbUpperPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(139, 92, 246, 0.5)"
+                        stroke="rgba(196, 181, 253, 0.5)"
                         strokeWidth="2"
                         strokeDasharray="4 4"
-                        filter="drop-shadow(0 0 2px rgba(139, 92, 246, 0.3))"
+                        filter="drop-shadow(0 0 2px rgba(196, 181, 253, 0.3))"
                       />
                       {bbMiddlePoints.length > 1 && (
                         <polyline
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
-                          stroke="rgba(139, 92, 246, 0.3)"
+                          stroke="rgba(196, 181, 253, 0.3)"
                           strokeWidth="1.5"
                           strokeDasharray="3 3"
                         />
@@ -1285,10 +1295,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={bbLowerPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(139, 92, 246, 0.5)"
+                        stroke="rgba(196, 181, 253, 0.5)"
                         strokeWidth="2"
                         strokeDasharray="4 4"
-                        filter="drop-shadow(0 0 2px rgba(139, 92, 246, 0.3))"
+                        filter="drop-shadow(0 0 2px rgba(196, 181, 253, 0.3))"
                       />
                     </>
                   )}
@@ -1297,10 +1307,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <polyline
                       points={ema20Points.join(' ')}
                       fill="none"
-                      stroke="#f59e0b"
+                      stroke="#fbbf24"
                       strokeWidth="2.5"
                       opacity="0.9"
-                      filter="drop-shadow(0 0 4px rgba(245, 158, 11, 0.4))"
+                      filter="drop-shadow(0 0 4px rgba(251, 191, 36, 0.4))"
                     />
                   )}
 
@@ -1308,10 +1318,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <polyline
                       points={ema50Points.join(' ')}
                       fill="none"
-                      stroke="#06b6d4"
+                      stroke="#a78bfa"
                       strokeWidth="2.5"
                       opacity="0.9"
-                      filter="drop-shadow(0 0 4px rgba(6, 182, 212, 0.4))"
+                      filter="drop-shadow(0 0 4px rgba(167, 139, 250, 0.4))"
                     />
                   )}
                 </>
@@ -1393,7 +1403,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   }}
                 >
                   <div
-                    className={isGreen ? 'bg-emerald-400' : 'bg-rose-400'}
+                    className={isGreen ? 'bg-teal-400' : 'bg-orange-400'}
                     style={{
                       position: 'absolute',
                       left: '50%',
@@ -1407,8 +1417,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div
                     className={`${
                       isGreen
-                        ? 'bg-gradient-to-b from-emerald-400 to-emerald-500 border-emerald-300'
-                        : 'bg-gradient-to-b from-rose-400 to-rose-500 border-rose-300'
+                        ? 'bg-gradient-to-b from-teal-400 to-teal-500 border-teal-300'
+                        : 'bg-gradient-to-b from-orange-400 to-orange-500 border-orange-300'
                     } ${candle.isPrediction ? 'opacity-40 border-dashed' : ''} ${
                       isHovered ? 'ring-2 ring-amber-400/50 shadow-lg' : ''
                     }`}
@@ -1420,7 +1430,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       width: '100%',
                       borderWidth: '0',
                       filter: isHovered ? 'brightness(1.2)' : 'none',
-                      transition: 'all 0.15s ease',
                     }}
                   />
                 </div>
@@ -1752,11 +1761,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-2 py-1 rounded-md text-slate-100 text-[11px] font-bold bg-gradient-to-r from-amber-600 to-amber-500 border border-amber-400/50 pointer-events-auto shadow-lg" style={{ opacity: 1 }}>
+                      <div className="px-1.5 py-0.5 rounded text-white text-[11px] font-bold bg-[#1e2329] border-2 border-white pointer-events-auto" style={{ opacity: 1 }}>
                         {hoverLabel}
                       </div>
                     ) : (
-                      <span className="text-slate-500 font-medium">{timeLabel}</span>
+                      <span className="text-[#848e9c]">{timeLabel}</span>
                     )}
                   </div>
                 );
@@ -1774,7 +1783,31 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               zIndex: 0,
               boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
             }}
-          />
+          >
+            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
+              {(() => {
+                const svgWidth = containerWidth || 1200;
+                const volumes = visibleCandles.map(c => c.volume || 0);
+                const maxVolume = Math.max(...volumes, 0.001);
+                return [maxVolume, maxVolume / 2].map((vol, i) => {
+                  const y = (1 - vol / maxVolume) * volumeChartHeight * 0.7 + volumeChartHeight * 0.15;
+                  return (
+                    <text
+                      key={i}
+                      x={svgWidth - 8}
+                      y={y}
+                      textAnchor="end"
+                      className="text-[10px] font-medium"
+                      fill="rgba(148, 163, 184, 0.6)"
+                      style={{ fontFamily: 'ui-monospace, monospace' }}
+                    >
+                      {vol.toFixed(0)}
+                    </text>
+                  );
+                });
+              })()}
+            </svg>
+          </div>
 
           {/* Volume Bars */}
           <div
@@ -1811,13 +1844,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   >
                     <div
-                      className={`transition-all ${
-                        isGreen ? 'bg-gradient-to-t from-emerald-500/60 to-emerald-400/40' : 'bg-gradient-to-t from-rose-500/60 to-rose-400/40'
+                      className={`${
+                        isGreen ? 'bg-gradient-to-t from-teal-500/60 to-teal-400/40' : 'bg-gradient-to-t from-orange-500/60 to-orange-400/40'
                       } ${candle.isPrediction ? 'opacity-20' : 'opacity-80'}`}
                       style={{
                         height: `${barHeight}px`,
                         width: '100%',
-                        boxShadow: isGreen ? '0 0 8px rgba(52, 211, 153, 0.3)' : '0 0 8px rgba(251, 113, 133, 0.3)',
+                        boxShadow: isGreen ? '0 0 8px rgba(20, 184, 166, 0.3)' : '0 0 8px rgba(251, 146, 60, 0.3)',
                       }}
                     />
                   </div>
@@ -1863,6 +1896,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         stroke={isZero ? 'rgba(251, 191, 36, 0.25)' : 'rgba(71, 85, 105, 0.15)'}
                         strokeWidth={isZero ? '1.5' : '1'}
                       />
+                      <text
+                        x={svgWidth - 8}
+                        y={y - 4}
+                        textAnchor="end"
+                        className="text-[10px] font-medium"
+                        fill={isZero ? 'rgba(251, 191, 36, 0.6)' : 'rgba(148, 163, 184, 0.6)'}
+                        style={{ fontFamily: 'ui-monospace, monospace' }}
+                      >
+                        {value.toFixed(0)}
+                      </text>
                     </g>
                   );
                 });
@@ -1883,7 +1926,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     y={isPositive ? histY : zeroY}
                     width={candleWidth}
                     height={height}
-                    fill={isPositive ? 'rgba(52, 211, 153, 0.6)' : 'rgba(251, 113, 133, 0.6)'}
+                    fill={isPositive ? 'rgba(45, 212, 191, 0.6)' : 'rgba(251, 146, 60, 0.6)'}
                     filter="drop-shadow(0 0 2px currentColor)"
                   />
                 );
@@ -1913,20 +1956,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={macdPoints.join(' ')}
                         fill="none"
-                        stroke="#06b6d4"
+                        stroke="#2dd4bf"
                         strokeWidth="2"
                         opacity="0.95"
-                        filter="drop-shadow(0 0 3px rgba(6, 182, 212, 0.4))"
+                        filter="drop-shadow(0 0 3px rgba(45, 212, 191, 0.4))"
                       />
                     )}
                     {signalPoints.length > 1 && (
                       <polyline
                         points={signalPoints.join(' ')}
                         fill="none"
-                        stroke="#f59e0b"
+                        stroke="#fb923c"
                         strokeWidth="2"
                         opacity="0.95"
-                        filter="drop-shadow(0 0 3px rgba(245, 158, 11, 0.4))"
+                        filter="drop-shadow(0 0 3px rgba(251, 146, 60, 0.4))"
                       />
                     )}
                   </>
@@ -1995,6 +2038,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         strokeWidth={isMid ? '1.5' : isThreshold ? '1.5' : '1'}
                         strokeDasharray={isThreshold ? '5 3' : '0'}
                       />
+                      <text
+                        x={svgWidth - 8}
+                        y={y - 4}
+                        textAnchor="end"
+                        className="text-[10px] font-medium"
+                        fill={isMid ? 'rgba(251, 191, 36, 0.6)' : isThreshold ? 'rgba(239, 68, 68, 0.6)' : 'rgba(148, 163, 184, 0.6)'}
+                        style={{ fontFamily: 'ui-monospace, monospace' }}
+                      >
+                        {value}
+                      </text>
                     </g>
                   );
                 });
@@ -2016,10 +2069,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       <polyline
                         points={rsiPoints.join(' ')}
                         fill="none"
-                        stroke="#8b5cf6"
+                        stroke="#c084fc"
                         strokeWidth="2.5"
                         opacity="0.95"
-                        filter="drop-shadow(0 0 4px rgba(139, 92, 246, 0.4))"
+                        filter="drop-shadow(0 0 4px rgba(192, 132, 252, 0.4))"
                       />
                     )}
                   </>
