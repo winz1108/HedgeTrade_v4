@@ -147,6 +147,15 @@ function App() {
       fullDashboard.priceHistory4h = charts[5].candles as Candle[];
       fullDashboard.priceHistory1d = charts[6].candles as Candle[];
 
+      // 볼륨 디버깅: 마지막 3개 캔들의 볼륨 확인
+      const last3Candles = fullDashboard.priceHistory1m.slice(-3);
+      console.log('📊 초기 로드 - 마지막 3개 캔들 (1m):', last3Candles.map(c => ({
+        time: new Date(c.timestamp).toLocaleTimeString(),
+        close: c.close,
+        volume: c.volume,
+        isComplete: c.isComplete,
+      })));
+
       if (fullDashboard.currentBTC !== undefined && fullDashboard.currentPrice) {
         btcBalanceRef.current = fullDashboard.currentBTC / fullDashboard.currentPrice;
       }
@@ -372,6 +381,16 @@ function App() {
     });
 
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
+      // 볼륨 디버깅 로그
+      if (update.timeframe === '1m') {
+        console.log('📊 realtime_candle_update (1m):', {
+          isFinal: update.isFinal,
+          time: new Date(update.openTime).toLocaleTimeString(),
+          close: update.close,
+          volume: update.volume,
+        });
+      }
+
       // 기술지표 확인 로그 (완성봉만)
       if (update.isFinal) {
         console.log('🔴 realtime_candle_update (완성봉):', {
@@ -500,6 +519,16 @@ function App() {
     });
 
     const unsubscribeCandleUpdate = websocketService.onCandleUpdate((update) => {
+      // 볼륨 디버깅 로그
+      if (update.timeframe === '1m') {
+        console.log('📈 candle_update (1m):', {
+          isFinal: update.isFinal,
+          time: new Date(update.openTime).toLocaleTimeString(),
+          close: update.close,
+          volume: update.volume,
+        });
+      }
+
       setData((prevData) => {
         if (!prevData) return prevData;
         if (!update.timeframe) return prevData;
