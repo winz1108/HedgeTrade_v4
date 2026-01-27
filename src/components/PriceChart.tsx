@@ -1756,8 +1756,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </div>
           </div>
 
+          {/* Volume Chart Background */}
           <div
-            className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30"
+            className="absolute left-0 bg-slate-800/40 rounded-lg border border-slate-700/30 pointer-events-none"
+            style={{
+              top: `${priceChartHeight + 28}px`,
+              height: `${volumeChartHeight}px`,
+              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
+              zIndex: 0
+            }}
+          />
+
+          {/* Volume Bars */}
+          <div
+            className="absolute left-0"
             style={{
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
