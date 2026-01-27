@@ -471,7 +471,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div className="text-slate-500 text-[10px] mb-2 font-semibold">익절 확률 (Take Profit Probability)</div>
                   <div className="space-y-1.5 bg-slate-800/50 p-2 rounded">
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">매수시 익절확률</span>
+                      <span className="text-stone-600">매수시 익절확률</span>
                       <span className="text-[#0ecb81] font-semibold">
                         {data.holding.initialTakeProfitProb
                           ? (data.holding.initialTakeProfitProb * 100).toFixed(1)
@@ -481,7 +481,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">현재 익절확률</span>
+                      <span className="text-stone-600">현재 익절확률</span>
                       <span className="text-[#0ecb81] font-semibold">
                         {data.currentPrediction?.v5MoeTakeProfitProb
                           ? (data.currentPrediction.v5MoeTakeProfitProb * 100).toFixed(1)
@@ -494,20 +494,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     </div>
                     {data.lastPredictionUpdateTime && (
                       <div className="flex justify-between gap-6">
-                        <span className="text-slate-400">익절확률 업데이트</span>
+                        <span className="text-stone-600">익절확률 업데이트</span>
                         <span className="text-slate-300 text-[10px]">
                           {formatLocalTime(data.lastPredictionUpdateTime)}
                         </span>
                       </div>
                     )}
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">예상 익절가</span>
+                      <span className="text-stone-600">예상 익절가</span>
                       <span className="text-white font-semibold">
                         ${(data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">예상 손절가</span>
+                      <span className="text-stone-600">예상 손절가</span>
                       <span className="text-white font-semibold">
                         ${(data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
                       </span>
@@ -519,23 +519,23 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div className="text-slate-500 text-[10px] mb-2 font-semibold">현재 결과 (Current)</div>
                   <div className="space-y-1.5 bg-slate-800/50 p-2 rounded">
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">현재가</span>
+                      <span className="text-stone-600">현재가</span>
                       <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">수익률</span>
+                      <span className="text-stone-600">수익률</span>
                       <span className={`font-semibold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                         {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">경과 시간</span>
+                      <span className="text-stone-600">경과 시간</span>
                       <span className="text-slate-300 text-[10px]">
                         {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">마지막 업데이트</span>
+                      <span className="text-stone-600">마지막 업데이트</span>
                       <span className="text-slate-300 text-[10px]">
                         {formatLocalTime(data.currentTime)}
                       </span>
@@ -558,7 +558,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         );
                       } else {
                         return (
-                          <div className="text-slate-400 text-center py-1 bg-slate-700/30 rounded mt-2 text-[10px]">
+                          <div className="text-stone-600 text-center py-1 bg-slate-700/30 rounded mt-2 text-[10px]">
                             진행 중
                           </div>
                         );
@@ -571,17 +571,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               <div>
                 <div className="space-y-1.5 bg-slate-800/50 p-2 rounded">
                   <div className="flex justify-between gap-6">
-                    <span className="text-slate-400">현재가</span>
+                    <span className="text-stone-600">현재가</span>
                     <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between gap-6">
-                    <span className="text-slate-400">현재 수익률</span>
+                    <span className="text-stone-600">현재 수익률</span>
                     <span className={`font-semibold ${((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                       {((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100).toFixed(2)}%
                     </span>
                   </div>
                   <div className="flex justify-between gap-6">
-                    <span className="text-slate-400">보유 시간</span>
+                    <span className="text-stone-600">보유 시간</span>
                     <span className="text-slate-300 text-[10px]">
                       {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                     </span>
@@ -599,21 +599,21 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
             <div className="space-y-2">
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">매수가</span>
+                <span className="text-stone-600">매수가</span>
                 <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">매도가</span>
+                <span className="text-stone-600">매도가</span>
                 <span className="text-white font-semibold">${pairedTrade!.price.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">수익률</span>
+                <span className="text-stone-600">수익률</span>
                 <span className={`font-bold ${((pairedTrade!.price - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((pairedTrade!.price - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">보유 시간</span>
+                <span className="text-stone-600">보유 시간</span>
                 <span className="text-slate-300 text-[10px]">
                   {Math.floor((pairedTrade!.timestamp - trade.timestamp) / 60000)}분
                 </span>
@@ -629,27 +629,27 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
             <div className="space-y-2 mb-3">
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">매수가</span>
+                <span className="text-stone-600">매수가</span>
                 <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">현재가</span>
+                <span className="text-stone-600">현재가</span>
                 <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">현재 수익률</span>
+                <span className="text-stone-600">현재 수익률</span>
                 <span className={`font-bold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">보유 시간</span>
+                <span className="text-stone-600">보유 시간</span>
                 <span className="text-slate-300 text-[10px]">
                   {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                 </span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">마지막 업데이트</span>
+                <span className="text-stone-600">마지막 업데이트</span>
                 <span className="text-slate-300 text-[10px]">
                   {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
@@ -661,7 +661,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 <div className="text-slate-500 text-[10px] mb-2 font-semibold">익절 확률</div>
                 <div className="space-y-1.5 bg-slate-800/50 p-2 rounded text-[10px]">
                   <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">매수시</span>
+                    <span className="text-stone-600">매수시</span>
                     <span className="text-[#0ecb81]">
                       {data.holding.initialTakeProfitProb
                         ? (data.holding.initialTakeProfitProb * 100).toFixed(1)
@@ -671,7 +671,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">현재</span>
+                    <span className="text-stone-600">현재</span>
                     <span className="text-[#0ecb81]">
                       {data.holding.isHolding && data.holding.v5MoeTakeProfitProb !== undefined
                         ? (data.holding.v5MoeTakeProfitProb * 100).toFixed(1)
@@ -684,20 +684,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   </div>
                   {data.lastPredictionUpdateTime && (
                     <div className="flex justify-between gap-4">
-                      <span className="text-slate-400">업데이트</span>
+                      <span className="text-stone-600">업데이트</span>
                       <span className="text-slate-300 text-[9px]">
                         {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">익절가</span>
+                    <span className="text-stone-600">익절가</span>
                     <span className="text-white">
                       ${(data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">손절가</span>
+                    <span className="text-stone-600">손절가</span>
                     <span className="text-white">
                       ${(data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
                     </span>
@@ -763,7 +763,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div className="text-slate-500 text-[10px] mb-2 font-semibold">익절 확률 (Take Profit Probability)</div>
                   <div className="space-y-1.5 bg-slate-800/50 p-2 rounded">
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">매수시 익절확률</span>
+                      <span className="text-stone-600">매수시 익절확률</span>
                       <span className="text-[#0ecb81] font-semibold">
                         {data.holding.initialTakeProfitProb
                           ? (data.holding.initialTakeProfitProb * 100).toFixed(1)
@@ -773,7 +773,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">현재 익절확률</span>
+                      <span className="text-stone-600">현재 익절확률</span>
                       <span className="text-[#0ecb81] font-semibold">
                         {data.currentPrediction?.v5MoeTakeProfitProb
                           ? (data.currentPrediction.v5MoeTakeProfitProb * 100).toFixed(1)
@@ -786,20 +786,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     </div>
                     {data.lastPredictionUpdateTime && (
                       <div className="flex justify-between gap-6">
-                        <span className="text-slate-400">익절확률 업데이트</span>
+                        <span className="text-stone-600">익절확률 업데이트</span>
                         <span className="text-slate-300 text-[10px]">
                           {formatLocalTime(data.lastPredictionUpdateTime)}
                         </span>
                       </div>
                     )}
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">예상 익절가</span>
+                      <span className="text-stone-600">예상 익절가</span>
                       <span className="text-white font-semibold">
                         ${(data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">예상 손절가</span>
+                      <span className="text-stone-600">예상 손절가</span>
                       <span className="text-white font-semibold">
                         ${(data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
                       </span>
@@ -811,23 +811,23 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div className="text-slate-500 text-[10px] mb-2 font-semibold">현재 결과 (Current)</div>
                   <div className="space-y-1.5 bg-slate-800/50 p-2 rounded">
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">현재가</span>
+                      <span className="text-stone-600">현재가</span>
                       <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">수익률</span>
+                      <span className="text-stone-600">수익률</span>
                       <span className={`font-semibold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                         {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">경과 시간</span>
+                      <span className="text-stone-600">경과 시간</span>
                       <span className="text-slate-300 text-[10px]">
                         {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <span className="text-slate-400">마지막 업데이트</span>
+                      <span className="text-stone-600">마지막 업데이트</span>
                       <span className="text-slate-300 text-[10px]">
                         {formatLocalTime(data.currentTime)}
                       </span>
@@ -850,7 +850,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                         );
                       } else {
                         return (
-                          <div className="text-slate-400 text-center py-1 bg-slate-700/30 rounded mt-2 text-[10px]">
+                          <div className="text-stone-600 text-center py-1 bg-slate-700/30 rounded mt-2 text-[10px]">
                             진행 중
                           </div>
                         );
@@ -863,17 +863,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               <div>
                 <div className="space-y-1.5 bg-slate-800/50 p-2 rounded">
                   <div className="flex justify-between gap-6">
-                    <span className="text-slate-400">현재가</span>
+                    <span className="text-stone-600">현재가</span>
                     <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between gap-6">
-                    <span className="text-slate-400">현재 수익률</span>
+                    <span className="text-stone-600">현재 수익률</span>
                     <span className={`font-semibold ${((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                       {((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100).toFixed(2)}%
                     </span>
                   </div>
                   <div className="flex justify-between gap-6">
-                    <span className="text-slate-400">보유 시간</span>
+                    <span className="text-stone-600">보유 시간</span>
                     <span className="text-slate-300 text-[10px]">
                       {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                     </span>
@@ -891,21 +891,21 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
             <div className="space-y-2">
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">매수가</span>
+                <span className="text-stone-600">매수가</span>
                 <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">매도가</span>
+                <span className="text-stone-600">매도가</span>
                 <span className="text-white font-semibold">${pairedTrade!.price.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">수익률</span>
+                <span className="text-stone-600">수익률</span>
                 <span className={`font-bold ${((pairedTrade!.price - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((pairedTrade!.price - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">보유 시간</span>
+                <span className="text-stone-600">보유 시간</span>
                 <span className="text-slate-300 text-[10px]">
                   {Math.floor((pairedTrade!.timestamp - trade.timestamp) / 60000)}분
                 </span>
@@ -921,27 +921,27 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
             <div className="space-y-2 mb-3">
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">매수가</span>
+                <span className="text-stone-600">매수가</span>
                 <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">현재가</span>
+                <span className="text-stone-600">현재가</span>
                 <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">현재 수익률</span>
+                <span className="text-stone-600">현재 수익률</span>
                 <span className={`font-bold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">보유 시간</span>
+                <span className="text-stone-600">보유 시간</span>
                 <span className="text-slate-300 text-[10px]">
                   {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                 </span>
               </div>
               <div className="flex justify-between gap-6 bg-slate-800/50 p-2 rounded">
-                <span className="text-slate-400">마지막 업데이트</span>
+                <span className="text-stone-600">마지막 업데이트</span>
                 <span className="text-slate-300 text-[10px]">
                   {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
@@ -953,7 +953,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 <div className="text-slate-500 text-[10px] mb-2 font-semibold">익절 확률</div>
                 <div className="space-y-1.5 bg-slate-800/50 p-2 rounded text-[10px]">
                   <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">매수시</span>
+                    <span className="text-stone-600">매수시</span>
                     <span className="text-[#0ecb81]">
                       {data.holding.initialTakeProfitProb
                         ? (data.holding.initialTakeProfitProb * 100).toFixed(1)
@@ -963,7 +963,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">현재</span>
+                    <span className="text-stone-600">현재</span>
                     <span className="text-[#0ecb81]">
                       {data.holding.isHolding && data.holding.v5MoeTakeProfitProb !== undefined
                         ? (data.holding.v5MoeTakeProfitProb * 100).toFixed(1)
@@ -976,20 +976,20 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   </div>
                   {data.lastPredictionUpdateTime && (
                     <div className="flex justify-between gap-4">
-                      <span className="text-slate-400">업데이트</span>
+                      <span className="text-stone-600">업데이트</span>
                       <span className="text-slate-300 text-[9px]">
                         {new Date(data.lastPredictionUpdateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">익절가</span>
+                    <span className="text-stone-600">익절가</span>
                     <span className="text-white">
                       ${(data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">손절가</span>
+                    <span className="text-stone-600">손절가</span>
                     <span className="text-white">
                       ${(data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
                     </span>
@@ -1017,17 +1017,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   };
 
   const chartContent = (
-    <div className={`bg-[#161a1e] rounded-lg shadow-2xl border border-slate-800 w-full overflow-visible ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
-      <div className="bg-[#1e2329] px-2 sm:px-4 py-2 flex items-center justify-between border-b border-slate-800 flex-wrap gap-2">
+    <div className={`bg-white/60 rounded-lg shadow-lg border border-stone-200 w-full overflow-visible ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
+      <div className="bg-white/80 px-2 sm:px-4 py-2 flex items-center justify-between border-b border-stone-200 flex-wrap gap-2">
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm sm:text-base font-bold text-white">BTC/USDC</h2>
+            <h2 className="text-sm sm:text-base font-bold text-stone-800">BTC/USDC</h2>
             {latestCandle && (
               <>
-                <div className="text-base sm:text-lg font-bold text-white">
+                <div className="text-base sm:text-lg font-bold text-stone-900">
                   ${latestCandle.close.toFixed(2)}
                 </div>
-                <div className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceChange >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
+                <div className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {priceChange >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
                 </div>
               </>
@@ -1035,22 +1035,22 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className="hidden sm:flex items-center gap-2 text-[10px] bg-[#2b3139]/50 px-2 py-1 rounded">
+          <div className="hidden sm:flex items-center gap-2 text-[10px] bg-stone-100/70 px-2 py-1 rounded">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-yellow-500 rounded"></div>
-              <span className="text-slate-400">EMA20</span>
+              <div className="w-3 h-0.5 bg-amber-600 rounded"></div>
+              <span className="text-stone-600">EMA20</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-purple-500 rounded"></div>
-              <span className="text-slate-400">EMA50</span>
+              <div className="w-3 h-0.5 bg-cyan-600 rounded"></div>
+              <span className="text-stone-600">EMA50</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-gray-500 border-t border-dashed border-gray-500"></div>
-              <span className="text-slate-400">BB</span>
+              <div className="w-3 h-0.5 bg-violet-600 border-t border-dashed border-violet-600"></div>
+              <span className="text-stone-600">BB</span>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-0.5 bg-[#2b3139] rounded p-0.5 overflow-x-auto">
+          <div className="flex items-center gap-0.5 bg-stone-200/60 rounded p-0.5 overflow-x-auto">
             {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
               const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
               const isLoading = !hasData && tf !== timeframe;
@@ -1068,8 +1068,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   }}
                   className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all flex-shrink-0 ${
                     timeframe === tf
-                      ? 'bg-slate-600 text-white shadow-inner'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                      ? 'bg-stone-700 text-white shadow-sm'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-300/60'
                   }`}
                 >
                   {tf}
@@ -1080,31 +1080,31 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
           <button
             onClick={handleZoomOut}
-            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors"
+            className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
             title="Zoom Out (Ctrl + Scroll)"
           >
-            <ZoomOut className="w-3 h-3 text-slate-400" />
+            <ZoomOut className="w-3 h-3 text-stone-600" />
           </button>
           <button
             onClick={handleZoomIn}
-            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors"
+            className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
             title="Zoom In (Ctrl + Scroll)"
           >
-            <ZoomIn className="w-3 h-3 text-slate-400" />
+            <ZoomIn className="w-3 h-3 text-stone-600" />
           </button>
           <button
             onClick={() => setShowTradeMarkers(!showTradeMarkers)}
             className={`p-1 rounded transition-colors ${
               showTradeMarkers
                 ? 'bg-[#3b82f6] hover:bg-[#2563eb]'
-                : 'bg-[#2b3139] hover:bg-[#3e444d]'
+                : 'bg-stone-200/60 hover:bg-stone-300/70'
             }`}
             title={showTradeMarkers ? "Hide B/S Markers" : "Show B/S Markers"}
           >
             {showTradeMarkers ? (
               <Eye className="w-3 h-3 text-white" />
             ) : (
-              <EyeOff className="w-3 h-3 text-slate-400" />
+              <EyeOff className="w-3 h-3 text-stone-600" />
             )}
           </button>
           <button
@@ -1113,13 +1113,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               setScrollOffset(0);
               setResetScroll(prev => prev + 1);
             }}
-            className="p-1 bg-[#2b3139] hover:bg-[#3e444d] rounded transition-colors"
+            className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
             title={isMaximized ? "Exit Fullscreen" : "Fullscreen"}
           >
             {isMaximized ? (
-              <Minimize2 className="w-3 h-3 text-slate-400" />
+              <Minimize2 className="w-3 h-3 text-stone-600" />
             ) : (
-              <Maximize2 className="w-3 h-3 text-slate-400" />
+              <Maximize2 className="w-3 h-3 text-stone-600" />
             )}
           </button>
         </div>
@@ -1150,10 +1150,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-600/40 shadow-2xl">
               <div className="flex items-center gap-3">
                 <span className="text-slate-300 font-mono font-medium">{formatChartTime(hoveredCandle.timestamp)}</span>
-                <span className="text-slate-400 font-medium">O <span className="text-slate-100 font-bold">{hoveredCandle.open.toFixed(2)}</span></span>
-                <span className="text-slate-400 font-medium">H <span className="text-emerald-400 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
-                <span className="text-slate-400 font-medium">L <span className="text-rose-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
-                <span className="text-slate-400 font-medium">C <span className="text-slate-100 font-bold">{hoveredCandle.close.toFixed(2)}</span></span>
+                <span className="text-stone-600 font-medium">O <span className="text-slate-100 font-bold">{hoveredCandle.open.toFixed(2)}</span></span>
+                <span className="text-stone-600 font-medium">H <span className="text-emerald-400 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
+                <span className="text-stone-600 font-medium">L <span className="text-rose-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
+                <span className="text-stone-600 font-medium">C <span className="text-slate-100 font-bold">{hoveredCandle.close.toFixed(2)}</span></span>
                 {hoveredCandle.isComplete === false && (
                   <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded text-[10px] font-bold border border-amber-400/40 animate-pulse shadow-lg">
                     진행 중
@@ -1162,17 +1162,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
               <div className="flex items-center gap-3 text-[10px]">
                 {hoveredCandle.ema20 && (
-                  <span className="text-slate-400 font-medium">EMA20 <span className="text-amber-400 font-bold">{hoveredCandle.ema20.toFixed(2)}</span></span>
+                  <span className="text-stone-600 font-medium">EMA20 <span className="text-amber-400 font-bold">{hoveredCandle.ema20.toFixed(2)}</span></span>
                 )}
                 {hoveredCandle.ema50 && (
-                  <span className="text-slate-400 font-medium">EMA50 <span className="text-violet-400 font-bold">{hoveredCandle.ema50.toFixed(2)}</span></span>
+                  <span className="text-stone-600 font-medium">EMA50 <span className="text-violet-400 font-bold">{hoveredCandle.ema50.toFixed(2)}</span></span>
                 )}
                 {(hoveredCandle.bbUpper || hoveredCandle.bb_upper) && (
                   <>
                     <span className="text-slate-600">|</span>
-                    <span className="text-slate-400 font-medium">BB <span className="text-violet-300 font-bold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
-                    <span className="text-slate-400 font-medium">/ <span className="text-violet-300 font-bold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
-                    <span className="text-slate-400 font-medium">/ <span className="text-violet-300 font-bold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
+                    <span className="text-stone-600 font-medium">BB <span className="text-violet-300 font-bold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
+                    <span className="text-stone-600 font-medium">/ <span className="text-violet-300 font-bold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
+                    <span className="text-stone-600 font-medium">/ <span className="text-violet-300 font-bold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
                   </>
                 )}
               </div>
@@ -1820,7 +1820,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
             {hoveredCandleIndex !== null && (
               <div className="absolute left-2 top-2 text-xs bg-[#1e2329] px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="text-slate-400 font-medium">Volume</span>
+                <span className="text-stone-600 font-medium">Volume</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <span className="text-slate-300 font-semibold">
                     {visibleCandles[hoveredCandleIndex].volume.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC
@@ -1925,7 +1925,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </svg>
             {hoveredCandleIndex !== null && (
               <div className="absolute left-2 top-2 text-xs bg-[#1e2329] px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="text-slate-400 font-medium">MACD</span>
+                <span className="text-stone-600 font-medium">MACD</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <>
                     {visibleCandles[hoveredCandleIndex].macd !== undefined && (
@@ -2016,7 +2016,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </svg>
             {hoveredCandleIndex !== null && (
               <div className="absolute left-2 top-2 text-xs bg-[#1e2329] px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="text-slate-400 font-medium">RSI</span>
+                <span className="text-stone-600 font-medium">RSI</span>
                 {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].rsi !== undefined && (
                   <span className={`font-semibold ${
                     visibleCandles[hoveredCandleIndex].rsi! >= 70 ? 'text-rose-400' :
@@ -2143,8 +2143,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
   if (selectedCandles.length === 0) {
     return (
-      <div className="w-full rounded-lg bg-slate-900/50 border border-slate-800/50 p-8 flex items-center justify-center">
-        <div className="text-slate-400 text-sm">차트 데이터를 불러오는 중...</div>
+      <div className="w-full rounded-lg bg-white/60 border border-stone-200 p-8 flex items-center justify-center">
+        <div className="text-stone-600 text-sm">차트 데이터를 불러오는 중...</div>
       </div>
     );
   }
@@ -2153,7 +2153,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     <>
       {renderTooltip()}
       {isMaximized ? createPortal(
-        <div className="fixed inset-0 z-50 bg-slate-950 overflow-auto">
+        <div className="fixed inset-0 z-50 bg-gradient-to-br from-stone-100 via-amber-50/30 to-stone-100 overflow-auto">
           {chartContent}
         </div>,
         document.body

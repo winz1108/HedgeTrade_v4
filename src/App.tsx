@@ -379,15 +379,7 @@ function App() {
     });
 
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
-      // 볼륨 디버깅 로그 (모든 타임프레임)
-      console.log(`📊 realtime_candle_update (${update.timeframe}):`, {
-        isFinal: update.isFinal,
-        time: new Date(update.openTime).toLocaleTimeString(),
-        close: update.close,
-        volume: update.volume,
-      });
-
-      // 기술지표 확인 로그 (완성봉만)
+      // 완성봉일 때만 로그 출력
       if (update.isFinal) {
         console.log('🔴 realtime_candle_update (완성봉):', {
           timeframe: update.timeframe,
@@ -395,7 +387,6 @@ function App() {
           close: update.close,
           rsi: update.rsi ?? '❌',
           macd: update.macd ?? '❌',
-          ema20: update.ema20 ?? '❌',
         });
       }
 
@@ -420,13 +411,7 @@ function App() {
           const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
 
           if (lastCandle && lastCandle.timestamp === newCandle.timestamp) {
-            // 마지막 진행봉이 완성봉이 된 경우: 기술지표 업데이트
-            console.log('🔄 진행봉→완성봉 전환:', {
-              timeframe: update.timeframe,
-              time: new Date(update.openTime).toLocaleTimeString(),
-              rsi: update.rsi ?? '❌',
-              macd: update.macd ?? '❌',
-            });
+            // 진행봉→완성봉 전환
 
             lastCandle.isComplete = true;
             lastCandle.close = newCandle.close;
@@ -670,26 +655,14 @@ function App() {
     const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
       if (!update.timeframe) return;
 
-      console.log('📦 candle_complete:', {
-        timeframe: update.timeframe,
-        time: new Date(update.openTime).toLocaleTimeString(),
-        close: update.close,
-        rsi: update.rsi ?? '❌',
-        macd: update.macd ?? '❌',
-        ema20: update.ema20 ?? '❌',
-      });
-
-      // 기술지표 누락 감지
+      // 기술지표 누락 시에만 에러 로그
       const hasIndicators = update.rsi !== undefined &&
                            update.macd !== undefined &&
                            update.ema20 !== undefined &&
                            update.ema50 !== undefined;
 
       if (!hasIndicators) {
-        console.error('❌ CRITICAL: 기술지표 누락!');
-        console.error('   백엔드에서 기술지표를 계산해서 보내야 합니다!');
-      } else {
-        console.log(`✅ 기술지표 존재 (RSI=${update.rsi?.toFixed(1)}, MACD=${update.macd?.toFixed(1)})`);
+        console.error('❌ candle_complete 기술지표 누락:', update.timeframe);
       }
 
       // 웹소켓으로 받은 완성봉 데이터를 직접 사용 (백엔드가 기술지표 포함해서 보냄)
@@ -716,11 +689,9 @@ function App() {
           } else {
             merged.splice(insertIndex, 0, newCandle);
           }
-          console.log(`✅ 새 완성봉 추가: ${new Date(newCandle.timestamp).toLocaleTimeString()}`);
         } else {
           // 기존 캔들 업데이트 (진행봉 → 완성봉 전환)
           merged[existingIndex] = newCandle;
-          console.log(`✅ 진행봉→완성봉 전환: ${new Date(newCandle.timestamp).toLocaleTimeString()}`);
         }
 
         merged.sort((a, b) => a.timestamp - b.timestamp);
@@ -1153,12 +1124,11 @@ function App() {
                 <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
               )}
               {data.holding.isHolding && (
-                <div className="relative px-4 py-2 bg-slate-900/80 backdrop-blur-md rounded-lg border border-emerald-400/30 shadow-2xl overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10"></div>
-                  <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 via-emerald-400/20 to-emerald-500/20 blur-lg animate-pulse"></div>
+                <div className="relative px-4 py-2 bg-emerald-100/80 backdrop-blur-sm rounded-lg border border-emerald-400/40 shadow-lg overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-200/20 via-transparent to-emerald-200/20"></div>
                   <div className="relative flex items-center gap-2.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]"></div>
-                    <span className="text-xs font-bold text-emerald-300 tracking-wider uppercase">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span className="text-xs font-bold text-emerald-700 tracking-wider uppercase">
                       Holding
                     </span>
                   </div>
@@ -1180,8 +1150,8 @@ function App() {
                       onClick={() => setSelectedAccount(account.id)}
                       className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                         selectedAccount === account.id
-                          ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
-                          : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-slate-300'
+                          ? 'bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-md'
+                          : 'bg-stone-200/60 text-stone-600 hover:bg-stone-300/60 hover:text-stone-800'
                       }`}
                     >
                       {account.name}
@@ -1192,7 +1162,7 @@ function App() {
 
             <div className="flex items-center gap-3 ml-auto">
               {data.currentTime && (
-                <span className="text-xs text-slate-400 font-mono">
+                <span className="text-xs text-stone-600 font-mono">
                   {formatLocalTime(data.currentTime)}
                 </span>
               )}
@@ -1213,8 +1183,8 @@ function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-800/70 px-2 py-1.5 rounded-lg border border-slate-600 overflow-x-auto">
-            <span className="text-[10px] text-slate-400 mr-1 whitespace-nowrap">Market:</span>
+          <div className="flex items-center gap-1 bg-white/50 px-2 py-1.5 rounded-lg border border-stone-200 overflow-x-auto">
+            <span className="text-[10px] text-stone-600 mr-1 whitespace-nowrap">Market:</span>
             <div className="flex gap-1">
               {[
                 { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-300', inactive: 'bg-emerald-950/30 text-emerald-700/40 border-emerald-900/40' } },
