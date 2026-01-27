@@ -199,9 +199,9 @@ function App() {
           const jsonData = await jsonResponse.json();
           if (jsonData.prediction?.health) {
             const health = jsonData.prediction.health;
-            const healthStatus = `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            const healthStatus = `\n\n========================================\n` +
               `📊 PREDICTION HEALTH STATUS\n` +
-              `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+              `========================================\n` +
               `상태: ${health.status.toUpperCase()}\n` +
               `메시지: ${health.message}\n`;
             text = text + healthStatus;
