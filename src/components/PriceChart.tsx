@@ -1767,10 +1767,17 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           >
             <div className="absolute left-0 flex px-2 py-1 pointer-events-none overflow-hidden" style={{ top: 0, height: '100%', width: '100%' }}>
               {visibleCandles.map((candle, idx) => {
-                const maxVolume = Math.max(...visibleCandles.map(c => c.volume));
+                const volumes = visibleCandles.map(c => c.volume || 0);
+                const maxVolume = Math.max(...volumes, 0.001);
                 const topPadding = Math.max(5, volumeChartHeight * 0.15);
-                const barHeight = (candle.volume / maxVolume) * (volumeChartHeight - topPadding - 10);
+                const candleVolume = candle.volume || 0;
+                const barHeight = (candleVolume / maxVolume) * (volumeChartHeight - topPadding - 10);
                 const isGreen = candle.close >= candle.open;
+
+                // 볼륨 디버깅 (첫 번째와 마지막 캔들만)
+                if (idx === 0 || idx === visibleCandles.length - 1) {
+                  console.log(`📊 볼륨 차트 [${idx}]: volume=${candleVolume}, maxVolume=${maxVolume}, barHeight=${barHeight}`);
+                }
 
                 return (
                   <div
