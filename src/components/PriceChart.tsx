@@ -1808,11 +1808,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 const barHeight = (candleVolume / maxVolume) * (volumeChartHeight - topPadding - 10);
                 const isGreen = candle.close >= candle.open;
 
-                // 볼륨 디버깅 (첫 번째와 마지막 캔들만)
-                if (idx === 0 || idx === visibleCandles.length - 1) {
-                  console.log(`📊 볼륨 차트 [${idx}]: volume=${candleVolume}, maxVolume=${maxVolume}, barHeight=${barHeight}`);
-                }
-
                 return (
                   <div
                     key={idx}

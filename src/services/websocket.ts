@@ -165,11 +165,9 @@ class WebSocketService {
     });
 
     this.socket.on('reconnect_error', (error) => {
-      console.error('❌ Reconnection error:', error);
     });
 
     this.socket.on('reconnect_failed', () => {
-      console.error('❌ Reconnection failed');
     });
 
     this.socket.on('candle_update', (data: CandleUpdate) => {
@@ -202,13 +200,11 @@ class WebSocketService {
 
       // 백엔드가 잘못된 형식으로 보내는 경우 (dashboard_update 형식)
       if (data.accounts && data.totalAsset) {
-        console.warn('⚠️ account_assets_update: 백엔드가 dashboard_update 형식으로 보냄 - 무시');
         return;
       }
 
       // 올바른 형식 검증
       if (!data || !data.asset) {
-        console.error('❌ account_assets_update: 잘못된 데이터 구조', data);
         return;
       }
 
@@ -237,21 +233,17 @@ class WebSocketService {
     this.socket.on('trade_event', (data: TradeEventUpdate) => {
       this.eventStats.trade_event.count++;
       this.eventStats.trade_event.lastTime = Date.now();
-      console.log('🔔 Trade event received:', data);
 
       this.tradeEventCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('❌ WebSocket CONNECTION ERROR:', error.message);
     });
 
     this.socket.on('error', (error) => {
-      console.error('❌ WebSocket error:', error);
     });
 
     this.socket.io.on('error', (error) => {
-      console.error('❌ Socket.IO Manager error:', error);
     });
   }
 
@@ -334,8 +326,6 @@ class WebSocketService {
   requestTimeframeData(timeframe: string) {
     if (this.socket && this.socket.connected) {
       this.socket.emit('request_timeframe', { timeframe });
-    } else {
-      console.warn('⚠️ Cannot request timeframe data: WebSocket not connected');
     }
   }
 }

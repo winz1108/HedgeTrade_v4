@@ -19,7 +19,6 @@ export const dataCache = {
       };
       localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
     } catch (error) {
-      console.warn('Failed to save to cache:', error);
     }
   },
 
@@ -38,7 +37,6 @@ export const dataCache = {
 
       return data;
     } catch (error) {
-      console.warn('Failed to load from cache:', error);
       return null;
     }
   },

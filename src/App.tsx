@@ -57,10 +57,6 @@ function App() {
     // 예상 간격의 1.5배 이상 차이나면 갭으로 판단
     if (gap > interval * 1.5) {
       const missedCandles = Math.floor(gap / interval) - 1;
-      console.warn(`⚠️ GAP DETECTED in ${timeframe}: ${missedCandles} candles missing`);
-      console.log(`   Last: ${new Date(lastTimestamp).toLocaleTimeString()}`);
-      console.log(`   New: ${new Date(newTimestamp).toLocaleTimeString()}`);
-      console.log(`   Gap: ${(gap / 1000 / 60).toFixed(1)} minutes`);
 
       // 갭 채우기: 누락된 개수 + 여유분 5개 요청
       try {
@@ -96,11 +92,9 @@ function App() {
             merged.splice(0, merged.length - 500);
           }
 
-          console.log(`✅ Filled ${addedCount} missing candles in ${timeframe}`);
           return { ...prev, [timeframeKey]: merged };
         });
       } catch (error) {
-        console.error(`❌ Failed to fill gap in ${timeframe}:`, error);
       }
     }
   }, []);
@@ -111,7 +105,6 @@ function App() {
 
       const cached = dataCache.load();
       if (cached) {
-        console.log('💾 Using cached data while loading fresh data');
         setData(prev => prev ? {
           ...prev,
           currentAsset: (cached.currentAsset && cached.currentAsset > 0) ? cached.currentAsset : prev.currentAsset,
@@ -121,9 +114,6 @@ function App() {
           currentPrice: (cached.currentPrice && cached.currentPrice > 0) ? cached.currentPrice : prev.currentPrice,
         } : prev);
       }
-
-      console.log('📊 Loading dashboard data...');
-      const startTime = performance.now();
 
       const [fullDashboard, ...charts] = await Promise.all([
         fetchDashboardData(selectedAccount),
@@ -136,9 +126,6 @@ function App() {
         fetchChartData('1d', 500)
       ]);
 
-      const loadTime = performance.now() - startTime;
-      console.log(`✅ All data loaded in ${(loadTime / 1000).toFixed(2)}s`);
-
       fullDashboard.priceHistory1m = charts[0].candles as Candle[];
       fullDashboard.priceHistory5m = charts[1].candles as Candle[];
       fullDashboard.priceHistory15m = charts[2].candles as Candle[];
@@ -146,13 +133,6 @@ function App() {
       fullDashboard.priceHistory1h = charts[4].candles as Candle[];
       fullDashboard.priceHistory4h = charts[5].candles as Candle[];
       fullDashboard.priceHistory1d = charts[6].candles as Candle[];
-
-      // 볼륨 디버깅: 마지막 5개 캔들의 볼륨 확인
-      const last5Candles = fullDashboard.priceHistory1m.slice(-5);
-      console.log('📊 초기 로드 - 마지막 5개 캔들 (1m):');
-      last5Candles.forEach((c, idx) => {
-        console.log(`  [${idx}] ${new Date(c.timestamp).toLocaleTimeString()} - close: ${c.close}, volume: ${c.volume}, isComplete: ${c.isComplete}`);
-      });
 
       if (fullDashboard.currentBTC !== undefined && fullDashboard.currentPrice) {
         btcBalanceRef.current = fullDashboard.currentBTC / fullDashboard.currentPrice;
@@ -169,11 +149,9 @@ function App() {
         currentPrice: fullDashboard.currentPrice,
       });
 
-      console.log('✅ Dashboard ready');
       setData(fullDashboard);
       setLoading(false);
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
       setLoading(false);
     }
@@ -214,13 +192,11 @@ function App() {
             text = text + healthStatus;
           }
         } catch (e) {
-          console.warn('Failed to parse JSON response:', e);
         }
       }
 
       setVerificationResult(text);
     } catch (error) {
-      console.error('서버 검증 실패:', error);
       setVerificationResult(`오류 발생: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     } finally {
       setVerificationLoading(false);
@@ -245,7 +221,6 @@ function App() {
       const text = await response.text();
       setPerformanceResult(text);
     } catch (error) {
-      console.error('실시간 성능 지표 조회 실패:', error);
       setPerformanceResult(`오류 발생: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     } finally {
       setPerformanceLoading(false);
@@ -318,7 +293,6 @@ function App() {
           return { ...prev, [timeframeKey]: merged };
         });
       } catch (error) {
-        console.error(`❌ Failed to refill ${timeframe}:`, error);
       }
     }
   }, []);
@@ -379,16 +353,6 @@ function App() {
     });
 
     const unsubscribeRealtimeCandleUpdate = websocketService.onRealtimeCandleUpdate((update) => {
-      // 완성봉일 때만 로그 출력
-      if (update.isFinal) {
-        console.log('🔴 realtime_candle_update (완성봉):', {
-          timeframe: update.timeframe,
-          time: new Date(update.openTime).toLocaleTimeString(),
-          close: update.close,
-          rsi: update.rsi ?? '❌',
-          macd: update.macd ?? '❌',
-        });
-      }
 
       setData((prevData) => {
         if (!prevData) return prevData;
@@ -565,14 +529,6 @@ function App() {
     });
 
     const unsubscribeCandleUpdate = websocketService.onCandleUpdate((update) => {
-      // 볼륨 디버깅 로그 (모든 타임프레임)
-      console.log(`📈 candle_update (${update.timeframe}):`, {
-        isFinal: update.isFinal,
-        time: new Date(update.openTime).toLocaleTimeString(),
-        close: update.close,
-        volume: update.volume,
-      });
-
       setData((prevData) => {
         if (!prevData) return prevData;
         if (!update.timeframe) return prevData;
@@ -661,9 +617,6 @@ function App() {
                            update.ema20 !== undefined &&
                            update.ema50 !== undefined;
 
-      if (!hasIndicators) {
-        console.error('❌ candle_complete 기술지표 누락:', update.timeframe);
-      }
 
       // 웹소켓으로 받은 완성봉 데이터를 직접 사용 (백엔드가 기술지표 포함해서 보냄)
       const timeframeLower = update.timeframe.toLowerCase();
@@ -710,7 +663,6 @@ function App() {
         if (!prevData) return prevData;
         if (update.accountId !== selectedAccount) return prevData;
         if (!update.asset) {
-          console.error('❌ account_assets_update: asset 객체 없음', update);
           return prevData;
         }
 
@@ -761,12 +713,6 @@ function App() {
 
     const unsubscribePredictionUpdate = websocketService.onPredictionUpdate((update) => {
       const newCalculatedAt = update.predictionCalculatedAt;
-
-      console.log('🔮 Prediction Update:', {
-        probability: (update.probability * 100).toFixed(2) + '%',
-        calculatedAt: new Date(newCalculatedAt).toLocaleString(),
-        version: update.version,
-      });
 
       setData((prevData) => {
         if (!prevData) return prevData;
@@ -853,19 +799,12 @@ function App() {
     });
 
     const unsubscribeTradeEvent = websocketService.onTradeEvent((update) => {
-      console.log('🔔 Trade event in App:', update);
-
       setData((prevData) => {
         if (!prevData) return prevData;
         if (update.accountId !== selectedAccount) return prevData;
 
         const updatedTrades = update.trades || prevData.trades;
         const updatedHolding = update.holding || prevData.holding;
-
-        console.log('✅ Updating trades and holding:', {
-          trades: updatedTrades,
-          holding: updatedHolding,
-        });
 
         return {
           ...prevData,
@@ -944,7 +883,6 @@ function App() {
           scheduleNextCheck();
         }
       } catch (error) {
-        console.error('❌ 예측 업데이트 체크 실패:', error);
       }
     };
 

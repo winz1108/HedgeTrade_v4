@@ -333,7 +333,6 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
       source: chartResponse.source,
     };
   } catch (error) {
-    console.error(`❌ Failed to fetch ${timeframe} chart data:`, error);
     throw error;
   }
 };
@@ -357,7 +356,6 @@ export const fetchDashboardQuick = async (): Promise<DashboardQuick> => {
 
     return data;
   } catch (error) {
-    console.error('❌ Failed to fetch quick dashboard data:', error);
     throw error;
   }
 };
@@ -389,7 +387,6 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
 
     return dashboardData;
   } catch (error) {
-    console.error('❌ Failed to fetch dashboard data:', error);
     throw error;
   }
 };
