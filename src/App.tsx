@@ -1183,27 +1183,33 @@ function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-white/50 px-2 py-1.5 rounded-lg border border-stone-200 overflow-x-auto">
-            <span className="text-[10px] text-stone-600 mr-1 whitespace-nowrap">Market:</span>
-            <div className="flex gap-1">
+          <div className="flex items-center gap-1 bg-gradient-to-r from-white/60 to-amber-50/40 px-2 py-1.5 rounded-lg border border-amber-200 overflow-x-auto">
+            <span className="text-[10px] text-stone-700 font-semibold mr-1 whitespace-nowrap">Market State:</span>
+            <div className="flex gap-1.5">
               {[
-                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-400 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } },
-                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-600 text-white border-emerald-500 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } },
-                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-500 text-white border-amber-400 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } },
-                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-600 text-white border-rose-500 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } },
-                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-rose-500 text-white border-rose-400 shadow-md', inactive: 'bg-stone-100/70 text-stone-500 border-stone-200' } }
+                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-emerald-400 shadow-lg', inactive: 'bg-stone-100/50 text-stone-400 border-stone-200' } },
+                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-gradient-to-br from-emerald-600 to-emerald-700 text-white border-emerald-500 shadow-lg', inactive: 'bg-stone-100/50 text-stone-400 border-stone-200' } },
+                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-gradient-to-br from-amber-500 to-orange-500 text-white border-amber-400 shadow-lg', inactive: 'bg-stone-100/50 text-stone-400 border-stone-200' } },
+                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-gradient-to-br from-rose-600 to-rose-700 text-white border-rose-500 shadow-lg', inactive: 'bg-stone-100/50 text-stone-400 border-stone-200' } },
+                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-gradient-to-br from-rose-500 to-rose-600 text-white border-rose-400 shadow-lg', inactive: 'bg-stone-100/50 text-stone-400 border-stone-200' } }
               ].map((state) => {
                 const isActive = state.value > 0.5;
+                const percentage = (state.value * 100).toFixed(0);
                 return (
                   <div
                     key={state.key}
-                    className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
+                    className={`text-[9px] px-2 py-1 rounded-md transition-all whitespace-nowrap border flex flex-col items-center gap-0.5 min-w-[58px] ${
                       isActive
-                        ? `${state.colors.active} font-bold shadow-lg`
+                        ? `${state.colors.active} font-bold shadow-lg ring-2 ring-offset-1 ${
+                            state.key.startsWith('bull') ? 'ring-emerald-300/50' :
+                            state.key === 'sideways' ? 'ring-amber-300/50' :
+                            'ring-rose-300/50'
+                          }`
                         : state.colors.inactive
                     }`}
                   >
-                    {state.label}
+                    <span className={isActive ? 'font-bold' : 'font-medium'}>{state.label}</span>
+                    <span className={`text-[8px] font-mono ${isActive ? 'font-bold' : 'font-normal'}`}>{percentage}%</span>
                   </div>
                 );
               })}

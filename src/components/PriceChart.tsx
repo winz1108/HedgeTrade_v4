@@ -1772,8 +1772,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-              zIndex: 0,
-              backgroundColor: 'rgba(243, 244, 246, 0.6)',
+              zIndex: -1,
+              backgroundColor: 'rgba(243, 244, 246, 0.25)',
             }}
           />
 
@@ -1856,8 +1856,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-              zIndex: 0,
-              backgroundColor: 'rgba(239, 246, 255, 0.6)',
+              zIndex: -1,
+              backgroundColor: 'rgba(239, 246, 255, 0.25)',
             }}
           />
 
@@ -2004,8 +2004,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-              zIndex: 0,
-              backgroundColor: 'rgba(254, 243, 242, 0.6)',
+              zIndex: -1,
+              backgroundColor: 'rgba(254, 243, 242, 0.25)',
             }}
           />
 
