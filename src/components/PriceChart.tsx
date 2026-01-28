@@ -1765,15 +1765,26 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             </div>
           </div>
 
-          {/* Volume Chart Border */}
+          {/* Volume Chart Background */}
           <div
-            className="absolute left-0 rounded border-2 border-stone-400/70 pointer-events-none"
+            className="absolute left-0 rounded pointer-events-none"
             style={{
               top: `${priceChartHeight + 28}px`,
               height: `${volumeChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 0,
-              backgroundColor: 'rgba(250, 250, 250, 0.3)',
+              backgroundColor: 'rgba(243, 244, 246, 0.6)',
+            }}
+          />
+
+          {/* Separator Line Above Volume */}
+          <div
+            className="absolute left-0 pointer-events-none"
+            style={{
+              top: `${priceChartHeight + 26}px`,
+              height: '2px',
+              width: '100%',
+              backgroundColor: 'rgba(156, 163, 175, 0.3)',
             }}
           />
 
@@ -1838,15 +1849,26 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
 
-          {/* MACD Chart Border */}
+          {/* MACD Chart Background */}
           <div
-            className="absolute left-0 rounded border-2 border-stone-400/70 pointer-events-none"
+            className="absolute left-0 rounded pointer-events-none"
             style={{
               top: `${priceChartHeight + volumeChartHeight + 36}px`,
               height: `${macdChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 0,
-              backgroundColor: 'rgba(245, 248, 250, 0.3)',
+              backgroundColor: 'rgba(239, 246, 255, 0.6)',
+            }}
+          />
+
+          {/* Separator Line Above MACD */}
+          <div
+            className="absolute left-0 pointer-events-none"
+            style={{
+              top: `${priceChartHeight + volumeChartHeight + 34}px`,
+              height: '2px',
+              width: '100%',
+              backgroundColor: 'rgba(156, 163, 175, 0.3)',
             }}
           />
 
@@ -1975,15 +1997,26 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
           </div>
 
-          {/* RSI Chart Border */}
+          {/* RSI Chart Background */}
           <div
-            className="absolute left-0 rounded border-2 border-stone-400/70 pointer-events-none"
+            className="absolute left-0 rounded pointer-events-none"
             style={{
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
               height: `${rsiChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 0,
-              backgroundColor: 'rgba(248, 250, 252, 0.3)',
+              backgroundColor: 'rgba(254, 243, 242, 0.6)',
+            }}
+          />
+
+          {/* Separator Line Above RSI */}
+          <div
+            className="absolute left-0 pointer-events-none"
+            style={{
+              top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 42}px`,
+              height: '2px',
+              width: '100%',
+              backgroundColor: 'rgba(156, 163, 175, 0.3)',
             }}
           />
 
