@@ -2170,9 +2170,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
         {/* MACD Y-Axis */}
         <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + 36}px`, height: `${macdChartHeight}px`, width: '100%' }}>
-          {[macdData.max, macdData.min].map((value, i) => {
+          {[macdData.max, 0, macdData.min].map((value, i) => {
             const y = macdToY(value);
-            const displayValue = Math.floor(value / 100) * 100;
+            const displayValue = value === 0 ? 0 : Math.floor(value / 100) * 100;
             return (
               <div
                 key={i}
