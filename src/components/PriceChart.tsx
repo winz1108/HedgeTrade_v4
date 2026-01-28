@@ -1505,9 +1505,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   x2="100%"
                   y2={priceToY(data.holding.buyPrice)}
                   stroke="#3b82f6"
-                  strokeWidth="1"
+                  strokeWidth="1.5"
                   strokeDasharray="4 2"
-                  opacity="0.6"
+                  opacity="0.75"
                   filter="drop-shadow(0 0 3px rgba(59, 130, 246, 0.5))"
                 />
                 {data.holding.takeProfitPrice && (
@@ -1517,9 +1517,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     x2="100%"
                     y2={priceToY(data.holding.takeProfitPrice)}
                     stroke="#0ecb81"
-                    strokeWidth="1"
+                    strokeWidth="1.5"
                     strokeDasharray="4 2"
-                    opacity="0.6"
+                    opacity="0.75"
                     filter="drop-shadow(0 0 3px rgba(14, 203, 129, 0.5))"
                   />
                 )}
@@ -1530,9 +1530,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     x2="100%"
                     y2={priceToY(data.holding.stopLossPrice)}
                     stroke="#f6465d"
-                    strokeWidth="1"
+                    strokeWidth="1.5"
                     strokeDasharray="4 2"
-                    opacity="0.6"
+                    opacity="0.75"
                     filter="drop-shadow(0 0 3px rgba(246, 70, 93, 0.5))"
                   />
                 )}
