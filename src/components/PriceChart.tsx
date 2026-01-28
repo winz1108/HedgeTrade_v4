@@ -89,11 +89,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
       ? Math.min(window.innerHeight * 0.6, 450)
       : 520;
 
-  const priceChartHeight = Math.floor(baseHeight * 0.58);
   const macdChartHeight = Math.floor(baseHeight * 0.18);
   const rsiChartHeight = Math.floor(baseHeight * 0.16);
   const volumeChartHeight = volumeHeight;
-  const chartHeight = priceChartHeight + macdChartHeight + rsiChartHeight + volumeChartHeight + 32;
+  const fixedHeight = macdChartHeight + rsiChartHeight + 32;
+  const priceChartHeight = Math.floor(baseHeight - fixedHeight - volumeChartHeight);
+  const chartHeight = baseHeight;
 
   const candlesByTimeframe = useMemo(() => {
     const validHistory1m = Array.isArray(data.priceHistory1m) ? data.priceHistory1m : [];
@@ -1702,7 +1703,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           </div>
 
           <div
-            className="absolute left-0 w-full border-t-2 border-slate-600 cursor-ns-resize hover:border-slate-400 transition-colors"
+            className="absolute left-0 w-full border-t border-slate-700/20 cursor-ns-resize hover:border-slate-500/40 transition-colors"
             style={{ top: `${priceChartHeight}px`, zIndex: 30 }}
             onMouseDown={handleResizeMouseDown}
           >
