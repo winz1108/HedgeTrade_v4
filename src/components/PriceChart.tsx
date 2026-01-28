@@ -87,7 +87,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     ? window.innerHeight - 120
     : isMobile
       ? Math.min(window.innerHeight * 0.6, 450)
-      : 600;
+      : 590;
 
   const macdChartHeight = Math.floor(baseHeight * 0.18);
   const rsiChartHeight = Math.floor(baseHeight * 0.16);
@@ -1018,7 +1018,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
   };
 
   const chartContent = (
-    <div className={`bg-white/60 rounded-lg shadow-lg border border-stone-200 w-full overflow-visible ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
+    <div className={`bg-white/60 rounded-xl shadow-lg border border-stone-200 w-full overflow-hidden ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
       <div className="bg-white/80 px-2 sm:px-4 py-2 flex items-center justify-between border-b border-stone-200 flex-wrap gap-2">
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
