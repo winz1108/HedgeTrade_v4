@@ -2170,15 +2170,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
         {/* MACD Y-Axis */}
         <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + 36}px`, height: `${macdChartHeight}px`, width: '100%' }}>
-          {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
+          {[macdData.max, macdData.min].map((value, i) => {
             const y = macdToY(value);
+            const displayValue = Math.floor(value / 100) * 100;
             return (
               <div
                 key={i}
                 className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[10px]"
                 style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
               >
-                {value.toFixed(2)}
+                {displayValue}
               </div>
             );
           })}
@@ -2186,13 +2187,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
         {/* RSI Y-Axis */}
         <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`, height: `${rsiChartHeight}px`, width: '100%' }}>
-          {[100, 70, 50, 30, 0].map((value) => {
+          {[70, 30].map((value) => {
             const y = rsiToY(value);
             return (
               <div
                 key={value}
                 className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[10px]"
-                style={{ top: `${value === 0 ? y - 12 : value === 100 ? y : y - 6}px` }}
+                style={{ top: `${y - 6}px` }}
               >
                 {value}
               </div>
