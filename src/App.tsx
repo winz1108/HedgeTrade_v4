@@ -1211,7 +1211,7 @@ function App() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2 items-stretch">
+        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
           <div className="flex flex-col gap-2 order-2 lg:order-1">
             <MetricsPanel
               key={`left-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}

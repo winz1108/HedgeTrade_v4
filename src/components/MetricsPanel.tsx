@@ -31,8 +31,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
   if (position === 'left') {
     return (
-      <div className="flex flex-col gap-2 h-full">
-        <div className="bg-white/90 border border-blue-200 rounded-lg shadow-lg p-3 transition-all duration-300 flex-1 flex flex-col">
+      <div className="flex flex-col gap-2">
+        <div className="bg-white/90 border border-blue-200 rounded-lg shadow-lg p-3 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-slate-800">Current Status</h3>
             <div className="p-1 bg-cyan-100 rounded-lg">
@@ -40,7 +40,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 flex-1">
+          <div className="space-y-2">
             <div className="bg-amber-50/80 rounded-lg p-3 border border-amber-200">
               <div className="text-[10px] text-slate-600 mb-1">Total Asset</div>
               <div
@@ -71,10 +71,10 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               </div>
             </div>
 
-            <div className="border-t border-amber-200 pt-2 flex-1 flex flex-col">
+            <div className="border-t border-amber-200 pt-2">
               <div className="text-[10px] text-slate-600 mb-1.5 font-semibold">Holding Status</div>
               {data.holding.isHolding ? (
-                <div className="space-y-1.5 bg-amber-50/80 rounded-lg p-2 border border-amber-200 flex-1">
+                <div className="space-y-1.5 bg-amber-50/80 rounded-lg p-2 border border-amber-200">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-slate-600 font-semibold">
                       Position
@@ -109,14 +109,14 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             </div>
 
             {data.holding.isHolding && (
-              <div className="border-t border-amber-200 pt-2 flex-1 flex flex-col">
+              <div className="border-t border-amber-200 pt-2">
                 <div className="text-[10px] text-slate-600 mb-1.5 font-semibold">Target Levels</div>
-                <div className="space-y-1.5 flex-1 flex flex-col justify-center">
-                  <div className="flex justify-between items-center bg-emerald-500/10 rounded-lg p-2.5 border border-emerald-500/20">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center bg-emerald-500/10 rounded-lg p-1.5 border border-emerald-500/20">
                     <span className="text-[10px] text-emerald-600 font-semibold">Take Profit</span>
                     <span className="text-[10px] font-bold text-slate-800">{formatCurrency(data.holding.takeProfitPrice!)}</span>
                   </div>
-                  <div className="flex justify-between items-center bg-rose-500/10 rounded-lg p-2.5 border border-rose-500/20">
+                  <div className="flex justify-between items-center bg-rose-500/10 rounded-lg p-1.5 border border-rose-500/20">
                     <span className="text-[10px] text-rose-400 font-semibold">Stop Loss</span>
                     <span className="text-[10px] font-bold text-slate-800">{formatCurrency(data.holding.stopLossPrice!)}</span>
                   </div>
@@ -219,7 +219,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
       .slice(0, 40);
 
     return (
-      <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300 flex-1 flex flex-col">
+      <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300">
         <div className="flex items-center justify-between mb-1.5">
           <h3 className="text-xs font-bold text-slate-800">Recent Trades</h3>
           <div className="flex items-center gap-1.5">
@@ -230,7 +230,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
         </div>
 
-        <div className="space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500 flex-1">
+        <div className="space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500" style={{ maxHeight: '140px' }}>
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, index) => (
               <div key={`${trade.timestamp}-${index}`}>
