@@ -1192,7 +1192,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     y1={y}
                     x2="100%"
                     y2={y}
-                    stroke="rgba(120, 113, 108, 0.15)"
+                    stroke="rgba(120, 113, 108, 0.08)"
                     strokeWidth="1"
                   />
                 );
@@ -1894,7 +1894,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       y1={y}
                       x2="100%"
                       y2={y}
-                      stroke={isZero ? 'rgba(251, 191, 36, 0.25)' : 'rgba(71, 85, 105, 0.15)'}
+                      stroke={isZero ? 'rgba(251, 191, 36, 0.2)' : 'rgba(71, 85, 105, 0.08)'}
                       strokeWidth={isZero ? '1.5' : '1'}
                     />
                   );
@@ -2043,7 +2043,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       y1={y}
                       x2="100%"
                       y2={y}
-                      stroke={isMid ? 'rgba(251, 191, 36, 0.3)' : isThreshold ? 'rgba(239, 68, 68, 0.25)' : 'rgba(71, 85, 105, 0.15)'}
+                      stroke={isMid ? 'rgba(251, 191, 36, 0.2)' : isThreshold ? 'rgba(239, 68, 68, 0.15)' : 'rgba(71, 85, 105, 0.08)'}
                       strokeWidth={isMid ? '1.5' : isThreshold ? '1.5' : '1'}
                       strokeDasharray={isThreshold ? '5 3' : '0'}
                     />
