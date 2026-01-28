@@ -87,7 +87,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     ? window.innerHeight - 120
     : isMobile
       ? Math.min(window.innerHeight * 0.6, 450)
-      : 520;
+      : 600;
 
   const macdChartHeight = Math.floor(baseHeight * 0.18);
   const rsiChartHeight = Math.floor(baseHeight * 0.16);
