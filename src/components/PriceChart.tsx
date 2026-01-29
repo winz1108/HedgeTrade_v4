@@ -1421,7 +1421,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               );
             })}
 
-            {(() => {
+            {showTradeMarkers && (() => {
               if (visibleCandles.length === 0) return null;
 
               const highestCandle = visibleCandles.reduce((max, candle, idx) =>
@@ -1452,10 +1452,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   />
                   <div
-                    className="absolute text-[9px] text-black font-medium whitespace-nowrap text-right"
+                    className="absolute text-[9px] text-black font-semibold whitespace-nowrap text-right px-1 py-0.5 bg-white rounded"
                     style={{
                       right: `calc(100% - ${highX - lineLength}px + 2px)`,
-                      top: `${highY - 4}px`,
+                      top: `${highY - 8}px`,
                       pointerEvents: 'none',
                       zIndex: 9999
                     }}
@@ -1474,10 +1474,10 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     }}
                   />
                   <div
-                    className="absolute text-[9px] text-black font-medium whitespace-nowrap text-right"
+                    className="absolute text-[9px] text-black font-semibold whitespace-nowrap text-right px-1 py-0.5 bg-white rounded"
                     style={{
                       right: `calc(100% - ${lowX - lineLength}px + 2px)`,
-                      top: `${lowY - 4}px`,
+                      top: `${lowY - 8}px`,
                       pointerEvents: 'none',
                       zIndex: 9999
                     }}
