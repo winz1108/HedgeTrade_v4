@@ -1437,36 +1437,48 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               const lowY = priceToY(lowPrice);
               const highX = highestCandle * (candleWidth + candleGap);
               const lowX = lowestCandle * (candleWidth + candleGap);
-              const lineLength = 20;
+              const lineLength = 24;
 
               return (
                 <>
                   <div
-                    className="absolute flex items-center flex-row-reverse"
+                    className="absolute h-0.5 bg-slate-400/60"
                     style={{
                       left: `${highX - lineLength}px`,
-                      top: `${highY - 1}px`,
+                      top: `${highY}px`,
+                      width: `${lineLength}px`,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                  <div
+                    className="absolute text-[9px] text-slate-400 font-medium whitespace-nowrap text-right"
+                    style={{
+                      right: `calc(100% - ${highX - lineLength}px + 2px)`,
+                      top: `${highY - 4}px`,
                       pointerEvents: 'none'
                     }}
                   >
-                    <div className="h-0.5 bg-slate-400/60" style={{ width: `${lineLength}px` }} />
-                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap mr-1">
-                      {highPrice.toFixed(2)}
-                    </span>
+                    {highPrice.toFixed(2)}
                   </div>
 
                   <div
-                    className="absolute flex items-center flex-row-reverse"
+                    className="absolute h-0.5 bg-slate-400/60"
                     style={{
                       left: `${lowX - lineLength}px`,
-                      top: `${lowY - 1}px`,
+                      top: `${lowY}px`,
+                      width: `${lineLength}px`,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                  <div
+                    className="absolute text-[9px] text-slate-400 font-medium whitespace-nowrap text-right"
+                    style={{
+                      right: `calc(100% - ${lowX - lineLength}px + 2px)`,
+                      top: `${lowY - 4}px`,
                       pointerEvents: 'none'
                     }}
                   >
-                    <div className="h-0.5 bg-slate-400/60" style={{ width: `${lineLength}px` }} />
-                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap mr-1">
-                      {lowPrice.toFixed(2)}
-                    </span>
+                    {lowPrice.toFixed(2)}
                   </div>
                 </>
               );
