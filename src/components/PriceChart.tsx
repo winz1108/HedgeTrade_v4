@@ -1420,6 +1420,56 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 </div>
               );
             })}
+
+            {(() => {
+              if (visibleCandles.length === 0) return null;
+
+              const highestCandle = visibleCandles.reduce((max, candle, idx) =>
+                candle.high > visibleCandles[max].high ? idx : max, 0
+              );
+              const lowestCandle = visibleCandles.reduce((min, candle, idx) =>
+                candle.low < visibleCandles[min].low ? idx : min, 0
+              );
+
+              const highPrice = visibleCandles[highestCandle].high;
+              const lowPrice = visibleCandles[lowestCandle].low;
+              const highY = priceToY(highPrice);
+              const lowY = priceToY(lowPrice);
+              const highX = highestCandle * (candleWidth + candleGap) + candleWidth / 2;
+              const lowX = lowestCandle * (candleWidth + candleGap) + candleWidth / 2;
+
+              return (
+                <>
+                  <div
+                    className="absolute flex items-center"
+                    style={{
+                      left: `${highX}px`,
+                      top: `${highY - 1}px`,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    <div className="w-2 h-0.5 bg-slate-400/60" />
+                    <span className="text-[9px] text-slate-300 font-medium ml-0.5 bg-slate-900/40 px-1 rounded whitespace-nowrap">
+                      {highPrice.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div
+                    className="absolute flex items-center"
+                    style={{
+                      left: `${lowX}px`,
+                      top: `${lowY - 1}px`,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    <div className="w-2 h-0.5 bg-slate-400/60" />
+                    <span className="text-[9px] text-slate-300 font-medium ml-0.5 bg-slate-900/40 px-1 rounded whitespace-nowrap">
+                      {lowPrice.toFixed(2)}
+                    </span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           <div
