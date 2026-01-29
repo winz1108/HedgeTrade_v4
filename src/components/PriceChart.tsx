@@ -466,7 +466,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               BUY Signal at ${trade.price.toFixed(2)}
             </div>
 
-            {(trade.prediction || (data.holding.takeProfitPrice && data.holding.stopLossPrice)) ? (
+            {(trade.prediction || (data.holding.tpPrice && data.holding.slPrice)) ? (
               <>
                 <div className="mb-3">
                   <div className="text-slate-200 text-[10px] mb-2 font-semibold">익절 확률 (Take Profit Probability)</div>
@@ -504,13 +504,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <div className="flex justify-between gap-6">
                       <span className="text-stone-200">예상 익절가</span>
                       <span className="text-white font-semibold">
-                        ${(data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
+                        ${(data.holding.tpPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
                       <span className="text-stone-200">예상 손절가</span>
                       <span className="text-white font-semibold">
-                        ${(data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
+                        ${(data.holding.slPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -542,16 +542,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       </span>
                     </div>
                     {(() => {
-                      const takeProfitPrice = data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0;
-                      const stopLossPrice = data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0;
+                      const tpPrice = data.holding.tpPrice || trade.prediction?.expectedTakeProfitPrice || 0;
+                      const slPrice = data.holding.slPrice || trade.prediction?.expectedStopLossPrice || 0;
 
-                      if (data.currentPrice >= takeProfitPrice) {
+                      if (data.currentPrice >= tpPrice) {
                         return (
                           <div className="text-[#0ecb81] text-center py-1 bg-[#0ecb81]/10 rounded mt-2 font-semibold">
                             ✓ 익절 달성
                           </div>
                         );
-                      } else if (data.currentPrice <= stopLossPrice) {
+                      } else if (data.currentPrice <= slPrice) {
                         return (
                           <div className="text-[#f6465d] text-center py-1 bg-[#f6465d]/10 rounded mt-2 font-semibold">
                             ✗ 손절 발생
@@ -657,7 +657,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
             </div>
 
-            {(trade.prediction || (data.holding.takeProfitPrice && data.holding.stopLossPrice)) && (
+            {(trade.prediction || (data.holding.tpPrice && data.holding.slPrice)) && (
               <div>
                 <div className="text-slate-500 text-[10px] mb-2 font-semibold">익절 확률</div>
                 <div className="space-y-1.5 bg-slate-800/50 p-2 rounded text-[10px]">
@@ -694,13 +694,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div className="flex justify-between gap-4">
                     <span className="text-stone-200">익절가</span>
                     <span className="text-white">
-                      ${(data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
+                      ${(data.holding.tpPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="text-stone-200">손절가</span>
                     <span className="text-white">
-                      ${(data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
+                      ${(data.holding.slPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -758,7 +758,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               BUY Signal at ${trade.price.toFixed(2)}
             </div>
 
-            {(trade.prediction || (data.holding.takeProfitPrice && data.holding.stopLossPrice)) ? (
+            {(trade.prediction || (data.holding.tpPrice && data.holding.slPrice)) ? (
               <>
                 <div className="mb-3">
                   <div className="text-slate-200 text-[10px] mb-2 font-semibold">익절 확률 (Take Profit Probability)</div>
@@ -796,13 +796,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     <div className="flex justify-between gap-6">
                       <span className="text-stone-200">예상 익절가</span>
                       <span className="text-white font-semibold">
-                        ${(data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
+                        ${(data.holding.tpPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between gap-6">
                       <span className="text-stone-200">예상 손절가</span>
                       <span className="text-white font-semibold">
-                        ${(data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
+                        ${(data.holding.slPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -834,16 +834,16 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       </span>
                     </div>
                     {(() => {
-                      const takeProfitPrice = data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0;
-                      const stopLossPrice = data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0;
+                      const tpPrice = data.holding.tpPrice || trade.prediction?.expectedTakeProfitPrice || 0;
+                      const slPrice = data.holding.slPrice || trade.prediction?.expectedStopLossPrice || 0;
 
-                      if (data.currentPrice >= takeProfitPrice) {
+                      if (data.currentPrice >= tpPrice) {
                         return (
                           <div className="text-[#0ecb81] text-center py-1 bg-[#0ecb81]/10 rounded mt-2 font-semibold">
                             ✓ 익절 달성
                           </div>
                         );
-                      } else if (data.currentPrice <= stopLossPrice) {
+                      } else if (data.currentPrice <= slPrice) {
                         return (
                           <div className="text-[#f6465d] text-center py-1 bg-[#f6465d]/10 rounded mt-2 font-semibold">
                             ✗ 손절 발생
@@ -949,7 +949,7 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               </div>
             </div>
 
-            {(trade.prediction || (data.holding.takeProfitPrice && data.holding.stopLossPrice)) && (
+            {(trade.prediction || (data.holding.tpPrice && data.holding.slPrice)) && (
               <div>
                 <div className="text-slate-500 text-[10px] mb-2 font-semibold">익절 확률</div>
                 <div className="space-y-1.5 bg-slate-800/50 p-2 rounded text-[10px]">
@@ -986,13 +986,13 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div className="flex justify-between gap-4">
                     <span className="text-stone-200">익절가</span>
                     <span className="text-white">
-                      ${(data.holding.takeProfitPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
+                      ${(data.holding.tpPrice || trade.prediction?.expectedTakeProfitPrice || 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="text-stone-200">손절가</span>
                     <span className="text-white">
-                      ${(data.holding.stopLossPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
+                      ${(data.holding.slPrice || trade.prediction?.expectedStopLossPrice || 0).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -1511,12 +1511,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   opacity="0.75"
                   filter="drop-shadow(0 0 3px rgba(59, 130, 246, 0.5))"
                 />
-                {data.holding.takeProfitPrice && (
+                {data.holding.tpPrice && (
                   <line
                     x1="0"
-                    y1={priceToY(data.holding.takeProfitPrice)}
+                    y1={priceToY(data.holding.tpPrice)}
                     x2="100%"
-                    y2={priceToY(data.holding.takeProfitPrice)}
+                    y2={priceToY(data.holding.tpPrice)}
                     stroke="#0ecb81"
                     strokeWidth="1.5"
                     strokeDasharray="4 2"
@@ -1524,12 +1524,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     filter="drop-shadow(0 0 3px rgba(14, 203, 129, 0.5))"
                   />
                 )}
-                {data.holding.stopLossPrice && (
+                {data.holding.slPrice && (
                   <line
                     x1="0"
-                    y1={priceToY(data.holding.stopLossPrice)}
+                    y1={priceToY(data.holding.slPrice)}
                     x2="100%"
-                    y2={priceToY(data.holding.stopLossPrice)}
+                    y2={priceToY(data.holding.slPrice)}
                     stroke="#f6465d"
                     strokeWidth="1.5"
                     strokeDasharray="4 2"

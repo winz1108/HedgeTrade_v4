@@ -175,8 +175,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     const visibleCandles = allCandles.slice(startIndex, endIndex);
 
     const prices = visibleCandles.flatMap(c => [c.high, c.low]);
-    if (data.holding.takeProfitPrice) prices.push(data.holding.takeProfitPrice);
-    if (data.holding.stopLossPrice) prices.push(data.holding.stopLossPrice);
+    if (data.holding.tpPrice) prices.push(data.holding.tpPrice);
+    if (data.holding.slPrice) prices.push(data.holding.slPrice);
 
     const minPrice = Math.min(...prices) * 0.999;
     const maxPrice = Math.max(...prices) * 1.001;

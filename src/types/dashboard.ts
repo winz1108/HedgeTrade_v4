@@ -43,8 +43,8 @@ export interface HoldingInfo {
   buyPrice?: number;
   buyTime?: number;
   currentProfit?: number;
-  takeProfitPrice?: number;
-  stopLossPrice?: number;
+  tpPrice?: number;
+  slPrice?: number;
   initialTakeProfitProb?: number;
   v5MoeTakeProfitProb?: number;
   latestPrediction?: {

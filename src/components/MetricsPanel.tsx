@@ -114,11 +114,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center bg-emerald-500/10 rounded-lg p-1.5 border border-emerald-500/20">
                     <span className="text-[10px] text-emerald-600 font-semibold">Take Profit</span>
-                    <span className="text-[10px] font-bold text-slate-800">{formatCurrency(data.holding.takeProfitPrice!)}</span>
+                    <span className="text-[10px] font-bold text-slate-800">{formatCurrency(data.holding.tpPrice!)}</span>
                   </div>
                   <div className="flex justify-between items-center bg-rose-500/10 rounded-lg p-1.5 border border-rose-500/20">
                     <span className="text-[10px] text-rose-400 font-semibold">Stop Loss</span>
-                    <span className="text-[10px] font-bold text-slate-800">{formatCurrency(data.holding.stopLossPrice!)}</span>
+                    <span className="text-[10px] font-bold text-slate-800">{formatCurrency(data.holding.slPrice!)}</span>
                   </div>
                 </div>
               </div>

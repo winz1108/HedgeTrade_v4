@@ -151,8 +151,8 @@ const convertApiResponseToDashboardData = (
         buyPrice: account.holding.entryPrice,
         buyTime: account.holding.entryTime,
         currentProfit: account.holding.unrealizedPnlPct,
-        takeProfitPrice: account.holding.tpPrice,
-        stopLossPrice: account.holding.slPrice,
+        tpPrice: account.holding.tpPrice,
+        slPrice: account.holding.slPrice,
         initialTakeProfitProb: account.holding.initialTakeProfitProb,
         v5MoeTakeProfitProb: apiResponse.currentPrediction.v5MoeTakeProfitProb,
         latestPrediction: {
@@ -251,8 +251,8 @@ const convertApiResponseToDashboardData = (
       buyPrice: (apiResponse as any).holding?.buyPrice,
       buyTime: (apiResponse as any).holding?.buyTime,
       currentProfit: (apiResponse as any).holding?.currentProfit,
-      takeProfitPrice: (apiResponse as any).holding?.takeProfitPrice,
-      stopLossPrice: (apiResponse as any).holding?.stopLossPrice,
+      tpPrice: (apiResponse as any).holding?.tpPrice,
+      slPrice: (apiResponse as any).holding?.slPrice,
       initialTakeProfitProb: (apiResponse as any).holding?.initialTakeProfitProb,
       v5MoeTakeProfitProb: apiResponse.currentPrediction?.v5MoeTakeProfitProb,
       latestPrediction: {
