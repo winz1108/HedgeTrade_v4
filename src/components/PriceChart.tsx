@@ -1435,37 +1435,38 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               const lowPrice = visibleCandles[lowestCandle].low;
               const highY = priceToY(highPrice);
               const lowY = priceToY(lowPrice);
-              const highX = highestCandle * (candleWidth + candleGap) + candleWidth / 2;
-              const lowX = lowestCandle * (candleWidth + candleGap) + candleWidth / 2;
+              const highX = highestCandle * (candleWidth + candleGap);
+              const lowX = lowestCandle * (candleWidth + candleGap);
+              const lineLength = 20;
 
               return (
                 <>
                   <div
-                    className="absolute flex items-center"
+                    className="absolute flex items-center flex-row-reverse"
                     style={{
-                      left: `${highX - 28}px`,
+                      left: `${highX - lineLength}px`,
                       top: `${highY - 1}px`,
                       pointerEvents: 'none'
                     }}
                   >
-                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap">
+                    <div className="h-0.5 bg-slate-400/60" style={{ width: `${lineLength}px` }} />
+                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap mr-1">
                       {highPrice.toFixed(2)}
                     </span>
-                    <div className="w-2 h-0.5 bg-slate-400/60 ml-0.5" />
                   </div>
 
                   <div
-                    className="absolute flex items-center"
+                    className="absolute flex items-center flex-row-reverse"
                     style={{
-                      left: `${lowX - 28}px`,
+                      left: `${lowX - lineLength}px`,
                       top: `${lowY - 1}px`,
                       pointerEvents: 'none'
                     }}
                   >
-                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap">
+                    <div className="h-0.5 bg-slate-400/60" style={{ width: `${lineLength}px` }} />
+                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap mr-1">
                       {lowPrice.toFixed(2)}
                     </span>
-                    <div className="w-2 h-0.5 bg-slate-400/60 ml-0.5" />
                   </div>
                 </>
               );
