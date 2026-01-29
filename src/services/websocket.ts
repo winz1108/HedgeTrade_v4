@@ -73,6 +73,8 @@ export interface AccountBalance {
   usdcLocked: number;
   btcValue: number;
   totalAsset: number;
+  trades?: any[];
+  holding?: any;
 }
 
 export interface DashboardUpdate {

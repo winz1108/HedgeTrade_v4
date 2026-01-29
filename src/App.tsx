@@ -779,9 +779,9 @@ function App() {
               });
             }
 
-            // 거래 및 holding 정보 업데이트
-            const updatedTrades = update.trades || prevData.trades;
-            const updatedHolding = update.holding || prevData.holding;
+            // 거래 및 holding 정보 업데이트 (accountData에서 가져옴)
+            const updatedTrades = accountData.trades || prevData.trades;
+            const updatedHolding = accountData.holding || prevData.holding;
 
             return {
               ...prevData,
