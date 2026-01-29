@@ -1442,40 +1442,44 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               return (
                 <>
                   <div
-                    className="absolute h-0.5 bg-slate-400/60"
+                    className="absolute h-0.5 bg-black"
                     style={{
                       left: `${highX - lineLength}px`,
                       top: `${highY}px`,
                       width: `${lineLength}px`,
-                      pointerEvents: 'none'
+                      pointerEvents: 'none',
+                      zIndex: 9999
                     }}
                   />
                   <div
-                    className="absolute text-[9px] text-slate-400 font-medium whitespace-nowrap text-right"
+                    className="absolute text-[9px] text-black font-medium whitespace-nowrap text-right"
                     style={{
                       right: `calc(100% - ${highX - lineLength}px + 2px)`,
                       top: `${highY - 4}px`,
-                      pointerEvents: 'none'
+                      pointerEvents: 'none',
+                      zIndex: 9999
                     }}
                   >
                     {highPrice.toFixed(2)}
                   </div>
 
                   <div
-                    className="absolute h-0.5 bg-slate-400/60"
+                    className="absolute h-0.5 bg-black"
                     style={{
                       left: `${lowX - lineLength}px`,
                       top: `${lowY}px`,
                       width: `${lineLength}px`,
-                      pointerEvents: 'none'
+                      pointerEvents: 'none',
+                      zIndex: 9999
                     }}
                   />
                   <div
-                    className="absolute text-[9px] text-slate-400 font-medium whitespace-nowrap text-right"
+                    className="absolute text-[9px] text-black font-medium whitespace-nowrap text-right"
                     style={{
                       right: `calc(100% - ${lowX - lineLength}px + 2px)`,
                       top: `${lowY - 4}px`,
-                      pointerEvents: 'none'
+                      pointerEvents: 'none',
+                      zIndex: 9999
                     }}
                   >
                     {lowPrice.toFixed(2)}
