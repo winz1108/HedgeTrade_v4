@@ -1443,29 +1443,29 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   <div
                     className="absolute flex items-center"
                     style={{
-                      left: `${highX}px`,
+                      left: `${highX - 28}px`,
                       top: `${highY - 1}px`,
                       pointerEvents: 'none'
                     }}
                   >
-                    <div className="w-2 h-0.5 bg-slate-400/60" />
-                    <span className="text-[9px] text-slate-300 font-medium ml-0.5 bg-slate-900/40 px-1 rounded whitespace-nowrap">
+                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap">
                       {highPrice.toFixed(2)}
                     </span>
+                    <div className="w-2 h-0.5 bg-slate-400/60 ml-0.5" />
                   </div>
 
                   <div
                     className="absolute flex items-center"
                     style={{
-                      left: `${lowX}px`,
+                      left: `${lowX - 28}px`,
                       top: `${lowY - 1}px`,
                       pointerEvents: 'none'
                     }}
                   >
-                    <div className="w-2 h-0.5 bg-slate-400/60" />
-                    <span className="text-[9px] text-slate-300 font-medium ml-0.5 bg-slate-900/40 px-1 rounded whitespace-nowrap">
+                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap">
                       {lowPrice.toFixed(2)}
                     </span>
+                    <div className="w-2 h-0.5 bg-slate-400/60 ml-0.5" />
                   </div>
                 </>
               );
