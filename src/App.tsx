@@ -146,6 +146,9 @@ function App() {
         currentPrice: fullDashboard.currentPrice,
       });
 
+      console.log('[App loadData] Full dashboard prediction:', fullDashboard.prediction);
+      console.log('[App loadData] Full dashboard marketState:', fullDashboard.marketState);
+
       setData(fullDashboard);
       setLoading(false);
     } catch (error) {
@@ -1073,6 +1076,11 @@ function App() {
           <div className="flex items-center gap-2 bg-white/50 px-3 py-2 rounded-lg border border-amber-200">
             <span className="text-[10px] text-stone-600 font-medium whitespace-nowrap">Market State:</span>
             <div className="flex items-center gap-2">
+              {(() => {
+                console.log('[App Render] Market state check - prediction:', data.prediction);
+                console.log('[App Render] market_mood:', data.prediction?.market_mood);
+                return null;
+              })()}
               {data.prediction?.market_mood === 'BULL' && (
                 <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded font-semibold">
                   <span className="text-sm">🐂</span>

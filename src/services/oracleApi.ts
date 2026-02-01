@@ -395,7 +395,12 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
       throw new Error('Empty API response');
     }
 
+    console.log('[fetchDashboardData] API response prediction:', apiResponse.prediction);
+    console.log('[fetchDashboardData] API response marketState:', apiResponse.marketState);
+
     const dashboardData = convertApiResponseToDashboardData(apiResponse, accountId);
+
+    console.log('[fetchDashboardData] Transformed prediction:', dashboardData.prediction);
 
     return dashboardData;
   } catch (error) {
