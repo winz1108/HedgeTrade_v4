@@ -110,7 +110,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
             {data.holding.isHolding && (
               <div className="border-t border-amber-200 pt-2">
-                <div className="text-[10px] text-slate-600 mb-1.5 font-semibold">Target Levels (TP 1.2% / SL 0.8%)</div>
+                <div className="text-[10px] text-slate-600 mb-1.5 font-semibold">Target Levels</div>
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center bg-emerald-500/10 rounded-lg p-1.5 border border-emerald-500/20">
                     <span className="text-[10px] text-emerald-600 font-semibold">Take Profit</span>
@@ -131,14 +131,9 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             <div className="flex flex-col gap-0.5">
               <h3 className="text-sm font-bold text-slate-800">AI Prediction (v8)</h3>
               {data.currentPrediction?.predictionDataTimestamp && (
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[8px] text-slate-500">
-                    데이터 기준: {formatLocalTime(data.currentPrediction.predictionDataTimestamp)}
-                  </span>
-                  <span className="text-[8px] text-slate-400">
-                    1분봉 완성 시점마다 갱신
-                  </span>
-                </div>
+                <span className="text-[8px] text-slate-500">
+                  데이터 기준: {formatLocalTime(data.currentPrediction.predictionDataTimestamp)}
+                </span>
               )}
             </div>
             <div className="p-1 bg-emerald-500/20 rounded-lg">
