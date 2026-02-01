@@ -61,6 +61,12 @@ export interface PredictionUpdate {
   stopLossProb?: number;
   market_state?: any;
   gate_weights?: number[];
+  prediction?: {
+    market_mood?: 'BULL' | 'BEAR';
+    threshold_v8?: number;
+    bb_touch?: boolean;
+    takeProfitProb?: number;
+  };
 }
 
 export interface AccountBalance {

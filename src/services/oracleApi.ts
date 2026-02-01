@@ -129,16 +129,6 @@ const convertApiResponseToDashboardData = (
       }));
     };
 
-    let marketMood: 'BULL' | 'BEAR' | undefined = undefined;
-    if (apiResponse.marketState?.activeState) {
-      const activeState = apiResponse.marketState.activeState.toUpperCase();
-      if (activeState === 'BULL' || activeState.includes('BULL')) {
-        marketMood = 'BULL';
-      } else if (activeState === 'BEAR' || activeState.includes('BEAR')) {
-        marketMood = 'BEAR';
-      }
-    }
-
     return {
       version: apiResponse.version,
       currentAsset: account.asset.currentAsset,
@@ -170,8 +160,11 @@ const convertApiResponseToDashboardData = (
           stopLossProb: apiResponse.currentPrediction.stopLossProb,
         },
       },
-      prediction: {
-        market_mood: marketMood,
+      prediction: apiResponse.prediction || {
+        market_mood: undefined,
+        threshold_v8: undefined,
+        bb_touch: undefined,
+        takeProfitProb: undefined,
       },
       currentPrediction: {
         takeProfitProb: apiResponse.currentPrediction.takeProfitProb,
@@ -242,16 +235,6 @@ const convertApiResponseToDashboardData = (
       })
     : [];
 
-  let marketMoodSingle: 'BULL' | 'BEAR' | undefined = undefined;
-  if (apiResponse.marketState?.activeState) {
-    const activeState = apiResponse.marketState.activeState.toUpperCase();
-    if (activeState === 'BULL' || activeState.includes('BULL')) {
-      marketMoodSingle = 'BULL';
-    } else if (activeState === 'BEAR' || activeState.includes('BEAR')) {
-      marketMoodSingle = 'BEAR';
-    }
-  }
-
   return {
     version: apiResponse.version,
     currentAsset: (apiResponse as any).currentAsset ?? 0,
@@ -283,8 +266,11 @@ const convertApiResponseToDashboardData = (
         stopLossProb: apiResponse.currentPrediction?.stopLossProb ?? 0,
       },
     },
-    prediction: {
-      market_mood: marketMoodSingle,
+    prediction: apiResponse.prediction || {
+      market_mood: undefined,
+      threshold_v8: undefined,
+      bb_touch: undefined,
+      takeProfitProb: undefined,
     },
     currentPrediction: {
       takeProfitProb: apiResponse.currentPrediction?.takeProfitProb ?? 0,

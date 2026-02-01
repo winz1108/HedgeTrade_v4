@@ -136,6 +136,12 @@ export interface ApiResponse {
   priceHistory1h?: Candle[];
   priceHistory4h?: Candle[];
   priceHistory1d?: Candle[];
+  prediction?: {
+    market_mood?: 'BULL' | 'BEAR';
+    threshold_v8?: number;
+    bb_touch?: boolean;
+    takeProfitProb?: number;
+  };
   currentPrediction: {
     v5MoeTakeProfitProb: number;
     v5MoeStopLossProb: number;
