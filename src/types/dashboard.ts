@@ -182,6 +182,12 @@ export interface DashboardData {
   pricePredictions: Candle[];
   trades: TradeEvent[];
   holding: HoldingInfo;
+  prediction?: {
+    market_mood?: 'BULL' | 'BEAR';
+    threshold_v8?: number;
+    bb_touch?: boolean;
+    takeProfitProb?: number;
+  };
   currentPrediction?: {
     takeProfitProb: number;
     stopLossProb: number;

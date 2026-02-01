@@ -129,7 +129,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
         <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-3 hover:shadow-emerald-500/10 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <div className="flex flex-col gap-0.5">
-              <h3 className="text-sm font-bold text-slate-800">AI Prediction (v8)</h3>
+              <h3 className="text-sm font-bold text-slate-800">AI Prediction</h3>
               {data.currentPrediction?.predictionDataTimestamp && (
                 <span className="text-[8px] text-slate-500">
                   데이터 기준: {formatLocalTime(data.currentPrediction.predictionDataTimestamp)}
@@ -143,53 +143,30 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
           {data.currentPrediction ? (
             <div className="space-y-2">
-              <div className="bg-blue-50/80 rounded-lg p-2 border border-blue-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-600 font-semibold">시장 상태</span>
-                  <div className="flex items-center gap-1">
-                    {data.marketState?.activeState === 'BULL' && (
-                      <>
-                        <span className="text-base">🐂</span>
-                        <span className="text-[10px] font-bold text-emerald-600">상승장</span>
-                      </>
-                    )}
-                    {data.marketState?.activeState === 'BEAR' && (
-                      <>
-                        <span className="text-base">🐻</span>
-                        <span className="text-[10px] font-bold text-rose-400">하락장</span>
-                      </>
-                    )}
-                    {data.marketState?.activeState !== 'BULL' && data.marketState?.activeState !== 'BEAR' && (
-                      <span className="text-[10px] font-bold text-slate-600">분석중</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
               <div className="bg-sky-50/80 rounded-lg p-2 border border-sky-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-600 font-semibold">임계값 (v8)</span>
+                  <span className="text-[10px] text-slate-600 font-semibold">임계값</span>
                   <span className="text-xs font-bold text-sky-700">
-                    {data.currentPrediction.threshold_v8 !== undefined
-                      ? `${(data.currentPrediction.threshold_v8 * 100).toFixed(0)}%`
-                      : data.marketState?.activeState === 'BULL' ? '78%' : '85%'}
+                    {data.prediction?.threshold_v8 !== undefined
+                      ? `${(data.prediction.threshold_v8 * 100).toFixed(0)}%`
+                      : data.prediction?.market_mood === 'BULL' ? '78%' : '85%'}
                   </span>
                 </div>
               </div>
 
               <div className={`rounded-lg p-2 border ${
-                data.currentPrediction.bb_touch
+                data.prediction?.bb_touch
                   ? 'bg-emerald-50/80 border-emerald-200'
                   : 'bg-rose-50/80 border-rose-200'
               }`}>
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-slate-600 font-semibold">BB Touch</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-base">{data.currentPrediction.bb_touch ? '✓' : '✗'}</span>
+                    <span className="text-base">{data.prediction?.bb_touch ? '✓' : '✗'}</span>
                     <span className={`text-[10px] font-bold ${
-                      data.currentPrediction.bb_touch ? 'text-emerald-600' : 'text-rose-400'
+                      data.prediction?.bb_touch ? 'text-emerald-600' : 'text-rose-400'
                     }`}>
-                      {data.currentPrediction.bb_touch ? '매수가능' : '대기'}
+                      {data.prediction?.bb_touch ? '매수가능' : '대기'}
                     </span>
                   </div>
                 </div>

@@ -1052,21 +1052,21 @@ function App() {
           </div>
 
           <div className="flex items-center gap-2 bg-white/50 px-3 py-2 rounded-lg border border-amber-200">
-            <span className="text-[10px] text-stone-600 font-medium whitespace-nowrap">Market State (v8):</span>
+            <span className="text-[10px] text-stone-600 font-medium whitespace-nowrap">Market State:</span>
             <div className="flex items-center gap-2">
-              {data.marketState?.activeState === 'BULL' && (
+              {data.prediction?.market_mood === 'BULL' && (
                 <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded font-semibold">
                   <span className="text-sm">🐂</span>
                   <span className="text-[10px]">상승장</span>
                 </div>
               )}
-              {data.marketState?.activeState === 'BEAR' && (
+              {data.prediction?.market_mood === 'BEAR' && (
                 <div className="flex items-center gap-1 bg-rose-100 text-rose-700 border border-rose-200 px-2 py-1 rounded font-semibold">
                   <span className="text-sm">🐻</span>
                   <span className="text-[10px]">하락장</span>
                 </div>
               )}
-              {data.marketState?.activeState !== 'BULL' && data.marketState?.activeState !== 'BEAR' && (
+              {data.prediction?.market_mood !== 'BULL' && data.prediction?.market_mood !== 'BEAR' && (
                 <div className="flex items-center gap-1 bg-stone-100 text-stone-600 border border-stone-200 px-2 py-1 rounded">
                   <span className="text-[10px]">분석중</span>
                 </div>
