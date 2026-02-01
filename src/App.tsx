@@ -747,6 +747,11 @@ function App() {
         const accountData = update.accounts.find(acc => acc.accountId === selectedAccount);
 
         if (accountData) {
+          console.log('[대시보드 업데이트]', {
+            거래수: accountData.trades?.length,
+            보유중: accountData.holding?.hasPosition,
+            첫거래샘플: accountData.trades?.[0],
+          });
           setData((prevData) => {
             if (!prevData) return prevData;
 
@@ -798,6 +803,13 @@ function App() {
     });
 
     const unsubscribeTradeEvent = websocketService.onTradeEvent((update) => {
+      console.log('[거래 이벤트]', {
+        accountId: update.accountId,
+        거래수: update.trades?.length,
+        보유중: update.holding?.isHolding,
+        첫거래샘플: update.trades?.[0],
+      });
+
       setData((prevData) => {
         if (!prevData) return prevData;
         if (update.accountId !== selectedAccount) return prevData;

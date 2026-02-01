@@ -221,19 +221,63 @@ const convertApiResponseToDashboardData = (
   };
 
   // priceHistory1m 등이 최상위에 있는 경우
-  const trades = Array.isArray(apiResponse.trades)
-    ? apiResponse.trades.map((t: any, index: number) => {
-        const pairId = t.pairId || `pair_${t.timestamp}_${index}`;
-        return {
-          timestamp: t.timestamp,
-          type: t.type,
-          price: t.price,
-          profit: t.profit,
-          pairId,
-          prediction: t.prediction,
-        };
-      })
+  let trades = Array.isArray(apiResponse.trades)
+    ? apiResponse.trades.map((t: any) => ({
+        timestamp: t.timestamp,
+        type: t.type,
+        price: t.price,
+        profit: t.profit,
+        pairId: t.pairId || t.pair_id || undefined,
+        prediction: t.prediction,
+      }))
     : [];
+
+  // pairId가 없는 경우 자동 페어링
+  const hasPairIds = trades.some(t => t.pairId);
+
+  if (!hasPairIds && trades.length > 0) {
+    console.log('[거래 페어링] pairId가 없어서 자동 페어링 시작...');
+
+    // 타임스탬프 순으로 정렬
+    trades.sort((a, b) => a.timestamp - b.timestamp);
+
+    const unpaired = [...trades];
+    let pairCounter = 0;
+
+    while (unpaired.length >= 2) {
+      // 첫 번째 매수 찾기
+      const buyIndex = unpaired.findIndex(t => t.type === 'buy');
+      if (buyIndex === -1) break;
+
+      // 해당 매수 이후 첫 번째 매도 찾기
+      const sellIndex = unpaired.findIndex((t, i) => i > buyIndex && t.type === 'sell');
+      if (sellIndex === -1) break;
+
+      // 페어링
+      const pairId = `auto_pair_${pairCounter++}`;
+      unpaired[buyIndex].pairId = pairId;
+      unpaired[sellIndex].pairId = pairId;
+
+      console.log(`  - 매수(${new Date(unpaired[buyIndex].timestamp).toLocaleString()}) ↔ 매도(${new Date(unpaired[sellIndex].timestamp).toLocaleString()})`);
+
+      // 페어링된 거래 제거
+      unpaired.splice(sellIndex, 1);
+      unpaired.splice(buyIndex, 1);
+    }
+
+    if (unpaired.length > 0) {
+      console.log(`[거래 페어링] ${unpaired.length}개 미페어링 (${unpaired.filter(t => t.type === 'buy').length}개 매수, ${unpaired.filter(t => t.type === 'sell').length}개 매도)`);
+    }
+  }
+
+  // 거래 페어링 통계
+  const buys = trades.filter(t => t.type === 'buy');
+  const sells = trades.filter(t => t.type === 'sell');
+  const pairedTrades = trades.filter(t => {
+    const pair = trades.find(other => other.pairId === t.pairId && other.timestamp !== t.timestamp);
+    return !!pair;
+  });
+  console.log(`[거래 페어링] 총 ${trades.length}개 거래 (매수: ${buys.length}, 매도: ${sells.length}, 페어링됨: ${pairedTrades.length})`);
 
   return {
     version: apiResponse.version,
