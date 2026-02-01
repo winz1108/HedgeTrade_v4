@@ -747,6 +747,21 @@ function App() {
         const accountData = update.accounts.find(acc => acc.accountId === selectedAccount);
 
         if (accountData) {
+          // pairId 확인 로깅
+          if (accountData.trades && accountData.trades.length > 0) {
+            const withPairId = accountData.trades.filter((t: any) => t.pairId).length;
+            console.log('✅ [프론트엔드 pairId 확인]', {
+              총거래: accountData.trades.length,
+              pairId있음: withPairId,
+              비율: `${((withPairId / accountData.trades.length) * 100).toFixed(0)}%`,
+              샘플3개: accountData.trades.slice(0, 3).map((t: any) => ({
+                type: t.type,
+                pairId: t.pairId,
+                timestamp: new Date(t.timestamp).toLocaleTimeString('ko-KR'),
+              })),
+            });
+          }
+
           console.log('[대시보드 업데이트]', {
             거래수: accountData.trades?.length,
             보유중: accountData.holding?.hasPosition,
@@ -803,6 +818,21 @@ function App() {
     });
 
     const unsubscribeTradeEvent = websocketService.onTradeEvent((update) => {
+      // pairId 확인 로깅
+      if (update.trades && update.trades.length > 0) {
+        const withPairId = update.trades.filter((t: any) => t.pairId).length;
+        console.log('✅ [프론트엔드 pairId 확인 - 거래이벤트]', {
+          총거래: update.trades.length,
+          pairId있음: withPairId,
+          비율: `${((withPairId / update.trades.length) * 100).toFixed(0)}%`,
+          샘플3개: update.trades.slice(0, 3).map((t: any) => ({
+            type: t.type,
+            pairId: t.pairId,
+            timestamp: new Date(t.timestamp).toLocaleTimeString('ko-KR'),
+          })),
+        });
+      }
+
       console.log('[거래 이벤트]', {
         accountId: update.accountId,
         거래수: update.trades?.length,
