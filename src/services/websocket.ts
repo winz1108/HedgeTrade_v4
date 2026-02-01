@@ -232,6 +232,7 @@ class WebSocketService {
         확률: `${(data.probability * 100).toFixed(1)}%`,
         계산시간: new Date(data.predictionCalculatedAt).toLocaleTimeString('ko-KR'),
         데이터시간: new Date(data.timestamp).toLocaleTimeString('ko-KR'),
+        수신횟수: this.eventStats.prediction_update.count,
       });
       this.predictionUpdateCallbacks.forEach(cb => cb(data));
     });
@@ -276,10 +277,20 @@ class WebSocketService {
       clearInterval(this.statsInterval);
     }
 
-    // 통계 추적만 하고 콘솔에 출력하지 않음
+    // 웹소켓 이벤트 통계 추적 (30초마다)
     this.statsInterval = setInterval(() => {
-      // 통계만 유지
-    }, 10000);
+      const now = Date.now();
+      console.log('[WS 통계] 지난 30초 동안 수신한 이벤트:');
+
+      Object.entries(this.eventStats).forEach(([eventName, stats]) => {
+        const timeSinceLastEvent = stats.lastTime > 0 ? Math.floor((now - stats.lastTime) / 1000) : -1;
+        if (stats.count > 0) {
+          console.log(`  ${eventName}: ${stats.count}회 (마지막: ${timeSinceLastEvent}초 전)`);
+        }
+      });
+
+      console.log(`  연결상태: ${this.socket?.connected ? '✅ 연결됨' : '❌ 끊김'}`);
+    }, 30000);
   }
 
   onCandleUpdate(callback: CandleUpdateCallback) {
