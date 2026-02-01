@@ -1314,12 +1314,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   {visibleCandles.map((candle, idx) => {
                     const bbUpper = candle.bbUpper ?? candle.bb_upper;
                     const bbLower = candle.bbLower ?? candle.bb_lower;
-                    const tolerance = 0.001; // 0.1% tolerance
 
-                    const touchedUpper = bbUpper !== undefined &&
-                      candle.high >= bbUpper * (1 - tolerance);
-                    const touchedLower = bbLower !== undefined &&
-                      candle.low <= bbLower * (1 + tolerance);
+                    const touchedUpper = bbUpper !== undefined && candle.high >= bbUpper;
+                    const touchedLower = bbLower !== undefined && candle.low <= bbLower;
 
                     if (!touchedUpper && !touchedLower) return null;
 
