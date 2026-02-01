@@ -1309,46 +1309,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       opacity="0.9"
                     />
                   )}
-
-                  {/* BB Touch Markers */}
-                  {visibleCandles.map((candle, idx) => {
-                    const bbUpper = candle.bbUpper ?? candle.bb_upper;
-                    const bbLower = candle.bbLower ?? candle.bb_lower;
-
-                    const touchedUpper = bbUpper !== undefined && candle.high >= bbUpper;
-                    const touchedLower = bbLower !== undefined && candle.low <= bbLower;
-
-                    if (!touchedUpper && !touchedLower) return null;
-
-                    const x = idx * (candleWidth + candleGap) + candleWidth / 2;
-
-                    return (
-                      <g key={`bb-touch-${idx}`}>
-                        {touchedUpper && (
-                          <circle
-                            cx={x}
-                            cy={priceToY(candle.high)}
-                            r="3"
-                            fill="#ef4444"
-                            opacity="0.8"
-                            stroke="#dc2626"
-                            strokeWidth="1"
-                          />
-                        )}
-                        {touchedLower && (
-                          <circle
-                            cx={x}
-                            cy={priceToY(candle.low)}
-                            r="3"
-                            fill="#10b981"
-                            opacity="0.8"
-                            stroke="#059669"
-                            strokeWidth="1"
-                          />
-                        )}
-                      </g>
-                    );
-                  })}
                 </>
               );
             })()}
