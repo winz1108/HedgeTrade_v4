@@ -1097,7 +1097,7 @@ function App() {
               )}
               {data.marketState?.state === 'SIDEWAYS' && (
                 <div className="flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-200 px-2 py-1 rounded font-semibold">
-                  <span className="text-sm">↔️</span>
+                  <span className="text-sm">🦀</span>
                   <span className="text-[10px]">횡보</span>
                 </div>
               )}
