@@ -54,12 +54,14 @@ export interface HoldingInfo {
 }
 
 export interface MarketState {
-  bullDiv: number;
-  bullConv: number;
-  bearDiv: number;
-  bearConv: number;
-  sideways: number;
+  BULL?: number;
+  BEAR?: number;
   activeState: string;
+  bullDiv?: number;
+  bullConv?: number;
+  bearDiv?: number;
+  bearConv?: number;
+  sideways?: number;
 }
 
 export interface AccountAsset {
@@ -188,6 +190,8 @@ export interface DashboardData {
     predictionCalculatedAt?: number;
     v2UpdateCount?: number;
     v2LastUsed5minTimestamp?: number;
+    threshold_v8?: number;
+    bb_touch?: boolean;
   };
   lastPredictionUpdateTime?: number;
   marketState?: MarketState;

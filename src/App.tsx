@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { RefreshCw, X, Bug, BarChart3 } from 'lucide-react';
+import { RefreshCw, X, Bug } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from './types/dashboard';
 import { fetchDashboardData, fetchChartData } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
@@ -32,9 +32,6 @@ function App() {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationResult, setVerificationResult] = useState<string | null>(null);
   const [verificationLoading, setVerificationLoading] = useState(false);
-  const [showPerformanceModal, setShowPerformanceModal] = useState(false);
-  const [performanceResult, setPerformanceResult] = useState<string | null>(null);
-  const [performanceLoading, setPerformanceLoading] = useState(false);
 
   // BTC 수량과 USDC 수량을 저장 (가격 업데이트 시 자산 재계산용)
   const btcBalanceRef = useRef<number>(0);
@@ -203,29 +200,6 @@ function App() {
     }
   };
 
-  const handleRealtimePerformance = async () => {
-    setPerformanceLoading(true);
-    setShowPerformanceModal(true);
-    setPerformanceResult(null);
-
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
-      const url = `${apiUrl}/api/debug/realtime-performance/text`;
-
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const text = await response.text();
-      setPerformanceResult(text);
-    } catch (error) {
-      setPerformanceResult(`오류 발생: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-    } finally {
-      setPerformanceLoading(false);
-    }
-  };
 
   useEffect(() => {
     window.location.hash = selectedAccount;
@@ -975,43 +949,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
-      {showPerformanceModal && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setShowPerformanceModal(false)}
-        >
-          <div
-            className="bg-white border border-amber-200 rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-cyan-400" />
-                <h2 className="text-lg font-bold text-white">실시간 성능 지표</h2>
-              </div>
-              <button
-                onClick={() => setShowPerformanceModal(false)}
-                className="p-1 hover:bg-slate-700 rounded transition-colors"
-              >
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <div className="p-4 overflow-y-auto max-h-[calc(85vh-80px)]">
-              {performanceLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <RefreshCw className="w-8 h-8 animate-spin text-cyan-400" />
-                  <span className="ml-3 text-slate-300">계산 중...</span>
-                </div>
-              ) : performanceResult ? (
-                <pre className="text-xs text-slate-700 font-mono whitespace-pre-wrap break-words bg-amber-50/80 p-4 rounded-lg border border-slate-700">
-                  {performanceResult}
-                </pre>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      )}
 
       {showVerificationModal && (
         <div
@@ -1105,13 +1042,6 @@ function App() {
                 </span>
               )}
               <button
-                onClick={handleRealtimePerformance}
-                className="p-1.5 rounded transition-all duration-200 text-cyan-400 hover:bg-cyan-500/10"
-                title="실시간 성능 지표"
-              >
-                <BarChart3 className="w-3 h-3" />
-              </button>
-              <button
                 onClick={handleVerification}
                 className="p-1.5 rounded transition-all duration-200 text-amber-400 hover:bg-amber-500/10"
                 title="서버 검증"
@@ -1121,30 +1051,26 @@ function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-white/50 px-2 py-1.5 rounded-lg border border-amber-200 overflow-x-auto">
-            <span className="text-[10px] text-stone-600 font-medium mr-1 whitespace-nowrap">Market State:</span>
-            <div className="flex gap-1">
-              {[
-                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-100 text-emerald-700 border-emerald-200', inactive: 'bg-stone-50 text-stone-400 border-stone-200' } },
-                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-100 text-emerald-700 border-emerald-200', inactive: 'bg-stone-50 text-stone-400 border-stone-200' } },
-                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-100 text-amber-700 border-amber-200', inactive: 'bg-stone-50 text-stone-400 border-stone-200' } },
-                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-100 text-rose-700 border-rose-200', inactive: 'bg-stone-50 text-stone-400 border-stone-200' } },
-                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-rose-100 text-rose-700 border-rose-200', inactive: 'bg-stone-50 text-stone-400 border-stone-200' } }
-              ].map((state) => {
-                const isActive = state.value > 0.5;
-                return (
-                  <div
-                    key={state.key}
-                    className={`text-[9px] px-2 py-0.5 rounded transition-all whitespace-nowrap border ${
-                      isActive
-                        ? `${state.colors.active} font-semibold`
-                        : state.colors.inactive
-                    }`}
-                  >
-                    {state.label}
-                  </div>
-                );
-              })}
+          <div className="flex items-center gap-2 bg-white/50 px-3 py-2 rounded-lg border border-amber-200">
+            <span className="text-[10px] text-stone-600 font-medium whitespace-nowrap">Market State (v8):</span>
+            <div className="flex items-center gap-2">
+              {data.marketState?.activeState === 'BULL' && (
+                <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded font-semibold">
+                  <span className="text-sm">🐂</span>
+                  <span className="text-[10px]">상승장</span>
+                </div>
+              )}
+              {data.marketState?.activeState === 'BEAR' && (
+                <div className="flex items-center gap-1 bg-rose-100 text-rose-700 border border-rose-200 px-2 py-1 rounded font-semibold">
+                  <span className="text-sm">🐻</span>
+                  <span className="text-[10px]">하락장</span>
+                </div>
+              )}
+              {data.marketState?.activeState !== 'BULL' && data.marketState?.activeState !== 'BEAR' && (
+                <div className="flex items-center gap-1 bg-stone-100 text-stone-600 border border-stone-200 px-2 py-1 rounded">
+                  <span className="text-[10px]">분석중</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
