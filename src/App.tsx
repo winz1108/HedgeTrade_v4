@@ -332,6 +332,11 @@ function App() {
         if (!prevData) return prevData;
         if (!update.timeframe) return prevData;
 
+        // 완성봉은 onCandleComplete에서 처리하므로 여기서는 스킵
+        if (update.isFinal) {
+          return prevData;
+        }
+
         const newCandle = convertCandleData(update);
         const timeframeLower = update.timeframe.toLowerCase();
         const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
@@ -344,90 +349,50 @@ function App() {
         const candles = [...existingCandles];
         let updatedData = { ...prevData };
 
-        if (update.isFinal) {
-          // 완성봉: 진행봉이었던 캔들을 완성봉으로 전환하고 기술지표 업데이트
-          const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
+        // 진행 중인 봉
+        const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
 
-          if (lastCandle && lastCandle.timestamp === newCandle.timestamp) {
-            // 진행봉→완성봉 전환
-
-            lastCandle.isComplete = true;
+        if (!lastCandle) {
+          // 캔들이 없으면 추가
+          candles.push(newCandle);
+        } else if (lastCandle.timestamp === newCandle.timestamp) {
+          // 타임스탬프가 같으면 진행봉 업데이트
+          // 가격 데이터만 업데이트하고 지표는 유지
+          if (!lastCandle.isComplete || lastCandle.isComplete === false) {
             lastCandle.close = newCandle.close;
-            lastCandle.high = newCandle.high;
-            lastCandle.low = newCandle.low;
+            lastCandle.high = Math.max(lastCandle.high, newCandle.high);
+            lastCandle.low = Math.min(lastCandle.low, newCandle.low);
             lastCandle.volume = newCandle.volume;
-
-            // 기술지표 업데이트 (백엔드가 보낸 값 사용)
-            if (update.rsi !== undefined) { lastCandle.rsi = update.rsi; }
-            if (update.macd !== undefined) { lastCandle.macd = update.macd; }
-            if (update.macdSignal !== undefined) { lastCandle.signal = update.macdSignal; }
-            if (update.macdHistogram !== undefined) { lastCandle.histogram = update.macdHistogram; }
-            if (update.ema20 !== undefined) { lastCandle.ema20 = update.ema20; }
-            if (update.ema50 !== undefined) { lastCandle.ema50 = update.ema50; }
-            if (update.bbUpper !== undefined) { lastCandle.bbUpper = update.bbUpper; }
-            if (update.bbMiddle !== undefined) { lastCandle.bbMiddle = update.bbMiddle; }
-            if (update.bbLower !== undefined) { lastCandle.bbLower = update.bbLower; }
-            if (update.bbWidth !== undefined) { lastCandle.bbWidth = update.bbWidth; }
-          } else {
-            // 갭 발생: onCandleComplete에서 처리
-            const completedCandles = candles.filter(c => c.isComplete !== false);
-            if (completedCandles.length > 0) {
-              const lastCompleted = completedCandles[completedCandles.length - 1];
-              detectAndFillGap(update.timeframe, lastCompleted.timestamp, newCandle.timestamp);
-            }
-            return prevData;
           }
-        } else {
-          // 진행 중인 봉
-          const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
+        } else if (newCandle.timestamp > lastCandle.timestamp) {
+          // 타임스탬프가 다르고 더 최신이면 새 진행봉
+          // 이전 진행봉을 완성봉으로 전환
+          if (lastCandle.isComplete === false) {
+            lastCandle.isComplete = true;
+          }
 
-          if (!lastCandle) {
-            // 캔들이 없으면 추가
-            candles.push(newCandle);
-          } else if (lastCandle.timestamp === newCandle.timestamp) {
-            // 타임스탬프가 같으면 덮어씌우기 (CSV 진행봉 → 웹소켓 진행봉)
-            // 지표는 기존 것을 유지
-            newCandle.ema20 = lastCandle.ema20;
-            newCandle.ema50 = lastCandle.ema50;
-            newCandle.bbUpper = lastCandle.bbUpper;
-            newCandle.bbMiddle = lastCandle.bbMiddle;
-            newCandle.bbLower = lastCandle.bbLower;
-            newCandle.bbWidth = lastCandle.bbWidth;
-            newCandle.macd = lastCandle.macd;
-            newCandle.signal = lastCandle.signal;
-            newCandle.histogram = lastCandle.histogram;
-            newCandle.rsi = lastCandle.rsi;
+          // 지표는 마지막 완성봉에서 복사
+          const completedCandles = candles.filter(c => c.isComplete !== false);
+          const lastCompleted = completedCandles.length > 0
+            ? completedCandles[completedCandles.length - 1]
+            : lastCandle;
 
-            candles[candles.length - 1] = newCandle;
-          } else {
-            // 타임스탬프가 다르면 새 봉 (CSV 진행봉이 완성되고 새 봉 시작)
-            // CSV의 마지막 진행봉을 완성봉으로 전환
-            if (lastCandle.isComplete === false) {
-              lastCandle.isComplete = true;
-            }
+          newCandle.ema20 = lastCompleted.ema20;
+          newCandle.ema50 = lastCompleted.ema50;
+          newCandle.bbUpper = lastCompleted.bbUpper;
+          newCandle.bbMiddle = lastCompleted.bbMiddle;
+          newCandle.bbLower = lastCompleted.bbLower;
+          newCandle.bbWidth = lastCompleted.bbWidth;
+          newCandle.macd = lastCompleted.macd;
+          newCandle.signal = lastCompleted.signal;
+          newCandle.histogram = lastCompleted.histogram;
+          newCandle.rsi = lastCompleted.rsi;
 
-            // 지표는 마지막 완성봉에서 복사
-            const completedCandles = candles.filter(c => c.isComplete !== false);
-            const lastCompleted = completedCandles.length > 0
-              ? completedCandles[completedCandles.length - 1]
-              : lastCandle;
+          candles.push(newCandle);
 
-            newCandle.ema20 = lastCompleted.ema20;
-            newCandle.ema50 = lastCompleted.ema50;
-            newCandle.bbUpper = lastCompleted.bbUpper;
-            newCandle.bbMiddle = lastCompleted.bbMiddle;
-            newCandle.bbLower = lastCompleted.bbLower;
-            newCandle.bbWidth = lastCompleted.bbWidth;
-            newCandle.macd = lastCompleted.macd;
-            newCandle.signal = lastCompleted.signal;
-            newCandle.histogram = lastCompleted.histogram;
-            newCandle.rsi = lastCompleted.rsi;
-
-            candles.push(newCandle);
-            // 500개 초과 시 앞에서 삭제
-            if (candles.length > 500) {
-              candles.shift();
-            }
+          // 500개 초과 시 앞에서 삭제
+          if (candles.length > 500) {
+            candles.shift();
           }
         }
 
@@ -582,17 +547,9 @@ function App() {
       });
     });
 
-    const unsubscribeCandleComplete = websocketService.onCandleComplete(async (update) => {
+    const unsubscribeCandleComplete = websocketService.onCandleComplete((update) => {
       if (!update.timeframe) return;
 
-      // 기술지표 누락 시에만 에러 로그
-      const hasIndicators = update.rsi !== undefined &&
-                           update.macd !== undefined &&
-                           update.ema20 !== undefined &&
-                           update.ema50 !== undefined;
-
-
-      // 웹소켓으로 받은 완성봉 데이터를 직접 사용 (백엔드가 기술지표 포함해서 보냄)
       const timeframeLower = update.timeframe.toLowerCase();
       const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
       const newCandle = convertCandleData(update);
@@ -617,7 +574,16 @@ function App() {
             merged.splice(insertIndex, 0, newCandle);
           }
         } else {
-          // 기존 캔들 업데이트 (진행봉 → 완성봉 전환)
+          // 기존 캔들이 이미 완성봉이고 같은 데이터면 스킵
+          const existingCandle = merged[existingIndex];
+          if (existingCandle.isComplete &&
+              existingCandle.close === newCandle.close &&
+              existingCandle.high === newCandle.high &&
+              existingCandle.low === newCandle.low) {
+            return prev;
+          }
+
+          // 진행봉 → 완성봉 전환 또는 완성봉 업데이트
           merged[existingIndex] = newCandle;
         }
 
