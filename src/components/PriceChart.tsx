@@ -1620,6 +1620,96 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               );
             })()}
 
+            {/* 모든 페어링된 거래 연결선 */}
+            <svg
+              className="absolute top-0 left-0 pointer-events-none"
+              style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 12 }}
+            >
+              {(() => {
+                const timeframeMinutes = getTimeframeMinutes(timeframe);
+                const timeframeMs = timeframeMinutes * 60000;
+
+                // 페어링된 거래 찾기
+                const pairedGroups: Array<{ buy: TradeEvent; sell: TradeEvent }> = [];
+                const processedPairs = new Set<string>();
+
+                data.trades.forEach(trade => {
+                  if (!trade.pairId || processedPairs.has(trade.pairId)) return;
+
+                  const pairedTrade = data.trades.find(
+                    t => t.pairId === trade.pairId && t.timestamp !== trade.timestamp
+                  );
+
+                  if (!pairedTrade) return;
+
+                  const buyTrade = trade.type === 'buy' ? trade : pairedTrade;
+                  const sellTrade = trade.type === 'sell' ? trade : pairedTrade;
+
+                  if (buyTrade.type === 'buy' && sellTrade.type === 'sell') {
+                    pairedGroups.push({ buy: buyTrade, sell: sellTrade });
+                    processedPairs.add(trade.pairId);
+                  }
+                });
+
+                // 각 페어에 대해 직선 그리기
+                return pairedGroups.map((pair, index) => {
+                  const { buy, sell } = pair;
+
+                  // 캔들 인덱스 찾기
+                  let buyCandleIndexInAll = -1;
+                  let sellCandleIndexInAll = -1;
+
+                  if (timeframeMinutes === 1) {
+                    buyCandleIndexInAll = selectedCandles.findIndex(c => Math.abs(c.timestamp - buy.timestamp) < 60000);
+                    sellCandleIndexInAll = selectedCandles.findIndex(c => Math.abs(c.timestamp - sell.timestamp) < 60000);
+                  } else {
+                    buyCandleIndexInAll = selectedCandles.findIndex(c => {
+                      const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
+                      const tradePeriod = Math.floor(buy.timestamp / timeframeMs) * timeframeMs;
+                      return candlePeriod === tradePeriod;
+                    });
+
+                    sellCandleIndexInAll = selectedCandles.findIndex(c => {
+                      const candlePeriod = Math.floor(c.timestamp / timeframeMs) * timeframeMs;
+                      const tradePeriod = Math.floor(sell.timestamp / timeframeMs) * timeframeMs;
+                      return candlePeriod === tradePeriod;
+                    });
+                  }
+
+                  if (buyCandleIndexInAll === -1 || sellCandleIndexInAll === -1) return null;
+
+                  const buyCandleIndex = buyCandleIndexInAll - visibleStartIndex;
+                  const sellCandleIndex = sellCandleIndexInAll - visibleStartIndex;
+
+                  // 화면 밖인 경우 스킵
+                  if (buyCandleIndex < 0 && sellCandleIndex < 0) return null;
+                  if (buyCandleIndex >= visibleCandles.length && sellCandleIndex >= visibleCandles.length) return null;
+
+                  const x1 = buyCandleIndex * (candleWidth + candleGap) + candleWidth / 2;
+                  const y1 = priceToY(buy.price);
+                  const x2 = sellCandleIndex * (candleWidth + candleGap) + candleWidth / 2;
+                  const y2 = priceToY(sell.price);
+
+                  const profit = ((sell.price - buy.price) / buy.price) * 100;
+                  const lineColor = profit >= 0 ? '#0ecb81' : '#f6465d';
+
+                  return (
+                    <line
+                      key={`pair-${index}-${pair.buy.timestamp}`}
+                      x1={x1}
+                      y1={y1}
+                      x2={x2}
+                      y2={y2}
+                      stroke={lineColor}
+                      strokeWidth="2"
+                      strokeDasharray="5 3"
+                      opacity="0.5"
+                    />
+                  );
+                });
+              })()}
+            </svg>
+
             {data.holding.isHolding && data.holding.buyPrice && (
               <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 15 }}>
                 <line
