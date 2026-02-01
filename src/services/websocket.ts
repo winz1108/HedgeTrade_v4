@@ -228,12 +228,6 @@ class WebSocketService {
     this.socket.on('prediction_update', (data: PredictionUpdate) => {
       this.eventStats.prediction_update.count++;
       this.eventStats.prediction_update.lastTime = Date.now();
-      console.log('[WS] 익절확률 업데이트:', {
-        확률: `${(data.probability * 100).toFixed(1)}%`,
-        계산시간: new Date(data.predictionCalculatedAt).toLocaleTimeString('ko-KR'),
-        데이터시간: new Date(data.timestamp).toLocaleTimeString('ko-KR'),
-        수신횟수: this.eventStats.prediction_update.count,
-      });
       this.predictionUpdateCallbacks.forEach(cb => cb(data));
     });
 

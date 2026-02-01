@@ -28,67 +28,19 @@ export interface DashboardQuick {
 }
 
 const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: boolean, entryTime?: number): TradeEvent[] => {
-  const events: TradeEvent[] = [];
-
   if (!accountTrades || !Array.isArray(accountTrades)) {
-    return events;
+    return [];
   }
 
-  // 시간순 정렬
-  const sortedTrades = [...accountTrades].sort((a, b) => a.timestamp - b.timestamp);
-
-  // Entry-Exit 페어 생성
-  const entries: any[] = [];
-  const exits: any[] = [];
-
-  for (const trade of sortedTrades) {
-    if (trade.type === 'entry' || trade.type === 'buy') {
-      entries.push(trade);
-    } else if (trade.type === 'exit' || trade.type === 'sell') {
-      exits.push(trade);
-    }
-  }
-
-  // 페어링: 각 Entry에 대응하는 Exit 찾기
-  let pairCount = 0;
-
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    const isLastEntry = i === entries.length - 1;
-    const isHoldingThisPosition = hasPosition && isLastEntry && entryTime && Math.abs(entry.timestamp - entryTime) < 5000;
-
-    // Exit 찾기 - Entry보다 나중이고 아직 페어링되지 않은 것
-    const exit = exits[i]; // 순서대로 페어링
-
-    const pairId = `pair_${pairCount}`;
-
-    // Entry 추가
-    events.push({
-      timestamp: entry.timestamp,
-      type: 'buy',
-      price: entry.price,
-      quantity: entry.quantity,
-      pairId: pairId,
-    });
-
-    // Exit이 있으면 추가 (보유중이 아닌 경우)
-    if (exit && !isHoldingThisPosition) {
-      const profitPct = ((exit.price - entry.price) / entry.price) * 100;
-
-      events.push({
-        timestamp: exit.timestamp,
-        type: 'sell',
-        price: exit.price,
-        quantity: exit.quantity,
-        profit: profitPct,
-        pairId: pairId,
-      });
-    }
-
-    pairCount++;
-  }
-
-  return events.sort((a, b) => a.timestamp - b.timestamp);
+  return accountTrades.map(trade => ({
+    timestamp: trade.timestamp,
+    type: trade.type,
+    price: trade.price,
+    quantity: trade.quantity,
+    profit: trade.profit || trade.pnl_pct,
+    pairId: trade.pairId || trade.pair_id,
+    prediction: trade.prediction,
+  })).sort((a, b) => a.timestamp - b.timestamp);
 };
 
 const convertApiResponseToDashboardData = (
@@ -232,52 +184,29 @@ const convertApiResponseToDashboardData = (
       }))
     : [];
 
-  // pairId가 없는 경우 자동 페어링
   const hasPairIds = trades.some(t => t.pairId);
 
   if (!hasPairIds && trades.length > 0) {
-    console.log('[거래 페어링] pairId가 없어서 자동 페어링 시작...');
-
-    // 타임스탬프 순으로 정렬
     trades.sort((a, b) => a.timestamp - b.timestamp);
 
     const unpaired = [...trades];
     let pairCounter = 0;
 
     while (unpaired.length >= 2) {
-      // 첫 번째 매수 찾기
       const buyIndex = unpaired.findIndex(t => t.type === 'buy');
       if (buyIndex === -1) break;
 
-      // 해당 매수 이후 첫 번째 매도 찾기
       const sellIndex = unpaired.findIndex((t, i) => i > buyIndex && t.type === 'sell');
       if (sellIndex === -1) break;
 
-      // 페어링
       const pairId = `auto_pair_${pairCounter++}`;
       unpaired[buyIndex].pairId = pairId;
       unpaired[sellIndex].pairId = pairId;
 
-      console.log(`  - 매수(${new Date(unpaired[buyIndex].timestamp).toLocaleString()}) ↔ 매도(${new Date(unpaired[sellIndex].timestamp).toLocaleString()})`);
-
-      // 페어링된 거래 제거
       unpaired.splice(sellIndex, 1);
       unpaired.splice(buyIndex, 1);
     }
-
-    if (unpaired.length > 0) {
-      console.log(`[거래 페어링] ${unpaired.length}개 미페어링 (${unpaired.filter(t => t.type === 'buy').length}개 매수, ${unpaired.filter(t => t.type === 'sell').length}개 매도)`);
-    }
   }
-
-  // 거래 페어링 통계
-  const buys = trades.filter(t => t.type === 'buy');
-  const sells = trades.filter(t => t.type === 'sell');
-  const pairedTrades = trades.filter(t => {
-    const pair = trades.find(other => other.pairId === t.pairId && other.timestamp !== t.timestamp);
-    return !!pair;
-  });
-  console.log(`[거래 페어링] 총 ${trades.length}개 거래 (매수: ${buys.length}, 매도: ${sells.length}, 페어링됨: ${pairedTrades.length})`);
 
   return {
     version: apiResponse.version,

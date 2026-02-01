@@ -1629,20 +1629,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 const timeframeMinutes = getTimeframeMinutes(timeframe);
                 const timeframeMs = timeframeMinutes * 60000;
 
-                // pairId 디버깅
-                const tradesWithPairId = data.trades.filter(t => t.pairId);
-                console.log('🎯 [PriceChart pairId 체크]', {
-                  총거래: data.trades.length,
-                  pairId있음: tradesWithPairId.length,
-                  비율: `${((tradesWithPairId.length / data.trades.length) * 100).toFixed(0)}%`,
-                  샘플5개: data.trades.slice(0, 5).map(t => ({
-                    type: t.type,
-                    price: t.price,
-                    pairId: t.pairId || 'NONE',
-                  })),
-                });
-
-                // 페어링된 거래 찾기
                 const pairedGroups: Array<{ buy: TradeEvent; sell: TradeEvent }> = [];
                 const processedPairs = new Set<string>();
 
@@ -1664,16 +1650,6 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   }
                 });
 
-                console.log('🔗 [페어링 결과]', {
-                  페어링된그룹수: pairedGroups.length,
-                  샘플2개: pairedGroups.slice(0, 2).map(p => ({
-                    buy: { price: p.buy.price, time: new Date(p.buy.timestamp).toLocaleTimeString('ko-KR') },
-                    sell: { price: p.sell.price, time: new Date(p.sell.timestamp).toLocaleTimeString('ko-KR') },
-                    수익률: (((p.sell.price - p.buy.price) / p.buy.price) * 100).toFixed(2) + '%',
-                  })),
-                });
-
-                // 각 페어에 대해 직선 그리기
                 return pairedGroups.map((pair, index) => {
                   const { buy, sell } = pair;
 
