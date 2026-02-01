@@ -1330,29 +1330,34 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       if (lastUpperTouch && lastLowerTouch) break;
                     }
 
+                    const arrowSize = 8;
+                    const arrowOffset = 12;
+
                     return (
                       <>
                         {lastUpperTouch && (
-                          <circle
-                            cx={lastUpperTouch.idx * (candleWidth + candleGap) + candleWidth / 2}
-                            cy={priceToY(lastUpperTouch.candle.high)}
-                            r="4"
-                            fill="#f97316"
-                            opacity="0.9"
-                            stroke="#ea580c"
-                            strokeWidth="2"
-                          />
+                          <g transform={`translate(${lastUpperTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.max(0, priceToY(lastUpperTouch.candle.high) - arrowOffset)})`}>
+                            <path
+                              d={`M 0 0 L ${arrowSize} ${-arrowSize} L ${arrowSize/2} ${-arrowSize} L ${arrowSize/2} ${-arrowSize * 2} L ${-arrowSize/2} ${-arrowSize * 2} L ${-arrowSize/2} ${-arrowSize} L ${-arrowSize} ${-arrowSize} Z`}
+                              fill="#fbbf24"
+                              opacity="0.85"
+                              stroke="#f59e0b"
+                              strokeWidth="1.5"
+                              filter="drop-shadow(0 2px 4px rgba(251, 191, 36, 0.3))"
+                            />
+                          </g>
                         )}
                         {lastLowerTouch && (
-                          <circle
-                            cx={lastLowerTouch.idx * (candleWidth + candleGap) + candleWidth / 2}
-                            cy={priceToY(lastLowerTouch.candle.low)}
-                            r="4"
-                            fill="#3b82f6"
-                            opacity="0.9"
-                            stroke="#2563eb"
-                            strokeWidth="2"
-                          />
+                          <g transform={`translate(${lastLowerTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.min(priceChartHeight, priceToY(lastLowerTouch.candle.low) + arrowOffset)})`}>
+                            <path
+                              d={`M 0 0 L ${arrowSize} ${arrowSize} L ${arrowSize/2} ${arrowSize} L ${arrowSize/2} ${arrowSize * 2} L ${-arrowSize/2} ${arrowSize * 2} L ${-arrowSize/2} ${arrowSize} L ${-arrowSize} ${arrowSize} Z`}
+                              fill="#a78bfa"
+                              opacity="0.85"
+                              stroke="#8b5cf6"
+                              strokeWidth="1.5"
+                              filter="drop-shadow(0 2px 4px rgba(167, 139, 250, 0.3))"
+                            />
+                          </g>
                         )}
                       </>
                     );
