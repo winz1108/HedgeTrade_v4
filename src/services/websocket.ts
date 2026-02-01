@@ -143,6 +143,9 @@ class WebSocketService {
     trade_event: { count: 0, lastTime: 0 },
   };
   private statsInterval: NodeJS.Timeout | null = null;
+  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private lastMessageTime: number = 0;
+  private reconnectCount: number = 0;
 
   connect() {
     // Connect to API URL without port (Cloudflare only proxies 80/443)
@@ -155,54 +158,95 @@ class WebSocketService {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: Infinity,
-      timeout: 60000,
+      timeout: 20000,
       pingInterval: 25000,
-      pingTimeout: 120000,
+      pingTimeout: 60000,
       upgrade: true,
       rememberUpgrade: true,
       path: '/socket.io/',
+      forceNew: false,
     });
 
     this.socket.on('connect', () => {
+      console.log(`[WebSocket] 🟢 연결 성공 (재연결 ${this.reconnectCount}회)`);
+      this.reconnectCount = 0;
+      this.lastMessageTime = Date.now();
       this.connectionStatusCallbacks.forEach(cb => cb(true));
       this.startStatsTracking();
+      this.startHeartbeatMonitor();
     });
 
     this.socket.on('disconnect', (reason) => {
+      console.log(`[WebSocket] 🔴 연결 끊김: ${reason}`);
       this.connectionStatusCallbacks.forEach(cb => cb(false));
+      this.stopHeartbeatMonitor();
+
+      if (reason === 'io server disconnect') {
+        console.log('[WebSocket] 서버에서 연결을 끊음. 재연결 시도...');
+        setTimeout(() => {
+          if (this.socket && !this.socket.connected) {
+            this.socket.connect();
+          }
+        }, 1000);
+      }
+    });
+
+    this.socket.on('reconnect_attempt', (attemptNumber) => {
+      this.reconnectCount = attemptNumber;
+      console.log(`[WebSocket] 🔄 재연결 시도 ${attemptNumber}회...`);
+    });
+
+    this.socket.on('reconnect', (attemptNumber) => {
+      console.log(`[WebSocket] ✅ 재연결 성공 (${attemptNumber}회 시도 후)`);
+      this.lastMessageTime = Date.now();
     });
 
     this.socket.on('reconnect_error', (error) => {
+      console.error('[WebSocket] ⚠️ 재연결 실패:', error.message);
     });
 
     this.socket.on('reconnect_failed', () => {
+      console.error('[WebSocket] ❌ 재연결 최종 실패');
+    });
+
+    this.socket.on('ping', () => {
+      this.lastMessageTime = Date.now();
+    });
+
+    this.socket.on('pong', (latency: number) => {
+      this.lastMessageTime = Date.now();
     });
 
     this.socket.on('candle_update', (data: CandleUpdate) => {
+      this.lastMessageTime = Date.now();
       this.eventStats.candle_update.count++;
       this.eventStats.candle_update.lastTime = Date.now();
       this.candleUpdateCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('candle_complete', (data: CandleComplete) => {
+      this.lastMessageTime = Date.now();
       this.eventStats.candle_complete.count++;
       this.eventStats.candle_complete.lastTime = Date.now();
       this.candleCompleteCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('realtime_candle_update', (data: RealtimeCandleUpdate) => {
+      this.lastMessageTime = Date.now();
       this.eventStats.realtime_candle_update.count++;
       this.eventStats.realtime_candle_update.lastTime = Date.now();
       this.realtimeCandleUpdateCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('price_update', (data: PriceUpdate) => {
+      this.lastMessageTime = Date.now();
       this.eventStats.price_update.count++;
       this.eventStats.price_update.lastTime = Date.now();
       this.priceUpdateCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('account_assets_update', (data: any) => {
+      this.lastMessageTime = Date.now();
       this.eventStats.account_assets_update.count++;
       this.eventStats.account_assets_update.lastTime = Date.now();
 
@@ -220,18 +264,21 @@ class WebSocketService {
     });
 
     this.socket.on('binance_server_time', (data: BinanceServerTime) => {
+      this.lastMessageTime = Date.now();
       this.eventStats.binance_server_time.count++;
       this.eventStats.binance_server_time.lastTime = Date.now();
       this.binanceServerTimeCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('prediction_update', (data: PredictionUpdate) => {
+      this.lastMessageTime = Date.now();
       this.eventStats.prediction_update.count++;
       this.eventStats.prediction_update.lastTime = Date.now();
       this.predictionUpdateCallbacks.forEach(cb => cb(data));
     });
 
     this.socket.on('dashboard_update', (data: DashboardUpdate) => {
+      this.lastMessageTime = Date.now();
       this.eventStats.dashboard_update.count++;
       this.eventStats.dashboard_update.lastTime = Date.now();
 
@@ -239,6 +286,7 @@ class WebSocketService {
     });
 
     this.socket.on('trade_event', (data: TradeEventUpdate) => {
+      this.lastMessageTime = Date.now();
       this.eventStats.trade_event.count++;
       this.eventStats.trade_event.lastTime = Date.now();
 
@@ -256,24 +304,60 @@ class WebSocketService {
   }
 
   disconnect() {
-    if (this.statsInterval) {
-      clearInterval(this.statsInterval);
-      this.statsInterval = null;
-    }
+    console.log('[WebSocket] 연결 종료 중...');
+    this.stopStatsTracking();
+    this.stopHeartbeatMonitor();
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
     }
   }
 
-  private startStatsTracking() {
+  private stopStatsTracking() {
     if (this.statsInterval) {
       clearInterval(this.statsInterval);
+      this.statsInterval = null;
     }
+  }
+
+  private startHeartbeatMonitor() {
+    this.stopHeartbeatMonitor();
+
+    this.heartbeatInterval = setInterval(() => {
+      const now = Date.now();
+      const timeSinceLastMessage = now - this.lastMessageTime;
+
+      // 90초 동안 메시지가 없으면 연결 문제로 간주
+      if (timeSinceLastMessage > 90000) {
+        console.warn(`[WebSocket] ⚠️ ${Math.floor(timeSinceLastMessage / 1000)}초간 메시지 없음. 재연결 시도...`);
+
+        if (this.socket) {
+          this.socket.disconnect();
+          setTimeout(() => {
+            if (this.socket) {
+              this.socket.connect();
+            }
+          }, 1000);
+        }
+      }
+    }, 30000);
+  }
+
+  private stopHeartbeatMonitor() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+  }
+
+  private startStatsTracking() {
+    this.stopStatsTracking();
 
     // 웹소켓 이벤트 통계 추적 (30초마다)
     this.statsInterval = setInterval(() => {
       const now = Date.now();
+      const timeSinceLastMessage = this.lastMessageTime > 0 ? Math.floor((now - this.lastMessageTime) / 1000) : -1;
+
       console.log('[WS 통계] 지난 30초 동안 수신한 이벤트:');
 
       Object.entries(this.eventStats).forEach(([eventName, stats]) => {
@@ -284,6 +368,7 @@ class WebSocketService {
       });
 
       console.log(`  연결상태: ${this.socket?.connected ? '✅ 연결됨' : '❌ 끊김'}`);
+      console.log(`  마지막 메시지: ${timeSinceLastMessage}초 전`);
     }, 30000);
   }
 
