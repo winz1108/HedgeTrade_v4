@@ -732,6 +732,12 @@ function App() {
           },
         };
 
+        console.log('[App] 익절확률 상태 업데이트:', {
+          이전확률: prevData.currentPrediction ? `${(prevData.currentPrediction.takeProfitProb * 100).toFixed(1)}%` : 'N/A',
+          새확률: `${(update.probability * 100).toFixed(1)}%`,
+          계산시간: new Date(newCalculatedAt).toLocaleTimeString('ko-KR'),
+        });
+
         return updated;
       });
     });

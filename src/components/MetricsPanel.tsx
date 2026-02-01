@@ -192,7 +192,10 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 </div>
               )}
 
-              <div className="bg-amber-50/80 rounded-lg p-2 border border-amber-200">
+              <div
+                key={`tp-prob-${data.currentPrediction?.takeProfitProb}-${data.currentPrediction?.predictionCalculatedAt}`}
+                className="bg-amber-50/80 rounded-lg p-2 border border-amber-200"
+              >
                 <div className="flex flex-col gap-0.5 mb-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-slate-600 font-semibold">
