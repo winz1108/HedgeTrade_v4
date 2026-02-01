@@ -142,11 +142,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
 
           {data.currentPrediction ? (
-            <div className="space-y-2">
-              <div className="bg-slate-50/50 rounded-lg p-2 border border-slate-200/60">
+            <div className="space-y-1">
+              <div className="bg-slate-50/50 rounded p-1 border border-slate-200/60">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-600 font-semibold">임계값</span>
-                  <span className="text-xs font-bold text-slate-700">
+                  <span className="text-[9px] text-slate-600">임계값</span>
+                  <span className="text-[10px] font-semibold text-slate-700">
                     {data.prediction?.threshold_v8 !== undefined
                       ? `${(data.prediction.threshold_v8 * 100).toFixed(0)}%`
                       : data.prediction?.market_mood === 'BULL' ? '78%' : '85%'}
@@ -154,12 +154,12 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 </div>
               </div>
 
-              <div className="bg-slate-50/50 rounded-lg p-2 border border-slate-200/60">
+              <div className="bg-slate-50/50 rounded p-1 border border-slate-200/60">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-600 font-semibold">BB Touch</span>
+                  <span className="text-[9px] text-slate-600">BB Touch</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-base">{data.prediction?.bb_touch ? '✓' : '✗'}</span>
-                    <span className={`text-[10px] font-bold ${
+                    <span className="text-xs">{data.prediction?.bb_touch ? '✓' : '✗'}</span>
+                    <span className={`text-[9px] font-semibold ${
                       data.prediction?.bb_touch ? 'text-emerald-600' : 'text-slate-500'
                     }`}>
                       {data.prediction?.bb_touch ? '매수가능' : '대기'}

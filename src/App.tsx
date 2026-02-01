@@ -691,6 +691,16 @@ function App() {
       setData((prevData) => {
         if (!prevData) return prevData;
 
+        let marketMood: 'BULL' | 'BEAR' | undefined = undefined;
+        if (update.market_state?.activeState) {
+          const activeState = update.market_state.activeState.toUpperCase();
+          if (activeState === 'BULL' || activeState.includes('BULL')) {
+            marketMood = 'BULL';
+          } else if (activeState === 'BEAR' || activeState.includes('BEAR')) {
+            marketMood = 'BEAR';
+          }
+        }
+
         const updated = {
           ...prevData,
           currentPrediction: {
@@ -703,6 +713,10 @@ function App() {
           lastPredictionUpdateTime: newCalculatedAt,
           marketState: update.market_state,
           gateWeights: update.gate_weights,
+          prediction: {
+            ...prevData.prediction,
+            market_mood: marketMood,
+          },
           holding: {
             ...prevData.holding,
             v5MoeTakeProfitProb: update.probability,
