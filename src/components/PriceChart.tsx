@@ -1330,32 +1330,34 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       if (lastUpperTouch && lastLowerTouch) break;
                     }
 
-                    const arrowSize = 8;
-                    const arrowOffset = 12;
+                    const arrowSize = 4;
+                    const arrowOffset = 8;
 
                     return (
                       <>
                         {lastUpperTouch && (
                           <g transform={`translate(${lastUpperTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.max(0, priceToY(lastUpperTouch.candle.high) - arrowOffset)})`}>
                             <path
-                              d={`M 0 0 L ${arrowSize} ${-arrowSize} L ${arrowSize/2} ${-arrowSize} L ${arrowSize/2} ${-arrowSize * 2} L ${-arrowSize/2} ${-arrowSize * 2} L ${-arrowSize/2} ${-arrowSize} L ${-arrowSize} ${-arrowSize} Z`}
-                              fill="#fbbf24"
-                              opacity="0.85"
-                              stroke="#f59e0b"
-                              strokeWidth="1.5"
-                              filter="drop-shadow(0 2px 4px rgba(251, 191, 36, 0.3))"
+                              d={`M 0 0 L ${arrowSize} ${-arrowSize} L 0 ${-arrowSize * 0.7} L ${-arrowSize} ${-arrowSize} Z`}
+                              fill="none"
+                              stroke="#6b7280"
+                              strokeWidth="1.2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              opacity="0.8"
                             />
                           </g>
                         )}
                         {lastLowerTouch && (
                           <g transform={`translate(${lastLowerTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.min(priceChartHeight, priceToY(lastLowerTouch.candle.low) + arrowOffset)})`}>
                             <path
-                              d={`M 0 0 L ${arrowSize} ${arrowSize} L ${arrowSize/2} ${arrowSize} L ${arrowSize/2} ${arrowSize * 2} L ${-arrowSize/2} ${arrowSize * 2} L ${-arrowSize/2} ${arrowSize} L ${-arrowSize} ${arrowSize} Z`}
-                              fill="#a78bfa"
-                              opacity="0.85"
-                              stroke="#8b5cf6"
-                              strokeWidth="1.5"
-                              filter="drop-shadow(0 2px 4px rgba(167, 139, 250, 0.3))"
+                              d={`M 0 0 L ${arrowSize} ${arrowSize} L 0 ${arrowSize * 0.7} L ${-arrowSize} ${arrowSize} Z`}
+                              fill="none"
+                              stroke="#6b7280"
+                              strokeWidth="1.2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              opacity="0.8"
                             />
                           </g>
                         )}
