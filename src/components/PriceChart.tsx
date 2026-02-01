@@ -1621,11 +1621,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             })()}
 
             {/* 모든 페어링된 거래 연결선 */}
-            <svg
-              className="absolute top-0 left-0 pointer-events-none"
-              style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 12 }}
-            >
-              {(() => {
+            {showTradeMarkers && (
+              <svg
+                className="absolute top-0 left-0 pointer-events-none"
+                style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 12 }}
+              >
+                {(() => {
                 const timeframeMinutes = getTimeframeMinutes(timeframe);
                 const timeframeMs = timeframeMinutes * 60000;
 
@@ -1706,7 +1707,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                   );
                 });
               })()}
-            </svg>
+              </svg>
+            )}
 
             {data.holding.isHolding && data.holding.buyPrice && (
               <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 15 }}>
