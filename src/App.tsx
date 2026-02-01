@@ -1071,19 +1071,49 @@ function App() {
           <div className="flex items-center gap-2 bg-white/50 px-3 py-2 rounded-lg border border-amber-200">
             <span className="text-[10px] text-stone-600 font-medium whitespace-nowrap">Market State:</span>
             <div className="flex items-center gap-2">
-              {data.prediction?.market_mood === 'BULL' && (
+              {data.marketState?.state === 'BULL_CONV' && (
+                <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded font-semibold">
+                  <span className="text-sm">🐂</span>
+                  <span className="text-[10px]">강세 수렴</span>
+                </div>
+              )}
+              {data.marketState?.state === 'BULL_DIV' && (
+                <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded font-semibold">
+                  <span className="text-sm">🐂</span>
+                  <span className="text-[10px]">강세 발산</span>
+                </div>
+              )}
+              {data.marketState?.state === 'BEAR_CONV' && (
+                <div className="flex items-center gap-1 bg-rose-100 text-rose-700 border border-rose-200 px-2 py-1 rounded font-semibold">
+                  <span className="text-sm">🐻</span>
+                  <span className="text-[10px]">약세 수렴</span>
+                </div>
+              )}
+              {data.marketState?.state === 'BEAR_DIV' && (
+                <div className="flex items-center gap-1 bg-rose-100 text-rose-700 border border-rose-200 px-2 py-1 rounded font-semibold">
+                  <span className="text-sm">🐻</span>
+                  <span className="text-[10px]">약세 발산</span>
+                </div>
+              )}
+              {data.marketState?.state === 'SIDEWAYS' && (
+                <div className="flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-200 px-2 py-1 rounded font-semibold">
+                  <span className="text-sm">↔️</span>
+                  <span className="text-[10px]">횡보</span>
+                </div>
+              )}
+              {!data.marketState?.state && data.prediction?.market_mood === 'BULL' && (
                 <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded font-semibold">
                   <span className="text-sm">🐂</span>
                   <span className="text-[10px]">상승장</span>
                 </div>
               )}
-              {data.prediction?.market_mood === 'BEAR' && (
+              {!data.marketState?.state && data.prediction?.market_mood === 'BEAR' && (
                 <div className="flex items-center gap-1 bg-rose-100 text-rose-700 border border-rose-200 px-2 py-1 rounded font-semibold">
                   <span className="text-sm">🐻</span>
                   <span className="text-[10px]">하락장</span>
                 </div>
               )}
-              {data.prediction?.market_mood !== 'BULL' && data.prediction?.market_mood !== 'BEAR' && (
+              {!data.marketState?.state && data.prediction?.market_mood !== 'BULL' && data.prediction?.market_mood !== 'BEAR' && (
                 <div className="flex items-center gap-1 bg-stone-100 text-stone-600 border border-stone-200 px-2 py-1 rounded">
                   <span className="text-[10px]">분석중</span>
                 </div>

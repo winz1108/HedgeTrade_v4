@@ -62,6 +62,13 @@ export interface MarketState {
   bearDiv?: number;
   bearConv?: number;
   sideways?: number;
+  state?: 'BULL_CONV' | 'BULL_DIV' | 'BEAR_CONV' | 'BEAR_DIV' | 'SIDEWAYS';
+  detail?: {
+    ema20: number;
+    ema50: number;
+    ema100: number;
+    ema20_rising: boolean;
+  };
 }
 
 export interface AccountAsset {
