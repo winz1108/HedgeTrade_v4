@@ -1309,6 +1309,54 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                       opacity="0.9"
                     />
                   )}
+
+                  {/* BB Touch Markers - Most Recent Only */}
+                  {(() => {
+                    let lastUpperTouch: { idx: number; candle: any } | null = null;
+                    let lastLowerTouch: { idx: number; candle: any } | null = null;
+
+                    for (let idx = visibleCandles.length - 1; idx >= 0; idx--) {
+                      const candle = visibleCandles[idx];
+                      const bbUpper = candle.bbUpper ?? candle.bb_upper;
+                      const bbLower = candle.bbLower ?? candle.bb_lower;
+
+                      if (!lastUpperTouch && bbUpper !== undefined && candle.high >= bbUpper) {
+                        lastUpperTouch = { idx, candle };
+                      }
+                      if (!lastLowerTouch && bbLower !== undefined && candle.low <= bbLower) {
+                        lastLowerTouch = { idx, candle };
+                      }
+
+                      if (lastUpperTouch && lastLowerTouch) break;
+                    }
+
+                    return (
+                      <>
+                        {lastUpperTouch && (
+                          <circle
+                            cx={lastUpperTouch.idx * (candleWidth + candleGap) + candleWidth / 2}
+                            cy={priceToY(lastUpperTouch.candle.high)}
+                            r="4"
+                            fill="#f97316"
+                            opacity="0.9"
+                            stroke="#ea580c"
+                            strokeWidth="2"
+                          />
+                        )}
+                        {lastLowerTouch && (
+                          <circle
+                            cx={lastLowerTouch.idx * (candleWidth + candleGap) + candleWidth / 2}
+                            cy={priceToY(lastLowerTouch.candle.low)}
+                            r="4"
+                            fill="#3b82f6"
+                            opacity="0.9"
+                            stroke="#2563eb"
+                            strokeWidth="2"
+                          />
+                        )}
+                      </>
+                    );
+                  })()}
                 </>
               );
             })()}
