@@ -7,18 +7,18 @@ interface MetricsPanelProps {
   position: 'left' | 'right' | 'trades';
 }
 
-const CONDITION_LABELS: Record<keyof BuyConditions, string> = {
-  '1m_golden_cross': '1m GC',
-  '5m_above': '5m EMA',
-  '15m_above': '15m EMA',
-  '30m_above': '30m EMA',
-  '1h_above': '1h EMA',
-  '30m_slope_up': '30m Slope',
-  '1h_slope_up': '1h Slope',
-  '5m_bbw': '5m BBW',
-  '15m_bbw': '15m BBW',
-  '30m_gap': '30m Gap',
-};
+const CONDITION_ORDER: { key: keyof BuyConditions; label: string }[] = [
+  { key: '1m_golden_cross', label: '1m GC' },
+  { key: '5m_above',        label: '5m EMA\u2191' },
+  { key: '15m_above',       label: '15m EMA\u2191' },
+  { key: '30m_above',       label: '30m EMA\u2191' },
+  { key: '1h_above',        label: '1h EMA\u2191' },
+  { key: '30m_slope_up',    label: '30m Slope\u2191' },
+  { key: '1h_slope_up',     label: '1h Slope\u2191' },
+  { key: '5m_bbw',          label: '5m BBW' },
+  { key: '15m_bbw',         label: '15m BBW' },
+  { key: '30m_gap',         label: '30m Gap' },
+];
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
   const diffMs = currentTime - entryTime;
@@ -156,19 +156,22 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               </div>
 
               <div className="grid grid-cols-2 gap-1">
-                {Object.entries(strategy.buyConditions).map(([key, met]) => (
-                  <div
-                    key={key}
-                    className={`flex items-center gap-1 px-1.5 py-1 rounded text-[9px] font-medium border ${
-                      met
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-stone-50 text-stone-500 border-stone-200'
-                    }`}
-                  >
-                    <span className="text-[10px]">{met ? '\u2713' : '\u2717'}</span>
-                    <span className="truncate">{CONDITION_LABELS[key as keyof BuyConditions] || key}</span>
-                  </div>
-                ))}
+                {CONDITION_ORDER.map(({ key, label }) => {
+                  const met = strategy.buyConditions[key];
+                  return (
+                    <div
+                      key={key}
+                      className={`flex items-center gap-1 px-1.5 py-1 rounded text-[9px] font-medium border ${
+                        met
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-stone-50 text-stone-500 border-stone-200'
+                      }`}
+                    >
+                      <span className="text-[10px]">{met ? '\u2713' : '\u2717'}</span>
+                      <span className="truncate">{label}</span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="border-t border-amber-200 pt-2 space-y-1">
