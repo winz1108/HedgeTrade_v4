@@ -1,4 +1,4 @@
-import { DashboardData, ApiResponse, AccountData, TradeEvent } from '../types/dashboard';
+import { DashboardData, ApiResponse, TradeEvent, StrategyStatus } from '../types/dashboard';
 
 const getApiUrl = () => {
   return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
@@ -39,7 +39,18 @@ const convertAccountTradesToTradeEvents = (accountTrades: any[], hasPosition: bo
     quantity: trade.quantity,
     profit: trade.profit || trade.pnl_pct,
     pairId: trade.pairId || trade.pair_id,
-    prediction: trade.prediction,
+    exitReason: trade.exitReason,
+    pnl: trade.pnl,
+    buyCost: trade.buyCost,
+    sellRevenue: trade.sellRevenue,
+    buyQty: trade.buyQty,
+    sellQty: trade.sellQty,
+    buyCommission: trade.buyCommission,
+    sellCommission: trade.sellCommission,
+    entryPrice: trade.entryPrice,
+    entryTime: trade.entryTime,
+    profitNoCommission: trade.profitNoCommission,
+    pnlWithCommission: trade.pnlWithCommission,
   })).sort((a, b) => a.timestamp - b.timestamp);
 };
 
@@ -128,13 +139,19 @@ const convertApiResponseToDashboardData = (
       lastPredictionUpdateTime: apiResponse.lastPredictionUpdateTime,
       marketState: apiResponse.marketState,
       gateWeights: apiResponse.gateWeights,
+      strategyStatus: apiResponse.strategyStatus || null,
       metrics: {
         portfolioReturn: account.metrics.portfolioReturn ?? 0,
         portfolioReturnWithCommission: account.metrics.portfolioReturnWithCommission ?? account.metrics.portfolioReturn,
+        actualReturn: (account.metrics as any).actualReturn ?? account.metrics.portfolioReturnWithCommission,
         marketReturn: (apiResponse.metrics as any)?.marketChange ?? (apiResponse.metrics as any)?.marketReturn ?? 0,
-        avgTradeReturn: account.metrics.avgTradeReturn ?? (account.metrics as any).avgPnl ?? 0,
-        takeProfitCount: account.metrics.takeProfitCount ?? (account as any).tradeStats?.takeProfitExits ?? 0,
-        stopLossCount: account.metrics.stopLossCount ?? (account as any).tradeStats?.stopLossExits ?? 0,
+        avgTradeReturn: (account.metrics as any).avgTradeReturn ?? (account.metrics as any).avgPnl ?? 0,
+        takeProfitCount: (account.metrics as any).takeProfitCount ?? (account as any).tradeStats?.takeProfitExits ?? 0,
+        stopLossCount: (account.metrics as any).stopLossCount ?? (account as any).tradeStats?.stopLossExits ?? 0,
+        totalTrades: account.metrics.totalTrades,
+        winningTrades: account.metrics.winningTrades,
+        winRate: account.metrics.winRate,
+        totalPnl: account.metrics.totalPnl,
       },
       accountId: selectedAccountId,
       accountName: account.accountName,
@@ -373,5 +390,34 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
     return dashboardData;
   } catch (error) {
     throw error;
+  }
+};
+
+export const fetchStrategyStatus = async (): Promise<StrategyStatus | null> => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/strategy-status`;
+
+  try {
+    const response = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (data.status !== 'ok') return null;
+
+    return {
+      buyConditions: data.buy_conditions,
+      buyConditionsMet: data.buy_conditions_met,
+      buyConditionsTotal: data.buy_conditions_total,
+      allBuyMet: data.all_buy_met,
+      sellSignal: data.sell_signal,
+      inPosition: data.strategy?.in_position ?? false,
+      updatedAt: data.updated_at,
+      strategy: data.strategy,
+    };
+  } catch {
+    return null;
   }
 };

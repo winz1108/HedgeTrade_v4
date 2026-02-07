@@ -1,12 +1,35 @@
-import { TrendingUp, TrendingDown, DollarSign, Activity, History } from 'lucide-react';
-import { DashboardData } from '../types/dashboard';
-import { formatLocalTime, formatLocalDateTime } from '../utils/time';
-import { useState, useEffect } from 'react';
+import { TrendingDown, DollarSign, Activity, History, Target } from 'lucide-react';
+import { DashboardData, BuyConditions } from '../types/dashboard';
+import { formatLocalDateTime } from '../utils/time';
 
 interface MetricsPanelProps {
   data: DashboardData;
   position: 'left' | 'right' | 'trades';
 }
+
+const CONDITION_LABELS: Record<keyof BuyConditions, string> = {
+  '1m_golden_cross': '1m GC',
+  '5m_above': '5m EMA',
+  '15m_above': '15m EMA',
+  '30m_above': '30m EMA',
+  '1h_above': '1h EMA',
+  '30m_slope_up': '30m Slope',
+  '1h_slope_up': '1h Slope',
+  '5m_bbw': '5m BBW',
+  '15m_bbw': '15m BBW',
+  '30m_gap': '30m Gap',
+};
+
+const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
+  const diffMs = currentTime - entryTime;
+  const minutes = Math.floor(diffMs / 60000);
+  const hours = Math.floor(minutes / 60);
+  const remainMinutes = minutes % 60;
+  if (hours > 0) {
+    return `${hours}h ${remainMinutes}m`;
+  }
+  return `${minutes}m`;
+};
 
 export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   const formatCurrency = (value: number) => {
@@ -19,17 +42,17 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   };
 
   const formatPercent = (value: number | undefined) => {
-    if (value === undefined || value === null) {
-      return '0.00%';
-    }
-    if (typeof value !== 'number' || isNaN(value)) {
-      return '0.00%';
-    }
+    if (value === undefined || value === null) return '0.00%';
+    if (typeof value !== 'number' || isNaN(value)) return '0.00%';
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
-
   if (position === 'left') {
+    const strategy = data.strategyStatus;
+    const conditionsMet = strategy?.buyConditionsMet ?? 0;
+    const conditionsTotal = strategy?.buyConditionsTotal ?? 10;
+    const progressPct = conditionsTotal > 0 ? (conditionsMet / conditionsTotal) * 100 : 0;
+
     return (
       <div className="flex flex-col gap-2">
         <div className="bg-white/90 border border-blue-200 rounded-lg shadow-lg p-3 transition-all duration-300">
@@ -43,28 +66,19 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           <div className="space-y-2">
             <div className="bg-amber-50/80 rounded-lg p-3 border border-amber-200">
               <div className="text-[10px] text-slate-600 mb-1">Total Asset</div>
-              <div
-                key={`asset-${data.currentAsset}`}
-                className="text-2xl font-bold text-slate-800 mb-2"
-              >
+              <div className="text-2xl font-bold text-slate-800 mb-2">
                 {formatCurrency(data.currentAsset)}
               </div>
               <div className="space-y-1 pt-2 border-t border-amber-200">
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-600">BTC</span>
-                  <span
-                    key={`btc-${data.currentBTC}`}
-                    className="text-xs font-semibold text-amber-600"
-                  >
+                  <span className="text-xs font-semibold text-amber-600">
                     {formatCurrency(data.currentBTC || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-600">USDC</span>
-                  <span
-                    key={`cash-${data.currentCash}`}
-                    className="text-xs font-semibold text-emerald-600"
-                  >
+                  <span className="text-xs font-semibold text-emerald-600">
                     {formatCurrency(data.currentCash || 0)}
                   </span>
                 </div>
@@ -76,12 +90,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               {data.holding.isHolding ? (
                 <div className="space-y-1.5 bg-amber-50/80 rounded-lg p-2 border border-amber-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-600 font-semibold">
-                      Position
-                    </span>
-                    <span className="text-[10px] text-emerald-600 font-semibold">
-                      Holding
-                    </span>
+                    <span className="text-[10px] text-slate-600 font-semibold">Position</span>
+                    <span className="text-[10px] text-emerald-600 font-semibold">Holding</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[10px] text-slate-600">Buy Price</span>
@@ -89,147 +99,100 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[10px] text-slate-600">Current Profit</span>
-                    <span
-                      key={Math.random()}
-                      className={`text-[10px] font-bold ${
-                        (data.holding.currentProfit ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-400'
-                      }`}
-                    >
+                    <span className={`text-[10px] font-bold ${
+                      (data.holding.currentProfit ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-400'
+                    }`}>
                       {typeof data.holding.currentProfit === 'number'
                         ? `${data.holding.currentProfit >= 0 ? '+' : ''}${data.holding.currentProfit.toFixed(2)}%`
                         : '0.00%'}
                     </span>
                   </div>
+                  {data.holding.buyTime && (
+                    <div className="flex justify-between">
+                      <span className="text-[10px] text-slate-600">Duration</span>
+                      <span className="text-[10px] font-semibold text-slate-700">
+                        {formatHoldingDuration(data.holding.buyTime, data.currentTime)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="px-2 py-1 bg-stone-200/50/20 text-slate-600 rounded-lg text-[10px] font-semibold inline-block border border-amber-200">
+                <div className="px-2 py-1 bg-stone-200/50 text-slate-600 rounded-lg text-[10px] font-semibold inline-block border border-amber-200">
                   NOT HOLDING
                 </div>
               )}
             </div>
-
-            {data.holding.isHolding && (
-              <div className="border-t border-amber-200 pt-2">
-                <div className="text-[10px] text-slate-600 mb-1.5 font-semibold">Target Levels</div>
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center bg-emerald-500/10 rounded-lg p-1.5 border border-emerald-500/20">
-                    <span className="text-[10px] text-emerald-600 font-semibold">Take Profit</span>
-                    <span className="text-[10px] font-bold text-slate-800">{formatCurrency(data.holding.tpPrice!)}</span>
-                  </div>
-                  <div className="flex justify-between items-center bg-rose-500/10 rounded-lg p-1.5 border border-rose-500/20">
-                    <span className="text-[10px] text-rose-400 font-semibold">Stop Loss</span>
-                    <span className="text-[10px] font-bold text-slate-800">{formatCurrency(data.holding.slPrice!)}</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-3 hover:shadow-emerald-500/10 transition-all duration-300">
+        <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-3 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex flex-col gap-0.5">
-              <h3 className="text-sm font-bold text-slate-800">AI Prediction</h3>
-              {data.currentPrediction?.predictionDataTimestamp && (
-                <span className="text-[8px] text-slate-500">
-                  데이터 기준: {formatLocalTime(data.currentPrediction.predictionDataTimestamp)}
-                </span>
-              )}
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-sm font-bold text-slate-800">Buy Conditions</h3>
+              <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+                conditionsMet === conditionsTotal
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-amber-100 text-amber-700'
+              }`}>
+                {conditionsMet}/{conditionsTotal}
+              </span>
             </div>
-            <div className="p-1 bg-emerald-500/20 rounded-lg">
-              <TrendingUp className="w-3 h-3 text-emerald-600" />
+            <div className="p-1 bg-teal-100 rounded-lg">
+              <Target className="w-3 h-3 text-teal-600" />
             </div>
           </div>
 
-          {data.currentPrediction ? (
-            <div className="space-y-1">
-              <div className="bg-slate-50/50 rounded p-1 border border-slate-200/60">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] text-slate-600">임계값</span>
-                  <span className="text-[10px] font-semibold text-slate-700">
-                    {data.prediction?.threshold_v8 !== undefined
-                      ? `${(data.prediction.threshold_v8 * 100).toFixed(0)}%`
-                      : data.prediction?.market_mood === 'BULL' ? '78%' : '85%'}
+          {strategy ? (
+            <div className="space-y-2">
+              <div className="w-full bg-stone-100 rounded-full h-2 overflow-hidden border border-stone-200">
+                <div
+                  className={`h-2 rounded-full transition-all duration-500 ${
+                    conditionsMet === conditionsTotal
+                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                      : 'bg-gradient-to-r from-amber-500 to-orange-400'
+                  }`}
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-1">
+                {Object.entries(strategy.buyConditions).map(([key, met]) => (
+                  <div
+                    key={key}
+                    className={`flex items-center gap-1 px-1.5 py-1 rounded text-[9px] font-medium border ${
+                      met
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-stone-50 text-stone-500 border-stone-200'
+                    }`}
+                  >
+                    <span className="text-[10px]">{met ? '\u2713' : '\u2717'}</span>
+                    <span className="truncate">{CONDITION_LABELS[key as keyof BuyConditions] || key}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-amber-200 pt-2 space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] text-slate-600 font-semibold">Sell Signal</span>
+                  <span className={`text-[9px] font-bold ${
+                    strategy.sellSignal ? 'text-rose-500' : 'text-stone-400'
+                  }`}>
+                    {strategy.sellSignal || 'None'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] text-slate-600 font-semibold">Position</span>
+                  <span className={`text-[9px] font-bold ${
+                    strategy.inPosition ? 'text-blue-600' : 'text-stone-400'
+                  }`}>
+                    {strategy.inPosition ? 'IN' : 'OUT'}
                   </span>
                 </div>
               </div>
-
-              <div className="bg-slate-50/50 rounded p-1 border border-slate-200/60">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] text-slate-600">BB Touch</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs">{data.prediction?.bb_touch ? '✓' : '✗'}</span>
-                    <span className={`text-[9px] font-semibold ${
-                      data.prediction?.bb_touch ? 'text-emerald-600' : 'text-slate-500'
-                    }`}>
-                      {data.prediction?.bb_touch ? '매수가능' : '대기'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {data.holding.isHolding && data.holding.initialTakeProfitProb !== undefined && (
-                <div className="bg-amber-50/80 rounded-lg p-2 border border-amber-200">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-slate-600 font-semibold">Initial (At Buy)</span>
-                    {data.holding.buyTime && (
-                      <span className="text-[9px] text-slate-500 font-mono">
-                        {formatLocalTime(data.holding.buyTime)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-stone-100 rounded-lg h-4 overflow-hidden border border-stone-200 shadow-inner">
-                      <div
-                        className="bg-gradient-to-r from-amber-500 to-orange-400 h-4 transition-all duration-500"
-                        style={{ width: `${data.holding.initialTakeProfitProb! * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-bold text-orange-700 min-w-[50px]">
-                      {(data.holding.initialTakeProfitProb! * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div
-                key={`tp-prob-${data.currentPrediction?.takeProfitProb}-${data.currentPrediction?.predictionCalculatedAt}`}
-                className="bg-amber-50/80 rounded-lg p-2 border border-amber-200"
-              >
-                <div className="flex flex-col gap-0.5 mb-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-600 font-semibold">
-                      {data.holding.isHolding ? 'Current TP Prob' : 'TP Probability'}
-                    </span>
-                    {data.currentPrediction?.predictionCalculatedAt && (
-                      <span className="text-[9px] text-slate-500 font-mono">
-                        {formatLocalTime(data.currentPrediction.predictionCalculatedAt)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-stone-100 rounded-lg h-4 overflow-hidden border border-stone-200 shadow-inner">
-                    <div
-                      className="bg-gradient-to-r from-teal-500 to-emerald-400 h-4 transition-all duration-500"
-                      style={{ width: `${(data.currentPrediction?.takeProfitProb ?? 0) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-bold text-teal-700 min-w-[50px]">
-                    {((data.currentPrediction?.takeProfitProb ?? 0) * 100).toFixed(1)}%
-                  </span>
-                </div>
-              </div>
-
-              {!data.holding.isHolding && (
-                <div className="text-[10px] text-slate-500 text-center">
-                  No active position
-                </div>
-              )}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-20 text-slate-500 text-xs">
-              No prediction available
+            <div className="flex items-center justify-center h-16 text-slate-500 text-xs">
+              Waiting for strategy data...
             </div>
           )}
         </div>
@@ -245,13 +208,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
       .slice(0, 40);
 
     return (
-      <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300">
+      <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-2.5 transition-all duration-300">
         <div className="flex items-center justify-between mb-1.5">
           <h3 className="text-xs font-bold text-slate-800">Recent Trades</h3>
           <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-slate-500 font-mono">max 40 trades / 7d</span>
-            <div className="p-0.5 bg-purple-500/20 rounded">
-              <History className="w-2.5 h-2.5 text-purple-400" />
+            <span className="text-[9px] text-slate-500 font-mono">max 40 / 7d</span>
+            <div className="p-0.5 bg-amber-100 rounded">
+              <History className="w-2.5 h-2.5 text-amber-600" />
             </div>
           </div>
         </div>
@@ -271,12 +234,43 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-orange-500/10 border border-orange-500/20 rounded p-1">
+                  <div className={`${
+                    trade.exitReason === 'TP' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20'
+                  } border rounded p-1`}>
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-bold uppercase text-orange-400">SELL</span>
+                      <div className="flex items-center gap-1">
+                        <span className={`text-[9px] font-bold uppercase ${
+                          trade.exitReason === 'TP' ? 'text-emerald-500' : 'text-rose-400'
+                        }`}>SELL</span>
+                        {trade.exitReason && (
+                          <span className={`text-[7px] px-1 py-0.5 rounded font-bold ${
+                            trade.exitReason === 'TP'
+                              ? 'bg-emerald-100 text-emerald-600'
+                              : 'bg-rose-100 text-rose-500'
+                          }`}>{trade.exitReason}</span>
+                        )}
+                      </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[9px] font-bold text-slate-800">{formatCurrency(trade.price)}</span>
-                        <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] font-bold text-slate-800">{formatCurrency(trade.price)}</span>
+                          {trade.profit !== undefined && (
+                            <span className={`text-[8px] font-bold ${
+                              trade.profit >= 0 ? 'text-emerald-500' : 'text-rose-400'
+                            }`}>
+                              {trade.profit >= 0 ? '+' : ''}{trade.profit.toFixed(2)}%
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
+                          {trade.pnl !== undefined && (
+                            <span className={`text-[8px] font-semibold ${
+                              trade.pnl >= 0 ? 'text-emerald-500' : 'text-rose-400'
+                            }`}>
+                              {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -293,9 +287,14 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     );
   }
 
+  const winRate = data.metrics.winRate
+    ?? (data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
+      ? (data.metrics.takeProfitCount / (data.metrics.takeProfitCount + data.metrics.stopLossCount)) * 100
+      : 0);
+
   return (
     <div className="flex flex-col gap-2">
-      <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-3 hover:shadow-amber-500/10 transition-all duration-300">
+      <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-3 transition-all duration-300">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-slate-800">Performance</h3>
           <div className="flex items-center gap-1">
@@ -317,37 +316,38 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               >
                 {formatPercent(data.metrics.portfolioReturnWithCommission)}
               </div>
+              {data.metrics.totalPnl !== undefined && (
+                <div className={`text-xs font-bold mt-1 ${
+                  data.metrics.totalPnl >= 0 ? 'text-emerald-600' : 'text-rose-400'
+                }`}>
+                  {data.metrics.totalPnl >= 0 ? '+' : ''}{data.metrics.totalPnl.toFixed(2)} USDC
+                </div>
+              )}
             </div>
           )}
 
           <div className="space-y-1">
             <div className="flex justify-between items-center bg-amber-50/80 p-1.5 rounded-lg border border-amber-200">
               <span className="text-[9px] text-slate-600 font-semibold">Portfolio Return</span>
-              <span
-                className={`text-xs font-bold ${
-                  data.metrics.portfolioReturn >= 0 ? 'text-emerald-600' : 'text-rose-400'
-                }`}
-              >
+              <span className={`text-xs font-bold ${
+                data.metrics.portfolioReturn >= 0 ? 'text-emerald-600' : 'text-rose-400'
+              }`}>
                 {formatPercent(data.metrics.portfolioReturn)}
               </span>
             </div>
             <div className="flex justify-between items-center bg-amber-50/80 p-1.5 rounded-lg border border-amber-200">
               <span className="text-[9px] text-slate-600 font-semibold">Market Change</span>
-              <span
-                className={`text-xs font-bold ${
-                  data.metrics.marketReturn >= 0 ? 'text-emerald-600' : 'text-rose-400'
-                }`}
-              >
+              <span className={`text-xs font-bold ${
+                data.metrics.marketReturn >= 0 ? 'text-emerald-600' : 'text-rose-400'
+              }`}>
                 {formatPercent(data.metrics.marketReturn)}
               </span>
             </div>
             <div className="flex justify-between items-center bg-amber-50/80 p-1.5 rounded-lg border border-amber-200">
               <span className="text-[9px] text-slate-600 font-semibold">Avg Trade Return</span>
-              <span
-                className={`text-xs font-bold ${
-                  data.metrics.avgTradeReturn >= 0 ? 'text-emerald-600' : 'text-rose-400'
-                }`}
-              >
+              <span className={`text-xs font-bold ${
+                data.metrics.avgTradeReturn >= 0 ? 'text-emerald-600' : 'text-rose-400'
+              }`}>
                 {formatPercent(data.metrics.avgTradeReturn)}
               </span>
             </div>
@@ -355,7 +355,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
         </div>
       </div>
 
-      <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-3 hover:shadow-blue-500/10 transition-all duration-300">
+      <div className="bg-white/90 border border-amber-200 rounded-lg shadow-xl p-3 transition-all duration-300">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-slate-800">Trade Statistics</h3>
           <div className="flex items-center gap-1">
@@ -368,41 +368,30 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
         <div className="space-y-1.5">
           <div className="flex justify-between items-center bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
-            <span className="text-[10px] text-emerald-600 font-semibold">Take Profit Exits</span>
+            <span className="text-[10px] text-emerald-600 font-semibold">Profit Exits (TP)</span>
             <span className="text-base font-bold text-emerald-600">{data.metrics.takeProfitCount}</span>
           </div>
           <div className="flex justify-between items-center bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
-            <span className="text-[10px] text-rose-400 font-semibold">Stop Loss Exits</span>
+            <span className="text-[10px] text-rose-400 font-semibold">Loss Exits (SL)</span>
             <span className="text-base font-bold text-rose-400">{data.metrics.stopLossCount}</span>
           </div>
+          {data.metrics.totalTrades !== undefined && (
+            <div className="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+              <span className="text-[10px] text-slate-600 font-semibold">Total Trades</span>
+              <span className="text-sm font-bold text-slate-700">{data.metrics.totalTrades}</span>
+            </div>
+          )}
           <div className="border-t border-amber-200 pt-2">
             <div className="text-[10px] text-slate-600 mb-1 font-semibold">Win Rate</div>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-stone-100 rounded-lg h-3.5 overflow-hidden border border-stone-200 shadow-inner">
                 <div
                   className="bg-gradient-to-r from-amber-500 to-orange-400 h-3.5 transition-all duration-500"
-                  style={{
-                    width: `${
-                      data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
-                        ? (data.metrics.takeProfitCount /
-                            (data.metrics.takeProfitCount + data.metrics.stopLossCount)) *
-                          100
-                        : 0
-                    }%`,
-                  }}
+                  style={{ width: `${winRate}%` }}
                 />
               </div>
               <span className="text-sm font-bold text-orange-700 min-w-[45px]">
-                {
-                  data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
-                    ? (
-                        (data.metrics.takeProfitCount /
-                          (data.metrics.takeProfitCount + data.metrics.stopLossCount)) *
-                        100
-                      ).toFixed(1)
-                    : '0.0'
-                }
-                %
+                {winRate.toFixed(1)}%
               </span>
             </div>
           </div>

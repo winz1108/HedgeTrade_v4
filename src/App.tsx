@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { RefreshCw, X, Bug } from 'lucide-react';
+import { RefreshCw, Bug } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from './types/dashboard';
-import { fetchDashboardData, fetchChartData } from './services/oracleApi';
+import { fetchDashboardData, fetchChartData, fetchStrategyStatus } from './services/oracleApi';
 import { PriceChart } from './components/PriceChart';
 import { MetricsPanel } from './components/MetricsPanel';
 import { ChartSkeleton, MetricsSkeleton } from './components/ChartSkeleton';
@@ -24,21 +24,14 @@ function App() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
+  const [, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<string>(() => {
     const hash = window.location.hash.slice(1);
     return hash || 'Account_A';
   });
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [verificationResult, setVerificationResult] = useState<string | null>(null);
-  const [verificationLoading, setVerificationLoading] = useState(false);
-
   // BTC 수량과 USDC 수량을 저장 (가격 업데이트 시 자산 재계산용)
   const btcBalanceRef = useRef<number>(0);
   const usdcBalanceRef = useRef<number>(0);
-
-  // 예측 계산 시점 추적 (5분마다 업데이트 감지용)
-  const lastPredictionCalculatedAtRef = useRef<number>(0);
 
   // 갭 감지 및 자동 채우기
   const detectAndFillGap = useCallback(async (
@@ -131,6 +124,13 @@ function App() {
       fullDashboard.priceHistory4h = charts[5].candles as Candle[];
       fullDashboard.priceHistory1d = charts[6].candles as Candle[];
 
+      try {
+        const strategyStatus = await fetchStrategyStatus();
+        if (strategyStatus) {
+          fullDashboard.strategyStatus = strategyStatus;
+        }
+      } catch {}
+
       if (fullDashboard.currentBTC !== undefined && fullDashboard.currentPrice) {
         btcBalanceRef.current = fullDashboard.currentBTC / fullDashboard.currentPrice;
       }
@@ -153,53 +153,6 @@ function App() {
       setLoading(false);
     }
   }, [selectedAccount]);
-
-  const handleVerification = async () => {
-    setVerificationLoading(true);
-    setShowVerificationModal(true);
-    setVerificationResult(null);
-
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
-      const jsonUrl = `${apiUrl}/api/debug/verification`;
-      const textUrl = `${apiUrl}/api/debug/verification/text`;
-
-      const [jsonResponse, textResponse] = await Promise.all([
-        fetch(jsonUrl),
-        fetch(textUrl)
-      ]);
-
-      if (!textResponse.ok) {
-        throw new Error(`HTTP error! status: ${textResponse.status}`);
-      }
-
-      let text = await textResponse.text();
-
-      // JSON 응답에서 prediction.health 정보 추출
-      if (jsonResponse.ok) {
-        try {
-          const jsonData = await jsonResponse.json();
-          if (jsonData.prediction?.health) {
-            const health = jsonData.prediction.health;
-            const healthStatus = `\n\n=======================================\n` +
-              `📊 PREDICTION HEALTH STATUS\n` +
-              `=======================================\n` +
-              `상태: ${health.status.toUpperCase()}\n` +
-              `메시지: ${health.message}\n`;
-            text = text + healthStatus;
-          }
-        } catch (e) {
-        }
-      }
-
-      setVerificationResult(text);
-    } catch (error) {
-      setVerificationResult(`오류 발생: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-    } finally {
-      setVerificationLoading(false);
-    }
-  };
-
 
   useEffect(() => {
     window.location.hash = selectedAccount;
@@ -358,7 +311,7 @@ function App() {
         } else if (lastCandle.timestamp === newCandle.timestamp) {
           // 타임스탬프가 같으면 진행봉 업데이트
           // 가격 데이터만 업데이트하고 지표는 유지
-          if (!lastCandle.isComplete || lastCandle.isComplete === false) {
+          if (!lastCandle.isComplete) {
             lastCandle.close = newCandle.close;
             lastCandle.high = Math.max(lastCandle.high, newCandle.high);
             lastCandle.low = Math.min(lastCandle.low, newCandle.low);
@@ -749,6 +702,7 @@ function App() {
               currentCash,
               trades: updatedTrades,
               holding: updatedHolding,
+              strategyStatus: (update.strategyStatus as any) ?? prevData.strategyStatus,
             };
           });
         }
@@ -800,83 +754,18 @@ function App() {
     };
   }, [selectedAccount, refillMissingCandles]);
 
-  // 5분 정각마다 예측 업데이트 체크
   useEffect(() => {
-    let pollingInterval: NodeJS.Timeout | null = null;
-    let nextCheckTimeout: NodeJS.Timeout | null = null;
-
-    const checkPredictionUpdate = async () => {
+    const pollStrategy = setInterval(async () => {
       try {
-        const response = await fetchDashboardData(selectedAccount);
-        const newCalculatedAt = response.currentPrediction?.predictionCalculatedAt;
-
-        if (newCalculatedAt && newCalculatedAt !== lastPredictionCalculatedAtRef.current) {
-          lastPredictionCalculatedAtRef.current = newCalculatedAt;
-
-          setData((prev) => {
-            if (!prev) return prev;
-
-            // 완전히 새로운 객체 생성으로 React 리렌더링 강제
-            const updated = {
-              ...prev,
-              currentPrediction: {
-                ...response.currentPrediction,
-                // 명시적으로 필드 설정
-                predictionCalculatedAt: newCalculatedAt,
-              },
-              lastPredictionUpdateTime: newCalculatedAt,
-              // 타임스탬프 추가로 강제 리렌더링
-              _updateTimestamp: Date.now(),
-            };
-
-            return updated;
-          });
-
-          // 업데이트 감지되면 폴링 중단하고 다음 정각까지 대기
-          if (pollingInterval) {
-            clearInterval(pollingInterval);
-            pollingInterval = null;
-          }
-          scheduleNextCheck();
+        const status = await fetchStrategyStatus();
+        if (status) {
+          setData(prev => prev ? { ...prev, strategyStatus: status } : prev);
         }
-      } catch (error) {
-      }
-    };
+      } catch {}
+    }, 10000);
 
-    const scheduleNextCheck = () => {
-      const now = new Date();
-      const currentMinutes = now.getMinutes();
-      const currentSeconds = now.getSeconds();
-      const currentMs = now.getMilliseconds();
-
-      // 다음 5분 정각 계산 (00, 05, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
-      const nextMinute = Math.ceil((currentMinutes + 1) / 5) * 5;
-      const minutesUntilNext = (nextMinute - currentMinutes + 60) % 60;
-      const msUntilNext = (minutesUntilNext * 60 - currentSeconds) * 1000 - currentMs;
-
-      if (nextCheckTimeout) clearTimeout(nextCheckTimeout);
-
-      nextCheckTimeout = setTimeout(() => {
-        checkPredictionUpdate(); // 즉시 체크
-
-        if (pollingInterval) clearInterval(pollingInterval);
-        pollingInterval = setInterval(checkPredictionUpdate, 1000); // 1초마다 체크
-      }, msUntilNext);
-    };
-
-    // 초기화 시 한 번만 스케줄 설정
-    if (data?.currentPrediction?.predictionCalculatedAt) {
-      if (lastPredictionCalculatedAtRef.current === 0) {
-        lastPredictionCalculatedAtRef.current = data.currentPrediction.predictionCalculatedAt;
-      }
-      scheduleNextCheck();
-    }
-
-    return () => {
-      if (pollingInterval) clearInterval(pollingInterval);
-      if (nextCheckTimeout) clearTimeout(nextCheckTimeout);
-    };
-  }, [selectedAccount]); // data 의존성 제거!
+    return () => clearInterval(pollStrategy);
+  }, []);
 
   if (loading) {
     return (
@@ -933,44 +822,6 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
 
-      {showVerificationModal && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setShowVerificationModal(false)}
-        >
-          <div
-            className="bg-white border border-amber-200 rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <Bug className="w-5 h-5 text-amber-400" />
-                <h2 className="text-lg font-bold text-white">서버 종합 검증</h2>
-              </div>
-              <button
-                onClick={() => setShowVerificationModal(false)}
-                className="p-1 hover:bg-slate-700 rounded transition-colors"
-              >
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <div className="p-4 overflow-y-auto max-h-[calc(85vh-80px)]">
-              {verificationLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <RefreshCw className="w-8 h-8 animate-spin text-cyan-400" />
-                  <span className="ml-3 text-slate-300">검증 중...</span>
-                </div>
-              ) : verificationResult ? (
-                <pre className="text-xs text-slate-700 font-mono whitespace-pre-wrap break-words bg-amber-50/80 p-4 rounded-lg border border-slate-700">
-                  {verificationResult}
-                </pre>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
         <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl gap-3">
           <div className="flex items-center gap-3 flex-wrap">
@@ -1025,67 +876,42 @@ function App() {
                 </span>
               )}
               <button
-                onClick={handleVerification}
+                onClick={() => {
+                  const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+                  window.open(`${apiUrl}/api/debug/strategy`, '_blank');
+                }}
                 className="p-1.5 rounded transition-all duration-200 text-amber-400 hover:bg-amber-500/10"
-                title="서버 검증"
+                title="전략 디버그"
               >
                 <Bug className="w-3 h-3" />
               </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-white/50 px-3 py-2 rounded-lg border border-amber-200">
-            <span className="text-[10px] text-stone-600 font-medium whitespace-nowrap">Market State:</span>
-            <div className="flex items-center gap-2">
-              {data.marketState?.state === 'BULL_CONV' && (
-                <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded font-semibold">
-                  <span className="text-sm">🐂</span>
-                  <span className="text-[10px]">강세 수렴</span>
+          {data.strategyStatus && (
+            <div className="flex items-center gap-2 bg-white/50 px-3 py-2 rounded-lg border border-amber-200">
+              <span className="text-[10px] text-stone-600 font-medium whitespace-nowrap">EMA Cross:</span>
+              <div className="flex items-center gap-1.5">
+                <div className={`px-2 py-1 rounded text-[10px] font-bold border ${
+                  data.strategyStatus.allBuyMet
+                    ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}>
+                  {data.strategyStatus.buyConditionsMet}/{data.strategyStatus.buyConditionsTotal}
                 </div>
-              )}
-              {data.marketState?.state === 'BULL_DIV' && (
-                <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded font-semibold">
-                  <span className="text-sm">🐂</span>
-                  <span className="text-[10px]">강세 발산</span>
-                </div>
-              )}
-              {data.marketState?.state === 'BEAR_CONV' && (
-                <div className="flex items-center gap-1 bg-rose-100 text-rose-700 border border-rose-200 px-2 py-1 rounded font-semibold">
-                  <span className="text-sm">🐻</span>
-                  <span className="text-[10px]">약세 수렴</span>
-                </div>
-              )}
-              {data.marketState?.state === 'BEAR_DIV' && (
-                <div className="flex items-center gap-1 bg-rose-100 text-rose-700 border border-rose-200 px-2 py-1 rounded font-semibold">
-                  <span className="text-sm">🐻</span>
-                  <span className="text-[10px]">약세 발산</span>
-                </div>
-              )}
-              {data.marketState?.state === 'SIDEWAYS' && (
-                <div className="flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-200 px-2 py-1 rounded font-semibold">
-                  <span className="text-sm">🦀</span>
-                  <span className="text-[10px]">횡보</span>
-                </div>
-              )}
-              {!data.marketState?.state && data.prediction?.market_mood === 'BULL' && (
-                <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded font-semibold">
-                  <span className="text-sm">🐂</span>
-                  <span className="text-[10px]">상승장</span>
-                </div>
-              )}
-              {!data.marketState?.state && data.prediction?.market_mood === 'BEAR' && (
-                <div className="flex items-center gap-1 bg-rose-100 text-rose-700 border border-rose-200 px-2 py-1 rounded font-semibold">
-                  <span className="text-sm">🐻</span>
-                  <span className="text-[10px]">하락장</span>
-                </div>
-              )}
-              {!data.marketState?.state && data.prediction?.market_mood !== 'BULL' && data.prediction?.market_mood !== 'BEAR' && (
-                <div className="flex items-center gap-1 bg-stone-100 text-stone-600 border border-stone-200 px-2 py-1 rounded">
-                  <span className="text-[10px]">분석중</span>
-                </div>
-              )}
+                {data.strategyStatus.inPosition && (
+                  <div className="px-2 py-1 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                    IN POSITION
+                  </div>
+                )}
+                {data.strategyStatus.sellSignal && (
+                  <div className="px-2 py-1 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                    SELL: {data.strategyStatus.sellSignal}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">

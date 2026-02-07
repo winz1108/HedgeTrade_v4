@@ -27,15 +27,19 @@ export interface TradeEvent {
   price: number;
   profit?: number;
   pairId?: string;
-  quantity?: number;  // 체결 수량
-  prediction?: {
-    takeProfitProb: number;
-    stopLossProb: number;
-    expectedTakeProfitTime: number;
-    expectedStopLossTime: number;
-    expectedTakeProfitPrice: number;
-    expectedStopLossPrice: number;
-  };
+  quantity?: number;
+  exitReason?: 'TP' | 'SL';
+  pnl?: number;
+  buyCost?: number;
+  sellRevenue?: number;
+  buyQty?: number;
+  sellQty?: number;
+  buyCommission?: number;
+  sellCommission?: number;
+  entryPrice?: number;
+  entryTime?: number;
+  profitNoCommission?: number;
+  pnlWithCommission?: number;
 }
 
 export interface HoldingInfo {
@@ -68,6 +72,47 @@ export interface MarketState {
     ema50: number;
     ema100: number;
     ema20_rising: boolean;
+  };
+}
+
+export interface BuyConditions {
+  '1m_golden_cross': boolean;
+  '5m_above': boolean;
+  '15m_above': boolean;
+  '30m_above': boolean;
+  '1h_above': boolean;
+  '30m_slope_up': boolean;
+  '1h_slope_up': boolean;
+  '5m_bbw': boolean;
+  '15m_bbw': boolean;
+  '30m_gap': boolean;
+}
+
+export interface StrategyTimeframe {
+  ema5: number;
+  ema13: number;
+  above: boolean;
+  golden?: boolean;
+  bbw?: number;
+  gap?: number;
+  slope?: number;
+  dead?: boolean;
+}
+
+export interface StrategyStatus {
+  buyConditions: BuyConditions;
+  buyConditionsMet: number;
+  buyConditionsTotal: number;
+  allBuyMet: boolean;
+  sellSignal: string | null;
+  inPosition: boolean;
+  updatedAt?: string;
+  strategy?: {
+    '1m'?: StrategyTimeframe;
+    '5m'?: StrategyTimeframe;
+    '15m'?: StrategyTimeframe;
+    '30m'?: StrategyTimeframe;
+    '1h'?: StrategyTimeframe;
   };
 }
 
@@ -110,11 +155,16 @@ export interface AccountTrade {
 export interface AccountMetrics {
   portfolioReturn: number;
   portfolioReturnWithCommission?: number;
+  actualReturn?: number;
   totalTrades: number;
+  completedTrades?: number;
   winningTrades: number;
   winRate: number;
   totalPnl?: number;
   avgPnl?: number;
+  totalBalance?: number;
+  takeProfitCount?: number;
+  stopLossCount?: number;
 }
 
 export interface AccountData {
@@ -170,11 +220,7 @@ export interface ApiResponse {
     winRate: number;
     marketReturn?: number;
   };
-}
-
-export interface TradingConfig {
-  takeProfitPercent: number;
-  stopLossPercent: number;
+  strategyStatus?: StrategyStatus;
 }
 
 export interface DashboardData {
@@ -215,17 +261,26 @@ export interface DashboardData {
   lastPredictionUpdateTime?: number;
   marketState?: MarketState;
   gateWeights?: number[];
+  strategyStatus?: StrategyStatus | null;
   metrics: {
     portfolioReturn: number;
     portfolioReturnWithCommission?: number;
+    actualReturn?: number;
     marketReturn: number;
     avgTradeReturn: number;
     takeProfitCount: number;
     stopLossCount: number;
+    totalTrades?: number;
+    winningTrades?: number;
+    winRate?: number;
+    totalPnl?: number;
   };
-  tradingConfig?: TradingConfig;
+  tradingConfig?: {
+    takeProfitPercent: number;
+    stopLossPercent: number;
+  };
   accountId?: string;
   accountName?: string;
   availableAccounts?: Array<{ id: string; name: string }>;
-  _updateTimestamp?: number; // 강제 리렌더링용 타임스탬프
+  _updateTimestamp?: number;
 }

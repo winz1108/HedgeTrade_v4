@@ -83,6 +83,17 @@ export interface AccountBalance {
   holding?: any;
 }
 
+export interface StrategyStatusUpdate {
+  buyConditions: Record<string, boolean>;
+  buyConditionsMet: number;
+  buyConditionsTotal: number;
+  allBuyMet: boolean;
+  sellSignal: string | null;
+  inPosition: boolean;
+  updatedAt?: string;
+  strategy?: Record<string, any>;
+}
+
 export interface DashboardUpdate {
   serverTime: number;
   currentPrice: number;
@@ -98,6 +109,7 @@ export interface DashboardUpdate {
   version?: string;
   trades?: any[];
   holding?: any;
+  strategyStatus?: StrategyStatusUpdate | null;
 }
 
 export interface TradeEventUpdate {
