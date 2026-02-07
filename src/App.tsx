@@ -318,13 +318,15 @@ function App() {
             lastCandle.volume = newCandle.volume;
           }
         } else if (newCandle.timestamp > lastCandle.timestamp) {
-          // 타임스탬프가 다르고 더 최신이면 새 진행봉
-          // 이전 진행봉을 완성봉으로 전환
+          const interval = TIMEFRAME_INTERVALS[update.timeframe];
+          if (interval && (newCandle.timestamp - lastCandle.timestamp) > interval * 1.5) {
+            detectAndFillGap(update.timeframe, lastCandle.timestamp, newCandle.timestamp);
+          }
+
           if (lastCandle.isComplete === false) {
             lastCandle.isComplete = true;
           }
 
-          // 지표는 마지막 완성봉에서 복사
           const completedCandles = candles.filter(c => c.isComplete !== false);
           const lastCompleted = completedCandles.length > 0
             ? completedCandles[completedCandles.length - 1]
@@ -343,7 +345,6 @@ function App() {
 
           candles.push(newCandle);
 
-          // 500개 초과 시 앞에서 삭제
           if (candles.length > 500) {
             candles.shift();
           }
@@ -515,11 +516,19 @@ function App() {
           return { ...prev, [timeframeKey]: [newCandle] };
         }
 
+        const completedCandles = existingCandles.filter(c => c.isComplete !== false);
+        if (completedCandles.length > 0) {
+          const lastCompleted = completedCandles[completedCandles.length - 1];
+          const interval = TIMEFRAME_INTERVALS[update.timeframe];
+          if (interval && (newCandle.timestamp - lastCompleted.timestamp) > interval * 1.5) {
+            detectAndFillGap(update.timeframe, lastCompleted.timestamp, newCandle.timestamp);
+          }
+        }
+
         const merged = [...existingCandles];
         const existingIndex = merged.findIndex(c => c.timestamp === newCandle.timestamp);
 
         if (existingIndex === -1) {
-          // 새 완성봉 추가
           const insertIndex = merged.findIndex(c => c.timestamp > newCandle.timestamp);
           if (insertIndex === -1) {
             merged.push(newCandle);
