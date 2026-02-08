@@ -13,6 +13,24 @@ interface PriceChartProps {
 
 type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
 
+function deduplicateCandles(candles: Candle[]): Candle[] {
+  const candleMap = new Map<number, Candle>();
+
+  for (const candle of candles) {
+    const existing = candleMap.get(candle.timestamp);
+
+    if (!existing) {
+      candleMap.set(candle.timestamp, candle);
+    } else {
+      if (candle.isComplete === false) {
+        candleMap.set(candle.timestamp, candle);
+      }
+    }
+  }
+
+  return Array.from(candleMap.values()).sort((a, b) => a.timestamp - b.timestamp);
+}
+
 function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): Candle[] {
   if (minutes === 1) {
     return sourceCandles;
@@ -100,16 +118,16 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
   const candlesByTimeframe = useMemo(() => {
     const validHistory1m = Array.isArray(data.priceHistory1m) ? data.priceHistory1m : [];
     const validPredictions = Array.isArray(data.pricePredictions) ? data.pricePredictions : [];
-    const base1m = [...validHistory1m, ...validPredictions];
+    const base1m = deduplicateCandles([...validHistory1m, ...validPredictions]);
 
     const result = {
       '1m': base1m,
-      '5m': data.priceHistory5m ? [...data.priceHistory5m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 5),
-      '15m': data.priceHistory15m ? [...data.priceHistory15m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 15),
-      '30m': data.priceHistory30m ? [...data.priceHistory30m, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 30),
-      '1h': data.priceHistory1h ? [...data.priceHistory1h, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 60),
-      '4h': data.priceHistory4h ? [...data.priceHistory4h, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 240),
-      '1d': data.priceHistory1d ? [...data.priceHistory1d, ...validPredictions] : aggregateCandlesToTimeframe(base1m, 1440),
+      '5m': data.priceHistory5m ? deduplicateCandles([...data.priceHistory5m]) : aggregateCandlesToTimeframe(base1m, 5),
+      '15m': data.priceHistory15m ? deduplicateCandles([...data.priceHistory15m]) : aggregateCandlesToTimeframe(base1m, 15),
+      '30m': data.priceHistory30m ? deduplicateCandles([...data.priceHistory30m]) : aggregateCandlesToTimeframe(base1m, 30),
+      '1h': data.priceHistory1h ? deduplicateCandles([...data.priceHistory1h]) : aggregateCandlesToTimeframe(base1m, 60),
+      '4h': data.priceHistory4h ? deduplicateCandles([...data.priceHistory4h]) : aggregateCandlesToTimeframe(base1m, 240),
+      '1d': data.priceHistory1d ? deduplicateCandles([...data.priceHistory1d]) : aggregateCandlesToTimeframe(base1m, 1440),
     };
 
     return result;
