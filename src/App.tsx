@@ -371,12 +371,23 @@ function App() {
           candles.push(newCandle);
         } else if (lastCandle.timestamp === newCandle.timestamp) {
           // 타임스탬프가 같으면 진행봉 업데이트
-          // 가격 데이터만 업데이트하고 지표는 유지
+          // 가격 데이터와 지표 모두 실시간 업데이트
           if (!lastCandle.isComplete) {
             lastCandle.close = newCandle.close;
             lastCandle.high = Math.max(lastCandle.high, newCandle.high);
             lastCandle.low = Math.min(lastCandle.low, newCandle.low);
             lastCandle.volume = newCandle.volume;
+            // 지표 실시간 업데이트
+            if (newCandle.ema5 !== undefined) lastCandle.ema5 = newCandle.ema5;
+            if (newCandle.ema13 !== undefined) lastCandle.ema13 = newCandle.ema13;
+            if (newCandle.bbUpper !== undefined) lastCandle.bbUpper = newCandle.bbUpper;
+            if (newCandle.bbMiddle !== undefined) lastCandle.bbMiddle = newCandle.bbMiddle;
+            if (newCandle.bbLower !== undefined) lastCandle.bbLower = newCandle.bbLower;
+            if (newCandle.bbWidth !== undefined) lastCandle.bbWidth = newCandle.bbWidth;
+            if (newCandle.macd !== undefined) lastCandle.macd = newCandle.macd;
+            if (newCandle.signal !== undefined) lastCandle.signal = newCandle.signal;
+            if (newCandle.histogram !== undefined) lastCandle.histogram = newCandle.histogram;
+            if (newCandle.rsi !== undefined) lastCandle.rsi = newCandle.rsi;
           }
         } else if (newCandle.timestamp > lastCandle.timestamp) {
           const interval = TIMEFRAME_INTERVALS[update.timeframe];
