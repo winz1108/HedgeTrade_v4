@@ -8,6 +8,7 @@ import { websocketService } from '../services/websocket';
 interface PriceChartProps {
   data: DashboardData;
   onTradeHover: (trade: TradeEvent | null) => void;
+  onTimeframeChange?: (timeframe: string) => void;
 }
 
 type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
@@ -47,7 +48,7 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
   return aggregated.sort((a, b) => a.timestamp - b.timestamp);
 }
 
-export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
+export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChartProps) => {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [hoveredCandle, setHoveredCandle] = useState<Candle | null>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
@@ -768,6 +769,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     setTimeframe(tf);
                     setScrollOffset(0);
                     setResetScroll(prev => prev + 1);
+                    if (onTimeframeChange) {
+                      onTimeframeChange(tf);
+                    }
                     if (!hasData) {
                       websocketService.requestTimeframeData(tf);
                     }

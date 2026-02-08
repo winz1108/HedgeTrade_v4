@@ -20,6 +20,10 @@ const TIMEFRAME_INTERVALS: Record<string, number> = {
   '1d': 24 * 60 * 60 * 1000,
 };
 
+type TimeframeStatus = {
+  [K in '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d']: 'idle' | 'loading' | 'loaded';
+};
+
 function App() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,9 +33,20 @@ function App() {
     const hash = window.location.hash.slice(1);
     return hash || 'Account_A';
   });
+  const [timeframeStatus, setTimeframeStatus] = useState<TimeframeStatus>({
+    '1m': 'idle',
+    '5m': 'idle',
+    '15m': 'idle',
+    '30m': 'idle',
+    '1h': 'idle',
+    '4h': 'idle',
+    '1d': 'idle',
+  });
   // BTC 수량과 USDC 수량을 저장 (가격 업데이트 시 자산 재계산용)
   const btcBalanceRef = useRef<number>(0);
   const usdcBalanceRef = useRef<number>(0);
+  const loadingQueueRef = useRef<string[]>([]);
+  const isLoadingRef = useRef(false);
 
   // 갭 감지 및 자동 채우기
   const detectAndFillGap = useCallback(async (
@@ -89,6 +104,49 @@ function App() {
     }
   }, []);
 
+  const loadTimeframe = useCallback(async (timeframe: string, priority: boolean = false) => {
+    let shouldLoad = false;
+
+    setTimeframeStatus(prev => {
+      const currentStatus = prev[timeframe as keyof TimeframeStatus];
+      if (currentStatus === 'loading' || currentStatus === 'loaded') {
+        return prev;
+      }
+      shouldLoad = true;
+      return { ...prev, [timeframe]: 'loading' };
+    });
+
+    if (!shouldLoad) return;
+
+    try {
+      const chart = await fetchChartData(timeframe, 500);
+      const timeframeLower = timeframe.toLowerCase();
+      const timeframeKey = `priceHistory${timeframeLower}` as keyof DashboardData;
+
+      setData(prev => {
+        if (!prev) return prev;
+        return { ...prev, [timeframeKey]: chart.candles as Candle[] };
+      });
+
+      setTimeframeStatus(prev => ({ ...prev, [timeframe]: 'loaded' }));
+    } catch (error) {
+      setTimeframeStatus(prev => ({ ...prev, [timeframe]: 'idle' }));
+    }
+  }, []);
+
+  const loadBackgroundTimeframes = useCallback(async () => {
+    const backgroundTimeframes = ['5m', '15m', '30m', '1h', '4h', '1d'];
+
+    for (const tf of backgroundTimeframes) {
+      await loadTimeframe(tf);
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }, [loadTimeframe]);
+
+  const handleTimeframeRequest = useCallback(async (timeframe: string) => {
+    await loadTimeframe(timeframe, true);
+  }, [loadTimeframe]);
+
   const loadData = useCallback(async () => {
     try {
       setError(null);
@@ -105,24 +163,22 @@ function App() {
         } : prev);
       }
 
-      const [fullDashboard, ...charts] = await Promise.all([
+      setTimeframeStatus({
+        '1m': 'loading',
+        '5m': 'idle',
+        '15m': 'idle',
+        '30m': 'idle',
+        '1h': 'idle',
+        '4h': 'idle',
+        '1d': 'idle',
+      });
+
+      const [fullDashboard, chart1m] = await Promise.all([
         fetchDashboardData(selectedAccount),
         fetchChartData('1m', 500),
-        fetchChartData('5m', 500),
-        fetchChartData('15m', 500),
-        fetchChartData('30m', 500),
-        fetchChartData('1h', 500),
-        fetchChartData('4h', 500),
-        fetchChartData('1d', 500)
       ]);
 
-      fullDashboard.priceHistory1m = charts[0].candles as Candle[];
-      fullDashboard.priceHistory5m = charts[1].candles as Candle[];
-      fullDashboard.priceHistory15m = charts[2].candles as Candle[];
-      fullDashboard.priceHistory30m = charts[3].candles as Candle[];
-      fullDashboard.priceHistory1h = charts[4].candles as Candle[];
-      fullDashboard.priceHistory4h = charts[5].candles as Candle[];
-      fullDashboard.priceHistory1d = charts[6].candles as Candle[];
+      fullDashboard.priceHistory1m = chart1m.candles as Candle[];
 
       try {
         const strategyStatus = await fetchStrategyStatus();
@@ -147,12 +203,17 @@ function App() {
       });
 
       setData(fullDashboard);
+      setTimeframeStatus(prev => ({ ...prev, '1m': 'loaded' }));
       setLoading(false);
+
+      setTimeout(() => {
+        loadBackgroundTimeframes();
+      }, 100);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
       setLoading(false);
     }
-  }, [selectedAccount]);
+  }, [selectedAccount, loadBackgroundTimeframes]);
 
   useEffect(() => {
     window.location.hash = selectedAccount;
@@ -965,7 +1026,11 @@ function App() {
             />
           </div>
           <div className="min-w-0 order-1 lg:order-2">
-            <PriceChart data={data} onTradeHover={setHoveredTrade} />
+            <PriceChart
+              data={data}
+              onTradeHover={setHoveredTrade}
+              onTimeframeChange={handleTimeframeRequest}
+            />
           </div>
           <div className="flex flex-col gap-2 order-3 lg:order-3">
             <MetricsPanel
