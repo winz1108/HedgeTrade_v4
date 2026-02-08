@@ -744,11 +744,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           <div className="hidden sm:flex items-center gap-2 text-[10px] bg-stone-100/70 px-2 py-1 rounded">
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-amber-600 rounded"></div>
-              <span className="text-stone-600">EMA20</span>
+              <span className="text-stone-600">EMA 5</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-cyan-600 rounded"></div>
-              <span className="text-stone-600">EMA50</span>
+              <span className="text-stone-600">EMA 13</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-violet-600 border-t border-dashed border-violet-600"></div>
