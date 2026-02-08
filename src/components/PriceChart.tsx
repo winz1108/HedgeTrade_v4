@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ZoomIn, ZoomOut, Maximize2, Minimize2, Eye, EyeOff } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Minimize2, Eye, EyeOff, ChevronsRight } from 'lucide-react';
 import { DashboardData, TradeEvent, Candle } from '../types/dashboard';
 import { formatLocalTime, formatChartTime } from '../utils/time';
 import { websocketService } from '../services/websocket';
@@ -338,6 +338,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     setCandleWidth(prev => Math.max(minCandleWidth, prev - 2));
   };
 
+  const handleResetScroll = () => {
+    setScrollOffset(0);
+    setResetScroll(prev => prev + 1);
+  };
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isMaximized) {
@@ -348,6 +353,12 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isMaximized]);
+
+  useEffect(() => {
+    if (scrollOffset > 0 && scrollOffset < 5) {
+      setScrollOffset(0);
+    }
+  }, [scrollOffset]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -787,6 +798,15 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
           >
             <ZoomIn className="w-3 h-3 text-stone-600" />
           </button>
+          {scrollOffset > 0 && (
+            <button
+              onClick={handleResetScroll}
+              className="p-1 bg-amber-500/90 hover:bg-amber-600 rounded transition-colors"
+              title="Go to Latest"
+            >
+              <ChevronsRight className="w-3 h-3 text-white" />
+            </button>
+          )}
           <button
             onClick={() => setShowTradeMarkers(!showTradeMarkers)}
             className={`p-1 rounded transition-colors ${

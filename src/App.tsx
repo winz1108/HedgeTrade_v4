@@ -723,7 +723,45 @@ function App() {
         if (!prevData) return prevData;
         if (update.accountId !== selectedAccount) return prevData;
 
-        const updatedTrades = update.trades || prevData.trades;
+        let updatedTrades = prevData.trades;
+
+        if (update.trades) {
+          updatedTrades = update.trades;
+        } else if (update.trade) {
+          const newTrade: TradeEvent = {
+            timestamp: update.trade.timestamp,
+            type: update.trade.type,
+            price: update.trade.price,
+            quantity: update.trade.quantity,
+            profit: update.trade.profit || update.trade.pnl_pct,
+            pairId: update.trade.pairId || update.trade.pair_id,
+            exitReason: update.trade.exitReason,
+            pnl: update.trade.pnl,
+            buyCost: update.trade.buyCost,
+            sellRevenue: update.trade.sellRevenue,
+            buyQty: update.trade.buyQty,
+            sellQty: update.trade.sellQty,
+            buyCommission: update.trade.buyCommission,
+            sellCommission: update.trade.sellCommission,
+            entryPrice: update.trade.entryPrice,
+            entryTime: update.trade.entryTime,
+            profitNoCommission: update.trade.profitNoCommission,
+            pnlWithCommission: update.trade.pnlWithCommission,
+          };
+
+          const existingIndex = updatedTrades.findIndex(t =>
+            t.timestamp === newTrade.timestamp && t.type === newTrade.type
+          );
+
+          if (existingIndex === -1) {
+            updatedTrades = [...updatedTrades, newTrade].sort((a, b) => a.timestamp - b.timestamp);
+          } else {
+            const newTrades = [...updatedTrades];
+            newTrades[existingIndex] = newTrade;
+            updatedTrades = newTrades;
+          }
+        }
+
         const updatedHolding = update.holding || prevData.holding;
 
         return {
