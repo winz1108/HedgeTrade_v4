@@ -885,7 +885,7 @@ function App() {
                   <div className="relative flex items-center gap-2.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
                     <span className="text-xs font-bold text-blue-700 tracking-wider uppercase">
-                      EMA Cross: In Position
+                      IN POSITION
                     </span>
                   </div>
                 </div>
@@ -946,11 +946,6 @@ function App() {
                 }`}>
                   {data.strategyStatus.buyConditionsMet}/{data.strategyStatus.buyConditionsTotal}
                 </div>
-                {data.strategyStatus.inPosition && (
-                  <div className="px-2 py-1 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">
-                    IN POSITION
-                  </div>
-                )}
                 {data.strategyStatus.sellSignal && (
                   <div className="px-2 py-1 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
                     SELL: {data.strategyStatus.sellSignal}
