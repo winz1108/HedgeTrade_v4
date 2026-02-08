@@ -138,28 +138,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
         <div className="bg-white/95 border border-emerald-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-[11px] font-bold text-slate-800">Buy Signals</h3>
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-              conditionsMet === conditionsTotal
-                ? 'bg-emerald-500 text-white'
-                : 'bg-slate-300 text-slate-700'
-            }`}>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">
               {conditionsMet}/{conditionsTotal}
             </span>
           </div>
 
           {strategy ? (
             <div className="space-y-1">
-              <div className="w-full bg-slate-200 rounded-full h-1 overflow-hidden">
-                <div
-                  className={`h-1 rounded-full transition-all duration-500 ${
-                    conditionsMet === conditionsTotal
-                      ? 'bg-emerald-500'
-                      : 'bg-slate-400'
-                  }`}
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-
               <div className="space-y-0.5">
                 {MAIN_CONDITIONS.map(({ key, label }) => {
                   const met = strategy.buyConditions[key];
@@ -272,7 +257,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-[11px] font-bold text-slate-800">Sell Signals</h3>
             {strategy?.sellConditions?.any_sell && (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500 text-white">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500 text-white">
                 SELL
               </span>
             )}
@@ -282,12 +267,12 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             <div className="space-y-1">
               <div className={`flex items-center justify-between px-1.5 py-1 rounded border ${
                 strategy.sellConditions.dead_cross.met
-                  ? 'bg-rose-50 border-rose-300'
+                  ? 'bg-blue-50 border-blue-300'
                   : 'bg-slate-50 border-slate-200'
               }`}>
                 <span className="text-[10px] font-medium text-slate-700">Dead Cross</span>
                 {strategy.sellConditions.dead_cross.met ? (
-                  <Check className="w-3 h-3 text-rose-500" />
+                  <Check className="w-3 h-3 text-blue-600" />
                 ) : (
                   <X className="w-3 h-3 text-slate-400" />
                 )}
@@ -296,11 +281,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               <div className="pt-0.5">
                 <div className="flex items-center justify-between mb-0.5">
                   <div className="text-[9px] font-bold text-slate-600">Early Exit</div>
-                  <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${
-                    strategy.sellConditions.early_exit.met
-                      ? 'bg-rose-500 text-white'
-                      : 'bg-slate-300 text-slate-600'
-                  }`}>
+                  <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-blue-500 text-white">
                     {strategy.sellConditions.early_exit.conditions_met}/4
                   </span>
                 </div>
@@ -312,12 +293,12 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                         key={key}
                         className={`flex items-center justify-center gap-1 px-1 py-1 rounded border ${
                           met
-                            ? 'bg-rose-50 border-rose-300'
+                            ? 'bg-blue-50 border-blue-300'
                             : 'bg-slate-50 border-slate-200'
                         }`}
                       >
                         {met ? (
-                          <Check className="w-2.5 h-2.5 text-rose-500" />
+                          <Check className="w-2.5 h-2.5 text-blue-600" />
                         ) : (
                           <X className="w-2.5 h-2.5 text-slate-400" />
                         )}
