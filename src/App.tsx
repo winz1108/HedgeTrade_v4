@@ -995,26 +995,6 @@ function App() {
               </button>
             </div>
           </div>
-
-          {data.strategyStatus && (
-            <div className="flex items-center gap-2 bg-white/50 px-3 py-2 rounded-lg border border-amber-200">
-              <span className="text-[10px] text-stone-600 font-medium whitespace-nowrap">EMA Cross:</span>
-              <div className="flex items-center gap-1.5">
-                <div className={`px-2 py-1 rounded text-[10px] font-bold border ${
-                  data.strategyStatus.allBuyMet
-                    ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
-                    : 'bg-amber-50 text-amber-700 border-amber-200'
-                }`}>
-                  {data.strategyStatus.buyConditionsMet}/{data.strategyStatus.buyConditionsTotal}
-                </div>
-                {data.strategyStatus.sellSignal && (
-                  <div className="px-2 py-1 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
-                    SELL: {data.strategyStatus.sellSignal}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
