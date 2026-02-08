@@ -235,8 +235,8 @@ function App() {
       close: candleData.close,
       volume: candleData.volume,
       isComplete: candleData.isFinal,
-      ema20: candleData.ema20,
-      ema50: candleData.ema50,
+      ema5: candleData.ema5,
+      ema13: candleData.ema13,
       bbUpper: candleData.bbUpper,
       bbMiddle: candleData.bbMiddle,
       bbLower: candleData.bbLower,
@@ -332,8 +332,8 @@ function App() {
             ? completedCandles[completedCandles.length - 1]
             : lastCandle;
 
-          newCandle.ema20 = lastCompleted.ema20;
-          newCandle.ema50 = lastCompleted.ema50;
+          newCandle.ema5 = lastCompleted.ema5;
+          newCandle.ema13 = lastCompleted.ema13;
           newCandle.bbUpper = lastCompleted.bbUpper;
           newCandle.bbMiddle = lastCompleted.bbMiddle;
           newCandle.bbLower = lastCompleted.bbLower;
@@ -396,8 +396,8 @@ function App() {
                 volume: candlesInBucket.reduce((sum, c) => sum + (c.volume || 0), 0),
                 isComplete: lastCandle.isComplete,
                 // 기술지표는 기존 것 유지
-                ema20: lastCandle.ema20,
-                ema50: lastCandle.ema50,
+                ema5: lastCandle.ema5,
+                ema13: lastCandle.ema13,
                 bbUpper: lastCandle.bbUpper,
                 bbMiddle: lastCandle.bbMiddle,
                 bbLower: lastCandle.bbLower,
@@ -454,8 +454,8 @@ function App() {
 
           if (lastCandle && lastCandle.isComplete !== false) {
             // 마지막 캔들이 완성봉이면 지표 복사
-            newCandle.ema20 = lastCandle.ema20;
-            newCandle.ema50 = lastCandle.ema50;
+            newCandle.ema5 = lastCandle.ema5;
+            newCandle.ema13 = lastCandle.ema13;
             newCandle.bbUpper = lastCandle.bbUpper;
             newCandle.bbMiddle = lastCandle.bbMiddle;
             newCandle.bbLower = lastCandle.bbLower;
@@ -466,8 +466,8 @@ function App() {
             newCandle.rsi = lastCandle.rsi;
           } else if (lastCandle && lastCandle.isComplete === false) {
             // 마지막 캔들이 진행 중인 봉이면 그 지표를 그대로 유지
-            newCandle.ema20 = lastCandle.ema20;
-            newCandle.ema50 = lastCandle.ema50;
+            newCandle.ema5 = lastCandle.ema5;
+            newCandle.ema13 = lastCandle.ema13;
             newCandle.bbUpper = lastCandle.bbUpper;
             newCandle.bbMiddle = lastCandle.bbMiddle;
             newCandle.bbLower = lastCandle.bbLower;

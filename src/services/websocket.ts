@@ -20,8 +20,8 @@ export interface CandleData {
   bbMiddle?: number;
   bbLower?: number;
   bbWidth?: number;
-  ema20?: number;
-  ema50?: number;
+  ema5?: number;
+  ema13?: number;
 }
 
 export interface RealtimeCandleUpdate extends CandleData {}

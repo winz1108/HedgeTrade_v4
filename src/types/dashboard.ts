@@ -7,8 +7,8 @@ export interface Candle {
   volume: number;
   isComplete?: boolean;
   isPrediction?: boolean;
-  ema20?: number;
-  ema50?: number;
+  ema5?: number;
+  ema13?: number;
   bb_upper?: number;
   bb_lower?: number;
   bbUpper?: number;

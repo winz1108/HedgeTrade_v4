@@ -129,8 +129,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
 
     const prices = visibleCandles.flatMap(c => {
       const vals = [c.high, c.low];
-      if (c.ema20) vals.push(c.ema20);
-      if (c.ema50) vals.push(c.ema50);
+      if (c.ema5) vals.push(c.ema5);
+      if (c.ema13) vals.push(c.ema13);
       if (c.bb_upper) vals.push(c.bb_upper);
       if (c.bb_lower) vals.push(c.bb_lower);
       if (c.bbUpper) vals.push(c.bbUpper);
@@ -856,11 +856,11 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                 )}
               </div>
               <div className="flex items-center gap-3 text-[10px]">
-                {hoveredCandle.ema20 && (
-                  <span className="text-stone-600 font-medium">EMA5 <span className="text-amber-600 font-bold">{hoveredCandle.ema20.toFixed(2)}</span></span>
+                {hoveredCandle.ema5 && (
+                  <span className="text-stone-600 font-medium">EMA5 <span className="text-amber-600 font-bold">{hoveredCandle.ema5.toFixed(2)}</span></span>
                 )}
-                {hoveredCandle.ema50 && (
-                  <span className="text-stone-600 font-medium">EMA13 <span className="text-cyan-600 font-bold">{hoveredCandle.ema50.toFixed(2)}</span></span>
+                {hoveredCandle.ema13 && (
+                  <span className="text-stone-600 font-medium">EMA13 <span className="text-cyan-600 font-bold">{hoveredCandle.ema13.toFixed(2)}</span></span>
                 )}
                 {(hoveredCandle.bbUpper || hoveredCandle.bb_upper) && (
                   <>
@@ -915,8 +915,8 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
             )}
 
             {(() => {
-              const ema20Points: string[] = [];
-              const ema50Points: string[] = [];
+              const ema5Points: string[] = [];
+              const ema13Points: string[] = [];
               const bbUpperPoints: string[] = [];
               const bbMiddlePoints: string[] = [];
               const bbLowerPoints: string[] = [];
@@ -924,14 +924,14 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
               visibleCandles.forEach((candle, idx) => {
                 const x = idx * (candleWidth + candleGap) + candleWidth / 2;
 
-                if (candle.ema20 !== undefined) {
-                  const y = priceToY(candle.ema20);
-                  ema20Points.push(`${x},${y}`);
+                if (candle.ema5 !== undefined) {
+                  const y = priceToY(candle.ema5);
+                  ema5Points.push(`${x},${y}`);
                 }
 
-                if (candle.ema50 !== undefined) {
-                  const y = priceToY(candle.ema50);
-                  ema50Points.push(`${x},${y}`);
+                if (candle.ema13 !== undefined) {
+                  const y = priceToY(candle.ema13);
+                  ema13Points.push(`${x},${y}`);
                 }
 
                 const bbUpper = candle.bbUpper ?? candle.bb_upper;
@@ -984,9 +984,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     </>
                   )}
 
-                  {ema20Points.length > 1 && (
+                  {ema5Points.length > 1 && (
                     <polyline
-                      points={ema20Points.join(' ')}
+                      points={ema5Points.join(' ')}
                       fill="none"
                       stroke="#fbbf24"
                       strokeWidth="1.5"
@@ -994,9 +994,9 @@ export const PriceChart = ({ data, onTradeHover }: PriceChartProps) => {
                     />
                   )}
 
-                  {ema50Points.length > 1 && (
+                  {ema13Points.length > 1 && (
                     <polyline
-                      points={ema50Points.join(' ')}
+                      points={ema13Points.join(' ')}
                       fill="none"
                       stroke="#06b6d4"
                       strokeWidth="1.5"
