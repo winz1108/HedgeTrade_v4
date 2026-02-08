@@ -413,6 +413,7 @@ export const fetchStrategyStatus = async (): Promise<StrategyStatus | null> => {
       buyConditionsTotal: data.buy_conditions_total,
       allBuyMet: data.all_buy_met,
       sellSignal: data.sell_signal,
+      sellConditions: data.sell_conditions,
       inPosition: data.strategy?.in_position ?? false,
       updatedAt: data.updated_at,
       strategy: data.strategy,
