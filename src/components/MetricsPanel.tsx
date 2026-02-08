@@ -1,5 +1,5 @@
-import { TrendingDown, DollarSign, Activity, History, Target } from 'lucide-react';
-import { DashboardData, BuyConditions } from '../types/dashboard';
+import { TrendingDown, DollarSign, Activity, History, Target, AlertTriangle } from 'lucide-react';
+import { DashboardData, BuyConditions, EarlyExitConditions } from '../types/dashboard';
 import { formatLocalDateTime } from '../utils/time';
 
 interface MetricsPanelProps {
@@ -18,6 +18,13 @@ const CONDITION_ORDER: { key: keyof BuyConditions; label: string }[] = [
   { key: '5m_bbw',          label: '5m BBW' },
   { key: '15m_bbw',         label: '15m BBW' },
   { key: '30m_gap',         label: '30m Gap' },
+];
+
+const EARLY_EXIT_ORDER: { key: keyof EarlyExitConditions; label: string }[] = [
+  { key: '30m_golden_maintained', label: '30m GC 유지' },
+  { key: '30m_ema5_falling', label: 'EMA5 하락' },
+  { key: '30m_ema13_falling', label: 'EMA13 하락' },
+  { key: '1d_downtrend', label: '1d 하락장' },
 ];
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
@@ -172,17 +179,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   );
                 })}
               </div>
-
-              <div className="border-t border-amber-200 pt-2 space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-slate-600 font-semibold">Sell Signal</span>
-                  <span className={`text-[9px] font-bold ${
-                    strategy.sellSignal ? 'text-rose-500' : 'text-stone-400'
-                  }`}>
-                    {strategy.sellSignal || 'None'}
-                  </span>
-                </div>
-              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center h-16 text-slate-500 text-xs">
@@ -190,6 +186,111 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             </div>
           )}
         </div>
+
+        {strategy?.sellConditions && (
+          <div className="bg-white/90 border border-rose-200 rounded-lg shadow-xl p-3 transition-all duration-300">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-sm font-bold text-slate-800">Sell Signals</h3>
+                {strategy.sellConditions.any_sell && (
+                  <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 animate-pulse">
+                    ACTIVE
+                  </span>
+                )}
+              </div>
+              <div className="p-1 bg-rose-100 rounded-lg">
+                <AlertTriangle className="w-3 h-3 text-rose-600" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className={`flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 ${
+                strategy.sellConditions.dead_cross.met
+                  ? 'bg-rose-50 border-rose-300'
+                  : 'bg-stone-50 border-stone-200'
+              }`}>
+                <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all ${
+                  strategy.sellConditions.dead_cross.met
+                    ? 'bg-rose-500 border-rose-600'
+                    : 'bg-white border-stone-300'
+                }`}>
+                  {strategy.sellConditions.dead_cross.met && (
+                    <span className="text-white text-[10px] font-bold">!</span>
+                  )}
+                </div>
+                <span className={`text-[10px] font-medium ${
+                  strategy.sellConditions.dead_cross.met ? 'text-rose-700' : 'text-stone-600'
+                }`}>
+                  {strategy.sellConditions.dead_cross.label}
+                </span>
+              </div>
+
+              <div className={`rounded-lg border p-2 space-y-1.5 transition-all duration-200 ${
+                strategy.sellConditions.early_exit.met
+                  ? 'bg-rose-50 border-rose-300'
+                  : 'bg-stone-50 border-stone-200'
+              }`}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all ${
+                      strategy.sellConditions.early_exit.met
+                        ? 'bg-rose-500 border-rose-600'
+                        : 'bg-white border-stone-300'
+                    }`}>
+                      {strategy.sellConditions.early_exit.met && (
+                        <span className="text-white text-[10px] font-bold">!</span>
+                      )}
+                    </div>
+                    <span className={`text-[10px] font-semibold ${
+                      strategy.sellConditions.early_exit.met ? 'text-rose-700' : 'text-stone-600'
+                    }`}>
+                      {strategy.sellConditions.early_exit.label}
+                    </span>
+                  </div>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                    strategy.sellConditions.early_exit.met
+                      ? 'bg-rose-200 text-rose-800'
+                      : 'bg-stone-200 text-stone-600'
+                  }`}>
+                    {strategy.sellConditions.early_exit.conditions_met}/{strategy.sellConditions.early_exit.conditions_total}
+                  </span>
+                </div>
+
+                <div className="w-full bg-stone-200 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                      strategy.sellConditions.early_exit.met
+                        ? 'bg-gradient-to-r from-rose-500 to-rose-400'
+                        : 'bg-gradient-to-r from-orange-400 to-amber-400'
+                    }`}
+                    style={{
+                      width: `${(strategy.sellConditions.early_exit.conditions_met / strategy.sellConditions.early_exit.conditions_total) * 100}%`
+                    }}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-1 mt-1.5">
+                  {EARLY_EXIT_ORDER.map(({ key, label }) => {
+                    const met = strategy.sellConditions!.early_exit.conditions[key];
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center gap-1 px-1.5 py-1 rounded text-[9px] font-medium border ${
+                          met
+                            ? 'bg-rose-100 text-rose-700 border-rose-200'
+                            : 'bg-white text-stone-500 border-stone-200'
+                        }`}
+                      >
+                        <span className="text-[10px]">{met ? '\u2713' : '\u2717'}</span>
+                        <span className="truncate">{label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

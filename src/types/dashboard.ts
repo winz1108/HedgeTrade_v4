@@ -88,6 +88,28 @@ export interface BuyConditions {
   '30m_gap': boolean;
 }
 
+export interface EarlyExitConditions {
+  '30m_golden_maintained': boolean;
+  '30m_ema5_falling': boolean;
+  '30m_ema13_falling': boolean;
+  '1d_downtrend': boolean;
+}
+
+export interface SellConditions {
+  dead_cross: {
+    met: boolean;
+    label: string;
+  };
+  early_exit: {
+    met: boolean;
+    label: string;
+    conditions: EarlyExitConditions;
+    conditions_met: number;
+    conditions_total: number;
+  };
+  any_sell: boolean;
+}
+
 export interface StrategyTimeframe {
   ema5: number;
   ema13: number;
@@ -105,6 +127,7 @@ export interface StrategyStatus {
   buyConditionsTotal: number;
   allBuyMet: boolean;
   sellSignal: string | null;
+  sellConditions?: SellConditions;
   inPosition: boolean;
   updatedAt?: string;
   strategy?: {
