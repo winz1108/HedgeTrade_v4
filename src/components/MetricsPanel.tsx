@@ -140,8 +140,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
         </div>
 
-        <div className="bg-white/90 border border-emerald-200 rounded-lg shadow-xl p-3 transition-all duration-300">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-white/90 border border-emerald-200 rounded-lg shadow-xl p-2 transition-all duration-300">
+          <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
               <h3 className="text-sm font-bold text-slate-800">Buy Signals</h3>
               <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
@@ -158,10 +158,10 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
 
           {strategy ? (
-            <div className="space-y-2">
-              <div className="w-full bg-stone-100 rounded-full h-2 overflow-hidden border border-stone-200">
+            <div className="space-y-1">
+              <div className="w-full bg-stone-100 rounded-full h-1.5 overflow-hidden border border-stone-200">
                 <div
-                  className={`h-2 rounded-full transition-all duration-500 ${
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
                     conditionsMet === conditionsTotal
                       ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
                       : 'bg-gradient-to-r from-stone-400 to-stone-300'
@@ -170,96 +170,98 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-0.5">
                 {MAIN_CONDITIONS.map(({ key, label }) => {
                   const met = strategy.buyConditions[key];
                   return (
                     <div
                       key={key}
-                      className={`flex items-center justify-between px-2 py-1.5 rounded border ${
+                      className={`flex items-center justify-between px-1.5 py-0.5 rounded border ${
                         met
                           ? 'bg-emerald-50 border-emerald-300'
                           : 'bg-stone-50/50 border-stone-200'
                       }`}
                     >
-                      <span className="text-[10px] font-medium text-slate-700">{label}</span>
-                      <span className={`text-[10px] font-bold ${
+                      <span className="text-[9px] font-medium text-slate-700">{label}</span>
+                      <span className={`text-[8px] font-bold ${
                         met ? 'text-emerald-600' : 'text-stone-400'
                       }`}>
-                        {met ? '활성' : '대기'}
+                        {met ? 'ACTIVE' : 'WAIT'}
                       </span>
                     </div>
                   );
                 })}
 
-                <div className={`px-2 py-1.5 rounded border ${
-                  MULTI_TF_CONDITIONS.every(({ key }) => strategy.buyConditions[key])
-                    ? 'bg-emerald-50 border-emerald-300'
-                    : 'bg-stone-50/50 border-stone-200'
-                }`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-medium text-slate-700">Multi-TF EMA</span>
-                    <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${
-                      MULTI_TF_CONDITIONS.filter(({ key }) => strategy.buyConditions[key]).length === 4
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-stone-300 text-stone-600'
-                    }`}>
-                      {MULTI_TF_CONDITIONS.filter(({ key }) => strategy.buyConditions[key]).length}/4
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-[8px]">
-                    {MULTI_TF_CONDITIONS.map(({ key, label }) => (
-                      <span key={key} className={strategy.buyConditions[key] ? 'text-emerald-600 font-semibold' : 'text-stone-400'}>
-                        {strategy.buyConditions[key] ? '✓' : '○'} {label}
-                      </span>
-                    ))}
-                  </div>
+                <div className="text-[8px] font-semibold text-slate-600 mt-1 mb-0.5 px-0.5">Multi-TF EMA Above</div>
+                <div className="grid grid-cols-2 gap-0.5">
+                  {MULTI_TF_CONDITIONS.map(({ key, label }) => {
+                    const met = strategy.buyConditions[key];
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium border ${
+                          met
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-stone-50 text-stone-500 border-stone-200'
+                        }`}
+                      >
+                        <span className="text-[9px]">{met ? '\u2713' : '\u2717'}</span>
+                        <span className="truncate">{label} EMA\u2191</span>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div className={`px-2 py-1 rounded border ${
-                  SLOPE_CONDITIONS.every(({ key }) => strategy.buyConditions[key])
-                    ? 'bg-emerald-50 border-emerald-300'
-                    : 'bg-stone-50/50 border-stone-200'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-medium text-slate-700">Slope Up</span>
-                    <div className="flex items-center gap-1 text-[8px]">
-                      {SLOPE_CONDITIONS.map(({ key, label }) => (
-                        <span key={key} className={strategy.buyConditions[key] ? 'text-emerald-600 font-semibold' : 'text-stone-400'}>
-                          {strategy.buyConditions[key] ? '✓' : '○'} {label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                <div className="text-[8px] font-semibold text-slate-600 mt-1 mb-0.5 px-0.5">Slope Up</div>
+                <div className="grid grid-cols-2 gap-0.5">
+                  {SLOPE_CONDITIONS.map(({ key, label }) => {
+                    const met = strategy.buyConditions[key];
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium border ${
+                          met
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-stone-50 text-stone-500 border-stone-200'
+                        }`}
+                      >
+                        <span className="text-[9px]">{met ? '\u2713' : '\u2717'}</span>
+                        <span className="truncate">{label} Slope\u2191</span>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div className={`px-2 py-1 rounded border ${
-                  BBW_CONDITIONS.every(({ key }) => strategy.buyConditions[key])
-                    ? 'bg-emerald-50 border-emerald-300'
-                    : 'bg-stone-50/50 border-stone-200'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-medium text-slate-700">BBW</span>
-                    <div className="flex items-center gap-1 text-[8px]">
-                      {BBW_CONDITIONS.map(({ key, label }) => (
-                        <span key={key} className={strategy.buyConditions[key] ? 'text-emerald-600 font-semibold' : 'text-stone-400'}>
-                          {strategy.buyConditions[key] ? '✓' : '○'} {label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                <div className="text-[8px] font-semibold text-slate-600 mt-1 mb-0.5 px-0.5">Bollinger Band Width</div>
+                <div className="grid grid-cols-2 gap-0.5">
+                  {BBW_CONDITIONS.map(({ key, label }) => {
+                    const met = strategy.buyConditions[key];
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium border ${
+                          met
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-stone-50 text-stone-500 border-stone-200'
+                        }`}
+                      >
+                        <span className="text-[9px]">{met ? '\u2713' : '\u2717'}</span>
+                        <span className="truncate">{label} BBW</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-16 text-slate-500 text-xs">
+            <div className="flex items-center justify-center h-12 text-slate-500 text-xs">
               Waiting for strategy data...
             </div>
           )}
         </div>
 
-        <div className="bg-white/90 border border-blue-200 rounded-lg shadow-xl p-3 transition-all duration-300">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-white/90 border border-blue-200 rounded-lg shadow-xl p-2 transition-all duration-300">
+          <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
               <h3 className="text-sm font-bold text-slate-800">Sell Signals</h3>
               {strategy?.sellConditions?.any_sell && (
@@ -274,28 +276,28 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
 
           {strategy?.sellConditions ? (
-            <div className="space-y-1.5">
-              <div className={`flex items-center justify-between px-2 py-1.5 rounded border ${
+            <div className="space-y-1">
+              <div className={`flex items-center justify-between px-1.5 py-0.5 rounded border ${
                 strategy.sellConditions.dead_cross.met
                   ? 'bg-blue-50 border-blue-300'
                   : 'bg-stone-50/50 border-stone-200'
               }`}>
-                <span className="text-[10px] font-medium text-slate-700">30m 데드크로스</span>
-                <span className={`text-[10px] font-bold ${
+                <span className="text-[9px] font-medium text-slate-700">30m Dead Cross</span>
+                <span className={`text-[8px] font-bold ${
                   strategy.sellConditions.dead_cross.met ? 'text-blue-600' : 'text-stone-400'
                 }`}>
-                  {strategy.sellConditions.dead_cross.met ? '매도' : '대기'}
+                  {strategy.sellConditions.dead_cross.met ? 'SELL' : 'WAIT'}
                 </span>
               </div>
 
-              <div className={`px-2 py-1.5 rounded border ${
+              <div className={`px-1.5 py-0.5 rounded border ${
                 strategy.sellConditions.early_exit.met
                   ? 'bg-blue-50 border-blue-300'
                   : 'bg-stone-50/50 border-stone-200'
               }`}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-medium text-slate-700">조기매도</span>
-                  <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[9px] font-medium text-slate-700">Early Exit</span>
+                  <span className={`text-[7px] font-bold px-1 py-0.5 rounded ${
                     strategy.sellConditions.early_exit.met
                       ? 'bg-blue-500 text-white'
                       : 'bg-stone-300 text-stone-600'
@@ -303,9 +305,9 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     {strategy.sellConditions.early_exit.conditions_met}/4
                   </span>
                 </div>
-                <div className="flex items-center gap-1 text-[8px]">
+                <div className="flex items-center gap-1 text-[7px]">
                   <span className={strategy.sellConditions.early_exit.conditions['30m_golden_maintained'] ? 'text-blue-600 font-semibold' : 'text-stone-400'}>
-                    {strategy.sellConditions.early_exit.conditions['30m_golden_maintained'] ? '✓' : '○'} 30m골든
+                    {strategy.sellConditions.early_exit.conditions['30m_golden_maintained'] ? '✓' : '○'} 30mGC
                   </span>
                   <span className={strategy.sellConditions.early_exit.conditions['30m_ema5_falling'] ? 'text-blue-600 font-semibold' : 'text-stone-400'}>
                     {strategy.sellConditions.early_exit.conditions['30m_ema5_falling'] ? '✓' : '○'} EMA5↓
@@ -314,13 +316,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     {strategy.sellConditions.early_exit.conditions['30m_ema13_falling'] ? '✓' : '○'} EMA13↓
                   </span>
                   <span className={strategy.sellConditions.early_exit.conditions['1d_downtrend'] ? 'text-blue-600 font-semibold' : 'text-stone-400'}>
-                    {strategy.sellConditions.early_exit.conditions['1d_downtrend'] ? '✓' : '○'} 1d하락
+                    {strategy.sellConditions.early_exit.conditions['1d_downtrend'] ? '✓' : '○'} 1dDown
                   </span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-16 text-slate-500 text-xs">
+            <div className="flex items-center justify-center h-12 text-slate-500 text-xs">
               Waiting for strategy data...
             </div>
           )}
