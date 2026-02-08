@@ -90,8 +90,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               {data.holding.isHolding ? (
                 <div className="space-y-1.5 bg-amber-50/80 rounded-lg p-2 border border-amber-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-600 font-semibold">Position</span>
-                    <span className="text-[10px] text-emerald-600 font-semibold">Holding</span>
+                    <span className="text-[10px] text-blue-600 font-bold">In Position</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[10px] text-slate-600">Buy Price</span>
@@ -181,14 +180,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     strategy.sellSignal ? 'text-rose-500' : 'text-stone-400'
                   }`}>
                     {strategy.sellSignal || 'None'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-slate-600 font-semibold">Position</span>
-                  <span className={`text-[9px] font-bold ${
-                    strategy.inPosition ? 'text-blue-600' : 'text-stone-400'
-                  }`}>
-                    {strategy.inPosition ? 'IN' : 'OUT'}
                   </span>
                 </div>
               </div>

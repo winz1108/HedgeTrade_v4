@@ -880,12 +880,12 @@ function App() {
                 <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
               )}
               {data.holding.isHolding && (
-                <div className="relative px-4 py-2 bg-emerald-100/80 backdrop-blur-sm rounded-lg border border-emerald-400/40 shadow-lg overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-200/20 via-transparent to-emerald-200/20"></div>
+                <div className="relative px-4 py-2 bg-blue-100/80 backdrop-blur-sm rounded-lg border border-blue-400/40 shadow-lg overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-200/20 via-transparent to-blue-200/20"></div>
                   <div className="relative flex items-center gap-2.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                    <span className="text-xs font-bold text-emerald-700 tracking-wider uppercase">
-                      Holding
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                    <span className="text-xs font-bold text-blue-700 tracking-wider uppercase">
+                      EMA Cross: In Position
                     </span>
                   </div>
                 </div>
