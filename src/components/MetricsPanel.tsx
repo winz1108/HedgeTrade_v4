@@ -188,104 +188,61 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
         </div>
 
         {strategy?.sellConditions && (
-          <div className="bg-white/90 border border-rose-200 rounded-lg shadow-xl p-3 transition-all duration-300">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <h3 className="text-sm font-bold text-slate-800">Sell Signals</h3>
-                {strategy.sellConditions.any_sell && (
-                  <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 animate-pulse">
-                    ACTIVE
-                  </span>
-                )}
-              </div>
-              <div className="p-1 bg-rose-100 rounded-lg">
-                <AlertTriangle className="w-3 h-3 text-rose-600" />
-              </div>
+          <div className="bg-white/90 border border-rose-200 rounded-lg shadow-xl p-2.5 transition-all duration-300">
+            <div className="flex items-center justify-between mb-1.5">
+              <h3 className="text-xs font-bold text-slate-800">Sell Signals</h3>
+              {strategy.sellConditions.any_sell && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500 text-white animate-pulse">
+                  ACTIVE
+                </span>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <div className={`flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 ${
+            <div className="space-y-1">
+              <div className={`flex items-center justify-between px-2 py-1 rounded border ${
                 strategy.sellConditions.dead_cross.met
-                  ? 'bg-rose-50 border-rose-300'
-                  : 'bg-stone-50 border-stone-200'
+                  ? 'bg-rose-50 border-rose-400'
+                  : 'bg-stone-50/50 border-stone-200'
               }`}>
-                <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all ${
-                  strategy.sellConditions.dead_cross.met
-                    ? 'bg-rose-500 border-rose-600'
-                    : 'bg-white border-stone-300'
+                <span className="text-[9px] font-medium text-slate-700">30m 데드크로스</span>
+                <span className={`text-[9px] font-bold ${
+                  strategy.sellConditions.dead_cross.met ? 'text-rose-600' : 'text-stone-400'
                 }`}>
-                  {strategy.sellConditions.dead_cross.met && (
-                    <span className="text-white text-[10px] font-bold">!</span>
-                  )}
-                </div>
-                <span className={`text-[10px] font-medium ${
-                  strategy.sellConditions.dead_cross.met ? 'text-rose-700' : 'text-stone-600'
-                }`}>
-                  {strategy.sellConditions.dead_cross.label}
+                  {strategy.sellConditions.dead_cross.met ? '매도' : '대기'}
                 </span>
               </div>
 
-              <div className={`rounded-lg border p-2 space-y-1.5 transition-all duration-200 ${
+              <div className={`px-2 py-1 rounded border ${
                 strategy.sellConditions.early_exit.met
-                  ? 'bg-rose-50 border-rose-300'
-                  : 'bg-stone-50 border-stone-200'
+                  ? 'bg-rose-50 border-rose-400'
+                  : 'bg-stone-50/50 border-stone-200'
               }`}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all ${
-                      strategy.sellConditions.early_exit.met
-                        ? 'bg-rose-500 border-rose-600'
-                        : 'bg-white border-stone-300'
-                    }`}>
-                      {strategy.sellConditions.early_exit.met && (
-                        <span className="text-white text-[10px] font-bold">!</span>
-                      )}
-                    </div>
-                    <span className={`text-[10px] font-semibold ${
-                      strategy.sellConditions.early_exit.met ? 'text-rose-700' : 'text-stone-600'
-                    }`}>
-                      {strategy.sellConditions.early_exit.label}
-                    </span>
-                  </div>
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[9px] font-medium text-slate-700">조기매도</span>
+                  <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${
                     strategy.sellConditions.early_exit.met
-                      ? 'bg-rose-200 text-rose-800'
-                      : 'bg-stone-200 text-stone-600'
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-stone-300 text-stone-600'
                   }`}>
-                    {strategy.sellConditions.early_exit.conditions_met}/{strategy.sellConditions.early_exit.conditions_total}
+                    {strategy.sellConditions.early_exit.conditions_met}/4
                   </span>
                 </div>
-
-                <div className="w-full bg-stone-200 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className={`h-1.5 rounded-full transition-all duration-500 ${
-                      strategy.sellConditions.early_exit.met
-                        ? 'bg-gradient-to-r from-rose-500 to-rose-400'
-                        : 'bg-gradient-to-r from-orange-400 to-amber-400'
-                    }`}
-                    style={{
-                      width: `${(strategy.sellConditions.early_exit.conditions_met / strategy.sellConditions.early_exit.conditions_total) * 100}%`
-                    }}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-1 mt-1.5">
-                  {EARLY_EXIT_ORDER.map(({ key, label }) => {
-                    const met = strategy.sellConditions!.early_exit.conditions[key];
-                    return (
-                      <div
-                        key={key}
-                        className={`flex items-center gap-1 px-1.5 py-1 rounded text-[9px] font-medium border ${
-                          met
-                            ? 'bg-rose-100 text-rose-700 border-rose-200'
-                            : 'bg-white text-stone-500 border-stone-200'
-                        }`}
-                      >
-                        <span className="text-[10px]">{met ? '\u2713' : '\u2717'}</span>
-                        <span className="truncate">{label}</span>
-                      </div>
-                    );
-                  })}
+                <div className="flex items-center gap-1 text-[8px] text-slate-600">
+                  <span className={strategy.sellConditions.early_exit.conditions['30m_golden_maintained'] ? 'text-rose-600' : 'text-stone-400'}>
+                    {strategy.sellConditions.early_exit.conditions['30m_golden_maintained'] ? '✓' : '○'} 30m골든
+                  </span>
+                  <span className="text-stone-300">·</span>
+                  <span className={strategy.sellConditions.early_exit.conditions['30m_ema5_falling'] ? 'text-rose-600' : 'text-stone-400'}>
+                    {strategy.sellConditions.early_exit.conditions['30m_ema5_falling'] ? '✓' : '○'} EMA5↓
+                  </span>
+                  <span className="text-stone-300">·</span>
+                  <span className={strategy.sellConditions.early_exit.conditions['30m_ema13_falling'] ? 'text-rose-600' : 'text-stone-400'}>
+                    {strategy.sellConditions.early_exit.conditions['30m_ema13_falling'] ? '✓' : '○'} EMA13↓
+                  </span>
+                  <span className="text-stone-300">·</span>
+                  <span className={strategy.sellConditions.early_exit.conditions['1d_downtrend'] ? 'text-rose-600' : 'text-stone-400'}>
+                    {strategy.sellConditions.early_exit.conditions['1d_downtrend'] ? '✓' : '○'} 1d하락
+                  </span>
                 </div>
               </div>
             </div>

@@ -772,7 +772,7 @@ function App() {
               currentCash,
               trades: updatedTrades,
               holding: updatedHolding,
-              strategyStatus: (update.strategyStatus as any) ?? prevData.strategyStatus,
+              strategyStatus: prevData.strategyStatus,
             };
           });
         }
