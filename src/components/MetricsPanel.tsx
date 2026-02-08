@@ -187,17 +187,17 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           )}
         </div>
 
-        {strategy?.sellConditions && (
-          <div className="bg-white/90 border border-rose-200 rounded-lg shadow-xl p-2.5 transition-all duration-300">
-            <div className="flex items-center justify-between mb-1.5">
-              <h3 className="text-xs font-bold text-slate-800">Sell Signals</h3>
-              {strategy.sellConditions.any_sell && (
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500 text-white animate-pulse">
-                  ACTIVE
-                </span>
-              )}
-            </div>
+        <div className="bg-white/90 border border-rose-200 rounded-lg shadow-xl p-2.5 transition-all duration-300">
+          <div className="flex items-center justify-between mb-1.5">
+            <h3 className="text-xs font-bold text-slate-800">Sell Signals</h3>
+            {strategy?.sellConditions?.any_sell && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500 text-white animate-pulse">
+                ACTIVE
+              </span>
+            )}
+          </div>
 
+          {strategy?.sellConditions ? (
             <div className="space-y-1">
               <div className={`flex items-center justify-between px-2 py-1 rounded border ${
                 strategy.sellConditions.dead_cross.met
@@ -246,8 +246,12 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center justify-center py-2 text-stone-500 text-[9px]">
+              Waiting for strategy data...
+            </div>
+          )}
+        </div>
       </div>
     );
   }
