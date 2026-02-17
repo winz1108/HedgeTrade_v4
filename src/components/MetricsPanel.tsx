@@ -180,7 +180,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-slate-800">Sell Conditions</h3>
             {strategy?.sellConditions?.any_sell && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-600 text-white animate-pulse">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-600 text-white animate-pulse">
                 EXIT
               </span>
             )}
@@ -191,37 +191,39 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               {strategy.sellConditions.smart_trail && (
                 <div className={`px-2 py-1.5 rounded-lg border transition-all ${
                   strategy.sellConditions.smart_trail.met
-                    ? 'bg-amber-50 border-amber-300'
+                    ? 'bg-red-50 border-red-300'
                     : 'bg-slate-50 border-slate-200'
                 }`}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className={`text-[10px] font-bold ${
-                      strategy.sellConditions.smart_trail.met ? 'text-amber-900' : 'text-slate-700'
-                    }`}>15m EMA Reversal</span>
+                    <span className="text-[10px] font-bold text-slate-800">15m EMA Reversal</span>
                     <div className={`w-1.5 h-1.5 rounded-full ${
-                      strategy.sellConditions.smart_trail.met ? 'bg-amber-500' : 'bg-slate-300'
+                      strategy.sellConditions.smart_trail.met ? 'bg-red-500' : 'bg-slate-300'
                     }`} />
                   </div>
 
                   <div className="bg-white/70 rounded p-1.5 mb-1 space-y-1 border border-slate-200/50">
                     <div className="flex items-center justify-between text-[9px]">
-                      <span className="text-amber-700 font-medium">EMA3</span>
+                      <span className="text-slate-600 font-medium">EMA3</span>
                       <span className="font-mono font-bold text-slate-800">
                         ${strategy.sellConditions.smart_trail['15m_ema3'].toFixed(2)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[9px]">
-                      <span className="text-amber-700 font-medium">EMA8</span>
+                      <span className="text-slate-600 font-medium">EMA8</span>
                       <span className="font-mono font-bold text-slate-800">
                         ${strategy.sellConditions.smart_trail['15m_ema8'].toFixed(2)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-[9px] pt-0.5 border-t border-amber-200/50">
-                      <span className="text-amber-700 font-medium">Status</span>
+                    <div className={`flex items-center justify-between text-[9px] pt-1 mt-0.5 border-t rounded px-1.5 py-1 ${
+                      strategy.sellConditions.smart_trail['15m_above']
+                        ? 'bg-blue-50 border-blue-300'
+                        : 'bg-red-50 border-red-300'
+                    }`}>
+                      <span className="text-slate-700 font-bold">Status</span>
                       <span className={`font-bold ${
                         strategy.sellConditions.smart_trail['15m_above']
-                          ? 'text-emerald-600'
-                          : 'text-amber-600'
+                          ? 'text-blue-600'
+                          : 'text-red-600'
                       }`}>
                         {strategy.sellConditions.smart_trail['15m_above'] ? 'ABOVE' : 'REVERSED'}
                       </span>
@@ -229,15 +231,15 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   </div>
 
                   {strategy.sellConditions.smart_trail.entry_price > 0 && (
-                    <div className="bg-amber-50/50 rounded p-1.5 space-y-0.5 text-[8px] border border-amber-200/50">
+                    <div className="bg-slate-50/80 rounded p-1.5 space-y-0.5 text-[8px] border border-slate-200">
                       <div className="flex justify-between">
-                        <span className="text-amber-700 font-medium">Entry</span>
+                        <span className="text-slate-600 font-medium">Entry</span>
                         <span className="font-mono font-bold text-slate-800">
                           ${strategy.sellConditions.smart_trail.entry_price.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-amber-700 font-medium">Peak</span>
+                        <span className="text-slate-600 font-medium">Peak</span>
                         <div className="flex items-center gap-1">
                           <span className="font-mono font-bold text-slate-800">
                             ${strategy.sellConditions.smart_trail.peak_price.toFixed(2)}
@@ -247,9 +249,9 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                           </span>
                         </div>
                       </div>
-                      <div className="flex justify-between pt-0.5 border-t border-amber-200/50">
-                        <span className="text-amber-700 font-medium">Min Profit</span>
-                        <span className="font-bold text-amber-800">≥{strategy.sellConditions.smart_trail.min_profit}%</span>
+                      <div className="flex justify-between pt-0.5 border-t border-slate-200">
+                        <span className="text-slate-600 font-medium">Min Profit</span>
+                        <span className="font-bold text-slate-800">≥{strategy.sellConditions.smart_trail.min_profit}%</span>
                       </div>
                     </div>
                   )}
@@ -258,14 +260,12 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
               <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg border transition-all ${
                 strategy.sellConditions.dead_cross.met
-                  ? 'bg-amber-50 border-amber-300'
+                  ? 'bg-red-50 border-red-300'
                   : 'bg-slate-50 border-slate-200'
               }`}>
-                <span className={`text-[10px] font-bold ${
-                  strategy.sellConditions.dead_cross.met ? 'text-amber-900' : 'text-slate-700'
-                }`}>1h Dead Cross</span>
+                <span className="text-[10px] font-bold text-slate-800">1h Dead Cross</span>
                 <div className={`w-1.5 h-1.5 rounded-full ${
-                  strategy.sellConditions.dead_cross.met ? 'bg-amber-500' : 'bg-slate-300'
+                  strategy.sellConditions.dead_cross.met ? 'bg-red-500' : 'bg-slate-300'
                 }`} />
               </div>
             </div>
