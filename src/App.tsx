@@ -806,10 +806,13 @@ function App() {
       }
     });
 
-    const unsubscribeTradeEvent = websocketService.onTradeEvent((update) => {
+    const unsubscribeTradeEvent = websocketService.onTradeEvent(async (update) => {
+      if (update.accountId !== selectedAccount) return;
+
+      console.log('[Trade Event] 매매 이벤트 수신:', update);
+
       setData((prevData) => {
         if (!prevData) return prevData;
-        if (update.accountId !== selectedAccount) return prevData;
 
         let updatedTrades = prevData.trades;
 
@@ -858,6 +861,31 @@ function App() {
           holding: updatedHolding,
         };
       });
+
+      try {
+        console.log('[Trade Event] 최신 대시보드 데이터 요청 중...');
+        const freshData = await fetchDashboardData();
+        const strategyData = await fetchStrategyStatus();
+
+        setData(prev => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            currentAsset: freshData.currentAsset,
+            currentBTC: freshData.currentBTC,
+            currentCash: freshData.currentCash,
+            trades: freshData.trades,
+            holding: freshData.holding,
+            metrics: freshData.metrics,
+            strategyStatus: strategyData,
+          };
+        });
+
+        console.log('[Trade Event] 대시보드 데이터 업데이트 완료');
+      } catch (error) {
+        console.error('[Trade Event] 대시보드 데이터 갱신 실패:', error);
+      }
     });
 
     const unsubscribeConnectionStatus = websocketService.onConnectionStatus((connected) => {
