@@ -95,6 +95,34 @@ export interface StrategyStatusUpdate {
   inPosition: boolean;
   updatedAt?: string;
   strategy?: Record<string, any>;
+  sellConditions?: {
+    dead_cross?: {
+      met: boolean;
+      label: string;
+      ema5: number;
+      ema13: number;
+      above: boolean;
+    };
+    smart_trail?: {
+      met: boolean;
+      active: boolean;
+      label: string;
+      regime: 'U' | 'S' | 'D';
+      score: number;
+      entry_price: number;
+      peak_price: number;
+      '15m_ema3': number;
+      '15m_ema8': number;
+      '15m_above': boolean;
+      min_profit: number;
+      macd_hist?: number;
+      reversal_ready?: boolean;
+      min_profit_met?: boolean;
+    };
+    early_exit?: any;
+    any_sell?: boolean;
+    in_position?: boolean;
+  };
 }
 
 export interface DashboardUpdate {

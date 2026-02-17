@@ -33,6 +33,8 @@ const getExitReasonLabel = (reason?: string): string => {
   if (!reason) return 'TP';
   if (reason === 'TP') return 'TP';
   if (reason === 'SL') return 'SL';
+  if (reason.startsWith('15M_S')) return '15m S';
+  if (reason.startsWith('15M_D')) return '15m D';
   if (reason.startsWith('15M_REVERSAL')) return '15m Rev';
   if (reason === 'DEAD_CROSS_1h') return '1h DC';
   if (reason.startsWith('SMART_SCORE')) return 'Smart';
@@ -43,6 +45,8 @@ const getExitReasonLabel = (reason?: string): string => {
 const getExitReasonColor = (reason?: string): { bg: string; text: string; border: string } => {
   if (!reason) return { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-300' };
   if (reason === 'TP') return { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-300' };
+  if (reason.startsWith('15M_S')) return { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-300' };
+  if (reason.startsWith('15M_D')) return { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-300' };
   if (reason.startsWith('15M_REVERSAL')) return { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-300' };
   if (reason === 'DEAD_CROSS_1h') return { bg: 'bg-rose-50', text: 'text-rose-500', border: 'border-rose-300' };
   if (reason.startsWith('SMART_')) return { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-300' };
@@ -201,35 +205,84 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     }`} />
                   </div>
 
-                  <div className="bg-white/70 rounded p-1.5 mb-1 space-y-1 border border-slate-200/50">
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-1.5 mb-1 space-y-1 border border-slate-200">
                     <div className="flex items-center justify-between text-[9px]">
-                      <span className="text-slate-600 font-medium">EMA3</span>
-                      <span className=" font-bold text-slate-800">
-                        ${strategy.sellConditions.smart_trail['15m_ema3'].toFixed(2)}
+                      <span className="text-slate-700 font-bold">Market</span>
+                      <span className={`font-bold px-1.5 py-0.5 rounded ${
+                        strategy.sellConditions.smart_trail.regime === 'U'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : strategy.sellConditions.smart_trail.regime === 'S'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-rose-100 text-rose-700'
+                      }`}>
+                        {strategy.sellConditions.smart_trail.regime === 'U' ? 'UP' :
+                         strategy.sellConditions.smart_trail.regime === 'S' ? 'SIDEWAYS' : 'DOWN'}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-[9px]">
-                      <span className="text-slate-600 font-medium">EMA8</span>
-                      <span className=" font-bold text-slate-800">
-                        ${strategy.sellConditions.smart_trail['15m_ema8'].toFixed(2)}
-                      </span>
-                    </div>
+                    {strategy.sellConditions.smart_trail.macd_hist !== undefined && (
+                      <div className="flex items-center justify-between text-[9px]">
+                        <span className="text-slate-600">4h MACD</span>
+                        <span className="font-mono text-slate-800 font-bold">
+                          {strategy.sellConditions.smart_trail.macd_hist.toFixed(1)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className={`flex items-center justify-between text-[9px] rounded px-2 py-1 border mb-1 ${
-                    strategy.sellConditions.smart_trail['15m_above']
-                      ? 'bg-blue-50 border-blue-300'
-                      : 'bg-red-50 border-red-300'
-                  }`}>
-                    <span className="text-slate-700 font-bold">Status</span>
-                    <span className={`font-bold ${
-                      strategy.sellConditions.smart_trail['15m_above']
-                        ? 'text-blue-600'
-                        : 'text-red-600'
-                    }`}>
-                      {strategy.sellConditions.smart_trail['15m_above'] ? 'ABOVE' : 'REVERSED'}
-                    </span>
-                  </div>
+                  {strategy.sellConditions.smart_trail.regime === 'U' ? (
+                    <div className="bg-blue-50/50 rounded px-2 py-1 border border-blue-200 mb-1">
+                      <div className="text-[9px] text-blue-700 font-medium">
+                        15m reversal disabled (1h DC only)
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="bg-white/70 rounded p-1.5 mb-1 space-y-1 border border-slate-200/50">
+                        <div className="flex items-center justify-between text-[9px]">
+                          <span className="text-slate-600 font-medium">EMA3</span>
+                          <span className="font-bold text-slate-800">
+                            ${strategy.sellConditions.smart_trail['15m_ema3'].toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[9px]">
+                          <span className="text-slate-600 font-medium">EMA8</span>
+                          <span className="font-bold text-slate-800">
+                            ${strategy.sellConditions.smart_trail['15m_ema8'].toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={`flex items-center justify-between text-[9px] rounded px-2 py-1 border mb-1 ${
+                        strategy.sellConditions.smart_trail['15m_above']
+                          ? 'bg-blue-50 border-blue-300'
+                          : 'bg-red-50 border-red-300'
+                      }`}>
+                        <span className="text-slate-700 font-bold">Status</span>
+                        <span className={`font-bold ${
+                          strategy.sellConditions.smart_trail['15m_above']
+                            ? 'text-blue-600'
+                            : 'text-red-600'
+                        }`}>
+                          {strategy.sellConditions.smart_trail['15m_above'] ? 'ABOVE' : 'REVERSED'}
+                        </span>
+                      </div>
+
+                      <div className={`flex items-center justify-between text-[9px] rounded px-2 py-1 border ${
+                        strategy.sellConditions.smart_trail.regime === 'S'
+                          ? 'bg-amber-50 border-amber-300'
+                          : 'bg-rose-50 border-rose-300'
+                      }`}>
+                        <span className="text-slate-700 font-bold">Min Profit</span>
+                        <span className={`font-bold ${
+                          strategy.sellConditions.smart_trail.regime === 'S'
+                            ? 'text-amber-700'
+                            : 'text-rose-700'
+                        }`}>
+                          ≥{strategy.sellConditions.smart_trail.min_profit}%
+                        </span>
+                      </div>
+                    </>
+                  )}
 
                   {strategy.sellConditions.smart_trail.entry_price > 0 && (
                     <div className="bg-slate-50/80 rounded p-1.5 space-y-0.5 text-[8px] border border-slate-200">
