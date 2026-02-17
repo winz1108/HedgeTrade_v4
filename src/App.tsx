@@ -1052,11 +1052,13 @@ function App() {
               data={data}
               position="right"
             />
-            <MetricsPanel
-              key={`trades-${data.trades?.length}-${data.currentTime}`}
-              data={data}
-              position="trades"
-            />
+            <div className="h-[180px]">
+              <MetricsPanel
+                key={`trades-${data.trades?.length}-${data.currentTime}`}
+                data={data}
+                position="trades"
+              />
+            </div>
           </div>
         </div>
       </div>
