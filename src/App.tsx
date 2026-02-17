@@ -1046,13 +1046,15 @@ function App() {
               onTimeframeChange={handleTimeframeRequest}
             />
           </div>
-          <div className="order-3 lg:order-3" style={{ height: '590px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <MetricsPanel
-              key={`right-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
-              data={data}
-              position="right"
-            />
-            <div style={{ flex: '1', minHeight: '0' }}>
+          <div className="order-3 lg:order-3" style={{ height: '590px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ flex: '0 0 auto' }}>
+              <MetricsPanel
+                key={`right-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
+                data={data}
+                position="right"
+              />
+            </div>
+            <div style={{ flex: '1 1 0', minHeight: '0', display: 'flex' }}>
               <MetricsPanel
                 key={`trades-${data.trades?.length}-${data.currentTime}`}
                 data={data}
