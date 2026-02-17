@@ -183,6 +183,13 @@ function App() {
       try {
         const strategyStatus = await fetchStrategyStatus();
         if (strategyStatus) {
+          console.log('[Initial Strategy Status Debug]', {
+            buyConditions: strategyStatus.buyConditions,
+            buyConditionsMet: strategyStatus.buyConditionsMet,
+            buyConditionsTotal: strategyStatus.buyConditionsTotal,
+            conditionKeys: Object.keys(strategyStatus.buyConditions || {}),
+            conditionCount: Object.keys(strategyStatus.buyConditions || {}).length,
+          });
           fullDashboard.strategyStatus = strategyStatus;
         }
       } catch {}
@@ -881,6 +888,13 @@ function App() {
       try {
         const status = await fetchStrategyStatus();
         if (status) {
+          console.log('[Strategy Status Debug]', {
+            buyConditions: status.buyConditions,
+            buyConditionsMet: status.buyConditionsMet,
+            buyConditionsTotal: status.buyConditionsTotal,
+            conditionKeys: Object.keys(status.buyConditions || {}),
+            conditionCount: Object.keys(status.buyConditions || {}).length,
+          });
           setData(prev => prev ? { ...prev, strategyStatus: status } : prev);
         }
       } catch {}

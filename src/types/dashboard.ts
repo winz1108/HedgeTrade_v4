@@ -89,6 +89,7 @@ export interface BuyConditions {
   '5m_bbw': boolean;
   '15m_bbw': boolean;
   '30m_gap': boolean;
+  '1m_adx_strong': boolean;
 }
 
 export interface EarlyExitConditions {

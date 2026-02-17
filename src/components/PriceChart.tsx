@@ -146,6 +146,15 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
     const endIndex = Math.min(selectedCandles.length, startIndex + visibleCount);
     const visibleCandles = selectedCandles.slice(startIndex, endIndex);
 
+    // Debug: ADX 데이터 확인
+    const adxSample = visibleCandles.slice(-5).map(c => ({
+      timestamp: new Date(c.timestamp).toLocaleTimeString(),
+      adx: c.adx
+    }));
+    if (adxSample.some(s => s.adx !== undefined)) {
+      console.log('[ADX Data Debug] Recent candles with ADX:', adxSample);
+    }
+
     const prices = visibleCandles.flatMap(c => {
       const vals = [c.high, c.low];
       if (c.ema5) vals.push(c.ema5);

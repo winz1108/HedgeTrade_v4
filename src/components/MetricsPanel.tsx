@@ -10,6 +10,7 @@ interface MetricsPanelProps {
 const MAIN_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
   { key: '1m_golden_cross', label: '1m GC' },
   { key: '30m_gap',         label: '30m Gap' },
+  { key: '1m_adx_strong',   label: '1m ADX' },
 ];
 
 const MULTI_TF_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
