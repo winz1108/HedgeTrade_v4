@@ -1046,7 +1046,7 @@ function App() {
               onTimeframeChange={handleTimeframeRequest}
             />
           </div>
-          <div className="order-3 lg:order-3" style={{ height: '590px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="order-3 lg:order-3" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <div style={{ flex: '0 0 auto' }}>
               <MetricsPanel
                 key={`right-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
