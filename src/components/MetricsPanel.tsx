@@ -43,20 +43,20 @@ const getExitReasonLabel = (reason?: string): string => {
   if (!reason) return 'TP';
   if (reason === 'TP') return 'TP';
   if (reason === 'SL') return 'SL';
-  if (reason.startsWith('15M_REVERSAL')) return '15m Rev';
+  if (reason.startsWith('15M_REVERSAL')) return '15m';
   if (reason === 'DEAD_CROSS_1h') return '1h DC';
   if (reason.startsWith('SMART_SCORE')) return 'Smart';
   if (reason.startsWith('SMART_FLOOR')) return 'Smart';
-  return reason.length > 8 ? reason.substring(0, 8) : reason;
+  return reason.length > 6 ? reason.substring(0, 6) : reason;
 };
 
 const getExitReasonColor = (reason?: string): { bg: string; text: string; border: string } => {
-  if (!reason) return { bg: 'bg-green-50/50', text: 'text-green-600', border: 'border-green-200' };
-  if (reason === 'TP') return { bg: 'bg-green-50/50', text: 'text-green-600', border: 'border-green-200' };
-  if (reason.startsWith('15M_REVERSAL')) return { bg: 'bg-cyan-50/50', text: 'text-cyan-600', border: 'border-cyan-200' };
-  if (reason === 'DEAD_CROSS_1h') return { bg: 'bg-red-50/50', text: 'text-red-600', border: 'border-red-200' };
-  if (reason.startsWith('SMART_')) return { bg: 'bg-blue-50/50', text: 'text-blue-600', border: 'border-blue-200' };
-  return { bg: 'bg-red-50/50', text: 'text-red-600', border: 'border-red-200' };
+  if (!reason) return { bg: 'bg-slate-800/40', text: 'text-slate-300', border: 'border-slate-700' };
+  if (reason === 'TP') return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' };
+  if (reason.startsWith('15M_REVERSAL')) return { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30' };
+  if (reason === 'DEAD_CROSS_1h') return { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/30' };
+  if (reason.startsWith('SMART_')) return { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' };
+  return { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/30' };
 };
 
 export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
@@ -81,79 +81,60 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     const conditionsTotal = MAIN_CONDITIONS.length + MULTI_TF_CONDITIONS.length + SLOPE_CONDITIONS.length + BBW_CONDITIONS.length;
 
     return (
-      <div className="flex flex-col gap-1.5">
-        <div className="bg-white border border-slate-200 rounded p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[10px] font-medium text-slate-600 uppercase">Portfolio</h3>
-            <Activity className="w-3 h-3 text-slate-400" />
+      <div className="flex flex-col gap-2">
+        <div className="bg-slate-900/50 border border-slate-800 p-2">
+          <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-800">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Portfolio</span>
+            <span className="text-[10px] font-mono text-slate-500">{formatCurrency(data.currentAsset)}</span>
           </div>
 
           <div className="space-y-1.5">
-            <div className="bg-slate-50 rounded p-1.5 border border-slate-200">
-              <div className="text-[8px] font-medium text-slate-500 mb-0.5 uppercase">Total Asset</div>
-              <div className="text-lg font-semibold text-slate-900 mb-1">
-                {formatCurrency(data.currentAsset)}
-              </div>
-              <div className="space-y-0.5 pt-1 border-t border-slate-300">
-                <div className="flex justify-between items-center">
-                  <span className="text-[8px] font-medium text-slate-500">BTC</span>
-                  <span className="text-[9px] font-semibold text-slate-700">
-                    {formatCurrency(data.currentBTC || 0)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[8px] font-medium text-slate-500">USDC</span>
-                  <span className="text-[9px] font-semibold text-slate-700">
-                    {formatCurrency(data.currentCash || 0)}
-                  </span>
-                </div>
-              </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-[8px] text-slate-500 uppercase tracking-wide">BTC</span>
+              <span className="text-[9px] font-mono text-slate-300">{formatCurrency(data.currentBTC || 0)}</span>
             </div>
-
-            <div>
-              <div className="text-[8px] font-medium text-slate-500 mb-1 uppercase">Position</div>
-              {data.holding.isHolding ? (
-                <div className="space-y-0.5 bg-blue-50/50 rounded p-1.5 border border-blue-200">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[8px] font-medium text-slate-600">Entry</span>
-                    <span className="text-[9px] font-semibold text-slate-800">{formatCurrency(data.holding.buyPrice!)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[8px] font-medium text-slate-600">P&L</span>
-                    <span className={`text-[10px] font-semibold ${
-                      (data.holding.currentProfit ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {typeof data.holding.currentProfit === 'number'
-                        ? `${data.holding.currentProfit >= 0 ? '+' : ''}${data.holding.currentProfit.toFixed(2)}%`
-                        : '0.00%'}
-                    </span>
-                  </div>
-                  {data.holding.buyTime && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-[8px] font-medium text-slate-600">Duration</span>
-                      <span className="text-[9px] font-semibold text-slate-700">
-                        {formatHoldingDuration(data.holding.buyTime, data.currentTime)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="px-2 py-1 bg-slate-50 text-slate-500 rounded border border-slate-200 text-[8px] font-medium text-center">
-                  No Position
-                </div>
-              )}
+            <div className="flex items-baseline justify-between">
+              <span className="text-[8px] text-slate-500 uppercase tracking-wide">USDC</span>
+              <span className="text-[9px] font-mono text-slate-300">{formatCurrency(data.currentCash || 0)}</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[10px] font-medium text-slate-600 uppercase">Entry</h3>
+        {data.holding.isHolding && (
+          <div className="bg-blue-500/10 border border-blue-500/30 p-2">
+            <div className="flex items-center justify-between mb-1.5 pb-1.5 border-b border-blue-500/30">
+              <span className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider">Position</span>
+              {data.holding.buyTime && (
+                <span className="text-[8px] font-mono text-blue-400/70">
+                  {formatHoldingDuration(data.holding.buyTime, data.currentTime)}
+                </span>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[8px] text-slate-400 uppercase tracking-wide">Entry</span>
+                <span className="text-[9px] font-mono text-slate-300">{formatCurrency(data.holding.buyPrice!)}</span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-[8px] text-slate-400 uppercase tracking-wide">P&L</span>
+                <span className={`text-[10px] font-mono font-semibold ${
+                  (data.holding.currentProfit ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
+                }`}>
+                  {typeof data.holding.currentProfit === 'number'
+                    ? `${data.holding.currentProfit >= 0 ? '+' : ''}${data.holding.currentProfit.toFixed(2)}%`
+                    : '0.00%'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-slate-900/50 border border-slate-800 p-2">
+          <div className="flex items-center justify-between mb-1.5 pb-1.5 border-b border-slate-800">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Entry Cond.</span>
             <div className="flex items-center gap-1">
-              <span className="text-[9px] text-slate-500 font-medium">{conditionsMet}/{conditionsTotal}</span>
-              <div className={`w-1.5 h-1.5 rounded-full ${
-                conditionsMet === conditionsTotal ? 'bg-green-500' : 'bg-slate-300'
-              }`}></div>
+              <span className="text-[9px] font-mono text-slate-500">{conditionsMet}/{conditionsTotal}</span>
+              <div className={`w-1 h-1 rounded-full ${conditionsMet === conditionsTotal ? 'bg-emerald-500' : 'bg-slate-600'}`}></div>
             </div>
           </div>
 
@@ -162,90 +143,54 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               {MAIN_CONDITIONS.map(({ key, label }) => {
                 const met = strategy.buyConditions[key];
                 return (
-                  <div
-                    key={key}
-                    className={`flex items-center justify-between px-2 py-1 rounded border ${
-                      met
-                        ? 'bg-green-50/50 border-green-200 text-green-700'
-                        : 'bg-slate-50 border-slate-200 text-slate-500'
-                    }`}
-                  >
-                    <span className="text-[9px] font-medium">{label}</span>
-                    <div className={`w-1 h-1 rounded-full ${
-                      met ? 'bg-green-500' : 'bg-slate-300'
-                    }`}></div>
+                  <div key={key} className="flex items-center justify-between">
+                    <span className={`text-[8px] uppercase tracking-wide ${met ? 'text-emerald-400' : 'text-slate-600'}`}>
+                      {label}
+                    </span>
+                    <div className={`w-1 h-1 rounded-full ${met ? 'bg-emerald-500' : 'bg-slate-700'}`}></div>
                   </div>
                 );
               })}
 
-              <div className="grid grid-cols-2 gap-1 pt-0.5">
-                <div>
-                  <div className="text-[8px] font-medium text-slate-500 mb-0.5 uppercase">EMA Above</div>
-                  <div className="space-y-0.5">
-                    {MULTI_TF_CONDITIONS.map(({ key, label }) => {
-                      const met = strategy.buyConditions[key];
-                      return (
-                        <div
-                          key={key}
-                          className={`flex items-center justify-between px-1.5 py-1 rounded border text-[8px] font-medium ${
-                            met
-                              ? 'bg-green-50/50 border-green-200 text-green-600'
-                              : 'bg-slate-50 border-slate-200 text-slate-400'
-                          }`}
-                        >
-                          <span>{label}</span>
-                          <div className={`w-1 h-1 rounded-full ${
-                            met ? 'bg-green-500' : 'bg-slate-300'
-                          }`}></div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-[8px] font-medium text-slate-500 mb-0.5 uppercase">BBW</div>
-                  <div className="space-y-0.5">
-                    {BBW_CONDITIONS.map(({ key, label }) => {
-                      const met = strategy.buyConditions[key];
-                      return (
-                        <div
-                          key={key}
-                          className={`flex items-center justify-between px-1.5 py-1 rounded border text-[8px] font-medium ${
-                            met
-                              ? 'bg-green-50/50 border-green-200 text-green-600'
-                              : 'bg-slate-50 border-slate-200 text-slate-400'
-                          }`}
-                        >
-                          <span>{label}</span>
-                          <div className={`w-1 h-1 rounded-full ${
-                            met ? 'bg-green-500' : 'bg-slate-300'
-                          }`}></div>
-                        </div>
-                      );
-                    })}
-                  </div>
+              <div className="pt-1 mt-1 border-t border-slate-800">
+                <div className="text-[7px] text-slate-500 mb-0.5 uppercase tracking-wide">EMA Above</div>
+                <div className="flex gap-2">
+                  {MULTI_TF_CONDITIONS.map(({ key, label }) => {
+                    const met = strategy.buyConditions[key];
+                    return (
+                      <div key={key} className="flex items-center gap-1">
+                        <span className={`text-[8px] ${met ? 'text-emerald-400' : 'text-slate-600'}`}>{label}</span>
+                        <div className={`w-0.5 h-0.5 rounded-full ${met ? 'bg-emerald-500' : 'bg-slate-700'}`}></div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="pt-0.5">
-                <div className="text-[8px] font-medium text-slate-500 mb-0.5 uppercase">Slope Up</div>
-                <div className="grid grid-cols-2 gap-0.5">
+              <div className="pt-1 mt-1 border-t border-slate-800">
+                <div className="text-[7px] text-slate-500 mb-0.5 uppercase tracking-wide">BBW</div>
+                <div className="flex gap-2">
+                  {BBW_CONDITIONS.map(({ key, label }) => {
+                    const met = strategy.buyConditions[key];
+                    return (
+                      <div key={key} className="flex items-center gap-1">
+                        <span className={`text-[8px] ${met ? 'text-emerald-400' : 'text-slate-600'}`}>{label}</span>
+                        <div className={`w-0.5 h-0.5 rounded-full ${met ? 'bg-emerald-500' : 'bg-slate-700'}`}></div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-1 mt-1 border-t border-slate-800">
+                <div className="text-[7px] text-slate-500 mb-0.5 uppercase tracking-wide">Slope Up</div>
+                <div className="flex gap-2">
                   {SLOPE_CONDITIONS.map(({ key, label }) => {
                     const met = strategy.buyConditions[key];
                     return (
-                      <div
-                        key={key}
-                        className={`flex items-center justify-between px-1.5 py-1 rounded border text-[8px] font-medium ${
-                          met
-                            ? 'bg-green-50/50 border-green-200 text-green-600'
-                            : 'bg-slate-50 border-slate-200 text-slate-400'
-                        }`}
-                      >
-                        <span>{label}</span>
-                        <div className={`w-1 h-1 rounded-full ${
-                          met ? 'bg-green-500' : 'bg-slate-300'
-                        }`}></div>
+                      <div key={key} className="flex items-center gap-1">
+                        <span className={`text-[8px] ${met ? 'text-emerald-400' : 'text-slate-600'}`}>{label}</span>
+                        <div className={`w-0.5 h-0.5 rounded-full ${met ? 'bg-emerald-500' : 'bg-slate-700'}`}></div>
                       </div>
                     );
                   })}
@@ -253,144 +198,222 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-10 text-slate-400 text-[9px]">
+            <div className="flex items-center justify-center h-10 text-slate-600 text-[8px]">
+              Waiting...
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (position === 'right') {
+    const winRate = data.metrics.totalTrades > 0
+      ? (data.metrics.takeProfitCount / data.metrics.totalTrades) * 100
+      : 0;
+
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="bg-slate-900/50 border border-slate-800 p-2">
+          <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-800">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Exit Cond.</span>
+            {data.strategyStatus?.sellConditions?.any_sell && (
+              <div className="flex items-center gap-1">
+                <span className="text-[8px] font-semibold text-red-400 uppercase">ACTIVE</span>
+                <div className="w-1 h-1 rounded-full bg-red-500 animate-pulse"></div>
+              </div>
+            )}
+          </div>
+
+          {data.strategyStatus?.sellConditions ? (
+            <div className="space-y-1.5">
+              {data.strategyStatus.sellConditions.smart_trail && (
+                <div className={`p-1.5 border ${
+                  data.strategyStatus.sellConditions.smart_trail.met
+                    ? 'bg-red-500/10 border-red-500/30'
+                    : data.strategyStatus.sellConditions.smart_trail.active
+                    ? 'bg-orange-500/10 border-orange-500/30'
+                    : 'bg-slate-800/40 border-slate-700'
+                }`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[8px] uppercase font-semibold ${
+                        data.strategyStatus.sellConditions.smart_trail.met
+                          ? 'text-red-400'
+                          : data.strategyStatus.sellConditions.smart_trail.active
+                          ? 'text-orange-400'
+                          : 'text-slate-500'
+                      }`}>15m EMA Rev</span>
+                      {data.strategyStatus.sellConditions.smart_trail.active && (
+                        <span className="text-[7px] font-semibold px-1 bg-orange-500/20 text-orange-400">ACT</span>
+                      )}
+                    </div>
+                    <div className={`w-1 h-1 rounded-full ${
+                      data.strategyStatus.sellConditions.smart_trail.met ? 'bg-red-500' : 'bg-slate-700'
+                    }`}></div>
+                  </div>
+
+                  <div className="flex gap-1 mb-1">
+                    <div className="flex-1 bg-slate-900/50 border border-slate-700 p-1">
+                      <div className="text-[7px] text-slate-500 mb-0.5">EMA3</div>
+                      <div className="font-mono text-[8px] text-slate-300">
+                        ${data.strategyStatus.sellConditions.smart_trail['15m_ema3'].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                    <div className="flex-1 bg-slate-900/50 border border-slate-700 p-1">
+                      <div className="text-[7px] text-slate-500 mb-0.5">EMA8</div>
+                      <div className="font-mono text-[8px] text-slate-300">
+                        ${data.strategyStatus.sellConditions.smart_trail['15m_ema8'].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={`flex items-center justify-between px-1 py-0.5 mb-1 border ${
+                    data.strategyStatus.sellConditions.smart_trail['15m_above']
+                      ? 'bg-slate-900/30 border-slate-700'
+                      : 'bg-red-500/10 border-red-500/30'
+                  }`}>
+                    <span className="text-[7px] text-slate-400 uppercase">Status</span>
+                    <span className={`text-[7px] font-semibold ${
+                      data.strategyStatus.sellConditions.smart_trail['15m_above']
+                        ? 'text-slate-400'
+                        : 'text-red-400'
+                    }`}>
+                      {data.strategyStatus.sellConditions.smart_trail['15m_above'] ? 'Above' : 'Reversed'}
+                    </span>
+                  </div>
+
+                  {data.strategyStatus.sellConditions.smart_trail.entry_price > 0 && (
+                    <div className="bg-slate-900/50 border border-slate-700 p-1 space-y-0.5 mb-1">
+                      <div className="flex justify-between text-[7px]">
+                        <span className="text-slate-500">Entry</span>
+                        <span className="font-mono text-slate-300">
+                          ${data.strategyStatus.sellConditions.smart_trail.entry_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[7px]">
+                        <span className="text-slate-500">Peak</span>
+                        <div className="flex items-center gap-0.5">
+                          <span className="font-mono text-slate-300">
+                            ${data.strategyStatus.sellConditions.smart_trail.peak_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          <span className="text-[7px] font-semibold px-0.5 bg-blue-500/20 text-blue-400">
+                            +{((data.strategyStatus.sellConditions.smart_trail.peak_price / data.strategyStatus.sellConditions.smart_trail.entry_price - 1) * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-800">
+                    <span className="text-[7px] text-slate-500">
+                      {{'U':'Up','S':'Side','D':'Down'}[data.strategyStatus.sellConditions.smart_trail.regime] || data.strategyStatus.sellConditions.smart_trail.regime}
+                    </span>
+                    <span className="text-[7px] font-mono text-slate-400">
+                      {data.strategyStatus.sellConditions.smart_trail.score}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <span className={`text-[8px] uppercase tracking-wide ${
+                  data.strategyStatus.sellConditions.dead_cross.met ? 'text-red-400' : 'text-slate-600'
+                }`}>
+                  1h Dead Cross
+                </span>
+                <div className={`w-1 h-1 rounded-full ${
+                  data.strategyStatus.sellConditions.dead_cross.met ? 'bg-red-500' : 'bg-slate-700'
+                }`}></div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-10 text-slate-600 text-[8px]">
               Waiting...
             </div>
           )}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[10px] font-medium text-slate-600 uppercase">Exit</h3>
-            {strategy?.sellConditions?.any_sell && (
-              <div className="flex items-center gap-1">
-                <span className="text-[8px] font-medium text-red-600">ACTIVE</span>
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
-              </div>
-            )}
+        <div className="bg-slate-900/50 border border-slate-800 p-2">
+          <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-800">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Performance</span>
           </div>
 
-          {strategy?.sellConditions ? (
-            <div className="space-y-1">
-              {strategy.sellConditions.smart_trail && (
-                <div className={`rounded border ${
-                  strategy.sellConditions.smart_trail.met
-                    ? 'bg-red-50/50 border-red-300'
-                    : strategy.sellConditions.smart_trail.active
-                    ? 'bg-orange-50/50 border-orange-200'
-                    : 'bg-slate-50 border-slate-200'
+          {data.metrics.portfolioReturnWithCommission !== undefined && (
+            <div className="mb-2 pb-2 border-b border-slate-800">
+              <div className="text-[7px] text-slate-500 mb-0.5 uppercase tracking-wide">Net Profit</div>
+              <div className={`text-lg font-mono font-bold ${
+                data.metrics.portfolioReturnWithCommission >= 0 ? 'text-emerald-400' : 'text-red-400'
+              }`}>
+                {formatPercent(data.metrics.portfolioReturnWithCommission)}
+              </div>
+              {data.metrics.totalPnl !== undefined && (
+                <div className={`text-[8px] font-mono ${
+                  data.metrics.totalPnl >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'
                 }`}>
-                  <div className="px-2 py-1.5">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1">
-                        <span className={`text-[9px] font-medium ${
-                          strategy.sellConditions.smart_trail.met
-                            ? 'text-red-700'
-                            : strategy.sellConditions.smart_trail.active
-                            ? 'text-orange-700'
-                            : 'text-slate-500'
-                        }`}>15m EMA Rev</span>
-                        {strategy.sellConditions.smart_trail.active && (
-                          <span className="text-[7px] font-medium px-1 py-0.5 rounded bg-orange-100 text-orange-700">ACT</span>
-                        )}
-                      </div>
-                      <div className={`w-1 h-1 rounded-full ${
-                        strategy.sellConditions.smart_trail.met ? 'bg-red-500' : 'bg-slate-300'
-                      }`}></div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1 mb-1">
-                      <div className={`rounded border p-1 ${
-                        strategy.sellConditions.smart_trail.active
-                          ? 'bg-white/50 border-orange-200'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}>
-                        <div className="text-[7px] font-medium text-slate-500 mb-0.5">EMA3</div>
-                        <div className="font-mono text-[8px] font-medium text-slate-700">
-                          ${strategy.sellConditions.smart_trail['15m_ema3'].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
-                      </div>
-                      <div className={`rounded border p-1 ${
-                        strategy.sellConditions.smart_trail.active
-                          ? 'bg-white/50 border-orange-200'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}>
-                        <div className="text-[7px] font-medium text-slate-500 mb-0.5">EMA8</div>
-                        <div className="font-mono text-[8px] font-medium text-slate-700">
-                          ${strategy.sellConditions.smart_trail['15m_ema8'].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={`rounded border px-1.5 py-0.5 mb-1 ${
-                      strategy.sellConditions.smart_trail['15m_above']
-                        ? 'bg-slate-50 border-slate-200'
-                        : 'bg-red-50 border-red-200'
-                    }`}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[8px] font-medium text-slate-600">Status</span>
-                        <span className={`text-[7px] font-medium px-1 py-0.5 rounded ${
-                          strategy.sellConditions.smart_trail['15m_above']
-                            ? 'bg-slate-100 text-slate-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}>
-                          {strategy.sellConditions.smart_trail['15m_above'] ? 'Above' : 'Rev'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {strategy.sellConditions.smart_trail.entry_price > 0 && (
-                      <div className="bg-slate-50 border border-slate-200 rounded p-1 space-y-0.5">
-                        <div className="flex justify-between text-[8px]">
-                          <span className="font-medium text-slate-500">Entry</span>
-                          <span className="font-mono font-medium text-slate-700">
-                            ${strategy.sellConditions.smart_trail.entry_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-[8px]">
-                          <span className="font-medium text-slate-500">Peak</span>
-                          <div className="flex items-center gap-0.5">
-                            <span className="font-mono font-medium text-slate-700">
-                              ${strategy.sellConditions.smart_trail.peak_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                            <span className="text-[7px] font-medium px-1 py-0.5 rounded bg-blue-100 text-blue-700">
-                              +{((strategy.sellConditions.smart_trail.peak_price / strategy.sellConditions.smart_trail.entry_price - 1) * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mt-1 pt-1 border-t border-slate-200">
-                      <div className="flex items-center justify-between text-[7px]">
-                        <span className="font-medium text-slate-500">
-                          {{'U':'Up','S':'Side','D':'Down'}[strategy.sellConditions.smart_trail.regime] || strategy.sellConditions.smart_trail.regime}
-                        </span>
-                        <span className="font-medium px-1 py-0.5 rounded bg-slate-200 text-slate-700">
-                          {strategy.sellConditions.smart_trail.score}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  {data.metrics.totalPnl >= 0 ? '+' : ''}{data.metrics.totalPnl.toFixed(2)} USDC
                 </div>
               )}
-
-              <div className={`flex items-center justify-between px-2 py-1 rounded border ${
-                strategy.sellConditions.dead_cross.met
-                  ? 'bg-red-50/50 border-red-300 text-red-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-500'
-              }`}>
-                <span className="text-[9px] font-medium">1h Dead Cross</span>
-                <div className={`w-1 h-1 rounded-full ${
-                  strategy.sellConditions.dead_cross.met ? 'bg-red-500' : 'bg-slate-300'
-                }`}></div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-10 text-slate-400 text-[9px]">
-              Waiting...
             </div>
           )}
+
+          <div className="space-y-1.5 mb-2 pb-2 border-b border-slate-800">
+            <div className="flex items-baseline justify-between">
+              <span className="text-[7px] text-slate-500 uppercase tracking-wide">Portfolio</span>
+              <span className={`text-[8px] font-mono ${
+                data.metrics.portfolioReturn >= 0 ? 'text-emerald-400' : 'text-red-400'
+              }`}>
+                {formatPercent(data.metrics.portfolioReturn)}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-[7px] text-slate-500 uppercase tracking-wide">Market</span>
+              <span className={`text-[8px] font-mono ${
+                data.metrics.marketReturn >= 0 ? 'text-emerald-400' : 'text-red-400'
+              }`}>
+                {formatPercent(data.metrics.marketReturn)}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-[7px] text-slate-500 uppercase tracking-wide">Avg Trade</span>
+              <span className={`text-[8px] font-mono ${
+                data.metrics.avgTradeReturn >= 0 ? 'text-emerald-400' : 'text-red-400'
+              }`}>
+                {formatPercent(data.metrics.avgTradeReturn)}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-baseline justify-between">
+              <span className="text-[7px] text-emerald-500 uppercase tracking-wide">Profit</span>
+              <span className="text-sm font-semibold text-emerald-400">{data.metrics.takeProfitCount}</span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-[7px] text-red-500 uppercase tracking-wide">Loss</span>
+              <span className="text-sm font-semibold text-red-400">{data.metrics.stopLossCount}</span>
+            </div>
+            {data.metrics.totalTrades !== undefined && (
+              <div className="flex items-baseline justify-between pt-1 border-t border-slate-800">
+                <span className="text-[7px] text-slate-500 uppercase tracking-wide">Total</span>
+                <span className="text-xs font-semibold text-slate-400">{data.metrics.totalTrades}</span>
+              </div>
+            )}
+            <div className="pt-1 border-t border-slate-800">
+              <div className="text-[7px] text-slate-500 mb-1 uppercase tracking-wide">Win Rate</div>
+              <div className="flex items-center gap-1.5">
+                <div className="flex-1 bg-slate-800 h-1 overflow-hidden">
+                  <div
+                    className="bg-blue-500 h-1 transition-all duration-500"
+                    style={{ width: `${winRate}%` }}
+                  />
+                </div>
+                <span className="text-[8px] font-mono text-slate-400 min-w-[32px]">
+                  {winRate.toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -404,48 +427,45 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
       .slice(0, 40);
 
     return (
-      <div className="bg-white border border-slate-200 rounded p-2">
-        <div className="flex items-center justify-between mb-1.5">
-          <h3 className="text-[10px] font-medium text-slate-600 uppercase">Recent Trades</h3>
-          <div className="flex items-center gap-1">
-            <span className="text-[8px] font-medium text-slate-500">7d</span>
-            <History className="w-2.5 h-2.5 text-slate-400" />
-          </div>
+      <div className="bg-slate-900/50 border border-slate-800 p-2 mt-2">
+        <div className="flex items-center justify-between mb-1.5 pb-1.5 border-b border-slate-800">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Recent Trades</span>
+          <span className="text-[8px] font-mono text-slate-500">7d</span>
         </div>
 
-        <div className="space-y-0.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent" style={{ maxHeight: '140px' }}>
+        <div className="space-y-0.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent" style={{ maxHeight: '160px' }}>
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, index) => (
               <div key={`${trade.timestamp}-${index}`}>
                 {trade.type === 'buy' ? (
-                  <div className="bg-blue-50/50 border border-blue-200 rounded p-1">
+                  <div className="bg-blue-500/10 border border-blue-500/30 p-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[8px] font-medium text-blue-600">BUY</span>
+                      <span className="text-[8px] font-semibold text-blue-400 uppercase">BUY</span>
                       <div className="flex flex-col items-end">
-                        <span className="text-[9px] font-semibold text-slate-700">{formatCurrency(trade.price)}</span>
+                        <span className="text-[8px] font-mono text-slate-300">{formatCurrency(trade.price)}</span>
                         <span className="text-[7px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className={`${getExitReasonColor(trade.exitReason).bg} ${getExitReasonColor(trade.exitReason).border} border rounded p-1`}>
+                  <div className={`${getExitReasonColor(trade.exitReason).bg} ${getExitReasonColor(trade.exitReason).border} border p-1`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-0.5">
-                        <span className={`text-[8px] font-medium ${getExitReasonColor(trade.exitReason).text}`}>SELL</span>
+                        <span className={`text-[8px] font-semibold ${getExitReasonColor(trade.exitReason).text} uppercase`}>SELL</span>
                         {trade.exitReason && (
-                          <span className={`text-[7px] px-1 py-0.5 rounded font-medium ${
+                          <span className={`text-[7px] px-1 font-semibold ${
                             trade.profit !== undefined && trade.profit >= 0
-                              ? 'bg-green-500 text-white'
-                              : 'bg-red-500 text-white'
+                              ? 'bg-emerald-500/20 text-emerald-400'
+                              : 'bg-red-500/20 text-red-400'
                           }`} title={trade.exitReason}>{getExitReasonLabel(trade.exitReason)}</span>
                         )}
                       </div>
                       <div className="flex flex-col items-end">
                         <div className="flex items-center gap-0.5">
-                          <span className="text-[9px] font-semibold text-slate-700">{formatCurrency(trade.price)}</span>
+                          <span className="text-[8px] font-mono text-slate-300">{formatCurrency(trade.price)}</span>
                           {trade.profit !== undefined && (
-                            <span className={`text-[8px] font-semibold ${
-                              trade.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                            <span className={`text-[8px] font-mono font-semibold ${
+                              trade.profit >= 0 ? 'text-emerald-400' : 'text-red-400'
                             }`}>
                               {trade.profit >= 0 ? '+' : ''}{trade.profit.toFixed(2)}%
                             </span>
@@ -454,8 +474,8 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                         <div className="flex items-center gap-0.5">
                           <span className="text-[7px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
                           {trade.pnl !== undefined && (
-                            <span className={`text-[7px] font-semibold ${
-                              trade.pnl >= 0 ? 'text-green-600' : 'text-red-600'
+                            <span className={`text-[7px] font-mono font-semibold ${
+                              trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                             }`}>
                               {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
                             </span>
@@ -468,7 +488,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               </div>
             ))
           ) : (
-            <div className="flex items-center justify-center h-16 text-slate-400 text-[9px]">
+            <div className="flex items-center justify-center h-16 text-slate-600 text-[8px]">
               No trades
             </div>
           )}
@@ -477,106 +497,5 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     );
   }
 
-  const winRate = data.metrics.winRate
-    ?? (data.metrics.takeProfitCount + data.metrics.stopLossCount > 0
-      ? (data.metrics.takeProfitCount / (data.metrics.takeProfitCount + data.metrics.stopLossCount)) * 100
-      : 0);
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="bg-white border border-slate-200 rounded p-2">
-        <div className="flex items-center justify-between mb-1.5">
-          <h3 className="text-[10px] font-medium text-slate-600 uppercase">Performance</h3>
-          <DollarSign className="w-3 h-3 text-slate-400" />
-        </div>
-
-        <div className="space-y-1.5">
-          {data.metrics.portfolioReturnWithCommission !== undefined && (
-            <div className="bg-slate-50 p-1.5 rounded border border-slate-200">
-              <div className="text-[8px] font-medium text-slate-500 mb-0.5 uppercase">Net Profit</div>
-              <div
-                className={`text-lg font-semibold ${
-                  data.metrics.portfolioReturnWithCommission >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {formatPercent(data.metrics.portfolioReturnWithCommission)}
-              </div>
-              {data.metrics.totalPnl !== undefined && (
-                <div className={`text-[9px] font-medium mt-0.5 ${
-                  data.metrics.totalPnl >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {data.metrics.totalPnl >= 0 ? '+' : ''}{data.metrics.totalPnl.toFixed(2)} USDC
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-0.5">
-            <div className="flex justify-between items-center bg-slate-50 p-1 rounded border border-slate-200">
-              <span className="text-[8px] font-medium text-slate-600">Portfolio Return</span>
-              <span className={`text-[9px] font-semibold ${
-                data.metrics.portfolioReturn >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {formatPercent(data.metrics.portfolioReturn)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center bg-slate-50 p-1 rounded border border-slate-200">
-              <span className="text-[8px] font-medium text-slate-600">Market Change</span>
-              <span className={`text-[9px] font-semibold ${
-                data.metrics.marketReturn >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {formatPercent(data.metrics.marketReturn)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center bg-slate-50 p-1 rounded border border-slate-200">
-              <span className="text-[8px] font-medium text-slate-600">Avg Trade Return</span>
-              <span className={`text-[9px] font-semibold ${
-                data.metrics.avgTradeReturn >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {formatPercent(data.metrics.avgTradeReturn)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white border border-slate-200 rounded p-2">
-        <div className="flex items-center justify-between mb-1.5">
-          <h3 className="text-[10px] font-medium text-slate-600 uppercase">Statistics</h3>
-          <Target className="w-3 h-3 text-slate-400" />
-        </div>
-
-        <div className="space-y-1">
-          <div className="flex justify-between items-center bg-green-50/50 p-1.5 rounded border border-green-200">
-            <span className="text-[8px] font-medium text-green-700">Profit (TP)</span>
-            <span className="text-sm font-semibold text-green-600">{data.metrics.takeProfitCount}</span>
-          </div>
-          <div className="flex justify-between items-center bg-red-50/50 p-1.5 rounded border border-red-200">
-            <span className="text-[8px] font-medium text-red-700">Loss (SL)</span>
-            <span className="text-sm font-semibold text-red-600">{data.metrics.stopLossCount}</span>
-          </div>
-          {data.metrics.totalTrades !== undefined && (
-            <div className="flex justify-between items-center bg-slate-50 p-1 rounded border border-slate-200">
-              <span className="text-[8px] font-medium text-slate-600">Total</span>
-              <span className="text-xs font-semibold text-slate-700">{data.metrics.totalTrades}</span>
-            </div>
-          )}
-          <div className="border-t border-slate-200 pt-1 mt-1">
-            <div className="text-[8px] font-medium text-slate-500 mb-1 uppercase">Win Rate</div>
-            <div className="flex items-center gap-1.5">
-              <div className="flex-1 bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="bg-blue-500 h-1.5 transition-all duration-500"
-                  style={{ width: `${winRate}%` }}
-                />
-              </div>
-              <span className="text-[10px] font-semibold text-slate-700 min-w-[38px]">
-                {winRate.toFixed(1)}%
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 };
