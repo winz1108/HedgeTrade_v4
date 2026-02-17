@@ -1964,9 +1964,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
               {(() => {
                 const svgWidth = containerWidth || 1200;
-                return [100, 50, 25, 15, 0].map((value) => {
+                return [75, 50, 25].map((value) => {
                   const y = adxToY(value);
-                  const isThreshold = value === 25 || value === 15;
+                  const isThreshold = value === 25;
                   const isMid = value === 50;
                   return (
                     <line
@@ -1975,9 +1975,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                       y1={y}
                       x2="100%"
                       y2={y}
-                      stroke={isMid ? 'rgba(251, 191, 36, 0.2)' : isThreshold ? 'rgba(239, 68, 68, 0.15)' : 'rgba(71, 85, 105, 0.08)'}
-                      strokeWidth={isMid ? '1.5' : isThreshold ? '1.5' : '1'}
-                      strokeDasharray={isThreshold ? '5 3' : '0'}
+                      stroke={isThreshold ? 'rgba(239, 68, 68, 0.2)' : isMid ? 'rgba(251, 191, 36, 0.15)' : 'rgba(71, 85, 105, 0.1)'}
+                      strokeWidth={isThreshold ? '1.5' : '1'}
+                      strokeDasharray={isThreshold ? '4 2' : '0'}
                     />
                   );
                 });
@@ -2118,7 +2118,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
 
         {/* ADX Y-Axis */}
         <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`, height: `${adxChartHeight}px`, width: '100%' }}>
-          {[25, 15].map((value) => {
+          {[75, 50, 25].map((value) => {
             const y = adxToY(value);
             return (
               <div
