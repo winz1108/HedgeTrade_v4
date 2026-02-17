@@ -15,14 +15,17 @@ const MAIN_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
 
 const MULTI_TF_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
   { key: '5m_above',  label: '5m' },
-  { key: '15m_above', label: '15m' },
-  { key: '30m_above', label: '30m' },
   { key: '1h_above',  label: '1h' },
 ];
 
 const SLOPE_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
   { key: '30m_slope_up', label: '30m' },
   { key: '1h_slope_up',  label: '1h' },
+];
+
+const BBW_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
+  { key: '5m_bbw',  label: '5m' },
+  { key: '15m_bbw', label: '15m' },
 ];
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
@@ -185,29 +188,57 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 );
               })}
 
-              <div className="pt-1">
-                <div className="text-[9px] font-black text-slate-700 mb-1 tracking-tight">EMA ABOVE</div>
-                <div className="grid grid-cols-4 gap-0.5">
-                  {MULTI_TF_CONDITIONS.map(({ key, label }) => {
-                    const met = strategy.buyConditions[key];
-                    return (
-                      <div
-                        key={key}
-                        className={`flex flex-col items-center justify-center py-1.5 rounded-lg ${
-                          met
-                            ? 'bg-emerald-500 text-white shadow-sm'
-                            : 'bg-slate-100 text-slate-500'
-                        }`}
-                      >
-                        {met ? (
-                          <Check className="w-3 h-3 text-white mb-0.5" />
-                        ) : (
-                          <X className="w-3 h-3 text-slate-400 mb-0.5" />
-                        )}
-                        <span className="text-[8px] font-bold">{label}</span>
-                      </div>
-                    );
-                  })}
+              <div className="grid grid-cols-2 gap-1 pt-1">
+                <div>
+                  <div className="text-[9px] font-black text-slate-700 mb-1 tracking-tight">EMA ABOVE</div>
+                  <div className="grid grid-cols-2 gap-0.5">
+                    {MULTI_TF_CONDITIONS.map(({ key, label }) => {
+                      const met = strategy.buyConditions[key];
+                      return (
+                        <div
+                          key={key}
+                          className={`flex flex-col items-center justify-center py-1.5 rounded-lg ${
+                            met
+                              ? 'bg-emerald-500 text-white shadow-sm'
+                              : 'bg-slate-100 text-slate-500'
+                          }`}
+                        >
+                          {met ? (
+                            <Check className="w-3 h-3 text-white mb-0.5" />
+                          ) : (
+                            <X className="w-3 h-3 text-slate-400 mb-0.5" />
+                          )}
+                          <span className="text-[8px] font-bold">{label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-[9px] font-black text-slate-700 mb-1 tracking-tight">BBW</div>
+                  <div className="grid grid-cols-2 gap-0.5">
+                    {BBW_CONDITIONS.map(({ key, label }) => {
+                      const met = strategy.buyConditions[key];
+                      return (
+                        <div
+                          key={key}
+                          className={`flex flex-col items-center justify-center py-1.5 rounded-lg ${
+                            met
+                              ? 'bg-emerald-500 text-white shadow-sm'
+                              : 'bg-slate-100 text-slate-500'
+                          }`}
+                        >
+                          {met ? (
+                            <Check className="w-3 h-3 text-white mb-0.5" />
+                          ) : (
+                            <X className="w-3 h-3 text-slate-400 mb-0.5" />
+                          )}
+                          <span className="text-[8px] font-bold">{label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
