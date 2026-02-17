@@ -93,7 +93,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           <div className="space-y-1">
             <div className="bg-slate-50 rounded p-1 border border-slate-200">
               <div className="text-[7px] font-medium text-slate-500 mb-0.5 uppercase">Total Asset</div>
-              <div className="text-base font-semibold text-slate-900 mb-0.5">
+              <div className="text-lg font-bold text-slate-900 mb-0.5">
                 {formatCurrency(data.currentAsset)}
               </div>
               <div className="space-y-0.5 pt-0.5 border-t border-slate-300">
@@ -136,7 +136,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               </div>
               <div className="flex justify-between items-baseline">
                 <span className="text-[7px] text-blue-700 font-medium">Unrealized P&L</span>
-                <span className={`text-[10px] font-extrabold font-mono ${
+                <span className={`text-base font-black font-mono ${
                   (data.holding.currentProfit ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {typeof data.holding.currentProfit === 'number'
@@ -430,13 +430,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           {data.metrics.portfolioReturnWithCommission !== undefined && (
             <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded p-1 mb-1 border border-slate-200">
               <div className="text-[7px] font-medium text-slate-500 mb-0.5 uppercase">Net Profit</div>
-              <div className={`text-xl font-bold ${
+              <div className={`text-2xl font-black ${
                 data.metrics.portfolioReturnWithCommission >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 {formatPercent(data.metrics.portfolioReturnWithCommission)}
               </div>
               {data.metrics.totalPnl !== undefined && (
-                <div className={`text-[8px] font-semibold ${
+                <div className={`text-[9px] font-bold ${
                   data.metrics.totalPnl >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {data.metrics.totalPnl >= 0 ? '+' : ''}{data.metrics.totalPnl.toFixed(2)} USDC
@@ -448,7 +448,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           <div className="space-y-0.5 mb-1 pb-1 border-b border-slate-200">
             <div className="flex items-baseline justify-between">
               <span className="text-[7px] font-medium text-slate-500">Portfolio</span>
-              <span className={`text-[9px] font-bold ${
+              <span className={`text-xs font-extrabold ${
                 data.metrics.portfolioReturn >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 {formatPercent(data.metrics.portfolioReturn)}
@@ -456,7 +456,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-[7px] font-medium text-slate-500">Market</span>
-              <span className={`text-[9px] font-bold ${
+              <span className={`text-xs font-extrabold ${
                 data.metrics.marketReturn >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 {formatPercent(data.metrics.marketReturn)}
@@ -464,7 +464,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-[7px] font-medium text-slate-500">Avg Trade</span>
-              <span className={`text-[9px] font-bold ${
+              <span className={`text-xs font-extrabold ${
                 data.metrics.avgTradeReturn >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 {formatPercent(data.metrics.avgTradeReturn)}
@@ -475,18 +475,18 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           <div className="grid grid-cols-2 gap-1 mb-1">
             <div className="bg-green-50 rounded p-1 border border-green-200">
               <div className="text-[6px] font-medium text-green-700 mb-0.5 uppercase">Wins</div>
-              <div className="text-lg font-bold text-green-700">{data.metrics.takeProfitCount}</div>
+              <div className="text-xl font-black text-green-700">{data.metrics.takeProfitCount}</div>
             </div>
             <div className="bg-red-50 rounded p-1 border border-red-200">
               <div className="text-[6px] font-medium text-red-700 mb-0.5 uppercase">Losses</div>
-              <div className="text-lg font-bold text-red-700">{data.metrics.stopLossCount}</div>
+              <div className="text-xl font-black text-red-700">{data.metrics.stopLossCount}</div>
             </div>
           </div>
 
           {data.metrics.totalTrades !== undefined && (
             <div className="flex items-baseline justify-between mb-1 pb-1 border-b border-slate-200">
               <span className="text-[7px] font-medium text-slate-500">Total Trades</span>
-              <span className="text-xs font-bold text-slate-700">{data.metrics.totalTrades}</span>
+              <span className="text-sm font-extrabold text-slate-700">{data.metrics.totalTrades}</span>
             </div>
           )}
 
@@ -499,7 +499,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   style={{ width: `${winRate}%` }}
                 />
               </div>
-              <span className="text-[9px] font-bold text-slate-700 min-w-[35px]">
+              <span className="text-xs font-extrabold text-slate-700 min-w-[35px]">
                 {winRate.toFixed(1)}%
               </span>
             </div>
