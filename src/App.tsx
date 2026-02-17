@@ -1032,7 +1032,7 @@ function App() {
         </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
-          <div className="flex flex-col gap-2 order-2 lg:order-1" style={{ height: '595px' }}>
+          <div className="flex flex-col gap-2 order-2 lg:order-1" style={{ height: '640px' }}>
             <MetricsPanel
               key={`left-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
               data={data}
@@ -1046,7 +1046,7 @@ function App() {
               onTimeframeChange={handleTimeframeRequest}
             />
           </div>
-          <div className="order-3 lg:order-3" style={{ width: '280px', height: '595px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="order-3 lg:order-3" style={{ width: '280px', height: '640px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <div style={{ flex: '0 0 auto', width: '100%' }}>
               <MetricsPanel
                 key={`right-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
