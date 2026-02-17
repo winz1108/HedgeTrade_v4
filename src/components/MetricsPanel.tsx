@@ -214,20 +214,21 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                         ${strategy.sellConditions.smart_trail['15m_ema8'].toFixed(2)}
                       </span>
                     </div>
-                    <div className={`flex items-center justify-between text-[9px] pt-1 mt-0.5 border-t rounded px-1.5 py-1 ${
+                  </div>
+
+                  <div className={`flex items-center justify-between text-[9px] rounded px-2 py-1 border mb-1 ${
+                    strategy.sellConditions.smart_trail['15m_above']
+                      ? 'bg-blue-50 border-blue-300'
+                      : 'bg-red-50 border-red-300'
+                  }`}>
+                    <span className="text-slate-700 font-bold">Status</span>
+                    <span className={`font-bold ${
                       strategy.sellConditions.smart_trail['15m_above']
-                        ? 'bg-blue-50 border-blue-300'
-                        : 'bg-red-50 border-red-300'
+                        ? 'text-blue-600'
+                        : 'text-red-600'
                     }`}>
-                      <span className="text-slate-700 font-bold">Status</span>
-                      <span className={`font-bold ${
-                        strategy.sellConditions.smart_trail['15m_above']
-                          ? 'text-blue-600'
-                          : 'text-red-600'
-                      }`}>
-                        {strategy.sellConditions.smart_trail['15m_above'] ? 'ABOVE' : 'REVERSED'}
-                      </span>
-                    </div>
+                      {strategy.sellConditions.smart_trail['15m_above'] ? 'ABOVE' : 'REVERSED'}
+                    </span>
                   </div>
 
                   {strategy.sellConditions.smart_trail.entry_price > 0 && (
