@@ -1052,7 +1052,7 @@ function App() {
               data={data}
               position="right"
             />
-            <div className="h-[180px]">
+            <div className="h-[280px]">
               <MetricsPanel
                 key={`trades-${data.trades?.length}-${data.currentTime}`}
                 data={data}
