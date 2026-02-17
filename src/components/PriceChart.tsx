@@ -151,8 +151,18 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
       timestamp: new Date(c.timestamp).toLocaleTimeString(),
       adx: c.adx
     }));
-    if (adxSample.some(s => s.adx !== undefined)) {
-      console.log('[ADX Data Debug] Recent candles with ADX:', adxSample);
+    const hasADX = adxSample.some(s => s.adx !== undefined);
+    if (hasADX) {
+      console.log('[ADX Data] ✅ Recent candles with ADX:', adxSample);
+    } else {
+      console.log('[ADX Data] ❌ No ADX data in recent candles. Sample:', adxSample);
+      console.log('[ADX Data] Full candle sample:', visibleCandles.slice(-1).map(c => ({
+        timestamp: new Date(c.timestamp).toLocaleString(),
+        close: c.close,
+        adx: c.adx,
+        rsi: c.rsi,
+        macd: c.macd
+      })));
     }
 
     const prices = visibleCandles.flatMap(c => {
@@ -772,11 +782,11 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
           <div className="hidden sm:flex items-center gap-2 text-[10px] bg-stone-100/70 px-2 py-1 rounded">
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-amber-600 rounded"></div>
-              <span className="text-stone-600">{timeframe === '1h' ? 'EMA 3' : 'EMA 5'}</span>
+              <span className="text-stone-600">{(timeframe === '1h' || timeframe === '15m') ? 'EMA 3' : 'EMA 5'}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-cyan-600 rounded"></div>
-              <span className="text-stone-600">{timeframe === '1h' ? 'EMA 8' : 'EMA 13'}</span>
+              <span className="text-stone-600">{(timeframe === '1h' || timeframe === '15m') ? 'EMA 8' : 'EMA 13'}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-violet-600 border-t border-dashed border-violet-600"></div>
@@ -972,13 +982,13 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
               const bbMiddlePoints: string[] = [];
               const bbLowerPoints: string[] = [];
 
-              const is1h = timeframe === '1h';
+              const useShortEMA = timeframe === '1h' || timeframe === '15m';
 
               visibleCandles.forEach((candle, idx) => {
                 const x = idx * (candleWidth + candleGap) + candleWidth / 2;
 
-                const emaShort = is1h ? candle.ema3 : candle.ema5;
-                const emaLong = is1h ? candle.ema8 : candle.ema13;
+                const emaShort = useShortEMA ? candle.ema3 : candle.ema5;
+                const emaLong = useShortEMA ? candle.ema8 : candle.ema13;
 
                 if (emaShort !== undefined) {
                   const y = priceToY(emaShort);

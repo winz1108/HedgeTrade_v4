@@ -390,6 +390,8 @@ function App() {
             // 지표 실시간 업데이트
             if (newCandle.ema5 !== undefined) lastCandle.ema5 = newCandle.ema5;
             if (newCandle.ema13 !== undefined) lastCandle.ema13 = newCandle.ema13;
+            if (newCandle.ema3 !== undefined) lastCandle.ema3 = newCandle.ema3;
+            if (newCandle.ema8 !== undefined) lastCandle.ema8 = newCandle.ema8;
             if (newCandle.bbUpper !== undefined) lastCandle.bbUpper = newCandle.bbUpper;
             if (newCandle.bbMiddle !== undefined) lastCandle.bbMiddle = newCandle.bbMiddle;
             if (newCandle.bbLower !== undefined) lastCandle.bbLower = newCandle.bbLower;
@@ -398,6 +400,7 @@ function App() {
             if (newCandle.signal !== undefined) lastCandle.signal = newCandle.signal;
             if (newCandle.histogram !== undefined) lastCandle.histogram = newCandle.histogram;
             if (newCandle.rsi !== undefined) lastCandle.rsi = newCandle.rsi;
+            if (newCandle.adx !== undefined) lastCandle.adx = newCandle.adx;
           }
         } else if (newCandle.timestamp > lastCandle.timestamp) {
           const interval = TIMEFRAME_INTERVALS[update.timeframe];
@@ -416,6 +419,8 @@ function App() {
 
           newCandle.ema5 = lastCompleted.ema5;
           newCandle.ema13 = lastCompleted.ema13;
+          newCandle.ema3 = lastCompleted.ema3;
+          newCandle.ema8 = lastCompleted.ema8;
           newCandle.bbUpper = lastCompleted.bbUpper;
           newCandle.bbMiddle = lastCompleted.bbMiddle;
           newCandle.bbLower = lastCompleted.bbLower;
@@ -424,6 +429,7 @@ function App() {
           newCandle.signal = lastCompleted.signal;
           newCandle.histogram = lastCompleted.histogram;
           newCandle.rsi = lastCompleted.rsi;
+          newCandle.adx = lastCompleted.adx;
 
           candles.push(newCandle);
 
