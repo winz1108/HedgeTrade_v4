@@ -204,13 +204,13 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                   <div className="bg-white/70 rounded p-1.5 mb-1 space-y-1 border border-slate-200/50">
                     <div className="flex items-center justify-between text-[9px]">
                       <span className="text-slate-600 font-medium">EMA3</span>
-                      <span className="font-mono font-bold text-slate-800">
+                      <span className=" font-bold text-slate-800">
                         ${strategy.sellConditions.smart_trail['15m_ema3'].toFixed(2)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[9px]">
                       <span className="text-slate-600 font-medium">EMA8</span>
-                      <span className="font-mono font-bold text-slate-800">
+                      <span className=" font-bold text-slate-800">
                         ${strategy.sellConditions.smart_trail['15m_ema8'].toFixed(2)}
                       </span>
                     </div>
@@ -235,14 +235,14 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     <div className="bg-slate-50/80 rounded p-1.5 space-y-0.5 text-[8px] border border-slate-200">
                       <div className="flex justify-between">
                         <span className="text-slate-600 font-medium">Entry</span>
-                        <span className="font-mono font-bold text-slate-800">
+                        <span className=" font-bold text-slate-800">
                           ${strategy.sellConditions.smart_trail.entry_price.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-600 font-medium">Peak</span>
                         <div className="flex items-center gap-1">
-                          <span className="font-mono font-bold text-slate-800">
+                          <span className=" font-bold text-slate-800">
                             ${strategy.sellConditions.smart_trail.peak_price.toFixed(2)}
                           </span>
                           <span className="font-bold text-emerald-600">
@@ -288,16 +288,16 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
       .slice(0, 40);
 
     return (
-      <div className="bg-white/95 border border-amber-200 rounded-lg shadow-sm p-2 h-full flex flex-col">
+      <div className="bg-white/95 border border-amber-200 rounded-lg shadow-sm p-2 flex flex-col" style={{ height: '100%' }}>
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-[11px] font-bold text-slate-800">Recent Trades</h3>
           <div className="flex items-center gap-1">
-            <span className="text-[9px] text-slate-500 font-mono">7d</span>
+            <span className="text-[9px] text-slate-500">7d</span>
             <History className="w-2.5 h-2.5 text-amber-600" />
           </div>
         </div>
 
-        <div className="space-y-0.5 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-transparent">
+        <div className="space-y-0.5 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-transparent" style={{ minHeight: 0 }}>
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, index) => (
               <div key={`${trade.timestamp}-${index}`}>
