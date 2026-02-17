@@ -25,11 +25,6 @@ const SLOPE_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
   { key: '1h_slope_up',  label: '1h' },
 ];
 
-const BBW_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
-  { key: '5m_bbw',  label: '5m' },
-  { key: '15m_bbw', label: '15m' },
-];
-
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
   const diffMs = currentTime - entryTime;
   const minutes = Math.floor(diffMs / 60000);
@@ -149,114 +144,96 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
         </div>
 
-        <div className="bg-white/95 border border-emerald-200 rounded-lg shadow-sm p-2">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-[11px] font-bold text-slate-800">Buy Signals</h3>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">
-              {conditionsMet}/{conditionsTotal}
-            </span>
+        <div className="bg-white/95 border-2 border-emerald-300 rounded-xl shadow-md p-2.5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[12px] font-black text-slate-900 tracking-tight">Entry Signals</h3>
+            <div className="flex items-center gap-1">
+              <span className={`text-[11px] font-black px-2 py-1 rounded-lg ${
+                conditionsMet === conditionsTotal
+                  ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-sm'
+                  : 'bg-slate-200 text-slate-700'
+              }`}>
+                {conditionsMet}/{conditionsTotal}
+              </span>
+            </div>
           </div>
 
           {strategy ? (
             <div className="space-y-1">
-              <div className="space-y-0.5">
-                {MAIN_CONDITIONS.map(({ key, label }) => {
-                  const met = strategy.buyConditions[key];
-                  return (
-                    <div
-                      key={key}
-                      className={`flex items-center justify-between px-1.5 py-1 rounded border ${
-                        met
-                          ? 'bg-emerald-50 border-emerald-300'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <span className="text-[10px] font-medium text-slate-700">{label}</span>
-                      {met ? (
-                        <Check className="w-3 h-3 text-emerald-600" />
-                      ) : (
-                        <X className="w-3 h-3 text-slate-400" />
-                      )}
-                    </div>
-                  );
-                })}
-
-                <div className="pt-0.5">
-                  <div className="text-[9px] font-bold text-slate-600 mb-0.5">EMA Above</div>
-                  <div className="grid grid-cols-4 gap-0.5">
-                    {MULTI_TF_CONDITIONS.map(({ key, label }) => {
-                      const met = strategy.buyConditions[key];
-                      return (
-                        <div
-                          key={key}
-                          className={`flex flex-col items-center justify-center px-1 py-1 rounded border ${
-                            met
-                              ? 'bg-emerald-50 border-emerald-300'
-                              : 'bg-slate-50 border-slate-200'
-                          }`}
-                        >
-                          {met ? (
-                            <Check className="w-2.5 h-2.5 text-emerald-600" />
-                          ) : (
-                            <X className="w-2.5 h-2.5 text-slate-400" />
-                          )}
-                          <span className="text-[8px] font-medium text-slate-700 mt-0.5">{label}</span>
-                        </div>
-                      );
-                    })}
+              {MAIN_CONDITIONS.map(({ key, label }) => {
+                const met = strategy.buyConditions[key];
+                return (
+                  <div
+                    key={key}
+                    className={`flex items-center justify-between px-2 py-1 rounded-lg ${
+                      met
+                        ? 'bg-emerald-500 text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold">{label}</span>
+                    {met ? (
+                      <div className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    ) : (
+                      <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center">
+                        <X className="w-2.5 h-2.5 text-slate-400" />
+                      </div>
+                    )}
                   </div>
+                );
+              })}
+
+              <div className="pt-1">
+                <div className="text-[9px] font-black text-slate-700 mb-1 tracking-tight">EMA ABOVE</div>
+                <div className="grid grid-cols-4 gap-0.5">
+                  {MULTI_TF_CONDITIONS.map(({ key, label }) => {
+                    const met = strategy.buyConditions[key];
+                    return (
+                      <div
+                        key={key}
+                        className={`flex flex-col items-center justify-center py-1.5 rounded-lg ${
+                          met
+                            ? 'bg-emerald-500 text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-500'
+                        }`}
+                      >
+                        {met ? (
+                          <Check className="w-3 h-3 text-white mb-0.5" />
+                        ) : (
+                          <X className="w-3 h-3 text-slate-400 mb-0.5" />
+                        )}
+                        <span className="text-[8px] font-bold">{label}</span>
+                      </div>
+                    );
+                  })}
                 </div>
+              </div>
 
-                <div className="pt-0.5">
-                  <div className="text-[9px] font-bold text-slate-600 mb-0.5">Slope Up</div>
-                  <div className="grid grid-cols-2 gap-0.5">
-                    {SLOPE_CONDITIONS.map(({ key, label }) => {
-                      const met = strategy.buyConditions[key];
-                      return (
-                        <div
-                          key={key}
-                          className={`flex items-center justify-center gap-1 px-1 py-1 rounded border ${
-                            met
-                              ? 'bg-emerald-50 border-emerald-300'
-                              : 'bg-slate-50 border-slate-200'
-                          }`}
-                        >
-                          {met ? (
-                            <Check className="w-2.5 h-2.5 text-emerald-600" />
-                          ) : (
-                            <X className="w-2.5 h-2.5 text-slate-400" />
-                          )}
-                          <span className="text-[9px] font-medium text-slate-700">{label}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="pt-0.5">
-                  <div className="text-[9px] font-bold text-slate-600 mb-0.5">BBW</div>
-                  <div className="grid grid-cols-2 gap-0.5">
-                    {BBW_CONDITIONS.map(({ key, label }) => {
-                      const met = strategy.buyConditions[key];
-                      return (
-                        <div
-                          key={key}
-                          className={`flex items-center justify-center gap-1 px-1 py-1 rounded border ${
-                            met
-                              ? 'bg-emerald-50 border-emerald-300'
-                              : 'bg-slate-50 border-slate-200'
-                          }`}
-                        >
-                          {met ? (
-                            <Check className="w-2.5 h-2.5 text-emerald-600" />
-                          ) : (
-                            <X className="w-2.5 h-2.5 text-slate-400" />
-                          )}
-                          <span className="text-[9px] font-medium text-slate-700">{label}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+              <div className="pt-1">
+                <div className="text-[9px] font-black text-slate-700 mb-1 tracking-tight">SLOPE UP</div>
+                <div className="grid grid-cols-2 gap-0.5">
+                  {SLOPE_CONDITIONS.map(({ key, label }) => {
+                    const met = strategy.buyConditions[key];
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center justify-center gap-1 py-1.5 rounded-lg ${
+                          met
+                            ? 'bg-emerald-500 text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-500'
+                        }`}
+                      >
+                        {met ? (
+                          <Check className="w-3 h-3 text-white" />
+                        ) : (
+                          <X className="w-3 h-3 text-slate-400" />
+                        )}
+                        <span className="text-[9px] font-bold">{label}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -267,131 +244,127 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           )}
         </div>
 
-        <div className="bg-white/95 border border-rose-200 rounded-lg shadow-sm p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-slate-800">Exit Conditions</h3>
+        <div className="bg-white/95 border-2 border-orange-300 rounded-xl shadow-md p-2.5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[12px] font-black text-slate-900 tracking-tight">Exit Signals</h3>
             {strategy?.sellConditions?.any_sell && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-red-600 text-white shadow-sm animate-pulse">
+              <span className="text-[10px] font-black px-2 py-1 rounded-lg bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-md animate-pulse">
                 EXIT
               </span>
             )}
           </div>
 
           {strategy?.sellConditions ? (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {strategy.sellConditions.smart_trail && (
-                <div className={`px-2 py-2 rounded-lg border-2 transition-all ${
+                <div className={`rounded-lg transition-all ${
                   strategy.sellConditions.smart_trail.met
-                    ? 'bg-gradient-to-br from-rose-50 to-red-50 border-rose-400 shadow-sm'
+                    ? 'bg-orange-600 text-white shadow-md'
                     : strategy.sellConditions.smart_trail.active
-                    ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-300'
-                    : 'bg-slate-50 border-slate-200'
-                }`} style={{ opacity: strategy.sellConditions.smart_trail.active ? 1 : 0.4 }}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[11px] font-black text-slate-800">15m EMA Reversal</span>
-                      {strategy.sellConditions.smart_trail.active && (
-                        <span className="text-[7px] font-bold px-1 py-0.5 rounded bg-blue-500 text-white">ACTIVE</span>
+                    ? 'bg-slate-700 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-500'
+                }`} style={{ opacity: strategy.sellConditions.smart_trail.active ? 1 : 0.5 }}>
+                  <div className="px-2 py-1.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-black tracking-tight">15m EMA Rev</span>
+                        {strategy.sellConditions.smart_trail.active && (
+                          <span className="text-[7px] font-bold px-1 py-0.5 rounded-full bg-white/20">ACTIVE</span>
+                        )}
+                      </div>
+                      {strategy.sellConditions.smart_trail.met ? (
+                        <div className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center">
+                          <Check className="w-2.5 h-2.5" />
+                        </div>
+                      ) : (
+                        <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center">
+                          <X className="w-2.5 h-2.5 text-slate-400" />
+                        </div>
                       )}
                     </div>
-                    {strategy.sellConditions.smart_trail.met ? (
-                      <div className="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center">
-                        <Check className="w-3 h-3 text-white" />
-                      </div>
-                    ) : (
-                      <X className="w-4 h-4 text-slate-400" />
-                    )}
-                  </div>
 
-                  <div className="bg-white/60 rounded-lg p-1.5 mb-1">
-                    <div className="grid grid-cols-2 gap-1 text-[9px]">
-                      <div className="bg-amber-50 rounded p-1 border border-amber-200">
-                        <div className="text-[8px] text-amber-700 font-medium mb-0.5">EMA3</div>
-                        <div className="font-mono font-bold text-amber-900">
+                    <div className="grid grid-cols-2 gap-1 mb-1.5">
+                      <div className="bg-white/20 rounded-lg p-1.5 backdrop-blur-sm">
+                        <div className="text-[7px] font-bold mb-0.5 opacity-80">EMA3</div>
+                        <div className="font-mono font-black text-[9px]">
                           ${strategy.sellConditions.smart_trail['15m_ema3'].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                       </div>
-                      <div className="bg-cyan-50 rounded p-1 border border-cyan-200">
-                        <div className="text-[8px] text-cyan-700 font-medium mb-0.5">EMA8</div>
-                        <div className="font-mono font-bold text-cyan-900">
+                      <div className="bg-white/20 rounded-lg p-1.5 backdrop-blur-sm">
+                        <div className="text-[7px] font-bold mb-0.5 opacity-80">EMA8</div>
+                        <div className="font-mono font-black text-[9px]">
                           ${strategy.sellConditions.smart_trail['15m_ema8'].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className={`rounded-lg p-1.5 mb-1 border-2 ${
-                    strategy.sellConditions.smart_trail['15m_above']
-                      ? 'bg-emerald-50 border-emerald-300'
-                      : 'bg-rose-50 border-rose-400'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-bold text-slate-700">Status</span>
-                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
-                        strategy.sellConditions.smart_trail['15m_above']
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-rose-600 text-white'
-                      }`}>
-                        {strategy.sellConditions.smart_trail['15m_above'] ? '✓ ABOVE' : '⚠ REVERSED'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {strategy.sellConditions.smart_trail.entry_price > 0 && (
-                    <div className="bg-blue-50/50 rounded-lg p-1.5 space-y-0.5 text-[9px] border border-blue-200">
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 font-medium">Entry</span>
-                        <span className="font-mono font-bold text-slate-800">
-                          ${strategy.sellConditions.smart_trail.entry_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <div className={`rounded-lg px-2 py-1 mb-1 ${
+                      strategy.sellConditions.smart_trail['15m_above']
+                        ? 'bg-white/20'
+                        : 'bg-red-700/30'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[8px] font-bold">Status</span>
+                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${
+                          strategy.sellConditions.smart_trail['15m_above']
+                            ? 'bg-white/30'
+                            : 'bg-red-700/50'
+                        }`}>
+                          {strategy.sellConditions.smart_trail['15m_above'] ? 'ABOVE' : 'REV'}
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 font-medium">Peak</span>
-                        <div className="flex items-center gap-1">
-                          <span className="font-mono font-bold text-slate-800">
-                            ${strategy.sellConditions.smart_trail.peak_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                          <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-emerald-500 text-white">
-                            +{((strategy.sellConditions.smart_trail.peak_price / strategy.sellConditions.smart_trail.entry_price - 1) * 100).toFixed(2)}%
+                    </div>
+
+                    {strategy.sellConditions.smart_trail.entry_price > 0 && (
+                      <div className="bg-white/15 rounded-lg p-1.5 space-y-0.5">
+                        <div className="flex justify-between text-[8px]">
+                          <span className="font-medium opacity-80">Entry</span>
+                          <span className="font-mono font-bold">
+                            ${strategy.sellConditions.smart_trail.entry_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </div>
+                        <div className="flex justify-between text-[8px]">
+                          <span className="font-medium opacity-80">Peak</span>
+                          <div className="flex items-center gap-1">
+                            <span className="font-mono font-bold">
+                              ${strategy.sellConditions.smart_trail.peak_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                            <span className="text-[7px] font-black px-1 py-0.5 rounded-full bg-white/30">
+                              +{((strategy.sellConditions.smart_trail.peak_price / strategy.sellConditions.smart_trail.entry_price - 1) * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-between pt-0.5 border-t border-blue-200">
-                        <span className="text-slate-600 font-medium">Min Profit</span>
-                        <span className="font-bold text-blue-700">≥{strategy.sellConditions.smart_trail.min_profit}%</span>
-                      </div>
-                    </div>
-                  )}
+                    )}
 
-                  <div className="mt-1 pt-1 border-t border-slate-200">
-                    <div className="flex items-center justify-between text-[8px]">
-                      <span className="text-slate-500 font-medium">
-                        {{'U':'📈 Uptrend','S':'📊 Sideways','D':'📉 Downtrend'}[strategy.sellConditions.smart_trail.regime] || strategy.sellConditions.smart_trail.regime}
-                      </span>
-                      <span className={`font-bold px-1.5 py-0.5 rounded ${
-                        strategy.sellConditions.smart_trail.score >= 70 ? 'bg-emerald-100 text-emerald-700' :
-                        strategy.sellConditions.smart_trail.score >= 40 ? 'bg-amber-100 text-amber-700' :
-                        'bg-rose-100 text-rose-700'
-                      }`}>
-                        Score: {strategy.sellConditions.smart_trail.score}/100
-                      </span>
+                    <div className="mt-1.5 pt-1 border-t border-white/20">
+                      <div className="flex items-center justify-between text-[7px]">
+                        <span className="font-medium opacity-80">
+                          {{'U':'📈 Up','S':'📊 Side','D':'📉 Down'}[strategy.sellConditions.smart_trail.regime] || strategy.sellConditions.smart_trail.regime}
+                        </span>
+                        <span className="font-black px-1.5 py-0.5 rounded-full bg-white/25">
+                          {strategy.sellConditions.smart_trail.score}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg border-2 transition-all ${
+              <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg ${
                 strategy.sellConditions.dead_cross.met
-                  ? 'bg-gradient-to-br from-rose-50 to-red-50 border-rose-400 shadow-sm'
-                  : 'bg-slate-50 border-slate-200'
+                  ? 'bg-orange-600 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-600'
               }`}>
-                <span className="text-[10px] font-bold text-slate-800">1h Dead Cross</span>
+                <span className="text-[10px] font-bold">1h Dead Cross</span>
                 {strategy.sellConditions.dead_cross.met ? (
-                  <div className="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-white" />
+                  <div className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-white" />
                   </div>
                 ) : (
-                  <X className="w-4 h-4 text-slate-400" />
+                  <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center">
+                    <X className="w-2.5 h-2.5 text-slate-400" />
+                  </div>
                 )}
               </div>
             </div>
