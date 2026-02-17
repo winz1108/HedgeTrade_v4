@@ -31,7 +31,7 @@ export interface TradeEvent {
   profit?: number;
   pairId?: string;
   quantity?: number;
-  exitReason?: 'TP' | 'SL';
+  exitReason?: string;
   pnl?: number;
   buyCost?: number;
   sellRevenue?: number;
@@ -103,6 +103,22 @@ export interface SellConditions {
   dead_cross: {
     met: boolean;
     label: string;
+    ema5?: number;
+    ema13?: number;
+    above?: boolean;
+  };
+  smart_trail?: {
+    met: boolean;
+    active: boolean;
+    label: string;
+    regime: string;
+    score: number;
+    entry_price: number;
+    peak_price: number;
+    '15m_ema3': number;
+    '15m_ema8': number;
+    '15m_above': boolean;
+    min_profit: number;
   };
   early_exit: {
     met: boolean;
@@ -112,6 +128,7 @@ export interface SellConditions {
     conditions_total: number;
   };
   any_sell: boolean;
+  in_position?: boolean;
 }
 
 export interface StrategyTimeframe {
@@ -140,6 +157,19 @@ export interface StrategyStatus {
     '15m'?: StrategyTimeframe;
     '30m'?: StrategyTimeframe;
     '1h'?: StrategyTimeframe;
+    '1d'?: StrategyTimeframe;
+    in_position?: boolean;
+    smart_trail?: {
+      regime: string;
+      score: number;
+      entry_price: number;
+      peak_price: number;
+      '15m_ema3': number;
+      '15m_ema8': number;
+      '15m_above': boolean;
+      exit_type: string;
+      min_profit: number;
+    };
   };
 }
 

@@ -41,6 +41,26 @@ const formatHoldingDuration = (entryTime: number, currentTime: number): string =
   return `${minutes}m`;
 };
 
+const getExitReasonLabel = (reason?: string): string => {
+  if (!reason) return 'TP';
+  if (reason === 'TP') return 'TP';
+  if (reason === 'SL') return 'SL';
+  if (reason.startsWith('15M_REVERSAL')) return '15m Rev';
+  if (reason === 'DEAD_CROSS_1h') return '1h DC';
+  if (reason.startsWith('SMART_SCORE')) return 'Smart';
+  if (reason.startsWith('SMART_FLOOR')) return 'Smart';
+  return reason.length > 8 ? reason.substring(0, 8) : reason;
+};
+
+const getExitReasonColor = (reason?: string): { bg: string; text: string; border: string } => {
+  if (!reason) return { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-300' };
+  if (reason === 'TP') return { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-300' };
+  if (reason.startsWith('15M_REVERSAL')) return { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-300' };
+  if (reason === 'DEAD_CROSS_1h') return { bg: 'bg-rose-50', text: 'text-rose-500', border: 'border-rose-300' };
+  if (reason.startsWith('SMART_')) return { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-300' };
+  return { bg: 'bg-rose-50', text: 'text-rose-500', border: 'border-rose-300' };
+};
+
 export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -259,12 +279,82 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
 
           {strategy?.sellConditions ? (
             <div className="space-y-1">
+              {strategy.sellConditions.smart_trail && (
+                <div className={`px-1.5 py-1.5 rounded border ${
+                  strategy.sellConditions.smart_trail.met
+                    ? 'bg-cyan-50 border-cyan-300'
+                    : strategy.sellConditions.smart_trail.active
+                    ? 'bg-blue-50 border-blue-200'
+                    : 'bg-slate-50 border-slate-200'
+                }`} style={{ opacity: strategy.sellConditions.smart_trail.active ? 1 : 0.5 }}>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[10px] font-bold text-slate-800">15m EMA Reversal</span>
+                    {strategy.sellConditions.smart_trail.met ? (
+                      <Check className="w-3 h-3 text-cyan-600" />
+                    ) : (
+                      <X className="w-3 h-3 text-slate-400" />
+                    )}
+                  </div>
+                  <div className="text-[9px] text-slate-600 space-y-0.5">
+                    <div className="flex justify-between">
+                      <span>EMA3:</span>
+                      <span className="font-mono font-medium">
+                        ${strategy.sellConditions.smart_trail['15m_ema3'].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>EMA8:</span>
+                      <span className="font-mono font-medium">
+                        ${strategy.sellConditions.smart_trail['15m_ema8'].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Status:</span>
+                      <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${
+                        strategy.sellConditions.smart_trail['15m_above']
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-rose-100 text-rose-700'
+                      }`}>
+                        {strategy.sellConditions.smart_trail['15m_above'] ? '✓ Above' : '🔴 Reversed'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Min Profit:</span>
+                      <span className="font-medium">≥{strategy.sellConditions.smart_trail.min_profit}%</span>
+                    </div>
+                    {strategy.sellConditions.smart_trail.entry_price > 0 && (
+                      <>
+                        <div className="flex justify-between pt-0.5 border-t border-blue-200">
+                          <span>Entry:</span>
+                          <span className="font-mono font-medium">
+                            ${strategy.sellConditions.smart_trail.entry_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Peak:</span>
+                          <span className="font-mono font-medium">
+                            ${strategy.sellConditions.smart_trail.peak_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {' '}
+                            <span className="text-emerald-600">
+                              (+{((strategy.sellConditions.smart_trail.peak_price / strategy.sellConditions.smart_trail.entry_price - 1) * 100).toFixed(2)}%)
+                            </span>
+                          </span>
+                        </div>
+                      </>
+                    )}
+                    <div className="text-[8px] text-slate-500 pt-0.5 border-t border-blue-200">
+                      Regime: {{'U':'📈 Uptrend','S':'📊 Sideways','D':'📉 Downtrend'}[strategy.sellConditions.smart_trail.regime] || strategy.sellConditions.smart_trail.regime} | Score: {strategy.sellConditions.smart_trail.score}/100
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className={`flex items-center justify-between px-1.5 py-1 rounded border ${
                 strategy.sellConditions.dead_cross.met
                   ? 'bg-blue-50 border-blue-300'
                   : 'bg-slate-50 border-slate-200'
               }`}>
-                <span className="text-[10px] font-medium text-slate-700">Dead Cross</span>
+                <span className="text-[10px] font-medium text-slate-700">1h Dead Cross</span>
                 {strategy.sellConditions.dead_cross.met ? (
                   <Check className="w-3 h-3 text-blue-600" />
                 ) : (
@@ -314,22 +404,16 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                     </div>
                   </div>
                 ) : (
-                  <div className={`${
-                    trade.exitReason === 'TP'
-                      ? 'bg-emerald-50 border-emerald-300'
-                      : 'bg-rose-50 border-rose-300'
-                  } border rounded p-1`}>
+                  <div className={`${getExitReasonColor(trade.exitReason).bg} ${getExitReasonColor(trade.exitReason).border} border rounded p-1`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
-                        <span className={`text-[10px] font-bold ${
-                          trade.exitReason === 'TP' ? 'text-emerald-600' : 'text-rose-500'
-                        }`}>SELL</span>
+                        <span className={`text-[10px] font-bold ${getExitReasonColor(trade.exitReason).text}`}>SELL</span>
                         {trade.exitReason && (
                           <span className={`text-[8px] px-1 py-0.5 rounded font-bold ${
-                            trade.exitReason === 'TP'
+                            trade.profit !== undefined && trade.profit >= 0
                               ? 'bg-emerald-500 text-white'
                               : 'bg-rose-500 text-white'
-                          }`}>{trade.exitReason}</span>
+                          }`} title={trade.exitReason}>{getExitReasonLabel(trade.exitReason)}</span>
                         )}
                       </div>
                       <div className="flex flex-col items-end">
