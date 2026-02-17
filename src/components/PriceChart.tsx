@@ -1920,12 +1920,12 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             )}
           </div>
 
-          {/* RSI Chart Background */}
+          {/* ADX Chart Background */}
           <div
             className="absolute left-0 rounded pointer-events-none"
             style={{
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
-              height: `${rsiChartHeight}px`,
+              height: `${adxChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: -1,
               backgroundColor: 'rgba(254, 243, 242, 0.25)',
