@@ -78,6 +78,8 @@ const convertApiResponseToDashboardData = (
         volume: c.volume,
         ema5: c.ema5,
         ema13: c.ema13,
+        ema3: c.ema3,
+        ema8: c.ema8,
         bb_upper: c.bb_upper,
         bb_lower: c.bb_lower,
         bbUpper: c.bbUpper || c.bb_upper,
@@ -88,6 +90,7 @@ const convertApiResponseToDashboardData = (
         signal: c.signal || c.macd_signal,
         histogram: c.histogram || c.macd_histogram,
         rsi: c.rsi,
+        adx: c.adx,
         isComplete: c.isComplete !== undefined ? c.isComplete : true,
       }));
     };
@@ -175,6 +178,8 @@ const convertApiResponseToDashboardData = (
       volume: c.volume,
       ema5: c.ema5,
       ema13: c.ema13,
+      ema3: c.ema3,
+      ema8: c.ema8,
       bb_upper: c.bb_upper,
       bb_lower: c.bb_lower,
       bbUpper: c.bbUpper,
@@ -185,6 +190,7 @@ const convertApiResponseToDashboardData = (
       signal: c.signal,
       histogram: c.histogram,
       rsi: c.rsi,
+      adx: c.adx,
       isComplete: c.isComplete !== undefined ? c.isComplete : true,
     }));
   };
@@ -313,6 +319,8 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
       volume: c.volume,
       ema5: c.ema5,
       ema13: c.ema13,
+      ema3: c.ema3,
+      ema8: c.ema8,
       bb_upper: c.bb_upper,
       bb_lower: c.bb_lower,
       bbUpper: c.bbUpper || c.bb_upper,
@@ -323,6 +331,7 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
       signal: c.signal || c.macd_signal,
       histogram: c.histogram || c.macd_histogram,
       rsi: c.rsi,
+      adx: c.adx,
       isComplete: c.isComplete !== undefined ? c.isComplete : true,
     })) || [];
 

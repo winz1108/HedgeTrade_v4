@@ -298,6 +298,8 @@ function App() {
       isComplete: candleData.isFinal,
       ema5: candleData.ema5,
       ema13: candleData.ema13,
+      ema3: candleData.ema3,
+      ema8: candleData.ema8,
       bbUpper: candleData.bbUpper,
       bbMiddle: candleData.bbMiddle,
       bbLower: candleData.bbLower,
@@ -306,6 +308,7 @@ function App() {
       signal: candleData.macdSignal,
       histogram: candleData.macdHistogram,
       rsi: candleData.rsi,
+      adx: candleData.adx,
     });
 
     const unsubscribePriceUpdate = websocketService.onPriceUpdate((priceData) => {

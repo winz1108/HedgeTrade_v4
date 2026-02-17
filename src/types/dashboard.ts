@@ -9,6 +9,8 @@ export interface Candle {
   isPrediction?: boolean;
   ema5?: number;
   ema13?: number;
+  ema3?: number;
+  ema8?: number;
   bb_upper?: number;
   bb_lower?: number;
   bbUpper?: number;
@@ -19,6 +21,7 @@ export interface Candle {
   signal?: number;
   histogram?: number;
   rsi?: number;
+  adx?: number;
 }
 
 export interface TradeEvent {

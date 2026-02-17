@@ -13,6 +13,7 @@ export interface CandleData {
   timestamp: string;
   is_complete?: boolean;
   rsi?: number;
+  adx?: number;
   macd?: number;
   macdSignal?: number;
   macdHistogram?: number;
@@ -22,6 +23,8 @@ export interface CandleData {
   bbWidth?: number;
   ema5?: number;
   ema13?: number;
+  ema3?: number;
+  ema8?: number;
 }
 
 export interface RealtimeCandleUpdate extends CandleData {}

@@ -109,9 +109,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
       : 590;
 
   const macdChartHeight = Math.floor(baseHeight * 0.16);
-  const rsiChartHeight = Math.floor(baseHeight * 0.16);
+  const adxChartHeight = Math.floor(baseHeight * 0.16);
   const volumeChartHeight = volumeHeight;
-  const fixedHeight = macdChartHeight + rsiChartHeight + 32;
+  const fixedHeight = macdChartHeight + adxChartHeight + 32;
   const priceChartHeight = Math.floor(baseHeight - fixedHeight - volumeChartHeight);
   const chartHeight = baseHeight;
 
@@ -332,21 +332,21 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
     };
   }, [visibleCandles]);
 
-  const rsiData = useMemo(() => {
+  const adxData = useMemo(() => {
     return { min: 0, max: 100 };
   }, []);
 
   const macdPadding = 12;
-  const rsiPadding = 16;
+  const adxPadding = 16;
 
   const macdToY = (value: number) => {
     const plotHeight = macdChartHeight - (macdPadding * 2);
     return macdPadding + ((macdData.max - value) / (macdData.max - macdData.min)) * plotHeight;
   };
 
-  const rsiToY = (value: number) => {
-    const plotHeight = rsiChartHeight - (rsiPadding * 2);
-    return rsiPadding + ((rsiData.max - value) / (rsiData.max - rsiData.min)) * plotHeight;
+  const adxToY = (value: number) => {
+    const plotHeight = adxChartHeight - (adxPadding * 2);
+    return adxPadding + ((adxData.max - value) / (adxData.max - adxData.min)) * plotHeight;
   };
 
   const handleZoomIn = () => {
@@ -763,11 +763,11 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
           <div className="hidden sm:flex items-center gap-2 text-[10px] bg-stone-100/70 px-2 py-1 rounded">
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-amber-600 rounded"></div>
-              <span className="text-stone-600">EMA 5</span>
+              <span className="text-stone-600">{timeframe === '1h' ? 'EMA 3' : 'EMA 5'}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-cyan-600 rounded"></div>
-              <span className="text-stone-600">EMA 13</span>
+              <span className="text-stone-600">{timeframe === '1h' ? 'EMA 8' : 'EMA 13'}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-violet-600 border-t border-dashed border-violet-600"></div>
@@ -957,23 +957,28 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             )}
 
             {(() => {
-              const ema5Points: string[] = [];
-              const ema13Points: string[] = [];
+              const emaShortPoints: string[] = [];
+              const emaLongPoints: string[] = [];
               const bbUpperPoints: string[] = [];
               const bbMiddlePoints: string[] = [];
               const bbLowerPoints: string[] = [];
 
+              const is1h = timeframe === '1h';
+
               visibleCandles.forEach((candle, idx) => {
                 const x = idx * (candleWidth + candleGap) + candleWidth / 2;
 
-                if (candle.ema5 !== undefined) {
-                  const y = priceToY(candle.ema5);
-                  ema5Points.push(`${x},${y}`);
+                const emaShort = is1h ? candle.ema3 : candle.ema5;
+                const emaLong = is1h ? candle.ema8 : candle.ema13;
+
+                if (emaShort !== undefined) {
+                  const y = priceToY(emaShort);
+                  emaShortPoints.push(`${x},${y}`);
                 }
 
-                if (candle.ema13 !== undefined) {
-                  const y = priceToY(candle.ema13);
-                  ema13Points.push(`${x},${y}`);
+                if (emaLong !== undefined) {
+                  const y = priceToY(emaLong);
+                  emaLongPoints.push(`${x},${y}`);
                 }
 
                 const bbUpper = candle.bbUpper ?? candle.bb_upper;
@@ -1026,9 +1031,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                     </>
                   )}
 
-                  {ema5Points.length > 1 && (
+                  {emaShortPoints.length > 1 && (
                     <polyline
-                      points={ema5Points.join(' ')}
+                      points={emaShortPoints.join(' ')}
                       fill="none"
                       stroke="#fbbf24"
                       strokeWidth="1.5"
@@ -1036,9 +1041,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                     />
                   )}
 
-                  {ema13Points.length > 1 && (
+                  {emaLongPoints.length > 1 && (
                     <polyline
-                      points={ema13Points.join(' ')}
+                      points={emaLongPoints.join(' ')}
                       fill="none"
                       stroke="#06b6d4"
                       strokeWidth="1.5"
@@ -1942,7 +1947,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             className="absolute left-0"
             style={{
               top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
-              height: `${rsiChartHeight}px`,
+              height: `${adxChartHeight}px`,
               width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
               zIndex: 1,
             }}
@@ -1950,9 +1955,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
               {(() => {
                 const svgWidth = containerWidth || 1200;
-                return [100, 70, 50, 30, 0].map((value) => {
-                  const y = rsiToY(value);
-                  const isThreshold = value === 30 || value === 70;
+                return [100, 50, 25, 15, 0].map((value) => {
+                  const y = adxToY(value);
+                  const isThreshold = value === 25 || value === 15;
                   const isMid = value === 50;
                   return (
                     <line
@@ -1970,22 +1975,22 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
               })()}
 
               {(() => {
-                const rsiPoints: string[] = [];
+                const adxPoints: string[] = [];
 
                 visibleCandles.forEach((candle, idx) => {
-                  if (candle.rsi === undefined) return;
+                  if (candle.adx === undefined) return;
                   const x = idx * (candleWidth + candleGap) + candleWidth / 2;
-                  const y = rsiToY(candle.rsi);
-                  rsiPoints.push(`${x},${y}`);
+                  const y = adxToY(candle.adx);
+                  adxPoints.push(`${x},${y}`);
                 });
 
                 return (
                   <>
-                    {rsiPoints.length > 1 && (
+                    {adxPoints.length > 1 && (
                       <polyline
-                        points={rsiPoints.join(' ')}
+                        points={adxPoints.join(' ')}
                         fill="none"
-                        stroke="#c084fc"
+                        stroke="#8b5cf6"
                         strokeWidth="1.5"
                         opacity="0.95"
                       />
@@ -1996,14 +2001,14 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             </svg>
             {hoveredCandleIndex !== null && (
               <div className="absolute left-2 top-2 text-xs bg-white/90 px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="text-stone-600 font-medium">RSI</span>
-                {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].rsi !== undefined && (
+                <span className="text-stone-600 font-medium">ADX</span>
+                {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].adx !== undefined && (
                   <span className={`font-semibold ${
-                    visibleCandles[hoveredCandleIndex].rsi! >= 70 ? 'text-rose-600' :
-                    visibleCandles[hoveredCandleIndex].rsi! <= 30 ? 'text-emerald-600' :
-                    'text-purple-600'
+                    visibleCandles[hoveredCandleIndex].adx! >= 25 ? 'text-emerald-600' :
+                    visibleCandles[hoveredCandleIndex].adx! >= 15 ? 'text-amber-600' :
+                    'text-rose-600'
                   }`}>
-                    {visibleCandles[hoveredCandleIndex].rsi!.toFixed(1)}
+                    {visibleCandles[hoveredCandleIndex].adx!.toFixed(1)}
                   </span>
                 )}
               </div>
@@ -2102,10 +2107,10 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
           })}
         </div>
 
-        {/* RSI Y-Axis */}
-        <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`, height: `${rsiChartHeight}px`, width: '100%' }}>
-          {[70, 30].map((value) => {
-            const y = rsiToY(value);
+        {/* ADX Y-Axis */}
+        <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`, height: `${adxChartHeight}px`, width: '100%' }}>
+          {[25, 15].map((value) => {
+            const y = adxToY(value);
             return (
               <div
                 key={value}
