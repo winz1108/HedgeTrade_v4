@@ -1,5 +1,5 @@
 import { TrendingDown, DollarSign, Activity, History, Target, Check, X } from 'lucide-react';
-import { DashboardData, BuyConditions, EarlyExitConditions } from '../types/dashboard';
+import { DashboardData, BuyConditions } from '../types/dashboard';
 import { formatLocalDateTime } from '../utils/time';
 
 interface MetricsPanelProps {
@@ -28,13 +28,6 @@ const SLOPE_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
 const BBW_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
   { key: '5m_bbw',  label: '5m' },
   { key: '15m_bbw', label: '15m' },
-];
-
-const EARLY_EXIT_ORDER: { key: keyof EarlyExitConditions; label: string }[] = [
-  { key: '30m_golden_maintained', label: '30m GC' },
-  { key: '30m_ema5_falling', label: 'EMA5↓' },
-  { key: '30m_ema13_falling', label: 'EMA13↓' },
-  { key: '1d_downtrend', label: '1d↓' },
 ];
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
@@ -277,37 +270,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 ) : (
                   <X className="w-3 h-3 text-slate-400" />
                 )}
-              </div>
-
-              <div className="pt-0.5">
-                <div className="flex items-center justify-between mb-0.5">
-                  <div className="text-[9px] font-bold text-slate-600">Early Exit</div>
-                  <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-blue-500 text-white">
-                    {strategy.sellConditions.early_exit.conditions_met}/4
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-0.5">
-                  {EARLY_EXIT_ORDER.map(({ key, label }) => {
-                    const met = strategy.sellConditions.early_exit.conditions[key];
-                    return (
-                      <div
-                        key={key}
-                        className={`flex items-center justify-center gap-1 px-1 py-1 rounded border ${
-                          met
-                            ? 'bg-blue-50 border-blue-300'
-                            : 'bg-slate-50 border-slate-200'
-                        }`}
-                      >
-                        {met ? (
-                          <Check className="w-2.5 h-2.5 text-blue-600" />
-                        ) : (
-                          <X className="w-2.5 h-2.5 text-slate-400" />
-                        )}
-                        <span className="text-[9px] font-medium text-slate-700">{label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
             </div>
           ) : (
