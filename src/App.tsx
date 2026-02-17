@@ -807,23 +807,15 @@ function App() {
     });
 
     const unsubscribeTradeEvent = websocketService.onTradeEvent((update) => {
-      console.log('[Trade Event] 매매 이벤트 수신:', JSON.stringify(update, null, 2));
-
       setData((prevData) => {
         if (!prevData) return prevData;
-        if (update.accountId !== selectedAccount) {
-          console.log('[Trade Event] 계정 불일치 - 무시:', update.accountId, 'vs', selectedAccount);
-          return prevData;
-        }
+        if (update.accountId !== selectedAccount) return prevData;
 
         let updatedTrades = prevData.trades;
 
         if (update.trades) {
-          console.log('[Trade Event] 전체 trades 배열 수신:', update.trades.length, '개');
           updatedTrades = update.trades;
         } else if (update.trade) {
-          console.log('[Trade Event] 단일 trade 수신:', update.trade.type, '@', update.trade.price);
-
           const newTrade: TradeEvent = {
             timestamp: update.trade.timestamp,
             type: update.trade.type,
@@ -850,22 +842,15 @@ function App() {
           );
 
           if (existingIndex === -1) {
-            console.log('[Trade Event] 새 거래 추가:', newTrade.type, '@', newTrade.price);
             updatedTrades = [...updatedTrades, newTrade].sort((a, b) => a.timestamp - b.timestamp);
           } else {
-            console.log('[Trade Event] 기존 거래 업데이트:', newTrade.type, '@', newTrade.price);
             const newTrades = [...updatedTrades];
             newTrades[existingIndex] = newTrade;
             updatedTrades = newTrades;
           }
-        } else {
-          console.log('[Trade Event] trade 또는 trades 필드 없음');
         }
 
         const updatedHolding = update.holding || prevData.holding;
-        console.log('[Trade Event] holding 업데이트:', updatedHolding.isHolding ? '보유중' : '미보유');
-
-        console.log('[Trade Event] 상태 업데이트 - trades:', updatedTrades.length, '개, holding:', updatedHolding.isHolding);
 
         return {
           ...prevData,
