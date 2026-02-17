@@ -285,19 +285,19 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     const recentTrades = [...data.trades]
       .filter(trade => trade.timestamp >= oneWeekAgo)
       .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 40);
+      .slice(0, 4);
 
     return (
-      <div className="bg-white/95 border border-amber-200 rounded-lg shadow-sm p-2">
+      <div className="bg-white/95 border border-amber-200 rounded-lg shadow-sm p-2 h-full flex flex-col">
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-[11px] font-bold text-slate-800">Recent Trades</h3>
           <div className="flex items-center gap-1">
-            <span className="text-[9px] text-slate-500 font-mono">7d</span>
+            <span className="text-[9px] text-slate-500 font-mono">Latest 4</span>
             <History className="w-2.5 h-2.5 text-amber-600" />
           </div>
         </div>
 
-        <div className="space-y-0.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-transparent" style={{ maxHeight: '140px' }}>
+        <div className="space-y-0.5 flex-1">
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, index) => (
               <div key={`${trade.timestamp}-${index}`}>
