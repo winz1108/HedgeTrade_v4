@@ -1032,7 +1032,7 @@ function App() {
         </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
-          <div className="flex flex-col gap-2 order-2 lg:order-1">
+          <div className="flex flex-col gap-2 order-2 lg:order-1" style={{ height: '590px' }}>
             <MetricsPanel
               key={`left-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
               data={data}
@@ -1046,13 +1046,13 @@ function App() {
               onTimeframeChange={handleTimeframeRequest}
             />
           </div>
-          <div className="flex flex-col gap-2 order-3 lg:order-3">
+          <div className="flex flex-col gap-2 order-3 lg:order-3" style={{ height: '590px' }}>
             <MetricsPanel
               key={`right-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
               data={data}
               position="right"
             />
-            <div className="h-[170px]">
+            <div className="flex-1 min-h-0">
               <MetricsPanel
                 key={`trades-${data.trades?.length}-${data.currentTime}`}
                 data={data}
