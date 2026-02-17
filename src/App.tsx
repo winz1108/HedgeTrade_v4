@@ -962,38 +962,33 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="container mx-auto px-3 py-2">
-        <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <h1 className="text-base font-semibold text-white">HedgeTrade</h1>
-            {data.version && (
-              <span className="text-[9px] text-emerald-500 font-mono">{data.version}</span>
-            )}
-            {data.holding.isHolding && (
-              <div className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 flex items-center gap-1">
-                <div className="w-1 h-1 rounded-full bg-blue-400 animate-pulse"></div>
-                <span className="text-[9px] font-semibold text-blue-400 uppercase tracking-wide">
-                  POSITION
-                </span>
-              </div>
-            )}
-            <div className="flex items-center gap-1.5">
-              <div className={`h-1.5 w-1.5 rounded-full ${websocketService.isConnected() ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-              <span className="text-[10px] text-slate-400">
-                {websocketService.isConnected() ? 'Live' : 'Connecting'}
-              </span>
-              {data.currentTime && (
-                <span className="text-[9px] text-slate-500 font-mono ml-2">
-                  {formatLocalTime(data.currentTime)}
-                </span>
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
+
+      <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
+        <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
+                HedgeTrade Dashboard
+              </h1>
+              {data.version && (
+                <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
+              )}
+              {data.holding.isHolding && (
+                <div className="relative px-4 py-2 bg-blue-100/80 backdrop-blur-sm rounded-lg border border-blue-400/40 shadow-lg overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-200/20 via-transparent to-blue-200/20"></div>
+                  <div className="relative flex items-center gap-2.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                    <span className="text-xs font-bold text-blue-700 tracking-wider uppercase">
+                      IN POSITION
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
-          </div>
 
-          <div className="flex items-center gap-2">
             {data.availableAccounts && data.availableAccounts.length > 1 && (
-              <div className="flex gap-1">
+              <div className="flex gap-2 px-2">
                 {[...data.availableAccounts]
                   .sort((a, b) => {
                     if (a.id === 'Account_A') return -1;
@@ -1004,10 +999,10 @@ function App() {
                     <button
                       key={account.id}
                       onClick={() => setSelectedAccount(account.id)}
-                      className={`px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                      className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                         selectedAccount === account.id
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                          ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md'
+                          : 'bg-stone-200/60 text-stone-600 hover:bg-stone-300/60 hover:text-stone-800'
                       }`}
                     >
                       {account.name}
@@ -1015,35 +1010,43 @@ function App() {
                   ))}
               </div>
             )}
-            <button
-              onClick={() => {
-                const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
-                window.open(`${apiUrl}/api/debug/strategy`, '_blank');
-              }}
-              className="p-1 text-slate-500 hover:text-slate-300 transition-colors"
-              title="Debug"
-            >
-              <Bug className="w-3 h-3" />
-            </button>
+
+            <div className="flex items-center gap-3 ml-auto">
+              {data.currentTime && (
+                <span className="text-xs text-stone-600 font-mono">
+                  {formatLocalTime(data.currentTime)}
+                </span>
+              )}
+              <button
+                onClick={() => {
+                  const apiUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+                  window.open(`${apiUrl}/api/debug/strategy`, '_blank');
+                }}
+                className="p-1.5 rounded transition-all duration-200 text-amber-400 hover:bg-amber-500/10"
+                title="전략 디버그"
+              >
+                <Bug className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-2">
-          <div className="col-span-2">
+        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
+          <div className="flex flex-col gap-2 order-2 lg:order-1">
             <MetricsPanel
               key={`left-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
               data={data}
               position="left"
             />
           </div>
-          <div className="col-span-7">
+          <div className="min-w-0 order-1 lg:order-2">
             <PriceChart
               data={data}
               onTradeHover={setHoveredTrade}
               onTimeframeChange={handleTimeframeRequest}
             />
           </div>
-          <div className="col-span-3">
+          <div className="flex flex-col gap-2 order-3 lg:order-3">
             <MetricsPanel
               key={`right-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
               data={data}
