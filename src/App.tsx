@@ -925,13 +925,13 @@ function App() {
           </div>
 
           <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
-            <div className="flex flex-col gap-2 order-2 lg:order-1">
+            <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1">
               <MetricsSkeleton />
             </div>
-            <div className="min-w-0 order-1 lg:order-2">
+            <div className="w-full min-w-0 order-1 lg:order-2">
               <ChartSkeleton />
             </div>
-            <div className="flex flex-col gap-2 order-3 lg:order-3">
+            <div className="w-full lg:w-auto flex flex-col gap-2 order-3 lg:order-3">
               <MetricsSkeleton />
             </div>
           </div>
@@ -1032,29 +1032,29 @@ function App() {
         </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
-          <div className="flex flex-col gap-2 order-2 lg:order-1" style={{ height: '640px' }}>
+          <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1 lg:h-[640px]">
             <MetricsPanel
               key={`left-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
               data={data}
               position="left"
             />
           </div>
-          <div className="min-w-0 order-1 lg:order-2">
+          <div className="w-full min-w-0 order-1 lg:order-2">
             <PriceChart
               data={data}
               onTradeHover={setHoveredTrade}
               onTimeframeChange={handleTimeframeRequest}
             />
           </div>
-          <div className="order-3 lg:order-3" style={{ width: '280px', height: '640px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{ flex: '0 0 auto', width: '100%' }}>
+          <div className="w-full lg:w-[280px] order-3 lg:order-3 lg:h-[640px] flex flex-col gap-2">
+            <div className="w-full flex-shrink-0">
               <MetricsPanel
                 key={`right-${data.currentPrediction?.predictionCalculatedAt}-${data.currentTime}`}
                 data={data}
                 position="right"
               />
             </div>
-            <div style={{ flex: '1 1 auto', minHeight: '0', width: '100%' }}>
+            <div className="w-full flex-1 lg:min-h-0">
               <MetricsPanel
                 key={`trades-${data.trades?.length}-${data.currentTime}`}
                 data={data}
