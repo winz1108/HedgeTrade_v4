@@ -912,7 +912,7 @@ function App() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
-        <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
+        <div className="w-full lg:max-w-[98vw] mx-auto p-2 lg:p-4">
           <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
@@ -964,7 +964,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
 
-      <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
+      <div className="w-full lg:max-w-[98vw] mx-auto p-2 lg:p-4">
         <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
