@@ -36,7 +36,6 @@ const getExitReasonLabel = (reason?: string): string => {
   if (reason.startsWith('15M_S')) return '15m S';
   if (reason.startsWith('15M_D')) return '15m D';
   if (reason.startsWith('15M_REVERSAL')) return '15m Rev';
-  if (reason === 'DEAD_CROSS_1h') return '1h DC';
   if (reason.startsWith('SMART_SCORE')) return 'Smart';
   if (reason.startsWith('SMART_FLOOR')) return 'Smart';
   return reason.length > 8 ? reason.substring(0, 8) : reason;
@@ -48,7 +47,6 @@ const getExitReasonColor = (reason?: string): { bg: string; text: string; border
   if (reason.startsWith('15M_S')) return { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-300' };
   if (reason.startsWith('15M_D')) return { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-300' };
   if (reason.startsWith('15M_REVERSAL')) return { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-300' };
-  if (reason === 'DEAD_CROSS_1h') return { bg: 'bg-rose-50', text: 'text-rose-500', border: 'border-rose-300' };
   if (reason.startsWith('SMART_')) return { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-300' };
   return { bg: 'bg-rose-50', text: 'text-rose-500', border: 'border-rose-300' };
 };
@@ -267,20 +265,22 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                         </span>
                       </div>
 
-                      <div className={`flex items-center justify-between text-[9px] rounded px-2 py-1 border ${
-                        strategy.sellConditions.smart_trail.regime === 'S'
-                          ? 'bg-amber-50 border-amber-300'
-                          : 'bg-rose-50 border-rose-300'
-                      }`}>
-                        <span className="text-slate-700 font-bold">Min Profit</span>
-                        <span className={`font-bold ${
+                      {strategy.sellConditions.smart_trail.regime !== 'D' && (
+                        <div className={`flex items-center justify-between text-[9px] rounded px-2 py-1 border ${
                           strategy.sellConditions.smart_trail.regime === 'S'
-                            ? 'text-amber-700'
-                            : 'text-rose-700'
+                            ? 'bg-amber-50 border-amber-300'
+                            : 'bg-rose-50 border-rose-300'
                         }`}>
-                          ≥{strategy.sellConditions.smart_trail.min_profit}%
-                        </span>
-                      </div>
+                          <span className="text-slate-700 font-bold">Min Profit</span>
+                          <span className={`font-bold ${
+                            strategy.sellConditions.smart_trail.regime === 'S'
+                              ? 'text-amber-700'
+                              : 'text-rose-700'
+                          }`}>
+                            ≥{strategy.sellConditions.smart_trail.min_profit}%
+                          </span>
+                        </div>
+                      )}
                     </>
                   )}
 
@@ -303,25 +303,10 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                           </span>
                         </div>
                       </div>
-                      <div className="flex justify-between pt-0.5 border-t border-slate-200">
-                        <span className="text-slate-600 font-medium">Min Profit</span>
-                        <span className="font-bold text-slate-800">≥{strategy.sellConditions.smart_trail.min_profit}%</span>
-                      </div>
                     </div>
                   )}
                 </div>
               )}
-
-              <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg border transition-all ${
-                strategy.sellConditions.dead_cross.met
-                  ? 'bg-red-50 border-red-300'
-                  : 'bg-slate-50 border-slate-200'
-              }`}>
-                <span className="text-[10px] font-bold text-slate-800">1h Dead Cross</span>
-                <div className={`w-1.5 h-1.5 rounded-full ${
-                  strategy.sellConditions.dead_cross.met ? 'bg-red-500' : 'bg-slate-300'
-                }`} />
-              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center h-12 text-slate-500 text-[10px]">
