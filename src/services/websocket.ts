@@ -333,6 +333,13 @@ class WebSocketService {
       this.eventStats.trade_event.count++;
       this.eventStats.trade_event.lastTime = Date.now();
 
+      console.log('[WebSocket] 🔔 trade_event 수신:', {
+        accountId: data.accountId,
+        trade: data.trade,
+        tradesArray: data.trades?.length,
+        holding: data.holding,
+      });
+
       this.tradeEventCallbacks.forEach(cb => cb(data));
     });
 

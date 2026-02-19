@@ -807,15 +807,28 @@ function App() {
     });
 
     const unsubscribeTradeEvent = websocketService.onTradeEvent((update) => {
+      console.log('[App] 🔔 trade_event 처리 시작:', {
+        accountId: update.accountId,
+        selectedAccount,
+        trade: update.trade,
+        tradesArray: update.trades?.length,
+        currentTradesLength: data?.trades?.length,
+      });
+
       setData((prevData) => {
         if (!prevData) return prevData;
-        if (update.accountId !== selectedAccount) return prevData;
+        if (update.accountId !== selectedAccount) {
+          console.log('[App] ❌ trade_event 무시: 계정 불일치');
+          return prevData;
+        }
 
         let updatedTrades = prevData.trades;
 
         if (update.trades) {
+          console.log('[App] ✅ trades 배열 전체 업데이트:', update.trades.length);
           updatedTrades = update.trades;
         } else if (update.trade) {
+          console.log('[App] ✅ 개별 trade 추가:', update.trade);
           const newTrade: TradeEvent = {
             timestamp: update.trade.timestamp,
             type: update.trade.type,
@@ -851,6 +864,12 @@ function App() {
         }
 
         const updatedHolding = update.holding || prevData.holding;
+
+        console.log('[App] ✅ trade_event 처리 완료:', {
+          이전Trades: prevData.trades.length,
+          새Trades: updatedTrades.length,
+          변경여부: prevData.trades !== updatedTrades,
+        });
 
         return {
           ...prevData,
