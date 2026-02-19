@@ -1,6 +1,7 @@
 import { DollarSign, Activity, History, Target } from 'lucide-react';
 import { DashboardData, BuyConditions } from '../types/dashboard';
 import { formatLocalDateTime } from '../utils/time';
+import { useRef, useEffect } from 'react';
 
 interface MetricsPanelProps {
   data: DashboardData;
@@ -325,6 +326,28 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 40);
 
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const scrollPositionRef = useRef<number>(0);
+
+    useEffect(() => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const handleScroll = () => {
+        scrollPositionRef.current = container.scrollTop;
+      };
+
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    useEffect(() => {
+      const container = scrollContainerRef.current;
+      if (container && scrollPositionRef.current > 0) {
+        container.scrollTop = scrollPositionRef.current;
+      }
+    });
+
     return (
       <div className="bg-white/95 border border-amber-200 rounded-lg shadow-sm p-2 flex flex-col" style={{ height: '100%' }}>
         <div className="flex items-center justify-between mb-1">
@@ -335,7 +358,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           </div>
         </div>
 
-        <div className="space-y-0.5 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-transparent" style={{ minHeight: 0 }}>
+        <div
+          ref={scrollContainerRef}
+          className="space-y-0.5 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-transparent"
+          style={{ minHeight: 0 }}
+        >
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, index) => (
               <div key={`${trade.timestamp}-${index}`}>
