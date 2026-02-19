@@ -903,7 +903,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
         <div className="absolute inset-0 overflow-visible">
           {/* OHLC Display */}
           {hoveredCandle && (
-            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-white/98 px-3 py-2 rounded-lg border border-stone-200 shadow">
+            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-white px-3 py-2 rounded-lg border border-stone-300 shadow-lg">
               <div className="flex items-center gap-3">
                 <span className="text-stone-700 font-mono font-medium">{formatChartTime(hoveredCandle.timestamp)}</span>
                 <span className="text-stone-600 font-medium">O <span className="text-stone-900 font-bold">{hoveredCandle.open.toFixed(2)}</span></span>
@@ -1471,7 +1471,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             )}
 
             {data.holding.isHolding && data.holding.buyPrice && (
-              <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 15 }}>
+              <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
                 {/* 매수 가격선 */}
                 <line
                   x1="0"
@@ -1492,9 +1492,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                   y2={priceToY(data.holding.buyPrice * 1.002)}
                   stroke="#10b981"
                   strokeWidth="1.5"
-                  strokeDasharray="8 4"
-                  opacity="0.6"
-                  filter="drop-shadow(0 0 2px rgba(16, 185, 129, 0.4))"
+                  strokeDasharray="4 2"
+                  opacity="0.75"
+                  filter="drop-shadow(0 0 3px rgba(16, 185, 129, 0.5))"
                 />
               </svg>
             )}
