@@ -1472,6 +1472,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
 
             {data.holding.isHolding && data.holding.buyPrice && (
               <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 15 }}>
+                {/* 매수 가격선 */}
                 <line
                   x1="0"
                   y1={priceToY(data.holding.buyPrice)}
@@ -1482,6 +1483,18 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                   strokeDasharray="4 2"
                   opacity="0.75"
                   filter="drop-shadow(0 0 3px rgba(59, 130, 246, 0.5))"
+                />
+                {/* 본전선 (0.2% 상승 지점) */}
+                <line
+                  x1="0"
+                  y1={priceToY(data.holding.buyPrice * 1.002)}
+                  x2="100%"
+                  y2={priceToY(data.holding.buyPrice * 1.002)}
+                  stroke="#10b981"
+                  strokeWidth="1.5"
+                  strokeDasharray="8 4"
+                  opacity="0.6"
+                  filter="drop-shadow(0 0 2px rgba(16, 185, 129, 0.4))"
                 />
               </svg>
             )}
