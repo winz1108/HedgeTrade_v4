@@ -341,3 +341,112 @@ export interface DashboardData {
   availableAccounts?: Array<{ id: string; name: string }>;
   _updateTimestamp?: number;
 }
+
+export interface KrakenStrategyA {
+  name: string;
+  in_position: boolean;
+  side?: 'LONG' | 'SHORT';
+  entry_price?: number;
+  current_pnl?: number;
+  mfe?: number;
+  pp_stop?: number | null;
+  pp_activated?: boolean;
+  hard_sl: number;
+  vanished?: number;
+  vanish_threshold: number;
+  total_conditions: number;
+  elapsed_min?: number;
+  timeout_min: number;
+  '1h_adx'?: number;
+  '1h_ema5_slope'?: number;
+  entry_conditions_live?: {
+    '1m_ema_above'?: boolean;
+    '5m_ema_above'?: boolean;
+    '15m_ema38_above'?: boolean;
+    '30m_slope_up'?: boolean;
+    '5m_bbw'?: boolean;
+    '15m_bbw'?: boolean;
+    '30m_gap'?: boolean;
+    '30m_adx'?: boolean;
+    '1h_adx'?: boolean;
+  };
+}
+
+export interface KrakenSellConditions {
+  hard_sl: {
+    label: string;
+    active: boolean;
+    threshold: number;
+  };
+  pp: {
+    label: string;
+    active: boolean;
+    mfe?: number;
+    stop_level?: number | null;
+    '1h_slope'?: number;
+  };
+  vanish: {
+    label: string;
+    current: number;
+    threshold: number;
+    met: boolean;
+  };
+  timeout: {
+    label: string;
+    elapsed: number;
+    remaining: number;
+    met: boolean;
+  };
+}
+
+export interface KrakenPosition {
+  in_position: boolean;
+  position_side?: 'LONG' | 'SHORT';
+  entry_price?: number;
+  entry_quantity?: number;
+  entry_time?: string;
+  currentPrice?: number;
+  unrealizedPnlPct?: number;
+  mode: string;
+  symbol: string;
+  exchange: string;
+}
+
+export interface KrakenBalance {
+  available: number;
+  portfolioValue: number;
+  currency: string;
+}
+
+export interface KrakenFeeRate {
+  maker: number;
+  taker: number;
+  roundTrip: number;
+  description: string;
+  breakevenLinePct: number;
+}
+
+export interface KrakenDashboardData {
+  exchange: string;
+  accountId: string;
+  accountName: string;
+  mode: string;
+  symbol: string;
+  version: string;
+  currentPrice: number;
+  currentTime?: number;
+  balance: KrakenBalance;
+  position: KrakenPosition;
+  strategyA: KrakenStrategyA;
+  sellConditions: KrakenSellConditions;
+  recentTrades: TradeEvent[];
+  feeRate: KrakenFeeRate;
+  systemStatus: string;
+  priceHistory1m?: Candle[];
+  priceHistory5m?: Candle[];
+  priceHistory15m?: Candle[];
+  priceHistory30m?: Candle[];
+  priceHistory1h?: Candle[];
+  priceHistory4h?: Candle[];
+  priceHistory1d?: Candle[];
+}

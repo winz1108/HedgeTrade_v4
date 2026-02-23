@@ -1,4 +1,4 @@
-import { DashboardData, ApiResponse, TradeEvent, StrategyStatus } from '../types/dashboard';
+import { DashboardData, ApiResponse, TradeEvent, StrategyStatus, KrakenDashboardData, Candle } from '../types/dashboard';
 
 const getApiUrl = () => {
   return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
@@ -429,5 +429,88 @@ export const fetchStrategyStatus = async (): Promise<StrategyStatus | null> => {
     };
   } catch {
     return null;
+  }
+};
+
+export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/kraken/dashboard?_=${Date.now()}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Kraken API unavailable: ${response.status} ${response.statusText}`);
+    }
+
+    const data: KrakenDashboardData = await response.json();
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchKrakenChartData = async (timeframe: string, limit: number = 500) => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch chart data: ${response.status} ${response.statusText}`);
+    }
+
+    const chartResponse = await response.json();
+
+    if (!chartResponse.success) {
+      throw new Error(chartResponse.error || 'Failed to load chart data');
+    }
+
+    const mapCandles = (candles: any[]): Candle[] => candles?.map(c => ({
+      timestamp: c.timestamp,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+      ema5: c.ema5,
+      ema13: c.ema13,
+      ema3: c.ema3,
+      ema8: c.ema8,
+      bb_upper: c.bb_upper,
+      bb_lower: c.bb_lower,
+      bbUpper: c.bbUpper || c.bb_upper,
+      bbMiddle: c.bbMiddle || c.bb_middle,
+      bbLower: c.bbLower || c.bb_lower,
+      bbWidth: c.bbWidth || c.bb_width,
+      macd: c.macd,
+      signal: c.signal || c.macd_signal,
+      histogram: c.histogram || c.macd_histogram,
+      rsi: c.rsi,
+      adx: c.adx,
+      isComplete: c.isComplete !== undefined ? c.isComplete : true,
+    })) || [];
+
+    const mappedCandles = mapCandles(chartResponse.candles);
+
+    return {
+      timeframe: chartResponse.timeframe,
+      candles: mappedCandles,
+      count: chartResponse.count,
+      source: chartResponse.source,
+    };
+  } catch (error) {
+    throw error;
   }
 };
