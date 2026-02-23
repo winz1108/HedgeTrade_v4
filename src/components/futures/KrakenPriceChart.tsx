@@ -11,11 +11,20 @@ export function KrakenPriceChart({ data }: Props) {
     // 백엔드가 priceHistories 또는 개별 필드로 제공
     // 인디케이터는 이미 각 캔들에 포함되어 있음 (ema_short, ema_long, bb_upper, adx 등)
     const getCandles = (timeframe: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'): any[] => {
+      let candles: any[] = [];
+
       if (data.priceHistories && data.priceHistories[timeframe]) {
-        return data.priceHistories[timeframe];
+        candles = data.priceHistories[timeframe];
+      } else {
+        const key = `priceHistory${timeframe}` as keyof typeof data;
+        candles = (data[key] as any[]) || [];
       }
-      const key = `priceHistory${timeframe}` as keyof typeof data;
-      return (data[key] as any[]) || [];
+
+      // 백엔드는 time(초) 필드 사용, 프론트엔드는 timestamp(밀리초) 필요
+      return candles.map(c => ({
+        ...c,
+        timestamp: c.time ? c.time * 1000 : c.timestamp,
+      }));
     };
 
     const priceHistory1m = getCandles('1m');
@@ -60,11 +69,11 @@ export function KrakenPriceChart({ data }: Props) {
 
   if (!transformedData.priceHistory1m || transformedData.priceHistory1m.length === 0) {
     return (
-      <div className="w-full bg-white/95 border border-slate-200 rounded-lg shadow-sm p-8 flex items-center justify-center">
+      <div className="w-full bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-8 flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-2">📊</div>
-          <div className="text-slate-700 font-bold">No chart data available</div>
-          <div className="text-slate-500 text-sm mt-1">
+          <div className="text-slate-200 font-bold">No chart data available</div>
+          <div className="text-slate-400 text-sm mt-1">
             priceHistory1m: {transformedData.priceHistory1m?.length || 0} candles
           </div>
         </div>
