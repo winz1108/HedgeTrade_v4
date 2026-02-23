@@ -472,6 +472,19 @@ class WebSocketService {
     return () => this.connectionStatusCallbacks.delete(callback);
   }
 
+  // Generic event listener for any event
+  on(eventName: string, callback: (data: any) => void) {
+    if (this.socket) {
+      this.socket.on(eventName, callback);
+    }
+  }
+
+  off(eventName: string, callback: (data: any) => void) {
+    if (this.socket) {
+      this.socket.off(eventName, callback);
+    }
+  }
+
   isConnected(): boolean {
     return this.socket?.connected ?? false;
   }

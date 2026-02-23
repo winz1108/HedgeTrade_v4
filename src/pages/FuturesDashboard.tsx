@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { KrakenDashboardData } from '../types/dashboard';
+import { KrakenDashboardData, Candle } from '../types/dashboard';
 import { fetchKrakenDashboard, fetchKrakenChartData } from '../services/oracleApi';
 import { KrakenMetricsPanel } from '../components/futures/KrakenMetricsPanel';
 import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
 import { formatLocalTime } from '../utils/time';
+import { websocketService } from '../services/websocket';
 
 function FuturesDashboard() {
   const [data, setData] = useState<KrakenDashboardData | null>(null);
@@ -31,11 +32,81 @@ function FuturesDashboard() {
     }
   };
 
+  // Real-time price updates via WebSocket
+  const updateLiveCandle = useCallback((price: number) => {
+    if (!price) return;
+
+    setData(prevData => {
+      if (!prevData) return prevData;
+
+      const updatedData = { ...prevData, currentPrice: price };
+      const timeframes: Array<'1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'> =
+        ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
+
+      // Update live candle in priceHistories
+      if (prevData.priceHistories) {
+        const updatedHistories = { ...prevData.priceHistories };
+
+        timeframes.forEach(tf => {
+          const candles = updatedHistories[tf];
+          if (candles && candles.length > 0) {
+            const updatedCandles = [...candles];
+            const lastCandle = { ...updatedCandles[updatedCandles.length - 1] };
+
+            lastCandle.close = price;
+            lastCandle.high = Math.max(lastCandle.high, price);
+            lastCandle.low = Math.min(lastCandle.low, price);
+
+            updatedCandles[updatedCandles.length - 1] = lastCandle;
+            updatedHistories[tf] = updatedCandles;
+          }
+        });
+
+        updatedData.priceHistories = updatedHistories;
+      }
+
+      // Update individual priceHistory fields for backwards compatibility
+      timeframes.forEach(tf => {
+        const key = `priceHistory${tf}` as keyof KrakenDashboardData;
+        const candles = prevData[key] as Candle[] | undefined;
+
+        if (candles && candles.length > 0) {
+          const updatedCandles = [...candles];
+          const lastCandle = { ...updatedCandles[updatedCandles.length - 1] };
+
+          lastCandle.close = price;
+          lastCandle.high = Math.max(lastCandle.high, price);
+          lastCandle.low = Math.min(lastCandle.low, price);
+
+          updatedCandles[updatedCandles.length - 1] = lastCandle;
+          (updatedData as any)[key] = updatedCandles;
+        }
+      });
+
+      return updatedData;
+    });
+  }, []);
+
   useEffect(() => {
     loadData();
     const interval = setInterval(loadData, 10000);
-    return () => clearInterval(interval);
-  }, []);
+
+    // Connect to WebSocket for real-time price updates
+    websocketService.connect();
+
+    const handleStatusUpdate = (statusData: any) => {
+      if (statusData.current_price) {
+        updateLiveCandle(statusData.current_price);
+      }
+    };
+
+    websocketService.on('kraken_status_update', handleStatusUpdate);
+
+    return () => {
+      clearInterval(interval);
+      websocketService.off('kraken_status_update', handleStatusUpdate);
+    };
+  }, [updateLiveCandle]);
 
   useEffect(() => {
     if (data?.currentPrice) {
