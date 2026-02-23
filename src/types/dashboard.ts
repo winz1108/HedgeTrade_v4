@@ -501,4 +501,13 @@ export interface KrakenDashboardData {
   priceHistory1h?: Candle[];
   priceHistory4h?: Candle[];
   priceHistory1d?: Candle[];
+  priceHistories?: {
+    '1m': Candle[];
+    '5m': Candle[];
+    '15m': Candle[];
+    '30m': Candle[];
+    '1h': Candle[];
+    '4h': Candle[];
+    '1d': Candle[];
+  };
 }
