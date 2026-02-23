@@ -8,16 +8,30 @@ interface Props {
   position: 'left' | 'right' | 'trades';
 }
 
-const FUTURES_ENTRY_CONDITIONS: { key: string; label: string }[] = [
-  { key: '1m_golden_cross', label: '1m GC (Entry)' },
-  { key: '5m_above', label: '5m EMA(5>13)' },
-  { key: '15m_above', label: '15m EMA(3>8)' },
-  { key: '30m_slope_up', label: '30m Slope+' },
+// 롱 진입 조건 9개
+const LONG_ENTRY_CONDITIONS: { key: string; label: string }[] = [
+  { key: '1m_golden_cross', label: '1m GC' },
+  { key: '5m_above', label: '5m EMA5>13' },
+  { key: '15m_above', label: '15m EMA3>8' },
+  { key: '30m_slope_up', label: '30m Slope>0' },
   { key: '5m_bbw', label: '5m BBW>0.5%' },
   { key: '15m_bbw', label: '15m BBW>0.6%' },
   { key: '30m_gap', label: '30m Gap>0.08%' },
   { key: '30m_adx', label: '30m ADX>15' },
-  { key: '1h_adx', label: '1h ADX>20' }
+  { key: '1h_adx', label: '1h ADX>30' }
+];
+
+// 숏 진입 조건 9개 (롱의 정반대)
+const SHORT_ENTRY_CONDITIONS: { key: string; label: string }[] = [
+  { key: '1m_dead_cross', label: '1m DC' },
+  { key: '5m_below', label: '5m EMA5<13' },
+  { key: '15m_below', label: '15m EMA3<8' },
+  { key: '30m_slope_down', label: '30m Slope<0' },
+  { key: '5m_bbw', label: '5m BBW>0.5%' },
+  { key: '15m_bbw', label: '15m BBW>0.6%' },
+  { key: '30m_gap', label: '30m Gap>0.08%' },
+  { key: '30m_adx', label: '30m ADX>15' },
+  { key: '1h_adx', label: '1h ADX>30' }
 ];
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
@@ -69,9 +83,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
     const positionSide = data.position?.position_side;
     const entryPrice = data.strategyA?.entry_price;
     const currentPnl = data.strategyA?.current_pnl;
-    const entryConditions = data.strategyA?.entry_conditions_live;
-    const conditionsMet = entryConditions ? Object.values(entryConditions).filter(Boolean).length : 0;
-    const conditionsTotal = 9;
+    const entryConditionsLong = data.strategyA?.entry_conditions_long;
+    const entryConditionsShort = data.strategyA?.entry_conditions_short;
 
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {
@@ -167,40 +180,34 @@ export function KrakenMetricsPanel({ data, position }: Props) {
             <h3 className="text-[11px] font-bold text-white">Entry Conditions</h3>
           </div>
 
-          {entryConditions ? (
+          {entryConditionsLong && entryConditionsShort ? (
             <div className="space-y-2">
               {/* Long Conditions */}
-              <div className="bg-emerald-900/20 border border-emerald-700/40 rounded-lg p-1.5">
+              <div className="bg-cyan-900/20 border border-cyan-700/40 rounded-lg p-1.5">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-emerald-300">LONG</span>
-                  <span className="text-[9px] font-bold text-emerald-400">
-                    {FUTURES_ENTRY_CONDITIONS.filter(({ key }) => {
-                      const condition = entryConditions[key];
-                      const isObject = typeof condition === 'object' && condition !== null;
-                      return isObject ? (condition as any).long : false;
-                    }).length}/{FUTURES_ENTRY_CONDITIONS.length}
+                  <span className="text-[10px] font-bold text-cyan-300">LONG</span>
+                  <span className="text-[9px] font-bold text-cyan-400">
+                    {LONG_ENTRY_CONDITIONS.filter(({ key }) => entryConditionsLong[key]).length}/{LONG_ENTRY_CONDITIONS.length}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-1">
-                  {FUTURES_ENTRY_CONDITIONS.map(({ key, label }) => {
-                    const condition = entryConditions[key];
-                    const isObject = typeof condition === 'object' && condition !== null;
-                    const met = isObject ? (condition as any).long : false;
+                  {LONG_ENTRY_CONDITIONS.map(({ key, label }) => {
+                    const met = entryConditionsLong[key];
 
                     return (
                       <div
                         key={`long-${key}`}
                         className={`flex items-center gap-1 px-1 py-0.5 rounded ${
                           met
-                            ? 'bg-emerald-700/30'
+                            ? 'bg-cyan-700/30'
                             : 'bg-slate-700/30'
                         }`}
                       >
                         <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
-                          met ? 'bg-emerald-400' : 'bg-slate-600'
+                          met ? 'bg-cyan-400' : 'bg-slate-600'
                         }`} />
                         <span className={`text-[8px] font-medium leading-tight ${
-                          met ? 'text-emerald-200' : 'text-slate-500'
+                          met ? 'text-cyan-200' : 'text-slate-500'
                         }`}>
                           {label}
                         </span>
@@ -211,37 +218,31 @@ export function KrakenMetricsPanel({ data, position }: Props) {
               </div>
 
               {/* Short Conditions */}
-              <div className="bg-rose-900/20 border border-rose-700/40 rounded-lg p-1.5">
+              <div className="bg-red-900/20 border border-red-700/40 rounded-lg p-1.5">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-rose-300">SHORT</span>
-                  <span className="text-[9px] font-bold text-rose-400">
-                    {FUTURES_ENTRY_CONDITIONS.filter(({ key }) => {
-                      const condition = entryConditions[key];
-                      const isObject = typeof condition === 'object' && condition !== null;
-                      return isObject ? (condition as any).short : false;
-                    }).length}/{FUTURES_ENTRY_CONDITIONS.length}
+                  <span className="text-[10px] font-bold text-red-300">SHORT</span>
+                  <span className="text-[9px] font-bold text-red-400">
+                    {SHORT_ENTRY_CONDITIONS.filter(({ key }) => entryConditionsShort[key]).length}/{SHORT_ENTRY_CONDITIONS.length}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-1">
-                  {FUTURES_ENTRY_CONDITIONS.map(({ key, label }) => {
-                    const condition = entryConditions[key];
-                    const isObject = typeof condition === 'object' && condition !== null;
-                    const met = isObject ? (condition as any).short : false;
+                  {SHORT_ENTRY_CONDITIONS.map(({ key, label }) => {
+                    const met = entryConditionsShort[key];
 
                     return (
                       <div
                         key={`short-${key}`}
                         className={`flex items-center gap-1 px-1 py-0.5 rounded ${
                           met
-                            ? 'bg-rose-700/30'
+                            ? 'bg-red-700/30'
                             : 'bg-slate-700/30'
                         }`}
                       >
                         <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
-                          met ? 'bg-rose-400' : 'bg-slate-600'
+                          met ? 'bg-red-400' : 'bg-slate-600'
                         }`} />
                         <span className={`text-[8px] font-medium leading-tight ${
-                          met ? 'text-rose-200' : 'text-slate-500'
+                          met ? 'text-red-200' : 'text-slate-500'
                         }`}>
                           {label}
                         </span>
