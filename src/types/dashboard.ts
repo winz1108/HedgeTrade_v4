@@ -439,6 +439,43 @@ export interface KrakenMetrics {
   totalPnl?: number;
 }
 
+export interface KrakenTimeframeIndicators {
+  ema_short: number;
+  ema_long: number;
+  above: boolean;
+  golden_cross: boolean;
+  dead_cross: boolean;
+  bbw: number;
+  adx: number;
+  ema_gap_pct: number;
+  ema_slope: number;
+}
+
+export interface Kraken15mIndicators extends KrakenTimeframeIndicators {
+  ema3: number;
+  ema8: number;
+  ema3_8_above: boolean;
+}
+
+export interface Kraken4hIndicators {
+  macd_line: number;
+  macd_signal: number;
+  macd_hist: number;
+  macd_hist_prev: number;
+}
+
+export interface KrakenIndicators {
+  '1m': KrakenTimeframeIndicators;
+  '5m': KrakenTimeframeIndicators;
+  '15m': Kraken15mIndicators;
+  '30m': KrakenTimeframeIndicators;
+  '1h': KrakenTimeframeIndicators;
+  '4h': Kraken4hIndicators;
+  '1d': KrakenTimeframeIndicators;
+  market_regime: 'U' | 'S' | 'D';
+  trend_health_score: number;
+}
+
 export interface KrakenDashboardData {
   exchange: string;
   accountId: string;
@@ -456,6 +493,7 @@ export interface KrakenDashboardData {
   feeRate: KrakenFeeRate;
   systemStatus: string;
   metrics?: KrakenMetrics;
+  indicators?: KrakenIndicators;
   priceHistory1m?: Candle[];
   priceHistory5m?: Candle[];
   priceHistory15m?: Candle[];
