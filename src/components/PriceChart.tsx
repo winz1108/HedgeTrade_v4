@@ -148,13 +148,15 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
 
     const prices = visibleCandles.flatMap(c => {
       const vals = [c.high, c.low];
-      if (c.ema5) vals.push(c.ema5);
-      if (c.ema13) vals.push(c.ema13);
+      // 백엔드 필드명: ema_short, ema_long
+      if (c.ema_short) vals.push(c.ema_short);
+      if (c.ema_long) vals.push(c.ema_long);
+      if (c.ema3) vals.push(c.ema3);
+      if (c.ema8) vals.push(c.ema8);
+      // BB 필드명: bb_upper, bb_mid, bb_lower
       if (c.bb_upper) vals.push(c.bb_upper);
+      if (c.bb_mid) vals.push(c.bb_mid);
       if (c.bb_lower) vals.push(c.bb_lower);
-      if (c.bbUpper) vals.push(c.bbUpper);
-      if (c.bbMiddle) vals.push(c.bbMiddle);
-      if (c.bbLower) vals.push(c.bbLower);
       return vals;
     });
 
@@ -318,9 +320,10 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
   };
 
   const macdData = useMemo(() => {
-    const macdValues = visibleCandles.map(c => c.macd).filter((v): v is number => v !== undefined);
-    const signalValues = visibleCandles.map(c => c.signal).filter((v): v is number => v !== undefined);
-    const histogramValues = visibleCandles.map(c => c.histogram).filter((v): v is number => v !== undefined);
+    // 백엔드 필드명: macd_line, macd_signal, macd_hist
+    const macdValues = visibleCandles.map(c => c.macd_line).filter((v): v is number => v !== undefined);
+    const signalValues = visibleCandles.map(c => c.macd_signal).filter((v): v is number => v !== undefined);
+    const histogramValues = visibleCandles.map(c => c.macd_hist).filter((v): v is number => v !== undefined);
 
     if (macdValues.length === 0) return { min: -1, max: 1 };
 
@@ -898,18 +901,24 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                 )}
               </div>
               <div className="flex items-center gap-3 text-[10px]">
-                {hoveredCandle.ema5 && (
-                  <span className="text-stone-600 font-medium">EMA5 <span className="text-amber-600 font-bold">{hoveredCandle.ema5.toFixed(2)}</span></span>
+                {hoveredCandle.ema_short && (
+                  <span className="text-stone-600 font-medium">EMA Short <span className="text-amber-600 font-bold">{hoveredCandle.ema_short.toFixed(2)}</span></span>
                 )}
-                {hoveredCandle.ema13 && (
-                  <span className="text-stone-600 font-medium">EMA13 <span className="text-cyan-600 font-bold">{hoveredCandle.ema13.toFixed(2)}</span></span>
+                {hoveredCandle.ema_long && (
+                  <span className="text-stone-600 font-medium">EMA Long <span className="text-cyan-600 font-bold">{hoveredCandle.ema_long.toFixed(2)}</span></span>
                 )}
-                {(hoveredCandle.bbUpper || hoveredCandle.bb_upper) && (
+                {hoveredCandle.bb_upper && (
                   <>
                     <span className="text-stone-600">|</span>
-                    <span className="text-stone-600 font-medium">BB <span className="text-violet-600 font-bold">{(hoveredCandle.bbUpper ?? hoveredCandle.bb_upper)?.toFixed(2)}</span></span>
-                    <span className="text-stone-600 font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bbMiddle?.toFixed(2) ?? '-'}</span></span>
-                    <span className="text-stone-600 font-medium">/ <span className="text-violet-600 font-bold">{(hoveredCandle.bbLower ?? hoveredCandle.bb_lower)?.toFixed(2)}</span></span>
+                    <span className="text-stone-600 font-medium">BB <span className="text-violet-600 font-bold">{hoveredCandle.bb_upper.toFixed(2)}</span></span>
+                    <span className="text-stone-600 font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span></span>
+                    <span className="text-stone-600 font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_lower?.toFixed(2)}</span></span>
+                  </>
+                )}
+                {hoveredCandle.adx && (
+                  <>
+                    <span className="text-stone-600">|</span>
+                    <span className="text-stone-600 font-medium">ADX <span className="text-emerald-600 font-bold">{hoveredCandle.adx.toFixed(1)}</span></span>
                   </>
                 )}
               </div>
@@ -963,40 +972,33 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
               const bbMiddlePoints: string[] = [];
               const bbLowerPoints: string[] = [];
 
-              const useShortEMA = timeframe === '1h' || timeframe === '15m';
-
               visibleCandles.forEach((candle, idx) => {
                 const x = idx * (candleWidth + candleGap) + candleWidth / 2;
 
-                const emaShort = useShortEMA ? candle.ema3 : candle.ema5;
-                const emaLong = useShortEMA ? candle.ema8 : candle.ema13;
-
-                if (emaShort !== undefined) {
-                  const y = priceToY(emaShort);
+                // 백엔드 필드명 직접 사용: ema_short, ema_long
+                if (candle.ema_short !== undefined) {
+                  const y = priceToY(candle.ema_short);
                   emaShortPoints.push(`${x},${y}`);
                 }
 
-                if (emaLong !== undefined) {
-                  const y = priceToY(emaLong);
+                if (candle.ema_long !== undefined) {
+                  const y = priceToY(candle.ema_long);
                   emaLongPoints.push(`${x},${y}`);
                 }
 
-                const bbUpper = candle.bbUpper ?? candle.bb_upper;
-                const bbMiddle = candle.bbMiddle;
-                const bbLower = candle.bbLower ?? candle.bb_lower;
-
-                if (bbUpper !== undefined) {
-                  const y = priceToY(bbUpper);
+                // 백엔드 필드명: bb_upper, bb_mid, bb_lower
+                if (candle.bb_upper !== undefined) {
+                  const y = priceToY(candle.bb_upper);
                   bbUpperPoints.push(`${x},${y}`);
                 }
 
-                if (bbMiddle !== undefined) {
-                  const y = priceToY(bbMiddle);
+                if (candle.bb_mid !== undefined) {
+                  const y = priceToY(candle.bb_mid);
                   bbMiddlePoints.push(`${x},${y}`);
                 }
 
-                if (bbLower !== undefined) {
-                  const y = priceToY(bbLower);
+                if (candle.bb_lower !== undefined) {
+                  const y = priceToY(candle.bb_lower);
                   bbLowerPoints.push(`${x},${y}`);
                 }
               });
@@ -1058,13 +1060,11 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
 
                     for (let idx = visibleCandles.length - 1; idx >= 0; idx--) {
                       const candle = visibleCandles[idx];
-                      const bbUpper = candle.bbUpper ?? candle.bb_upper;
-                      const bbLower = candle.bbLower ?? candle.bb_lower;
 
-                      if (!lastUpperTouch && bbUpper !== undefined && candle.high >= bbUpper) {
+                      if (!lastUpperTouch && candle.bb_upper !== undefined && candle.high >= candle.bb_upper) {
                         lastUpperTouch = { idx, candle };
                       }
-                      if (!lastLowerTouch && bbLower !== undefined && candle.low <= bbLower) {
+                      if (!lastLowerTouch && candle.bb_lower !== undefined && candle.low <= candle.bb_lower) {
                         lastLowerTouch = { idx, candle };
                       }
 
@@ -1838,12 +1838,12 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
               })()}
 
               {visibleCandles.map((candle, idx) => {
-                if (candle.histogram === undefined) return null;
+                if (candle.macd_hist === undefined) return null;
                 const x = idx * (candleWidth + candleGap) + candleWidth / 2;
                 const zeroY = macdToY(0);
-                const histY = macdToY(candle.histogram);
+                const histY = macdToY(candle.macd_hist);
                 const height = Math.abs(zeroY - histY);
-                const isPositive = candle.histogram >= 0;
+                const isPositive = candle.macd_hist >= 0;
 
                 return (
                   <rect
@@ -1864,13 +1864,13 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                 visibleCandles.forEach((candle, idx) => {
                   const x = idx * (candleWidth + candleGap) + candleWidth / 2;
 
-                  if (candle.macd !== undefined) {
-                    const y = macdToY(candle.macd);
+                  if (candle.macd_line !== undefined) {
+                    const y = macdToY(candle.macd_line);
                     macdPoints.push(`${x},${y}`);
                   }
 
-                  if (candle.signal !== undefined) {
-                    const y = macdToY(candle.signal);
+                  if (candle.macd_signal !== undefined) {
+                    const y = macdToY(candle.macd_signal);
                     signalPoints.push(`${x},${y}`);
                   }
                 });
@@ -1904,26 +1904,26 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                 <span className="text-stone-600 font-medium">MACD</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <>
-                    {visibleCandles[hoveredCandleIndex].macd !== undefined && (
+                    {visibleCandles[hoveredCandleIndex].macd_line !== undefined && (
                       <span className="text-blue-600 font-semibold">
-                        {visibleCandles[hoveredCandleIndex].macd!.toFixed(2)}
+                        {visibleCandles[hoveredCandleIndex].macd_line!.toFixed(2)}
                       </span>
                     )}
-                    {visibleCandles[hoveredCandleIndex].signal !== undefined && (
+                    {visibleCandles[hoveredCandleIndex].macd_signal !== undefined && (
                       <>
                         <span className="text-stone-600">|</span>
                         <span className="text-stone-600 text-[10px]">Signal</span>
                         <span className="text-orange-600 font-semibold">
-                          {visibleCandles[hoveredCandleIndex].signal!.toFixed(2)}
+                          {visibleCandles[hoveredCandleIndex].macd_signal!.toFixed(2)}
                         </span>
                       </>
                     )}
-                    {visibleCandles[hoveredCandleIndex].histogram !== undefined && (
+                    {visibleCandles[hoveredCandleIndex].macd_hist !== undefined && (
                       <>
                         <span className="text-stone-600">|</span>
                         <span className="text-stone-600 text-[10px]">Hist</span>
-                        <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].histogram! >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {visibleCandles[hoveredCandleIndex].histogram!.toFixed(2)}
+                        <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].macd_hist! >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {visibleCandles[hoveredCandleIndex].macd_hist!.toFixed(2)}
                         </span>
                       </>
                     )}

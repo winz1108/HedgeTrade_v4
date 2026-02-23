@@ -7,21 +7,20 @@ export interface Candle {
   volume: number;
   isComplete?: boolean;
   isPrediction?: boolean;
-  ema5?: number;
-  ema13?: number;
-  ema3?: number;
-  ema8?: number;
-  bb_upper?: number;
-  bb_lower?: number;
-  bbUpper?: number;
-  bbMiddle?: number;
-  bbLower?: number;
-  bbWidth?: number;
-  macd?: number;
-  signal?: number;
-  histogram?: number;
+  // 백엔드 제공 인디케이터 필드명
+  ema_short?: number;    // EMA short (1m/5m/30m/1h/1d: 5 또는 3)
+  ema_long?: number;     // EMA long (1m/5m/30m/1h/1d: 13 또는 8)
+  ema3?: number;         // 15m 전용 EMA(3)
+  ema8?: number;         // 15m 전용 EMA(8)
+  bb_upper?: number;     // Bollinger Band 상단
+  bb_mid?: number;       // Bollinger Band 중심 (SMA 20)
+  bb_lower?: number;     // Bollinger Band 하단
+  bbw?: number;          // Bollinger Band Width %
+  adx?: number;          // ADX(14)
+  macd_line?: number;    // 4h 전용 MACD Line
+  macd_signal?: number;  // 4h 전용 MACD Signal
+  macd_hist?: number;    // 4h 전용 MACD Histogram
   rsi?: number;
-  adx?: number;
 }
 
 export interface TradeEvent {
