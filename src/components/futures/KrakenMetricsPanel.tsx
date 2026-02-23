@@ -162,68 +162,94 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        <div className="bg-slate-800/95 border border-emerald-700/50 rounded-lg shadow-sm p-2">
+        <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-white">Entry Conditions</h3>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-600 text-white">
-              {conditionsMet}/{conditionsTotal}
-            </span>
           </div>
 
           {entryConditions ? (
-            <div className="grid grid-cols-2 gap-1">
-              {FUTURES_ENTRY_CONDITIONS.map(({ key, label }) => {
-                const condition = entryConditions[key];
-                const isObject = typeof condition === 'object' && condition !== null;
-                const longMet = isObject ? (condition as any).long : false;
-                const shortMet = isObject ? (condition as any).short : false;
-                const bothMet = longMet && shortMet;
-                const anyMet = longMet || shortMet;
+            <div className="space-y-2">
+              {/* Long Conditions */}
+              <div className="bg-emerald-900/20 border border-emerald-700/40 rounded-lg p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold text-emerald-300">LONG</span>
+                  <span className="text-[9px] font-bold text-emerald-400">
+                    {FUTURES_ENTRY_CONDITIONS.filter(({ key }) => {
+                      const condition = entryConditions[key];
+                      const isObject = typeof condition === 'object' && condition !== null;
+                      return isObject ? (condition as any).long : false;
+                    }).length}/{FUTURES_ENTRY_CONDITIONS.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  {FUTURES_ENTRY_CONDITIONS.map(({ key, label }) => {
+                    const condition = entryConditions[key];
+                    const isObject = typeof condition === 'object' && condition !== null;
+                    const met = isObject ? (condition as any).long : false;
 
-                return (
-                  <div
-                    key={key}
-                    className={`flex items-center gap-1.5 px-1.5 py-1 rounded border ${
-                      bothMet
-                        ? 'bg-blue-900/30 border-blue-600/50'
-                        : longMet
-                        ? 'bg-emerald-900/30 border-emerald-600/50'
-                        : shortMet
-                        ? 'bg-rose-900/30 border-rose-600/50'
-                        : 'bg-slate-700/30 border-slate-600'
-                    }`}
-                  >
-                    <div className="flex gap-0.5 flex-shrink-0">
-                      {isObject ? (
-                        <>
-                          <div className={`w-1.5 h-1.5 rounded-full ${
-                            longMet ? 'bg-emerald-400' : 'bg-slate-600'
-                          }`} title="Long" />
-                          <div className={`w-1.5 h-1.5 rounded-full ${
-                            shortMet ? 'bg-rose-400' : 'bg-slate-600'
-                          }`} title="Short" />
-                        </>
-                      ) : (
-                        <div className="w-1.5 h-1.5 rounded-full bg-slate-600" />
-                      )}
-                    </div>
-                    <span className={`text-[9px] font-medium leading-tight ${
-                      bothMet
-                        ? 'text-blue-300'
-                        : longMet
-                        ? 'text-emerald-300'
-                        : shortMet
-                        ? 'text-rose-300'
-                        : 'text-slate-400'
-                    }`}>
-                      {label}
-                      {bothMet && <span className="text-[8px] ml-0.5">(L/S)</span>}
-                      {longMet && !bothMet && <span className="text-[8px] ml-0.5">(L)</span>}
-                      {shortMet && !bothMet && <span className="text-[8px] ml-0.5">(S)</span>}
-                    </span>
-                  </div>
-                );
-              })}
+                    return (
+                      <div
+                        key={`long-${key}`}
+                        className={`flex items-center gap-1 px-1 py-0.5 rounded ${
+                          met
+                            ? 'bg-emerald-700/30'
+                            : 'bg-slate-700/30'
+                        }`}
+                      >
+                        <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
+                          met ? 'bg-emerald-400' : 'bg-slate-600'
+                        }`} />
+                        <span className={`text-[8px] font-medium leading-tight ${
+                          met ? 'text-emerald-200' : 'text-slate-500'
+                        }`}>
+                          {label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Short Conditions */}
+              <div className="bg-rose-900/20 border border-rose-700/40 rounded-lg p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold text-rose-300">SHORT</span>
+                  <span className="text-[9px] font-bold text-rose-400">
+                    {FUTURES_ENTRY_CONDITIONS.filter(({ key }) => {
+                      const condition = entryConditions[key];
+                      const isObject = typeof condition === 'object' && condition !== null;
+                      return isObject ? (condition as any).short : false;
+                    }).length}/{FUTURES_ENTRY_CONDITIONS.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  {FUTURES_ENTRY_CONDITIONS.map(({ key, label }) => {
+                    const condition = entryConditions[key];
+                    const isObject = typeof condition === 'object' && condition !== null;
+                    const met = isObject ? (condition as any).short : false;
+
+                    return (
+                      <div
+                        key={`short-${key}`}
+                        className={`flex items-center gap-1 px-1 py-0.5 rounded ${
+                          met
+                            ? 'bg-rose-700/30'
+                            : 'bg-slate-700/30'
+                        }`}
+                      >
+                        <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
+                          met ? 'bg-rose-400' : 'bg-slate-600'
+                        }`} />
+                        <span className={`text-[8px] font-medium leading-tight ${
+                          met ? 'text-rose-200' : 'text-slate-500'
+                        }`}>
+                          {label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center h-12 text-slate-300 text-[10px]">
