@@ -1373,8 +1373,18 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
               const x2 = sellCandleIndex * (candleWidth + candleGap) + candleWidth / 2;
               const y2 = priceToY(sellTrade.price);
 
-              const profit = ((sellTrade.price - buyTrade.price) / buyTrade.price) * 100;
-              const lineColor = profit >= 0 ? '#0ecb81' : '#f6465d';
+              // 포지션 방향 확인: LONG=시안, SHORT=주황
+              const isLong = buyTrade.side === 'LONG' || !buyTrade.side;
+              const positionColor = isLong ? '#06b6d4' : '#f97316';
+
+              // 익절/손절 확인
+              const profit = sellTrade.profit !== undefined
+                ? sellTrade.profit
+                : ((sellTrade.price - buyTrade.price) / buyTrade.price) * 100;
+              const isProfit = profit >= 0;
+
+              // Hover 시에는 포지션 색상 사용
+              const lineColor = positionColor;
 
               return (
                 <svg
@@ -1469,9 +1479,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                   const x2 = sellCandleIndex * (candleWidth + candleGap) + candleWidth / 2;
                   const y2 = priceToY(sell.price);
 
-                  // 포지션 사이드에 따라 색상 결정: LONG=시안, SHORT=빨강
+                  // 포지션 사이드에 따라 색상 결정: LONG=시안, SHORT=주황
                   const isLong = buy.side === 'LONG' || !buy.side;
-                  const lineColor = isLong ? '#06b6d4' : '#ef4444';
+                  const lineColor = isLong ? '#06b6d4' : '#f97316';
 
                   return (
                     <line
@@ -1493,8 +1503,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
 
             {data.holding.isHolding && data.holding.buyPrice && (() => {
               const isLong = data.holding.positionSide === 'LONG';
-              const entryColor = isLong ? '#06b6d4' : '#ef4444'; // cyan for LONG, red for SHORT
-              const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(239, 68, 68, 0.5)';
+              const entryColor = isLong ? '#06b6d4' : '#f97316'; // cyan for LONG, orange for SHORT
+              const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(249, 115, 22, 0.5)';
               const breakevenPrice = isLong
                 ? data.holding.buyPrice * 1.001  // +0.1% for LONG
                 : data.holding.buyPrice * 0.999; // -0.1% for SHORT
@@ -1659,31 +1669,36 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                       <div className="relative flex items-center justify-center">
                         {!trade.isPaired && lastUnpairedBuyTimestamp === trade.timestamp && (
                           <>
-                            <div className={`absolute w-12 h-12 rounded-full opacity-10 animate-pulse ${trade.side === 'SHORT' ? 'bg-red-500' : 'bg-cyan-500'}`} />
-                            <div className={`absolute w-10 h-10 rounded-full opacity-15 animate-ping ${trade.side === 'SHORT' ? 'bg-red-500' : 'bg-cyan-500'}`} style={{ animationDuration: '2s' }} />
+                            <div className={`absolute w-12 h-12 rounded-full opacity-10 animate-pulse ${trade.side === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500'}`} />
+                            <div className={`absolute w-10 h-10 rounded-full opacity-15 animate-ping ${trade.side === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500'}`} style={{ animationDuration: '2s' }} />
                           </>
                         )}
-                        <div className={`absolute w-8 h-8 rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''} ${trade.side === 'SHORT' ? 'bg-red-500' : 'bg-cyan-500'}`} />
+                        <div className={`absolute w-8 h-8 rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''} ${trade.side === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500'}`} />
                         <div className={`w-6 h-6 rounded-full border-2 transition-all ${
                           trade.isPaired
                             ? 'border-white shadow-lg'
-                            : `${trade.side === 'SHORT' ? 'border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.6)]' : 'border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6)]'} shadow-lg`
-                        } ${isHovered ? 'scale-125' : ''} ${trade.side === 'SHORT' ? 'bg-red-500' : 'bg-cyan-500'}`}>
+                            : `${trade.side === 'SHORT' ? 'border-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.6)]' : 'border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6)]'} shadow-lg`
+                        } ${isHovered ? 'scale-125' : ''} ${trade.side === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500'}`}>
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="text-white text-xs font-bold">{trade.side === 'SHORT' ? 'S' : 'L'}</span>
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="relative flex items-center justify-center">
-                        <div className={`absolute w-8 h-8 bg-yellow-500 rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''}`} />
-                        <div className={`w-6 h-6 bg-yellow-500 rounded-full border-2 border-white shadow-lg transition-all ${isHovered ? 'scale-125 shadow-yellow-500/50' : ''}`}>
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">S</span>
+                    ) : (() => {
+                      // EXIT 마커: 익절=초록, 손절=빨강
+                      const isProfit = trade.profit !== undefined && trade.profit >= 0;
+                      const exitColor = isProfit ? 'emerald' : 'rose';
+                      return (
+                        <div className="relative flex items-center justify-center">
+                          <div className={`absolute w-8 h-8 bg-${exitColor}-500 rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''}`} />
+                          <div className={`w-6 h-6 bg-${exitColor}-500 rounded-full border-2 border-white shadow-lg transition-all ${isHovered ? `scale-125 shadow-${exitColor}-500/50` : ''}`}>
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">X</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 );
               });

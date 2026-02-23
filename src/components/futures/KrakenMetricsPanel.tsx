@@ -132,7 +132,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   <div className="flex justify-between items-center">
                     <span className="text-[9px] text-cyan-300">Side</span>
                     <span className={`text-[11px] font-bold ${
-                      positionSide === 'LONG' ? 'text-emerald-400' : 'text-rose-400'
+                      positionSide === 'LONG' ? 'text-cyan-400' : 'text-orange-400'
                     }`}>
                       {positionSide}
                     </span>
@@ -183,9 +183,9 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           {entryConditionsLong && entryConditionsShort ? (
             <div className="space-y-2">
               {/* Long Conditions */}
-              <div className="bg-cyan-900/20 border border-cyan-700/40 rounded-lg p-1.5">
+              <div className="bg-cyan-900/20 border border-cyan-600/50 rounded-lg p-1.5">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-cyan-300">LONG</span>
+                  <span className="text-[10px] font-bold text-cyan-400">LONG</span>
                   <span className="text-[9px] font-bold text-cyan-400">
                     {LONG_ENTRY_CONDITIONS.filter(({ key }) => entryConditionsLong[key]).length}/{LONG_ENTRY_CONDITIONS.length}
                   </span>
@@ -199,7 +199,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                         key={`long-${key}`}
                         className={`flex items-center gap-1 px-1 py-0.5 rounded ${
                           met
-                            ? 'bg-cyan-700/30'
+                            ? 'bg-cyan-600/30'
                             : 'bg-slate-700/30'
                         }`}
                       >
@@ -218,10 +218,10 @@ export function KrakenMetricsPanel({ data, position }: Props) {
               </div>
 
               {/* Short Conditions */}
-              <div className="bg-red-900/20 border border-red-700/40 rounded-lg p-1.5">
+              <div className="bg-orange-900/20 border border-orange-600/50 rounded-lg p-1.5">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-red-300">SHORT</span>
-                  <span className="text-[9px] font-bold text-red-400">
+                  <span className="text-[10px] font-bold text-orange-400">SHORT</span>
+                  <span className="text-[9px] font-bold text-orange-400">
                     {SHORT_ENTRY_CONDITIONS.filter(({ key }) => entryConditionsShort[key]).length}/{SHORT_ENTRY_CONDITIONS.length}
                   </span>
                 </div>
@@ -234,15 +234,15 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                         key={`short-${key}`}
                         className={`flex items-center gap-1 px-1 py-0.5 rounded ${
                           met
-                            ? 'bg-red-700/30'
+                            ? 'bg-orange-600/30'
                             : 'bg-slate-700/30'
                         }`}
                       >
                         <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
-                          met ? 'bg-red-400' : 'bg-slate-600'
+                          met ? 'bg-orange-400' : 'bg-slate-600'
                         }`} />
                         <span className={`text-[8px] font-medium leading-tight ${
-                          met ? 'text-red-200' : 'text-slate-500'
+                          met ? 'text-orange-200' : 'text-slate-500'
                         }`}>
                           {label}
                         </span>
@@ -422,60 +422,65 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           style={{ minHeight: 0 }}
         >
           {recentTrades.length > 0 ? (
-            recentTrades.map((trade, index) => (
-              <div key={`${trade.timestamp}-${index}`}>
-                {trade.type === 'buy' ? (
-                  <div className="bg-cyan-500/20 border border-cyan-500/50 rounded p-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-cyan-400">
-                        {(trade as any).side === 'SHORT' ? 'SHORT' : 'LONG'}
-                      </span>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-bold text-white">{formatCurrency(trade.price)}</span>
-                        <span className="text-[8px] text-slate-300">{formatLocalDateTime(trade.timestamp)}</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={`${getExitReasonColor(trade.exitReason).bg} ${getExitReasonColor(trade.exitReason).border} border rounded p-1`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <span className={`text-[10px] font-bold ${getExitReasonColor(trade.exitReason).text}`}>EXIT</span>
-                        {trade.exitReason && (
-                          <span className={`text-[8px] px-1 py-0.5 rounded font-bold ${
-                            trade.profit !== undefined && trade.profit >= 0
-                              ? 'bg-emerald-500 text-white'
-                              : 'bg-rose-500 text-white'
-                          }`} title={trade.exitReason}>{getExitReasonLabel(trade.exitReason)}</span>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-bold text-slate-200">{formatCurrency(trade.price)}</span>
-                          {trade.profit !== undefined && (
-                            <span className={`text-[9px] font-bold ${
-                              trade.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                            }`}>
-                              {trade.profit >= 0 ? '+' : ''}{trade.profit.toFixed(2)}%
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[8px] text-slate-400">{formatLocalDateTime(trade.timestamp)}</span>
-                          {trade.pnl !== undefined && (
-                            <span className={`text-[8px] font-bold ${
-                              trade.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                            }`}>
-                              {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
-                            </span>
-                          )}
+            recentTrades.map((trade, index) => {
+              const isLong = (trade as any).side !== 'SHORT';
+              const sideColor = isLong ? 'cyan' : 'orange';
+
+              return (
+                <div key={`${trade.timestamp}-${index}`}>
+                  {trade.type === 'buy' ? (
+                    <div className={`bg-${sideColor}-500/20 border border-${sideColor}-500/50 rounded p-1`}>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[10px] font-bold text-${sideColor}-400`}>
+                          {isLong ? 'LONG' : 'SHORT'}
+                        </span>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[10px] font-bold text-white">{formatCurrency(trade.price)}</span>
+                          <span className="text-[8px] text-slate-300">{formatLocalDateTime(trade.timestamp)}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))
+                  ) : (
+                    <div className={`${getExitReasonColor(trade.exitReason).bg} ${getExitReasonColor(trade.exitReason).border} border rounded p-1`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <span className={`text-[10px] font-bold ${getExitReasonColor(trade.exitReason).text}`}>EXIT</span>
+                          {trade.exitReason && (
+                            <span className={`text-[8px] px-1 py-0.5 rounded font-bold ${
+                              trade.profit !== undefined && trade.profit >= 0
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-rose-500 text-white'
+                            }`} title={trade.exitReason}>{getExitReasonLabel(trade.exitReason)}</span>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-slate-200">{formatCurrency(trade.price)}</span>
+                            {trade.profit !== undefined && (
+                              <span className={`text-[9px] font-bold ${
+                                trade.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                              }`}>
+                                {trade.profit >= 0 ? '+' : ''}{trade.profit.toFixed(2)}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[8px] text-slate-400">{formatLocalDateTime(trade.timestamp)}</span>
+                            {trade.pnl !== undefined && (
+                              <span className={`text-[8px] font-bold ${
+                                trade.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                              }`}>
+                                {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
           ) : (
             <div className="flex items-center justify-center h-20 text-slate-400 text-[10px]">
               No trades
