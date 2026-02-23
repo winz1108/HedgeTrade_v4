@@ -1469,10 +1469,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                   const x2 = sellCandleIndex * (candleWidth + candleGap) + candleWidth / 2;
                   const y2 = priceToY(sell.price);
 
-                  // exitReason 기반 색상: TP=초록, SL=빨강
-                  const isTP = sell.exitReason === 'TP';
-                  const isSL = sell.exitReason === 'SL';
-                  const lineColor = isTP ? '#10b981' : isSL ? '#ef4444' : '#6b7280';
+                  // 포지션 사이드에 따라 색상 결정: LONG=시안, SHORT=빨강
+                  const isLong = buy.side === 'LONG' || !buy.side;
+                  const lineColor = isLong ? '#06b6d4' : '#ef4444';
 
                   return (
                     <line
@@ -1482,8 +1481,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                       x2={x2}
                       y2={y2}
                       stroke={lineColor}
-                      strokeWidth="2"
-                      opacity="0.7"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
+                      opacity="0.6"
                     />
                   );
                 });
