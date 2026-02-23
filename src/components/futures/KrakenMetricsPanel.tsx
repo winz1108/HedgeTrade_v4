@@ -429,14 +429,14 @@ export function KrakenMetricsPanel({ data, position }: Props) {
               return (
                 <div key={`${trade.timestamp}-${index}`}>
                   {trade.type === 'buy' ? (
-                    <div className={`${isLong ? 'bg-cyan-500/20 border-cyan-500/50' : 'bg-white border-orange-400'} border rounded p-1`}>
+                    <div className={`${isLong ? 'bg-cyan-500/20 border-cyan-500/50' : 'bg-orange-900/20 border-orange-600/50'} border rounded p-1`}>
                       <div className="flex items-center justify-between">
-                        <span className={`text-[10px] font-bold ${isLong ? 'text-cyan-400' : 'text-orange-600'}`}>
+                        <span className={`text-[10px] font-bold ${isLong ? 'text-cyan-400' : 'text-orange-400'}`}>
                           {isLong ? 'LONG' : 'SHORT'}
                         </span>
                         <div className="flex flex-col items-end">
-                          <span className={`text-[10px] font-bold ${isLong ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(trade.price)}</span>
-                          <span className={`text-[8px] ${isLong ? 'text-slate-300' : 'text-slate-600'}`}>{formatLocalDateTime(trade.timestamp)}</span>
+                          <span className={`text-[10px] font-bold text-white`}>{formatCurrency(trade.price)}</span>
+                          <span className={`text-[8px] text-slate-300`}>{formatLocalDateTime(trade.timestamp)}</span>
                         </div>
                       </div>
                     </div>
