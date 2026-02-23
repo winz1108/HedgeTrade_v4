@@ -9,6 +9,7 @@ interface PriceChartProps {
   data: DashboardData;
   onTradeHover: (trade: TradeEvent | null) => void;
   onTimeframeChange?: (timeframe: string) => void;
+  darkMode?: boolean;
 }
 
 type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
@@ -66,7 +67,7 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
   return aggregated.sort((a, b) => a.timestamp - b.timestamp);
 }
 
-export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChartProps) => {
+export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = false }: PriceChartProps) => {
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [hoveredCandle, setHoveredCandle] = useState<Candle | null>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
@@ -98,6 +99,44 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
   const maxCandleWidth = 30;
   const candleGap = 2;
   const pricePadding = 20;
+
+  const colors = darkMode ? {
+    chartBg: 'bg-slate-800/95',
+    chartBorder: 'border-slate-700',
+    headerBg: 'bg-slate-800/90',
+    headerBorder: 'border-slate-700',
+    buttonBg: 'bg-slate-700/60',
+    buttonHover: 'hover:bg-slate-600/70',
+    buttonActive: 'bg-cyan-600/90',
+    buttonActiveHover: 'hover:bg-cyan-500',
+    textPrimary: 'text-slate-200',
+    textSecondary: 'text-slate-400',
+    tooltipBg: 'bg-slate-800/95',
+    tooltipBorder: 'border-slate-600',
+    panelBg: 'bg-slate-700/30',
+    panelBorder: 'border-slate-600',
+    emaShort: '#f59e0b',
+    emaLong: '#06b6d4',
+    bb: '#8b5cf6',
+  } : {
+    chartBg: 'bg-white/60',
+    chartBorder: 'border-stone-200',
+    headerBg: 'bg-white/80',
+    headerBorder: 'border-stone-200',
+    buttonBg: 'bg-stone-200/60',
+    buttonHover: 'hover:bg-stone-300/70',
+    buttonActive: 'bg-amber-500/90',
+    buttonActiveHover: 'hover:bg-amber-600',
+    textPrimary: 'text-slate-800',
+    textSecondary: '${colors.textSecondary}',
+    tooltipBg: 'bg-amber-50/95',
+    tooltipBorder: 'border-amber-300',
+    panelBg: 'bg-amber-50/80',
+    panelBorder: 'border-amber-200',
+    emaShort: '#d97706',
+    emaLong: '#0891b2',
+    bb: '#7c3aed',
+  };
   const minVolumeHeight = 80;
   const maxVolumeHeight = 300;
 
@@ -486,7 +525,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
     if (isMobileView) {
       return createPortal(
         <div
-          className="fixed left-2 right-2 bottom-4 bg-amber-50/95 backdrop-blur-md border-2 border-amber-300 text-slate-800 text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto"
+          className={`fixed left-2 right-2 bottom-4 ${colors.tooltipBg} backdrop-blur-md border-2 ${colors.tooltipBorder} ${colors.textPrimary} text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto`}
           style={{
             zIndex: 999999,
           }}
@@ -500,9 +539,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             </div>
 
             <div>
-              <div className="space-y-1.5 bg-amber-50/80 border border-amber-200 p-2 rounded">
+              <div className="space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
                 <div className="flex justify-between gap-6">
-                  <span className="text-stone-600">현재가</span>
+                  <span className="${colors.textSecondary}">현재가</span>
                   <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between gap-6">
@@ -512,7 +551,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                   </span>
                 </div>
                 <div className="flex justify-between gap-6">
-                  <span className="text-stone-600">보유 시간</span>
+                  <span className="${colors.textSecondary}">보유 시간</span>
                   <span className="text-slate-300 text-[10px]">
                     {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                   </span>
@@ -528,22 +567,22 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
                 <span className="text-stone-200">매수가</span>
                 <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">매도가</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">매도가</span>
                 <span className="text-white font-semibold">${pairedTrade!.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">수익률</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">수익률</span>
                 <span className={`font-bold ${((pairedTrade!.price - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((pairedTrade!.price - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">보유 시간</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">보유 시간</span>
                 <span className="text-slate-300 text-[10px]">
                   {Math.floor((pairedTrade!.timestamp - trade.timestamp) / 60000)}분
                 </span>
@@ -558,28 +597,28 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             </div>
 
             <div className="space-y-2 mb-3">
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
                 <span className="text-stone-200">매수가</span>
                 <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">현재가</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">현재가</span>
                 <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">현재 수익률</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">현재 수익률</span>
                 <span className={`font-bold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">보유 시간</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">보유 시간</span>
                 <span className="text-slate-300 text-[10px]">
                   {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                 </span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">마지막 업데이트</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">마지막 업데이트</span>
                 <span className="text-slate-300 text-[10px]">
                   {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
@@ -622,7 +661,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
 
     return createPortal(
       <div
-        className="fixed bg-amber-50/95 backdrop-blur-md border-2 border-amber-300 text-slate-800 text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto"
+        className={`fixed ${colors.tooltipBg} backdrop-blur-md border-2 ${colors.tooltipBorder} ${colors.textPrimary} text-xs rounded-lg p-4 shadow-2xl pointer-events-none max-h-[600px] overflow-y-auto`}
         style={{
           left: `${leftPos}px`,
           top: `${topPos}px`,
@@ -639,9 +678,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             </div>
 
             <div>
-              <div className="space-y-1.5 bg-amber-50/80 border border-amber-200 p-2 rounded">
+              <div className="space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
                 <div className="flex justify-between gap-6">
-                  <span className="text-stone-600">현재가</span>
+                  <span className="${colors.textSecondary}">현재가</span>
                   <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between gap-6">
@@ -651,7 +690,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                   </span>
                 </div>
                 <div className="flex justify-between gap-6">
-                  <span className="text-stone-600">보유 시간</span>
+                  <span className="${colors.textSecondary}">보유 시간</span>
                   <span className="text-slate-300 text-[10px]">
                     {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                   </span>
@@ -667,22 +706,22 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
                 <span className="text-stone-200">매수가</span>
                 <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">매도가</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">매도가</span>
                 <span className="text-white font-semibold">${pairedTrade!.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">수익률</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">수익률</span>
                 <span className={`font-bold ${((pairedTrade!.price - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((pairedTrade!.price - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">보유 시간</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">보유 시간</span>
                 <span className="text-slate-300 text-[10px]">
                   {Math.floor((pairedTrade!.timestamp - trade.timestamp) / 60000)}분
                 </span>
@@ -697,28 +736,28 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             </div>
 
             <div className="space-y-2 mb-3">
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
                 <span className="text-stone-200">매수가</span>
                 <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">현재가</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">현재가</span>
                 <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">현재 수익률</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">현재 수익률</span>
                 <span className={`font-bold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">보유 시간</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">보유 시간</span>
                 <span className="text-slate-300 text-[10px]">
                   {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                 </span>
               </div>
-              <div className="flex justify-between gap-6 bg-amber-50/80 border border-amber-200 p-2 rounded">
-                <span className="text-stone-600">마지막 업데이트</span>
+              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+                <span className="${colors.textSecondary}">마지막 업데이트</span>
                 <span className="text-slate-300 text-[10px]">
                   {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
@@ -745,8 +784,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
   };
 
   const chartContent = (
-    <div className={`bg-white/60 rounded-xl shadow-lg border border-stone-200 w-full overflow-hidden ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
-      <div className="bg-white/80 px-2 sm:px-4 py-2 flex items-center justify-between border-b border-stone-200 flex-wrap gap-2">
+    <div className={`${colors.chartBg} rounded-xl shadow-lg border ${colors.chartBorder} w-full overflow-hidden ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
+      <div className={`${colors.headerBg} px-2 sm:px-4 py-2 flex items-center justify-between border-b ${colors.headerBorder} flex-wrap gap-2`}>
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <h2 className="text-sm sm:text-base font-bold text-stone-800">BTC/USDC</h2>
@@ -763,22 +802,22 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className="hidden sm:flex items-center gap-2 text-[10px] bg-stone-100/70 px-2 py-1 rounded">
+          <div className={`hidden sm:flex items-center gap-2 text-[10px] ${colors.panelBg} px-2 py-1 rounded`}>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-amber-600 rounded"></div>
-              <span className="text-stone-600">{(timeframe === '1h' || timeframe === '15m') ? 'EMA 3' : 'EMA 5'}</span>
+              <div className="w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
+              <span className={colors.textSecondary}>{(timeframe === '1h' || timeframe === '15m') ? 'EMA 3' : 'EMA 5'}</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-cyan-600 rounded"></div>
-              <span className="text-stone-600">{(timeframe === '1h' || timeframe === '15m') ? 'EMA 8' : 'EMA 13'}</span>
+              <div className="w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
+              <span className={colors.textSecondary}>{(timeframe === '1h' || timeframe === '15m') ? 'EMA 8' : 'EMA 13'}</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-violet-600 border-t border-dashed border-violet-600"></div>
-              <span className="text-stone-600">BB</span>
+              <div className="w-3 h-0.5 border-t border-dashed" style={{ borderColor: colors.bb }}></div>
+              <span className={colors.textSecondary}>BB</span>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-0.5 bg-stone-200/60 rounded p-0.5 overflow-x-auto">
+          <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5 overflow-x-auto`}>
             {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
               const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
               const isLoading = !hasData && tf !== timeframe;
@@ -799,8 +838,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                   }}
                   className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all flex-shrink-0 ${
                     timeframe === tf
-                      ? 'bg-stone-700 text-white shadow-sm'
-                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-300/60'
+                      ? `${colors.buttonActive} text-white shadow-sm`
+                      : `${colors.textSecondary} ${darkMode ? 'hover:text-slate-200 hover:bg-slate-600/60' : 'hover:text-stone-900 hover:bg-stone-300/60'}`
                   }`}
                 >
                   {tf}
@@ -814,14 +853,14 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
             title="Zoom Out (Ctrl + Scroll)"
           >
-            <ZoomOut className="w-3 h-3 text-stone-600" />
+            <ZoomOut className="w-3 h-3 ${colors.textSecondary}" />
           </button>
           <button
             onClick={handleZoomIn}
             className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
             title="Zoom In (Ctrl + Scroll)"
           >
-            <ZoomIn className="w-3 h-3 text-stone-600" />
+            <ZoomIn className="w-3 h-3 ${colors.textSecondary}" />
           </button>
           {scrollOffset > 0 && (
             <button
@@ -844,7 +883,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             {showTradeMarkers ? (
               <Eye className="w-3 h-3 text-white" />
             ) : (
-              <EyeOff className="w-3 h-3 text-stone-600" />
+              <EyeOff className="w-3 h-3 ${colors.textSecondary}" />
             )}
           </button>
           <button
@@ -857,16 +896,16 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             title={isMaximized ? "Exit Fullscreen" : "Fullscreen"}
           >
             {isMaximized ? (
-              <Minimize2 className="w-3 h-3 text-stone-600" />
+              <Minimize2 className="w-3 h-3 ${colors.textSecondary}" />
             ) : (
-              <Maximize2 className="w-3 h-3 text-stone-600" />
+              <Maximize2 className="w-3 h-3 ${colors.textSecondary}" />
             )}
           </button>
         </div>
         </div>
       </div>
 
-      <div className="flex bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50 overflow-visible" style={{ height: `${chartHeight}px` }}>
+      <div className={`flex ${darkMode ? 'bg-gradient-to-br from-slate-800 via-slate-800/90 to-slate-800' : 'bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50'} overflow-visible`} style={{ height: `${chartHeight}px` }}>
       <div
         ref={containerRef}
         className="relative select-none flex-shrink-0 flex-1"
@@ -887,13 +926,13 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
         <div className="absolute inset-0 overflow-visible">
           {/* OHLC Display */}
           {hoveredCandle && (
-            <div className="absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs bg-white px-3 py-2 rounded-lg border border-stone-300 shadow-lg">
+            <div className={`absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs ${colors.tooltipBg} px-3 py-2 rounded-lg border ${colors.tooltipBorder} shadow-lg`}>
               <div className="flex items-center gap-3">
-                <span className="text-stone-700 font-mono font-medium">{formatChartTime(hoveredCandle.timestamp)}</span>
-                <span className="text-stone-600 font-medium">O <span className="text-stone-900 font-bold">{hoveredCandle.open.toFixed(2)}</span></span>
-                <span className="text-stone-600 font-medium">H <span className="text-emerald-600 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
-                <span className="text-stone-600 font-medium">L <span className="text-rose-600 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
-                <span className="text-stone-600 font-medium">C <span className="text-stone-900 font-bold">{hoveredCandle.close.toFixed(2)}</span></span>
+                <span className={`${colors.textSecondary} font-mono font-medium`}>{formatChartTime(hoveredCandle.timestamp)}</span>
+                <span className={`${colors.textSecondary} font-medium`}>O <span className={`${colors.textPrimary} font-bold`}>{hoveredCandle.open.toFixed(2)}</span></span>
+                <span className={`${colors.textSecondary} font-medium`}>H <span className="text-emerald-400 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
+                <span className={`${colors.textSecondary} font-medium`}>L <span className="text-rose-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
+                <span className={`${colors.textSecondary} font-medium`}>C <span className={`${colors.textPrimary} font-bold`}>{hoveredCandle.close.toFixed(2)}</span></span>
                 {hoveredCandle.isComplete === false && (
                   <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded text-[10px] font-bold border border-amber-400/40 animate-pulse shadow-lg">
                     진행 중
@@ -902,23 +941,23 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
               </div>
               <div className="flex items-center gap-3 text-[10px]">
                 {hoveredCandle.ema_short && (
-                  <span className="text-stone-600 font-medium">EMA Short <span className="text-amber-600 font-bold">{hoveredCandle.ema_short.toFixed(2)}</span></span>
+                  <span className={`${colors.textSecondary} font-medium`}>EMA Short <span className={darkMode ? 'text-amber-400' : 'text-amber-600'} font-bold>{hoveredCandle.ema_short.toFixed(2)}</span></span>
                 )}
                 {hoveredCandle.ema_long && (
-                  <span className="text-stone-600 font-medium">EMA Long <span className="text-cyan-600 font-bold">{hoveredCandle.ema_long.toFixed(2)}</span></span>
+                  <span className={`${colors.textSecondary} font-medium`}>EMA Long <span className={darkMode ? 'text-cyan-400' : 'text-cyan-600'} font-bold>{hoveredCandle.ema_long.toFixed(2)}</span></span>
                 )}
                 {hoveredCandle.bb_upper && (
                   <>
-                    <span className="text-stone-600">|</span>
-                    <span className="text-stone-600 font-medium">BB <span className="text-violet-600 font-bold">{hoveredCandle.bb_upper.toFixed(2)}</span></span>
-                    <span className="text-stone-600 font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span></span>
-                    <span className="text-stone-600 font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_lower?.toFixed(2)}</span></span>
+                    <span className="${colors.textSecondary}">|</span>
+                    <span className="${colors.textSecondary} font-medium">BB <span className="text-violet-600 font-bold">{hoveredCandle.bb_upper.toFixed(2)}</span></span>
+                    <span className="${colors.textSecondary} font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span></span>
+                    <span className="${colors.textSecondary} font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_lower?.toFixed(2)}</span></span>
                   </>
                 )}
                 {hoveredCandle.adx && (
                   <>
-                    <span className="text-stone-600">|</span>
-                    <span className="text-stone-600 font-medium">ADX <span className="text-emerald-600 font-bold">{hoveredCandle.adx.toFixed(1)}</span></span>
+                    <span className="${colors.textSecondary}">|</span>
+                    <span className="${colors.textSecondary} font-medium">ADX <span className="text-emerald-600 font-bold">{hoveredCandle.adx.toFixed(1)}</span></span>
                   </>
                 )}
               </div>
@@ -1037,7 +1076,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                     <polyline
                       points={emaShortPoints.join(' ')}
                       fill="none"
-                      stroke="#fbbf24"
+                      stroke={colors.emaShort}
                       strokeWidth="1.5"
                       opacity="0.9"
                     />
@@ -1047,7 +1086,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                     <polyline
                       points={emaLongPoints.join(' ')}
                       fill="none"
-                      stroke="#06b6d4"
+                      stroke={colors.emaLong}
                       strokeWidth="1.5"
                       opacity="0.9"
                     />
@@ -1774,8 +1813,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             </div>
 
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs bg-white/90 px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="text-stone-600 font-medium">Volume</span>
+              <div className="absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
+                <span className="${colors.textSecondary} font-medium">Volume</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <span className="text-stone-900 font-semibold">
                     {visibleCandles[hoveredCandleIndex].volume.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC
@@ -1900,8 +1939,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
               })()}
             </svg>
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs bg-white/90 px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="text-stone-600 font-medium">MACD</span>
+              <div className="absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
+                <span className="${colors.textSecondary} font-medium">MACD</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <>
                     {visibleCandles[hoveredCandleIndex].macd_line !== undefined && (
@@ -1911,8 +1950,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                     )}
                     {visibleCandles[hoveredCandleIndex].macd_signal !== undefined && (
                       <>
-                        <span className="text-stone-600">|</span>
-                        <span className="text-stone-600 text-[10px]">Signal</span>
+                        <span className="${colors.textSecondary}">|</span>
+                        <span className="${colors.textSecondary} text-[10px]">Signal</span>
                         <span className="text-orange-600 font-semibold">
                           {visibleCandles[hoveredCandleIndex].macd_signal!.toFixed(2)}
                         </span>
@@ -1920,8 +1959,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                     )}
                     {visibleCandles[hoveredCandleIndex].macd_hist !== undefined && (
                       <>
-                        <span className="text-stone-600">|</span>
-                        <span className="text-stone-600 text-[10px]">Hist</span>
+                        <span className="${colors.textSecondary}">|</span>
+                        <span className="${colors.textSecondary} text-[10px]">Hist</span>
                         <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].macd_hist! >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {visibleCandles[hoveredCandleIndex].macd_hist!.toFixed(2)}
                         </span>
@@ -2003,7 +2042,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
                       <polyline
                         points={adxPoints.join(' ')}
                         fill="none"
-                        stroke="#8b5cf6"
+                        stroke={colors.bb}
                         strokeWidth="1.5"
                         opacity="0.95"
                       />
@@ -2013,8 +2052,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
               })()}
             </svg>
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs bg-white/90 px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="text-stone-600 font-medium">ADX</span>
+              <div className="absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
+                <span className="${colors.textSecondary} font-medium">ADX</span>
                 {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].adx !== undefined && (
                   <span className={`font-semibold ${
                     visibleCandles[hoveredCandleIndex].adx! >= 25 ? 'text-emerald-600' :
@@ -2032,7 +2071,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
       </div>
 
       {/* Y-Axis */}
-      <div className="w-16 bg-white/80 relative border-l border-stone-200" style={{ height: `${chartHeight}px`, zIndex: 10 }}>
+      <div className={`w-16 ${colors.headerBg} relative border-l ${colors.headerBorder}`} style={{ height: `${chartHeight}px`, zIndex: 10 }}>
         <div className="relative" style={{ height: `${priceChartHeight}px` }}>
           {Array.from({ length: 6 }).map((_, i) => {
             if (i === 0 || i === 5) return null;
@@ -2041,7 +2080,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
             return (
               <div
                 key={i}
-                className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[11px]"
+                className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[11px]`}
                 style={{ top: `${y - 6}px` }}
               >
                 {price.toFixed(2)}
@@ -2142,8 +2181,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
 
   if (selectedCandles.length === 0) {
     return (
-      <div className="w-full rounded-lg bg-white/60 border border-stone-200 p-8 flex items-center justify-center">
-        <div className="text-stone-600 text-sm">차트 데이터를 불러오는 중...</div>
+      <div className={`w-full rounded-lg ${colors.chartBg} border ${colors.chartBorder} p-8 flex items-center justify-center`}>
+        <div className={`${colors.textSecondary} text-sm`}>차트 데이터를 불러오는 중...</div>
       </div>
     );
   }
@@ -2152,7 +2191,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange }: PriceChart
     <>
       {renderTooltip()}
       {isMaximized ? createPortal(
-        <div className="fixed inset-0 z-50 bg-gradient-to-br from-stone-100 via-amber-50/30 to-stone-100 overflow-auto">
+        <div className={`fixed inset-0 z-50 ${darkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-stone-100 via-amber-50/30 to-stone-100'} overflow-auto`}>
           {chartContent}
         </div>,
         document.body

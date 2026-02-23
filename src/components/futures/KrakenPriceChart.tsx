@@ -86,6 +86,7 @@ export function KrakenPriceChart({ data }: Props) {
       data={transformedData}
       onTradeHover={(trade: TradeEvent | null) => {}}
       onTimeframeChange={(timeframe: string) => {}}
+      darkMode={true}
     />
   );
 }
