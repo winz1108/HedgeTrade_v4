@@ -115,13 +115,16 @@ function FuturesDashboard() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-[320px,1fr,320px] gap-2">
+        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
           <div className="w-full lg:w-auto flex flex-col gap-2">
             <KrakenMetricsPanel data={data} position="left" />
           </div>
 
-          <div className="w-full min-w-0">
+          <div className="w-full min-w-0 flex flex-col gap-2">
             <KrakenPriceChart data={data} />
+            <div style={{ height: 'calc(100vh - 660px)', minHeight: '300px' }}>
+              <KrakenMetricsPanel data={data} position="trades" />
+            </div>
           </div>
 
           <div className="w-full lg:w-auto flex flex-col gap-2">

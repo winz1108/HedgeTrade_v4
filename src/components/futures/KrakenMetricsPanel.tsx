@@ -1,9 +1,11 @@
 import { KrakenDashboardData } from '../../types/dashboard';
-import { DollarSign, Activity, Target } from 'lucide-react';
+import { DollarSign, Activity, Target, History } from 'lucide-react';
+import { formatLocalDateTime } from '../../utils/time';
+import { useRef, useEffect } from 'react';
 
 interface Props {
   data: KrakenDashboardData;
-  position: 'left' | 'right';
+  position: 'left' | 'right' | 'trades';
 }
 
 const FUTURES_ENTRY_CONDITIONS: { key: string; label: string }[] = [
@@ -27,6 +29,28 @@ const formatHoldingDuration = (entryTime: number, currentTime: number): string =
     return `${hours}h ${remainMinutes}m`;
   }
   return `${minutes}m`;
+};
+
+const getExitReasonLabel = (reason?: string): string => {
+  if (!reason) return 'TP';
+  if (reason === 'TP') return 'TP';
+  if (reason === 'SL') return 'SL';
+  if (reason === 'HARD_SL') return 'Hard SL';
+  if (reason === 'PP') return 'PP';
+  if (reason === 'VANISH') return 'Vanish';
+  if (reason === 'TIMEOUT') return 'Timeout';
+  return reason.length > 8 ? reason.substring(0, 8) : reason;
+};
+
+const getExitReasonColor = (reason?: string): { bg: string; text: string; border: string } => {
+  if (!reason) return { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-300' };
+  if (reason === 'TP') return { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-300' };
+  if (reason === 'PP') return { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-300' };
+  if (reason === 'HARD_SL') return { bg: 'bg-rose-50', text: 'text-rose-500', border: 'border-rose-300' };
+  if (reason === 'SL') return { bg: 'bg-rose-50', text: 'text-rose-500', border: 'border-rose-300' };
+  if (reason === 'VANISH') return { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-300' };
+  if (reason === 'TIMEOUT') return { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-300' };
+  return { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-300' };
 };
 
 export function KrakenMetricsPanel({ data, position }: Props) {
@@ -291,6 +315,115 @@ export function KrakenMetricsPanel({ data, position }: Props) {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (position === 'trades') {
+    const oneWeekAgo = data.currentTime - (7 * 24 * 60 * 60 * 1000);
+    const recentTrades = [...data.recentTrades]
+      .filter(trade => trade.timestamp >= oneWeekAgo)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 40);
+
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const scrollPositionRef = useRef<number>(0);
+
+    useEffect(() => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const handleScroll = () => {
+        scrollPositionRef.current = container.scrollTop;
+      };
+
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    useEffect(() => {
+      const container = scrollContainerRef.current;
+      if (container && scrollPositionRef.current > 0) {
+        container.scrollTop = scrollPositionRef.current;
+      }
+    });
+
+    return (
+      <div className="bg-white/95 border border-amber-200 rounded-lg shadow-sm p-2 flex flex-col" style={{ height: '100%' }}>
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-[11px] font-bold text-slate-800">Recent Trades</h3>
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] text-slate-500">7d</span>
+            <History className="w-2.5 h-2.5 text-amber-600" />
+          </div>
+        </div>
+
+        <div
+          ref={scrollContainerRef}
+          className="space-y-0.5 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-transparent"
+          style={{ minHeight: 0 }}
+        >
+          {recentTrades.length > 0 ? (
+            recentTrades.map((trade, index) => (
+              <div key={`${trade.timestamp}-${index}`}>
+                {trade.type === 'buy' ? (
+                  <div className="bg-blue-50 border border-blue-300 rounded p-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-blue-600">
+                        {(trade as any).side === 'SHORT' ? 'SHORT' : 'LONG'}
+                      </span>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] font-bold text-slate-800">{formatCurrency(trade.price)}</span>
+                        <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`${getExitReasonColor(trade.exitReason).bg} ${getExitReasonColor(trade.exitReason).border} border rounded p-1`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className={`text-[10px] font-bold ${getExitReasonColor(trade.exitReason).text}`}>EXIT</span>
+                        {trade.exitReason && (
+                          <span className={`text-[8px] px-1 py-0.5 rounded font-bold ${
+                            trade.profit !== undefined && trade.profit >= 0
+                              ? 'bg-emerald-500 text-white'
+                              : 'bg-rose-500 text-white'
+                          }`} title={trade.exitReason}>{getExitReasonLabel(trade.exitReason)}</span>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] font-bold text-slate-800">{formatCurrency(trade.price)}</span>
+                          {trade.profit !== undefined && (
+                            <span className={`text-[9px] font-bold ${
+                              trade.profit >= 0 ? 'text-emerald-600' : 'text-rose-500'
+                            }`}>
+                              {trade.profit >= 0 ? '+' : ''}{trade.profit.toFixed(2)}%
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
+                          {trade.pnl !== undefined && (
+                            <span className={`text-[8px] font-bold ${
+                              trade.pnl >= 0 ? 'text-emerald-600' : 'text-rose-500'
+                            }`}>
+                              {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="flex items-center justify-center h-20 text-slate-500 text-[10px]">
+              No trades
+            </div>
+          )}
         </div>
       </div>
     );
