@@ -8,7 +8,7 @@ interface Props {
 
 export function KrakenMetricsPanel({ data, position }: Props) {
   if (position === 'left') {
-    const leverage = 2;
+    const leverage = 1;
     const hasPosition = data.position?.in_position;
     const positionSide = data.position?.position_side;
     const entryPrice = data.strategyA?.entry_price;
