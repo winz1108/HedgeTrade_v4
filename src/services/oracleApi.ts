@@ -481,7 +481,6 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
 
     const rawData: any = await response.json();
 
-    // priceHistories 객체를 개별 타임프레임으로 분리하고 정규화
     const data: KrakenDashboardData = {
       ...rawData,
       priceHistory1m: normalizeKrakenCandles(rawData.priceHistories?.['1m'] || rawData.priceHistory1m || []),

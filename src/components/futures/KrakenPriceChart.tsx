@@ -8,6 +8,14 @@ interface Props {
 
 export function KrakenPriceChart({ data }: Props) {
   const transformedData = useMemo((): DashboardData => {
+    const priceHistory1m = data.priceHistory1m || [];
+    const priceHistory5m = data.priceHistory5m;
+    const priceHistory15m = data.priceHistory15m;
+    const priceHistory30m = data.priceHistory30m;
+    const priceHistory1h = data.priceHistory1h;
+    const priceHistory4h = data.priceHistory4h;
+    const priceHistory1d = data.priceHistory1d;
+
     return {
       version: data.version,
       currentAsset: data.balance.portfolioValue,
@@ -16,13 +24,13 @@ export function KrakenPriceChart({ data }: Props) {
       initialAsset: 10000,
       currentTime: data.currentTime || Date.now(),
       currentPrice: data.currentPrice,
-      priceHistory1m: data.priceHistory1m || [],
-      priceHistory5m: data.priceHistory5m,
-      priceHistory15m: data.priceHistory15m,
-      priceHistory30m: data.priceHistory30m,
-      priceHistory1h: data.priceHistory1h,
-      priceHistory4h: data.priceHistory4h,
-      priceHistory1d: data.priceHistory1d,
+      priceHistory1m,
+      priceHistory5m,
+      priceHistory15m,
+      priceHistory30m,
+      priceHistory1h,
+      priceHistory4h,
+      priceHistory1d,
       pricePredictions: [],
       trades: data.recentTrades || [],
       holding: {
@@ -39,6 +47,20 @@ export function KrakenPriceChart({ data }: Props) {
       },
     };
   }, [data]);
+
+  if (!transformedData.priceHistory1m || transformedData.priceHistory1m.length === 0) {
+    return (
+      <div className="w-full bg-white/95 border border-slate-200 rounded-lg shadow-sm p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-2">📊</div>
+          <div className="text-slate-700 font-bold">No chart data available</div>
+          <div className="text-slate-500 text-sm mt-1">
+            priceHistory1m: {transformedData.priceHistory1m?.length || 0} candles
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <PriceChart
