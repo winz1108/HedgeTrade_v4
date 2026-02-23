@@ -359,16 +359,17 @@ export interface KrakenStrategyA {
   timeout_min: number;
   '1h_adx'?: number;
   '1h_ema5_slope'?: number;
+  entry_time?: number;
   entry_conditions_live?: {
-    '1m_ema_above'?: boolean;
-    '5m_ema_above'?: boolean;
-    '15m_ema38_above'?: boolean;
+    '1m_golden_cross'?: boolean;
+    '5m_above'?: boolean;
+    '15m_above'?: boolean;
     '30m_slope_up'?: boolean;
     '5m_bbw'?: boolean;
     '15m_bbw'?: boolean;
     '30m_gap'?: boolean;
     '30m_adx'?: boolean;
-    '1h_adx'?: boolean;
+    'no_recent_loss'?: boolean;
   };
 }
 
@@ -426,6 +427,18 @@ export interface KrakenFeeRate {
   breakevenLinePct: number;
 }
 
+export interface KrakenMetrics {
+  portfolioReturn?: number;
+  portfolioReturnWithCommission?: number;
+  marketReturn?: number;
+  avgTradeReturn?: number;
+  takeProfitCount?: number;
+  stopLossCount?: number;
+  totalTrades?: number;
+  winRate?: number;
+  totalPnl?: number;
+}
+
 export interface KrakenDashboardData {
   exchange: string;
   accountId: string;
@@ -434,7 +447,7 @@ export interface KrakenDashboardData {
   symbol: string;
   version: string;
   currentPrice: number;
-  currentTime?: number;
+  currentTime: number;
   balance: KrakenBalance;
   position: KrakenPosition;
   strategyA: KrakenStrategyA;
@@ -442,6 +455,7 @@ export interface KrakenDashboardData {
   recentTrades: TradeEvent[];
   feeRate: KrakenFeeRate;
   systemStatus: string;
+  metrics?: KrakenMetrics;
   priceHistory1m?: Candle[];
   priceHistory5m?: Candle[];
   priceHistory15m?: Candle[];
