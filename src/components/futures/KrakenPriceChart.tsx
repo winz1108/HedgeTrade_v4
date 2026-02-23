@@ -26,7 +26,7 @@ export function KrakenPriceChart({ data }: Props) {
   const priceRange = maxPrice - minPrice;
 
   const chartHeight = 500;
-  const chartWidth = 100;
+  const chartWidth = 1000;
 
   const getY = (price: number) => {
     return chartHeight - ((price - minPrice) / priceRange) * chartHeight;
@@ -90,7 +90,7 @@ export function KrakenPriceChart({ data }: Props) {
       </div>
 
       <div className="relative" style={{ height: `${chartHeight}px` }}>
-        <svg width="100%" height="100%" className="overflow-visible">
+        <svg width="100%" height="100%" viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none" className="overflow-visible">
           <defs>
             <linearGradient id="priceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.3" />
@@ -198,8 +198,12 @@ export function KrakenPriceChart({ data }: Props) {
             stroke="none"
             points={`
               0,${chartHeight}
-              ${candles.map((c, i) => `${(i / (candles.length - 1)) * chartWidth}%,${getY(c.close)}`).join(' ')}
-              ${chartWidth}%,${chartHeight}
+              ${candles.map((c, i) => {
+                const x = (i / (candles.length - 1)) * 100;
+                const y = getY(c.close);
+                return `${x},${y}`;
+              }).join(' ')}
+              100,${chartHeight}
             `}
           />
 
@@ -207,12 +211,16 @@ export function KrakenPriceChart({ data }: Props) {
             fill="none"
             stroke="rgb(59, 130, 246)"
             strokeWidth="2"
-            points={candles.map((c, i) => `${(i / (candles.length - 1)) * chartWidth}%,${getY(c.close)}`).join(' ')}
+            points={candles.map((c, i) => {
+              const x = (i / (candles.length - 1)) * 100;
+              const y = getY(c.close);
+              return `${x},${y}`;
+            }).join(' ')}
           />
 
           {candles[candles.length - 1] && (
             <circle
-              cx={`${chartWidth}%`}
+              cx={chartWidth}
               cy={getY(candles[candles.length - 1].close)}
               r="4"
               fill="rgb(59, 130, 246)"

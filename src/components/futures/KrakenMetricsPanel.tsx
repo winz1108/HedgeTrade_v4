@@ -1,5 +1,5 @@
 import { KrakenDashboardData } from '../../types/dashboard';
-import { TrendingUp, TrendingDown, DollarSign, Activity, Clock, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, Clock, Target, Zap } from 'lucide-react';
 
 interface Props {
   data: KrakenDashboardData;
@@ -8,12 +8,32 @@ interface Props {
 
 export function KrakenMetricsPanel({ data, position }: Props) {
   if (position === 'left') {
+    const leverage = 2;
+    const hasPosition = data.position?.in_position;
+    const positionSide = data.position?.position_side;
+    const entryPrice = data.strategyA?.entry_price;
+    const currentPnl = data.strategyA?.current_pnl;
+
+    let liquidationPrice: number | null = null;
+    if (hasPosition && entryPrice) {
+      if (positionSide === 'LONG') {
+        liquidationPrice = entryPrice * (1 - 0.95 / leverage);
+      } else if (positionSide === 'SHORT') {
+        liquidationPrice = entryPrice * (1 + 0.95 / leverage);
+      }
+    }
+
     return (
-      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-slate-200 p-4 shadow-lg">
-        <h2 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-          <DollarSign className="w-4 h-4" />
-          Balance
-        </h2>
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-blue-200 p-4 shadow-lg">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-blue-700 flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            Futures Balance
+          </h2>
+          <div className="px-2 py-1 bg-blue-500 rounded text-xs font-bold text-white">
+            {leverage}x
+          </div>
+        </div>
 
         <div className="space-y-3">
           <div>
@@ -30,7 +50,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-200">
+          <div className="pt-3 border-t border-blue-200">
             <div className="text-xs text-slate-500 mb-1">Current Price</div>
             <div className="text-2xl font-bold text-blue-600">
               ${data.currentPrice.toFixed(2)}
@@ -38,35 +58,51 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        {data.position?.in_position && data.strategyA?.entry_price && (
-          <div className="mt-4 pt-4 border-t border-slate-200">
-            <h3 className="text-xs font-bold text-slate-700 mb-2">Position</h3>
+        {hasPosition && entryPrice && (
+          <div className="mt-4 pt-4 border-t border-blue-200">
+            <h3 className="text-xs font-bold text-blue-700 mb-2">Position</h3>
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-slate-500">Side</span>
                 <span className={`text-xs font-bold ${
-                  data.position.position_side === 'LONG' ? 'text-emerald-600' : 'text-rose-600'
+                  positionSide === 'LONG' ? 'text-emerald-600' : 'text-rose-600'
                 }`}>
-                  {data.position.position_side}
+                  {positionSide}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-slate-500">Leverage</span>
+                <span className="text-xs font-bold text-blue-600">
+                  {leverage}x
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-xs text-slate-500">Entry</span>
                 <span className="text-xs font-mono">
-                  ${data.strategyA.entry_price.toFixed(2)}
+                  ${entryPrice.toFixed(2)}
                 </span>
               </div>
 
-              {data.strategyA.current_pnl !== undefined && (
+              {liquidationPrice && (
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-orange-600">Liquidation</span>
+                  <span className="text-xs font-mono text-orange-600">
+                    ${liquidationPrice.toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              {currentPnl !== undefined && (
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-slate-500">P&L</span>
                   <span className={`text-sm font-bold ${
-                    data.strategyA.current_pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                    currentPnl >= 0 ? 'text-emerald-600' : 'text-rose-600'
                   }`}>
-                    {data.strategyA.current_pnl >= 0 ? '+' : ''}
-                    {data.strategyA.current_pnl.toFixed(2)}%
+                    {currentPnl >= 0 ? '+' : ''}
+                    {currentPnl.toFixed(2)}%
                   </span>
                 </div>
               )}
@@ -80,22 +116,22 @@ export function KrakenMetricsPanel({ data, position }: Props) {
   if (position === 'right') {
     if (!data.position?.in_position) {
       return (
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-slate-200 p-4 shadow-lg">
-          <h2 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-blue-200 p-4 shadow-lg">
+          <h2 className="text-sm font-bold text-blue-700 mb-3 flex items-center gap-2">
             <Target className="w-4 h-4" />
             전략 A (수익극대화)
           </h2>
 
           <div className="space-y-3">
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="text-xs font-semibold text-slate-700 mb-2">포지션 없음</div>
-              <div className="text-xs text-slate-600">
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="text-xs font-semibold text-blue-700 mb-2">포지션 없음</div>
+              <div className="text-xs text-blue-600">
                 9개 진입 조건 충족 시 자동 진입
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-200">
-              <h3 className="text-xs font-bold text-slate-700 mb-2">전략 설정</h3>
+            <div className="pt-3 border-t border-blue-200">
+              <h3 className="text-xs font-bold text-blue-700 mb-2">전략 설정</h3>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-slate-600">Hard SL</span>
@@ -120,8 +156,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-200">
-              <h3 className="text-xs font-bold text-slate-700 mb-2">수수료</h3>
+            <div className="pt-3 border-t border-blue-200">
+              <h3 className="text-xs font-bold text-blue-700 mb-2">수수료</h3>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-slate-600">Maker</span>
@@ -133,7 +169,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600">왕복</span>
-                  <span className="font-mono font-bold text-emerald-600">0.10%</span>
+                  <span className="font-mono font-bold text-blue-600">0.10%</span>
                 </div>
               </div>
             </div>
@@ -148,8 +184,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
       const timeoutPct = (sellConditions.timeout.elapsed / strategyA.timeout_min) * 100;
 
       return (
-      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-slate-200 p-4 shadow-lg">
-        <h2 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-blue-200 p-4 shadow-lg">
+        <h2 className="text-sm font-bold text-blue-700 mb-3 flex items-center gap-2">
           <Target className="w-4 h-4" />
           전략 A 매도 조건
         </h2>
@@ -272,8 +308,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
         </div>
 
         {strategyA?.entry_conditions_live && (
-          <div className="mt-4 pt-4 border-t border-slate-200">
-            <h3 className="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1">
+          <div className="mt-4 pt-4 border-t border-blue-200">
+            <h3 className="text-xs font-bold text-blue-700 mb-2 flex items-center gap-1">
               <Activity className="w-3 h-3" />
               진입 조건 (9개)
             </h3>
