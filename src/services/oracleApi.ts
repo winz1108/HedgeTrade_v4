@@ -449,7 +449,20 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
       throw new Error(`Kraken API unavailable: ${response.status} ${response.statusText}`);
     }
 
-    const data: KrakenDashboardData = await response.json();
+    const rawData: any = await response.json();
+
+    // priceHistories 객체를 개별 타임프레임으로 분리
+    const data: KrakenDashboardData = {
+      ...rawData,
+      priceHistory1m: rawData.priceHistories?.['1m'] || rawData.priceHistory1m || [],
+      priceHistory5m: rawData.priceHistories?.['5m'] || rawData.priceHistory5m,
+      priceHistory15m: rawData.priceHistories?.['15m'] || rawData.priceHistory15m,
+      priceHistory30m: rawData.priceHistories?.['30m'] || rawData.priceHistory30m,
+      priceHistory1h: rawData.priceHistories?.['1h'] || rawData.priceHistory1h,
+      priceHistory4h: rawData.priceHistories?.['4h'] || rawData.priceHistory4h,
+      priceHistory1d: rawData.priceHistories?.['1d'] || rawData.priceHistory1d,
+    };
+
     return data;
   } catch (error) {
     throw error;

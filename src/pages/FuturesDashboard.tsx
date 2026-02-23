@@ -16,8 +16,12 @@ function FuturesDashboard() {
       setError(null);
       const krakenData = await fetchKrakenDashboard();
 
-      const chart1m = await fetchKrakenChartData('1m', 1000);
-      krakenData.priceHistory1m = chart1m.candles;
+      // 백엔드에서 priceHistories로 모든 타임프레임을 전달하므로
+      // 추가 API 호출은 필요없음 (하위호환성 유지)
+      if (!krakenData.priceHistory1m || krakenData.priceHistory1m.length === 0) {
+        const chart1m = await fetchKrakenChartData('1m', 1000);
+        krakenData.priceHistory1m = chart1m.candles;
+      }
 
       setData(krakenData);
       setLoading(false);
