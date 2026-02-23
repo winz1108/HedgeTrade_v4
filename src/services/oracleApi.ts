@@ -432,6 +432,36 @@ export const fetchStrategyStatus = async (): Promise<StrategyStatus | null> => {
   }
 };
 
+const normalizeKrakenCandles = (candles: any[]): Candle[] => {
+  if (!candles || candles.length === 0) return [];
+
+  return candles.map(candle => ({
+    timestamp: candle.timestamp || candle.time * 1000,
+    open: candle.open,
+    high: candle.high,
+    low: candle.low,
+    close: candle.close,
+    volume: candle.volume,
+    isComplete: candle.isComplete,
+    isPrediction: candle.isPrediction,
+    ema5: candle.ema5,
+    ema13: candle.ema13,
+    ema3: candle.ema3,
+    ema8: candle.ema8,
+    bb_upper: candle.bb_upper,
+    bb_lower: candle.bb_lower,
+    bbUpper: candle.bbUpper,
+    bbMiddle: candle.bbMiddle,
+    bbLower: candle.bbLower,
+    bbWidth: candle.bbWidth,
+    macd: candle.macd,
+    signal: candle.signal,
+    histogram: candle.histogram,
+    rsi: candle.rsi,
+    adx: candle.adx,
+  }));
+};
+
 export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
   const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/kraken/dashboard?_=${Date.now()}`;
@@ -451,16 +481,16 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
 
     const rawData: any = await response.json();
 
-    // priceHistories 객체를 개별 타임프레임으로 분리
+    // priceHistories 객체를 개별 타임프레임으로 분리하고 정규화
     const data: KrakenDashboardData = {
       ...rawData,
-      priceHistory1m: rawData.priceHistories?.['1m'] || rawData.priceHistory1m || [],
-      priceHistory5m: rawData.priceHistories?.['5m'] || rawData.priceHistory5m,
-      priceHistory15m: rawData.priceHistories?.['15m'] || rawData.priceHistory15m,
-      priceHistory30m: rawData.priceHistories?.['30m'] || rawData.priceHistory30m,
-      priceHistory1h: rawData.priceHistories?.['1h'] || rawData.priceHistory1h,
-      priceHistory4h: rawData.priceHistories?.['4h'] || rawData.priceHistory4h,
-      priceHistory1d: rawData.priceHistories?.['1d'] || rawData.priceHistory1d,
+      priceHistory1m: normalizeKrakenCandles(rawData.priceHistories?.['1m'] || rawData.priceHistory1m || []),
+      priceHistory5m: normalizeKrakenCandles(rawData.priceHistories?.['5m'] || rawData.priceHistory5m || []),
+      priceHistory15m: normalizeKrakenCandles(rawData.priceHistories?.['15m'] || rawData.priceHistory15m || []),
+      priceHistory30m: normalizeKrakenCandles(rawData.priceHistories?.['30m'] || rawData.priceHistory30m || []),
+      priceHistory1h: normalizeKrakenCandles(rawData.priceHistories?.['1h'] || rawData.priceHistory1h || []),
+      priceHistory4h: normalizeKrakenCandles(rawData.priceHistories?.['4h'] || rawData.priceHistory4h || []),
+      priceHistory1d: normalizeKrakenCandles(rawData.priceHistories?.['1d'] || rawData.priceHistory1d || []),
     };
 
     return data;
