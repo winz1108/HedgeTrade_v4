@@ -49,7 +49,7 @@ const getExitReasonColor = (reason?: string): { bg: string; text: string; border
   if (reason === 'HARD_SL') return { bg: 'bg-rose-900/30', text: 'text-rose-400', border: 'border-rose-700' };
   if (reason === 'SL') return { bg: 'bg-rose-900/30', text: 'text-rose-400', border: 'border-rose-700' };
   if (reason === 'VANISH') return { bg: 'bg-yellow-900/30', text: 'text-yellow-400', border: 'border-yellow-700' };
-  if (reason === 'TIMEOUT') return { bg: 'bg-[#4169E1]/20', text: 'text-[#6495ED]', border: 'border-[#4169E1]/50' };
+  if (reason === 'TIMEOUT') return { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/50' };
   return { bg: 'bg-slate-700/30', text: 'text-slate-300', border: 'border-slate-600' };
 };
 
@@ -91,12 +91,12 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <div className="bg-[#4169E1]/20 rounded-lg p-2 border border-[#4169E1]/50">
-              <div className="text-[10px] text-[#6495ED] font-medium mb-0.5">TOTAL ASSET</div>
+            <div className="bg-cyan-500/20 rounded-lg p-2 border border-cyan-500/50">
+              <div className="text-[10px] text-cyan-300 font-medium mb-0.5">TOTAL ASSET</div>
               <div className="text-xl font-bold text-white mb-1">
                 {formatCurrency(data.balance.portfolioValue)}
               </div>
-              <div className="space-y-0.5 pt-1 border-t border-[#4169E1]/50">
+              <div className="space-y-0.5 pt-1 border-t border-cyan-500/50">
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-300">Available</span>
                   <span className="text-[11px] font-bold text-emerald-400">
@@ -105,7 +105,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-300">Leverage</span>
-                  <span className="text-[11px] font-bold text-[#6495ED]">
+                  <span className="text-[11px] font-bold text-cyan-400">
                     {leverage}x
                   </span>
                 </div>
@@ -115,9 +115,9 @@ export function KrakenMetricsPanel({ data, position }: Props) {
             <div className="border-t border-slate-700 pt-1.5">
               <div className="text-[10px] text-white mb-1 font-medium">POSITION</div>
               {hasPosition && entryPrice ? (
-                <div className="space-y-0.5 bg-[#4169E1]/20 rounded-lg p-1.5 border border-[#4169E1]/50">
+                <div className="space-y-0.5 bg-cyan-500/20 rounded-lg p-1.5 border border-cyan-500/50">
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-[#6495ED]">Side</span>
+                    <span className="text-[9px] text-cyan-300">Side</span>
                     <span className={`text-[11px] font-bold ${
                       positionSide === 'LONG' ? 'text-emerald-400' : 'text-rose-400'
                     }`}>
@@ -125,7 +125,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-[#6495ED]">Entry</span>
+                    <span className="text-[9px] text-cyan-300">Entry</span>
                     <span className="text-[11px] font-bold text-white">{formatCurrency(entryPrice)}</span>
                   </div>
                   {liquidationPrice && (
@@ -136,7 +136,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   )}
                   {currentPnl !== undefined && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-[#6495ED]">P&L</span>
+                      <span className="text-[9px] text-cyan-300">P&L</span>
                       <span className={`text-[11px] font-bold ${
                         currentPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       }`}>
@@ -146,8 +146,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   )}
                   {data.strategyA?.entry_time && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-[#6495ED]">Duration</span>
-                      <span className="text-[11px] font-bold text-[#6495ED]">
+                      <span className="text-[9px] text-cyan-300">Duration</span>
+                      <span className="text-[11px] font-bold text-cyan-400">
                         {formatHoldingDuration(data.strategyA.entry_time, data.currentTime)}
                       </span>
                     </div>
@@ -270,10 +270,10 @@ export function KrakenMetricsPanel({ data, position }: Props) {
 
     return (
       <div className="flex flex-col gap-1.5">
-        <div className="bg-slate-800/95 border border-[#4169E1]/50 rounded-lg shadow-sm p-2">
+        <div className="bg-slate-800/95 border border-cyan-500/50 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-white">Performance</h3>
-            <DollarSign className="w-3 h-3 text-[#6495ED]" />
+            <DollarSign className="w-3 h-3 text-cyan-400" />
           </div>
 
           <div className="space-y-1.5">
@@ -358,11 +358,11 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                     <>
                       <div className="flex-1 bg-slate-700 rounded-full h-2.5 overflow-hidden">
                         <div
-                          className="bg-[#4169E1] h-2.5 transition-all duration-500"
+                          className="bg-cyan-500 h-2.5 transition-all duration-500"
                           style={{ width: `${winRate}%` }}
                         />
                       </div>
-                      <span className="text-xs font-bold text-[#6495ED] min-w-[40px]">
+                      <span className="text-xs font-bold text-cyan-400 min-w-[40px]">
                         {winRate.toFixed(1)}%
                       </span>
                     </>
@@ -424,9 +424,9 @@ export function KrakenMetricsPanel({ data, position }: Props) {
             recentTrades.map((trade, index) => (
               <div key={`${trade.timestamp}-${index}`}>
                 {trade.type === 'buy' ? (
-                  <div className="bg-[#4169E1]/20 border border-[#4169E1]/50 rounded p-1">
+                  <div className="bg-cyan-500/20 border border-cyan-500/50 rounded p-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-[#6495ED]">
+                      <span className="text-[10px] font-bold text-cyan-400">
                         {(trade as any).side === 'SHORT' ? 'SHORT' : 'LONG'}
                       </span>
                       <div className="flex flex-col items-end">
