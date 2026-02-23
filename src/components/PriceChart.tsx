@@ -1685,15 +1685,16 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                         </div>
                       </div>
                     ) : (() => {
-                      // EXIT 마커: 익절=초록, 손절=빨강
+                      // EXIT 마커: 흰색 배경에 익절=초록 글씨, 손절=빨강 글씨
                       const isProfit = trade.profit !== undefined && trade.profit >= 0;
-                      const exitColor = isProfit ? 'emerald' : 'rose';
+                      const textColor = isProfit ? 'text-emerald-500' : 'text-rose-500';
+                      const glowColor = isProfit ? 'shadow-emerald-500/50' : 'shadow-rose-500/50';
                       return (
                         <div className="relative flex items-center justify-center">
-                          <div className={`absolute w-8 h-8 bg-${exitColor}-500 rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''}`} />
-                          <div className={`w-6 h-6 bg-${exitColor}-500 rounded-full border-2 border-white shadow-lg transition-all ${isHovered ? `scale-125 shadow-${exitColor}-500/50` : ''}`}>
+                          <div className={`absolute w-8 h-8 bg-white rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''}`} />
+                          <div className={`w-6 h-6 bg-white rounded-full border-2 border-white shadow-lg transition-all ${isHovered ? `scale-125 ${glowColor}` : ''}`}>
                             <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-white text-xs font-bold">X</span>
+                              <span className={`${textColor} text-xs font-bold`}>X</span>
                             </div>
                           </div>
                         </div>
