@@ -32,25 +32,25 @@ export function KrakenPriceChart({ data }: Props) {
     return chartHeight - ((price - minPrice) / priceRange) * chartHeight;
   };
 
-  const entryPrice = data.strategyA.entry_price;
-  const positionSide = data.position.position_side;
+  const entryPrice = data.strategyA?.entry_price;
+  const positionSide = data.position?.position_side;
   const breakevenPct = 0.001;
 
   let breakevenPrice: number | null = null;
   let slPrice: number | null = null;
   let ppStopPrice: number | null = null;
 
-  if (entryPrice && positionSide) {
+  if (entryPrice && positionSide && data.sellConditions) {
     if (positionSide === 'LONG') {
       breakevenPrice = entryPrice * (1 + breakevenPct);
       slPrice = entryPrice * (1 - data.sellConditions.hard_sl.threshold / 100);
-      if (data.sellConditions.pp.stop_level !== null) {
+      if (data.sellConditions.pp?.stop_level !== null && data.sellConditions.pp?.stop_level !== undefined) {
         ppStopPrice = entryPrice * (1 + data.sellConditions.pp.stop_level / 100);
       }
     } else {
       breakevenPrice = entryPrice * (1 - breakevenPct);
       slPrice = entryPrice * (1 + data.sellConditions.hard_sl.threshold / 100);
-      if (data.sellConditions.pp.stop_level !== null) {
+      if (data.sellConditions.pp?.stop_level !== null && data.sellConditions.pp?.stop_level !== undefined) {
         ppStopPrice = entryPrice * (1 - data.sellConditions.pp.stop_level / 100);
       }
     }
@@ -227,7 +227,7 @@ export function KrakenPriceChart({ data }: Props) {
           <div className="text-xl font-bold text-blue-600">
             ${data.currentPrice.toFixed(2)}
           </div>
-          {data.strategyA.current_pnl !== undefined && data.position.in_position && (
+          {data.strategyA?.current_pnl !== undefined && data.position?.in_position && (
             <div className={`text-sm font-bold mt-1 ${
               data.strategyA.current_pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'
             }`}>

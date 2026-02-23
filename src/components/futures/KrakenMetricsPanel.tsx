@@ -38,7 +38,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        {data.position.in_position && data.strategyA.entry_price && (
+        {data.position?.in_position && data.strategyA?.entry_price && (
           <div className="mt-4 pt-4 border-t border-slate-200">
             <h3 className="text-xs font-bold text-slate-700 mb-2">Position</h3>
 
@@ -77,12 +77,77 @@ export function KrakenMetricsPanel({ data, position }: Props) {
     );
   }
 
-  if (position === 'right' && data.position.in_position) {
-    const { strategyA, sellConditions } = data;
-    const vanishPct = (sellConditions.vanish.current / sellConditions.vanish.threshold) * 100;
-    const timeoutPct = (sellConditions.timeout.elapsed / data.strategyA.timeout_min) * 100;
+  if (position === 'right') {
+    if (!data.position?.in_position) {
+      return (
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-slate-200 p-4 shadow-lg">
+          <h2 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            전략 A (수익극대화)
+          </h2>
 
-    return (
+          <div className="space-y-3">
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="text-xs font-semibold text-slate-700 mb-2">포지션 없음</div>
+              <div className="text-xs text-slate-600">
+                9개 진입 조건 충족 시 자동 진입
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-200">
+              <h3 className="text-xs font-bold text-slate-700 mb-2">전략 설정</h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Hard SL</span>
+                  <span className="font-mono text-rose-600">-5.0%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">PP Trigger</span>
+                  <span className="font-mono text-emerald-600">MFE ≥0.1%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">PP Keep</span>
+                  <span className="font-mono text-emerald-600">90%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">소멸 임계</span>
+                  <span className="font-mono text-orange-600">8/9</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Timeout</span>
+                  <span className="font-mono text-blue-600">2880분 (48h)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-200">
+              <h3 className="text-xs font-bold text-slate-700 mb-2">수수료</h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Maker</span>
+                  <span className="font-mono">0.02%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Taker</span>
+                  <span className="font-mono">0.05%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">왕복</span>
+                  <span className="font-mono font-bold text-emerald-600">0.10%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (data.strategyA && data.sellConditions) {
+      const { strategyA, sellConditions } = data;
+      const vanishPct = (sellConditions.vanish.current / sellConditions.vanish.threshold) * 100;
+      const timeoutPct = (sellConditions.timeout.elapsed / strategyA.timeout_min) * 100;
+
+      return (
       <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-slate-200 p-4 shadow-lg">
         <h2 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
           <Target className="w-4 h-4" />
@@ -206,7 +271,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        {strategyA.entry_conditions_live && (
+        {strategyA?.entry_conditions_live && (
           <div className="mt-4 pt-4 border-t border-slate-200">
             <h3 className="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1">
               <Activity className="w-3 h-3" />
@@ -228,7 +293,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         )}
       </div>
-    );
+      );
+    }
   }
 
   return null;
