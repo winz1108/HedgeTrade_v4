@@ -157,7 +157,7 @@ interface TradeEvent {
 
 ---
 
-## 6. 차트 데이터
+## 6. 차트 데이터 (현물과 동일한 캔들 차트 + 기술 지표)
 
 ### 현재 구현
 ```typescript
@@ -170,10 +170,53 @@ interface TradeEvent {
   priceHistory4h?: Candle[];   // ✓ 있음
   priceHistory1d?: Candle[];   // ✓ 있음
 }
+
+interface Candle {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  isPrediction?: boolean;
+  isComplete?: boolean;
+}
 ```
 
-**개선 필요**:
-현재는 optional이지만, **최소한 1m, 5m, 15m, 30m, 1h는 필수**로 제공되어야 합니다.
+### 필수 요구사항
+
+**차트는 현물과 동일하게 구현**:
+1. ✅ **캔들스틱 차트** (라인 차트 아님)
+2. ✅ **기술 지표 오버레이**:
+   - EMA (지수이동평균)
+     - 1m: EMA 5, 13
+     - 5m: EMA 5, 13
+     - 15m: EMA 3, 8
+     - 30m, 1h, 4h, 1d
+   - Bollinger Bands (상단/하단 밴드 + BBW)
+   - ADX (30m, 1h)
+   - RSI
+3. ✅ **거래량 히스토그램** (차트 하단)
+4. ✅ **매수/매도 마커** (Entry/Exit 포인트)
+5. ✅ **타임프레임 전환** (1m, 5m, 15m, 30m, 1h, 4h, 1d)
+
+### 데이터 제공 기준
+- **최소한 1m, 5m, 15m, 30m, 1h는 필수**
+- 각 타임프레임별 최소 200개 캔들 제공 권장
+- `isComplete: false`인 마지막 캔들은 실시간 업데이트용
+
+### 매수 조건과 차트 지표 매칭
+
+프론트엔드 차트에서 9개 진입 조건을 시각적으로 확인 가능:
+- `1m_ema_above` → 1m 차트에서 EMA(5>13) 골든크로스
+- `5m_ema_above` → 5m 차트에서 EMA(5>13)
+- `15m_ema38_above` → 15m 차트에서 EMA(3>8)
+- `30m_slope_up` → 30m 차트에서 EMA 기울기
+- `5m_bbw` → 5m 차트에서 Bollinger Band Width
+- `15m_bbw` → 15m 차트에서 BBW
+- `30m_gap` → 30m 차트에서 가격 갭
+- `30m_adx` → 30m 차트에서 ADX 표시
+- `1h_adx` → 1h 차트에서 ADX 표시
 
 ---
 
@@ -315,6 +358,12 @@ interface TradeEvent {
 ### 🟢 Medium (부가 기능)
 7. ❌ `metrics.winRate` - 자동 계산 가능하지만 백엔드 제공 권장
 8. ✅ `priceHistory5m, 15m, 30m, 1h` - 멀티 타임프레임
+
+### 📊 차트 기술 지표 요구사항
+9. ✅ **캔들스틱 차트 + 기술 지표**
+   - 프론트엔드는 현물과 동일한 `PriceChart` 컴포넌트 사용
+   - EMA, Bollinger Bands, ADX, RSI 자동 계산 및 표시
+   - 백엔드는 OHLCV 데이터만 제공하면 됨 (지표는 프론트 계산)
 
 ---
 
