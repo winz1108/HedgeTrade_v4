@@ -107,17 +107,17 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
     headerBorder: 'border-slate-700',
     buttonBg: 'bg-slate-700/60',
     buttonHover: 'hover:bg-slate-600/70',
-    buttonActive: 'bg-cyan-600/90',
-    buttonActiveHover: 'hover:bg-cyan-500',
-    textPrimary: 'text-slate-200',
-    textSecondary: 'text-slate-400',
+    buttonActive: 'bg-blue-600/90',
+    buttonActiveHover: 'hover:bg-blue-500',
+    textPrimary: 'text-white',
+    textSecondary: 'text-slate-300',
     tooltipBg: 'bg-slate-800/95',
     tooltipBorder: 'border-slate-600',
     panelBg: 'bg-slate-700/30',
     panelBorder: 'border-slate-600',
-    emaShort: '#f59e0b',
-    emaLong: '#06b6d4',
-    bb: '#8b5cf6',
+    emaShort: '#60a5fa',
+    emaLong: '#f59e0b',
+    bb: '#a78bfa',
   } : {
     chartBg: 'bg-white/60',
     chartBorder: 'border-stone-200',
@@ -125,17 +125,17 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
     headerBorder: 'border-stone-200',
     buttonBg: 'bg-stone-200/60',
     buttonHover: 'hover:bg-stone-300/70',
-    buttonActive: 'bg-amber-500/90',
-    buttonActiveHover: 'hover:bg-amber-600',
+    buttonActive: 'bg-blue-500/90',
+    buttonActiveHover: 'hover:bg-blue-600',
     textPrimary: 'text-slate-800',
-    textSecondary: '${colors.textSecondary}',
-    tooltipBg: 'bg-amber-50/95',
-    tooltipBorder: 'border-amber-300',
-    panelBg: 'bg-amber-50/80',
-    panelBorder: 'border-amber-200',
-    emaShort: '#d97706',
-    emaLong: '#0891b2',
-    bb: '#7c3aed',
+    textSecondary: 'text-slate-600',
+    tooltipBg: 'bg-white/95',
+    tooltipBorder: 'border-slate-300',
+    panelBg: 'bg-white/80',
+    panelBorder: 'border-slate-200',
+    emaShort: '#3b82f6',
+    emaLong: '#f59e0b',
+    bb: '#8b5cf6',
   };
   const minVolumeHeight = 80;
   const maxVolumeHeight = 300;
@@ -788,7 +788,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
       <div className={`${colors.headerBg} px-2 sm:px-4 py-2 flex items-center justify-between border-b ${colors.headerBorder} flex-wrap gap-2`}>
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm sm:text-base font-bold text-stone-800">BTC/USDC</h2>
+            <h2 className={`text-sm sm:text-base font-bold ${colors.textPrimary}`}>BTC/USDC</h2>
             {latestCandle && (
               <>
                 <div className={`text-base sm:text-lg font-bold ${colors.textPrimary}`}>
@@ -865,7 +865,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
           {scrollOffset > 0 && (
             <button
               onClick={handleResetScroll}
-              className="p-1 bg-amber-500/90 hover:bg-amber-600 rounded transition-colors"
+              className="p-1 bg-blue-500/90 hover:bg-blue-600 rounded transition-colors"
               title="Go to Latest"
             >
               <ChevronsRight className="w-3 h-3 text-white" />
@@ -934,17 +934,17 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                 <span className={`${colors.textSecondary} font-medium`}>L <span className="text-rose-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
                 <span className={`${colors.textSecondary} font-medium`}>C <span className={`${colors.textPrimary} font-bold`}>{hoveredCandle.close.toFixed(2)}</span></span>
                 {hoveredCandle.isComplete === false && (
-                  <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded text-[10px] font-bold border border-amber-400/40 animate-pulse shadow-lg">
+                  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[10px] font-bold border border-blue-400/40 animate-pulse shadow-lg">
                     진행 중
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-3 text-[10px]">
                 {hoveredCandle.ema_short && (
-                  <span className={`${colors.textSecondary} font-medium`}>EMA Short <span className={darkMode ? 'text-amber-400' : 'text-amber-600'} font-bold>{hoveredCandle.ema_short.toFixed(2)}</span></span>
+                  <span className={`${colors.textSecondary} font-medium`}>EMA Short <span className={darkMode ? 'text-blue-400' : 'text-blue-600'} font-bold>{hoveredCandle.ema_short.toFixed(2)}</span></span>
                 )}
                 {hoveredCandle.ema_long && (
-                  <span className={`${colors.textSecondary} font-medium`}>EMA Long <span className={darkMode ? 'text-cyan-400' : 'text-cyan-600'} font-bold>{hoveredCandle.ema_long.toFixed(2)}</span></span>
+                  <span className={`${colors.textSecondary} font-medium`}>EMA Long <span className={darkMode ? 'text-yellow-400' : 'text-yellow-600'} font-bold>{hoveredCandle.ema_long.toFixed(2)}</span></span>
                 )}
                 {hoveredCandle.bb_upper && (
                   <>
@@ -1119,7 +1119,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                           <g transform={`translate(${lastUpperTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.max(0, priceToY(lastUpperTouch.candle.high) - arrowOffset)})`}>
                             <path
                               d={`M 0 0 L ${arrowSize} ${-arrowSize} L 0 ${-arrowSize * 0.7} L ${-arrowSize} ${-arrowSize} Z`}
-                              fill="none"
+                              fill="#6b7280"
                               stroke="#6b7280"
                               strokeWidth="1.2"
                               strokeLinecap="round"
@@ -1132,7 +1132,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                           <g transform={`translate(${lastLowerTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.min(priceChartHeight, priceToY(lastLowerTouch.candle.low) + arrowOffset)})`}>
                             <path
                               d={`M 0 0 L ${arrowSize} ${arrowSize} L 0 ${arrowSize * 0.7} L ${-arrowSize} ${arrowSize} Z`}
-                              fill="none"
+                              fill="#6b7280"
                               stroke="#6b7280"
                               strokeWidth="1.2"
                               strokeLinecap="round"
@@ -1240,7 +1240,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                         ? 'bg-gradient-to-b from-emerald-400 to-emerald-500 border-emerald-300'
                         : 'bg-gradient-to-b from-rose-400 to-rose-500 border-rose-300'
                     } ${candle.isPrediction ? 'opacity-40 border-dashed' : ''} ${
-                      isHovered ? 'ring-2 ring-amber-400/50 shadow-lg' : ''
+                      isHovered ? 'ring-2 ring-blue-400/50 shadow-lg' : ''
                     }`}
                     style={{
                       position: 'absolute',
@@ -1277,7 +1277,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
               return (
                 <>
                   <div
-                    className="absolute h-0.5 bg-black"
+                    className="absolute h-0.5 bg-white"
                     style={{
                       left: `${highX - lineLength}px`,
                       top: `${highY}px`,
@@ -1287,7 +1287,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                     }}
                   />
                   <div
-                    className="absolute text-[9px] text-black font-semibold whitespace-nowrap text-right px-1 py-0.5 bg-white rounded"
+                    className="absolute text-[9px] text-white font-semibold whitespace-nowrap text-right px-1 py-0.5 bg-slate-800 rounded border border-slate-600"
                     style={{
                       right: `calc(100% - ${highX - lineLength}px + 2px)`,
                       top: `${highY - 8}px`,
@@ -1299,7 +1299,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                   </div>
 
                   <div
-                    className="absolute h-0.5 bg-black"
+                    className="absolute h-0.5 bg-white"
                     style={{
                       left: `${lowX - lineLength}px`,
                       top: `${lowY}px`,
@@ -1309,7 +1309,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                     }}
                   />
                   <div
-                    className="absolute text-[9px] text-black font-semibold whitespace-nowrap text-right px-1 py-0.5 bg-white rounded"
+                    className="absolute text-[9px] text-white font-semibold whitespace-nowrap text-right px-1 py-0.5 bg-slate-800 rounded border border-slate-600"
                     style={{
                       right: `calc(100% - ${lowX - lineLength}px + 2px)`,
                       top: `${lowY - 8}px`,
@@ -1952,7 +1952,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                       <>
                         <span className={colors.textSecondary}>|</span>
                         <span className="${colors.textSecondary} text-[10px]">Signal</span>
-                        <span className="text-orange-600 font-semibold">
+                        <span className="text-yellow-500 font-semibold">
                           {visibleCandles[hoveredCandleIndex].macd_signal!.toFixed(2)}
                         </span>
                       </>
@@ -2056,9 +2056,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                 <span className={`${colors.textSecondary} font-medium`}>ADX</span>
                 {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].adx !== undefined && (
                   <span className={`font-semibold ${
-                    visibleCandles[hoveredCandleIndex].adx! >= 25 ? 'text-emerald-600' :
-                    visibleCandles[hoveredCandleIndex].adx! >= 15 ? 'text-amber-600' :
-                    'text-rose-600'
+                    visibleCandles[hoveredCandleIndex].adx! >= 25 ? 'text-emerald-500' :
+                    visibleCandles[hoveredCandleIndex].adx! >= 15 ? 'text-blue-400' :
+                    'text-slate-400'
                   }`}>
                     {visibleCandles[hoveredCandleIndex].adx!.toFixed(1)}
                   </span>
@@ -2132,7 +2132,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
               return (
                 <div
                   key={i}
-                  className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[10px]"
+                  className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
                   style={{ top: `${y - 6}px` }}
                 >
                   {volume >= 1000 ? `${(volume / 1000).toFixed(1)}K` : volume.toFixed(0)}
@@ -2150,7 +2150,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             return (
               <div
                 key={i}
-                className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[10px]"
+                className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
                 style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
               >
                 {displayValue}
@@ -2166,7 +2166,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             return (
               <div
                 key={value}
-                className="absolute right-0 w-full text-left pl-2 text-stone-700 text-[10px]"
+                className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
                 style={{ top: `${y - 6}px` }}
               >
                 {value}

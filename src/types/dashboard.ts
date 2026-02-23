@@ -360,15 +360,15 @@ export interface KrakenStrategyA {
   '1h_ema5_slope'?: number;
   entry_time?: number;
   entry_conditions_live?: {
-    '1m_golden_cross'?: boolean;
-    '5m_above'?: boolean;
-    '15m_above'?: boolean;
-    '30m_slope_up'?: boolean;
-    '5m_bbw'?: boolean;
-    '15m_bbw'?: boolean;
-    '30m_gap'?: boolean;
-    '30m_adx'?: boolean;
-    'no_recent_loss'?: boolean;
+    '1m_golden_cross'?: boolean | { long: boolean; short: boolean };
+    '5m_above'?: boolean | { long: boolean; short: boolean };
+    '15m_above'?: boolean | { long: boolean; short: boolean };
+    '30m_slope_up'?: boolean | { long: boolean; short: boolean };
+    '5m_bbw'?: boolean | { long: boolean; short: boolean };
+    '15m_bbw'?: boolean | { long: boolean; short: boolean };
+    '30m_gap'?: boolean | { long: boolean; short: boolean };
+    '30m_adx'?: boolean | { long: boolean; short: boolean };
+    '1h_adx'?: boolean | { long: boolean; short: boolean };
   };
 }
 
