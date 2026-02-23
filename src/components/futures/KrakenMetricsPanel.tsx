@@ -143,8 +143,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   </div>
                   {liquidationPrice && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-rose-300">Liquidation</span>
-                      <span className="text-[11px] font-bold text-rose-400">{formatCurrency(liquidationPrice)}</span>
+                      <span className="text-[9px] text-slate-400">Liquidation</span>
+                      <span className="text-[11px] font-bold text-slate-300">{formatCurrency(liquidationPrice)}</span>
                     </div>
                   )}
                   {currentPnl !== undefined && (
