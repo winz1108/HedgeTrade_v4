@@ -1479,9 +1479,9 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                   const x2 = sellCandleIndex * (candleWidth + candleGap) + candleWidth / 2;
                   const y2 = priceToY(sell.price);
 
-                  // 포지션 사이드에 따라 색상 결정: LONG=시안, SHORT=주황
-                  const isLong = buy.side === 'LONG' || !buy.side;
-                  const lineColor = isLong ? '#06b6d4' : '#f97316';
+                  // 익절/손절에 따라 색상 결정: 익절=초록, 손절=빨강
+                  const isProfit = sell.profit !== undefined && sell.profit >= 0;
+                  const lineColor = isProfit ? '#10b981' : '#ef4444';
 
                   return (
                     <line
