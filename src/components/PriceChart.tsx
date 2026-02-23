@@ -533,8 +533,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
         >
         {!hasPairedSell ? (
           <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
-              <div className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
+              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
               BUY Signal at ${trade.price.toFixed(2)}
             </div>
 
@@ -561,8 +561,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
           </>
         ) : pairedTrade ? (
           <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
-              <div className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
+              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
               거래 완료
             </div>
 
@@ -591,8 +591,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
           </>
         ) : (
           <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
-              <div className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
+              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
               보유 중
             </div>
 
@@ -672,8 +672,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
       >
         {!hasPairedSell ? (
           <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
-              <div className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
+              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
               BUY Signal at ${trade.price.toFixed(2)}
             </div>
 
@@ -700,8 +700,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
           </>
         ) : pairedTrade ? (
           <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
-              <div className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
+              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
               거래 완료
             </div>
 
@@ -730,8 +730,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
           </>
         ) : (
           <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#3b82f6]">
-              <div className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
+              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
               보유 중
             </div>
 
@@ -875,7 +875,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             onClick={() => setShowTradeMarkers(!showTradeMarkers)}
             className={`p-1 rounded transition-colors ${
               showTradeMarkers
-                ? 'bg-[#3b82f6] hover:bg-[#2563eb]'
+                ? 'bg-[#4169E1] hover:bg-[#365abf]'
                 : 'bg-stone-200/60 hover:bg-stone-300/70'
             }`}
             title={showTradeMarkers ? "Hide B/S Markers" : "Show B/S Markers"}
@@ -1649,15 +1649,15 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                       <div className="relative flex items-center justify-center">
                         {!trade.isPaired && lastUnpairedBuyTimestamp === trade.timestamp && (
                           <>
-                            <div className="absolute w-12 h-12 bg-[#3b82f6] rounded-full opacity-10 animate-pulse" />
-                            <div className="absolute w-10 h-10 bg-[#3b82f6] rounded-full opacity-15 animate-ping" style={{ animationDuration: '2s' }} />
+                            <div className="absolute w-12 h-12 bg-[#4169E1] rounded-full opacity-10 animate-pulse" />
+                            <div className="absolute w-10 h-10 bg-[#4169E1] rounded-full opacity-15 animate-ping" style={{ animationDuration: '2s' }} />
                           </>
                         )}
-                        <div className={`absolute w-8 h-8 bg-[#3b82f6] rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''}`} />
-                        <div className={`w-6 h-6 bg-[#3b82f6] rounded-full border-2 transition-all ${
+                        <div className={`absolute w-8 h-8 bg-[#4169E1] rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''}`} />
+                        <div className={`w-6 h-6 bg-[#4169E1] rounded-full border-2 transition-all ${
                           trade.isPaired
                             ? 'border-white shadow-lg'
-                            : 'border-[#60a5fa] shadow-[0_0_15px_rgba(59,130,246,0.6)] shadow-lg'
+                            : 'border-[#6495ED] shadow-[0_0_15px_rgba(65,105,225,0.6)] shadow-lg'
                         } ${isHovered ? 'scale-125' : ''}`}>
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="text-white text-xs font-bold">B</span>
