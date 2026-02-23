@@ -1669,16 +1669,16 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                       <div className="relative flex items-center justify-center">
                         {!trade.isPaired && lastUnpairedBuyTimestamp === trade.timestamp && (
                           <>
-                            <div className={`absolute w-12 h-12 rounded-full opacity-10 animate-pulse ${trade.side === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500'}`} />
-                            <div className={`absolute w-10 h-10 rounded-full opacity-15 animate-ping ${trade.side === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500'}`} style={{ animationDuration: '2s' }} />
+                            <div className={`absolute w-12 h-12 rounded-full opacity-10 animate-pulse ${trade.side === 'SHORT' ? 'bg-yellow-500' : 'bg-cyan-500'}`} />
+                            <div className={`absolute w-10 h-10 rounded-full opacity-15 animate-ping ${trade.side === 'SHORT' ? 'bg-yellow-500' : 'bg-cyan-500'}`} style={{ animationDuration: '2s' }} />
                           </>
                         )}
-                        <div className={`absolute w-8 h-8 rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''} ${trade.side === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500'}`} />
+                        <div className={`absolute w-8 h-8 rounded-full opacity-20 ${isHovered ? 'animate-ping' : ''} ${trade.side === 'SHORT' ? 'bg-yellow-500' : 'bg-cyan-500'}`} />
                         <div className={`w-6 h-6 rounded-full border-2 transition-all ${
                           trade.isPaired
                             ? 'border-white shadow-lg'
-                            : `${trade.side === 'SHORT' ? 'border-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.6)]' : 'border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6)]'} shadow-lg`
-                        } ${isHovered ? 'scale-125' : ''} ${trade.side === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500'}`}>
+                            : `${trade.side === 'SHORT' ? 'border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.6)]' : 'border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6)]'} shadow-lg`
+                        } ${isHovered ? 'scale-125' : ''} ${trade.side === 'SHORT' ? 'bg-yellow-500' : 'bg-cyan-500'}`}>
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="text-white text-xs font-bold">{trade.side === 'SHORT' ? 'S' : 'L'}</span>
                           </div>
