@@ -539,20 +539,20 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             </div>
 
             <div>
-              <div className="space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+              <div className={`space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <div className="flex justify-between gap-6">
-                  <span className="${colors.textSecondary}">현재가</span>
-                  <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
+                  <span className={colors.textSecondary}>현재가</span>
+                  <span className={`${colors.textPrimary} font-semibold`}>${data.currentPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between gap-6">
-                  <span className="text-stone-200">현재 수익률</span>
+                  <span className={colors.textSecondary}>현재 수익률</span>
                   <span className={`font-semibold ${((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                     {((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex justify-between gap-6">
-                  <span className="${colors.textSecondary}">보유 시간</span>
-                  <span className="text-slate-300 text-[10px]">
+                  <span className={colors.textSecondary}>보유 시간</span>
+                  <span className={`${colors.textSecondary} text-[10px]`}>
                     {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                   </span>
                 </div>
@@ -567,23 +567,23 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="text-stone-200">매수가</span>
-                <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>매수가</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${trade.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">매도가</span>
-                <span className="text-white font-semibold">${pairedTrade!.price.toFixed(2)}</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>매도가</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${pairedTrade!.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">수익률</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>수익률</span>
                 <span className={`font-bold ${((pairedTrade!.price - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((pairedTrade!.price - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">보유 시간</span>
-                <span className="text-slate-300 text-[10px]">
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>보유 시간</span>
+                <span className={`${colors.textSecondary} text-[10px]`}>
                   {Math.floor((pairedTrade!.timestamp - trade.timestamp) / 60000)}분
                 </span>
               </div>
@@ -597,29 +597,29 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             </div>
 
             <div className="space-y-2 mb-3">
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="text-stone-200">매수가</span>
-                <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>매수가</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${trade.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">현재가</span>
-                <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>현재가</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${data.currentPrice.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">현재 수익률</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>현재 수익률</span>
                 <span className={`font-bold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">보유 시간</span>
-                <span className="text-slate-300 text-[10px]">
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>보유 시간</span>
+                <span className={`${colors.textSecondary} text-[10px]`}>
                   {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                 </span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">마지막 업데이트</span>
-                <span className="text-slate-300 text-[10px]">
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>마지막 업데이트</span>
+                <span className={`${colors.textSecondary} text-[10px]`}>
                   {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
               </div>
@@ -678,20 +678,20 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             </div>
 
             <div>
-              <div className="space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
+              <div className={`space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <div className="flex justify-between gap-6">
-                  <span className="${colors.textSecondary}">현재가</span>
-                  <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
+                  <span className={colors.textSecondary}>현재가</span>
+                  <span className={`${colors.textPrimary} font-semibold`}>${data.currentPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between gap-6">
-                  <span className="text-stone-200">현재 수익률</span>
+                  <span className={colors.textSecondary}>현재 수익률</span>
                   <span className={`font-semibold ${((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                     {((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex justify-between gap-6">
-                  <span className="${colors.textSecondary}">보유 시간</span>
-                  <span className="text-slate-300 text-[10px]">
+                  <span className={colors.textSecondary}>보유 시간</span>
+                  <span className={`${colors.textSecondary} text-[10px]`}>
                     {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                   </span>
                 </div>
@@ -706,23 +706,23 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="text-stone-200">매수가</span>
-                <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>매수가</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${trade.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">매도가</span>
-                <span className="text-white font-semibold">${pairedTrade!.price.toFixed(2)}</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>매도가</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${pairedTrade!.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">수익률</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>수익률</span>
                 <span className={`font-bold ${((pairedTrade!.price - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((pairedTrade!.price - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">보유 시간</span>
-                <span className="text-slate-300 text-[10px]">
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>보유 시간</span>
+                <span className={`${colors.textSecondary} text-[10px]`}>
                   {Math.floor((pairedTrade!.timestamp - trade.timestamp) / 60000)}분
                 </span>
               </div>
@@ -736,29 +736,29 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             </div>
 
             <div className="space-y-2 mb-3">
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="text-stone-200">매수가</span>
-                <span className="text-white font-semibold">${trade.price.toFixed(2)}</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>매수가</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${trade.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">현재가</span>
-                <span className="text-white font-semibold">${data.currentPrice.toFixed(2)}</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>현재가</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${data.currentPrice.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">현재 수익률</span>
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>현재 수익률</span>
                 <span className={`font-bold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
                   {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">보유 시간</span>
-                <span className="text-slate-300 text-[10px]">
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>보유 시간</span>
+                <span className={`${colors.textSecondary} text-[10px]`}>
                   {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
                 </span>
               </div>
-              <div className="flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded">
-                <span className="${colors.textSecondary}">마지막 업데이트</span>
-                <span className="text-slate-300 text-[10px]">
+              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                <span className={colors.textSecondary}>마지막 업데이트</span>
+                <span className={`${colors.textSecondary} text-[10px]`}>
                   {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
               </div>
@@ -791,7 +791,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             <h2 className="text-sm sm:text-base font-bold text-stone-800">BTC/USDC</h2>
             {latestCandle && (
               <>
-                <div className="text-base sm:text-lg font-bold text-stone-900">
+                <div className={`text-base sm:text-lg font-bold ${colors.textPrimary}`}>
                   ${latestCandle.close.toFixed(2)}
                 </div>
                 <div className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -948,16 +948,16 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                 )}
                 {hoveredCandle.bb_upper && (
                   <>
-                    <span className="${colors.textSecondary}">|</span>
-                    <span className="${colors.textSecondary} font-medium">BB <span className="text-violet-600 font-bold">{hoveredCandle.bb_upper.toFixed(2)}</span></span>
-                    <span className="${colors.textSecondary} font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span></span>
-                    <span className="${colors.textSecondary} font-medium">/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_lower?.toFixed(2)}</span></span>
+                    <span className={colors.textSecondary}>|</span>
+                    <span className={`${colors.textSecondary} font-medium`}>BB <span className="text-violet-600 font-bold">{hoveredCandle.bb_upper.toFixed(2)}</span></span>
+                    <span className={`${colors.textSecondary} font-medium`}>/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span></span>
+                    <span className={`${colors.textSecondary} font-medium`}>/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_lower?.toFixed(2)}</span></span>
                   </>
                 )}
                 {hoveredCandle.adx && (
                   <>
-                    <span className="${colors.textSecondary}">|</span>
-                    <span className="${colors.textSecondary} font-medium">ADX <span className="text-emerald-600 font-bold">{hoveredCandle.adx.toFixed(1)}</span></span>
+                    <span className={colors.textSecondary}>|</span>
+                    <span className={`${colors.textSecondary} font-medium`}>ADX <span className="text-emerald-600 font-bold">{hoveredCandle.adx.toFixed(1)}</span></span>
                   </>
                 )}
               </div>
@@ -1733,11 +1733,11 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                     }}
                   >
                     {isHovered ? (
-                      <div className="px-1.5 py-0.5 rounded text-stone-900 text-[11px] font-bold bg-white/95 border border-stone-300 shadow-md pointer-events-auto">
+                      <div className={`px-1.5 py-0.5 rounded ${colors.textPrimary} text-[11px] font-bold ${darkMode ? 'bg-slate-800/95 border-slate-600' : 'bg-white/95 border-stone-300'} border shadow-md pointer-events-auto`}>
                         {hoverLabel}
                       </div>
                     ) : (
-                      <span className="text-stone-700">{timeLabel}</span>
+                      <span className={colors.textSecondary}>{timeLabel}</span>
                     )}
                   </div>
                 );
@@ -1813,10 +1813,10 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             </div>
 
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="${colors.textSecondary} font-medium">Volume</span>
+              <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none`}>
+                <span className={`${colors.textSecondary} font-medium`}>Volume</span>
                 {visibleCandles[hoveredCandleIndex] && (
-                  <span className="text-stone-900 font-semibold">
+                  <span className={`${colors.textPrimary} font-semibold`}>
                     {visibleCandles[hoveredCandleIndex].volume.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC
                   </span>
                 )}
@@ -1939,8 +1939,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
               })()}
             </svg>
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="${colors.textSecondary} font-medium">MACD</span>
+              <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none`}>
+                <span className={`${colors.textSecondary} font-medium`}>MACD</span>
                 {visibleCandles[hoveredCandleIndex] && (
                   <>
                     {visibleCandles[hoveredCandleIndex].macd_line !== undefined && (
@@ -1950,7 +1950,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                     )}
                     {visibleCandles[hoveredCandleIndex].macd_signal !== undefined && (
                       <>
-                        <span className="${colors.textSecondary}">|</span>
+                        <span className={colors.textSecondary}>|</span>
                         <span className="${colors.textSecondary} text-[10px]">Signal</span>
                         <span className="text-orange-600 font-semibold">
                           {visibleCandles[hoveredCandleIndex].macd_signal!.toFixed(2)}
@@ -1959,7 +1959,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                     )}
                     {visibleCandles[hoveredCandleIndex].macd_hist !== undefined && (
                       <>
-                        <span className="${colors.textSecondary}">|</span>
+                        <span className={colors.textSecondary}>|</span>
                         <span className="${colors.textSecondary} text-[10px]">Hist</span>
                         <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].macd_hist! >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {visibleCandles[hoveredCandleIndex].macd_hist!.toFixed(2)}
@@ -2052,8 +2052,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
               })()}
             </svg>
             {hoveredCandleIndex !== null && (
-              <div className="absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none">
-                <span className="${colors.textSecondary} font-medium">ADX</span>
+              <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none`}>
+                <span className={`${colors.textSecondary} font-medium`}>ADX</span>
                 {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].adx !== undefined && (
                   <span className={`font-semibold ${
                     visibleCandles[hoveredCandleIndex].adx! >= 25 ? 'text-emerald-600' :
@@ -2112,7 +2112,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
               className="absolute left-0 right-0 flex items-center justify-center z-50"
               style={{ top: `${crosshairPosition.y - 10}px` }}
             >
-              <div className="px-1.5 py-0.5 rounded text-stone-900 text-[11px] font-bold bg-white/95 border border-stone-300 shadow-md">
+              <div className={`px-1.5 py-0.5 rounded ${colors.textPrimary} text-[11px] font-bold ${darkMode ? 'bg-slate-800/95 border-slate-600' : 'bg-white/95 border-stone-300'} border shadow-md`}>
                 {yToPrice(crosshairPosition.y).toFixed(2)}
               </div>
             </div>
