@@ -121,7 +121,7 @@ function FuturesDashboard() {
           <div className="flex items-center gap-3 mb-4 bg-slate-800/90 border border-slate-700 rounded-lg p-3 shadow-xl">
             <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
             <h1 className="text-lg lg:text-2xl font-bold text-slate-100">
-              Loading Kraken Futures Dashboard...
+              Loading Futures Dashboard...
             </h1>
           </div>
         </div>
@@ -157,17 +157,25 @@ function FuturesDashboard() {
           <div className="flex items-center gap-3 flex-wrap justify-between">
             <div className="flex items-center gap-2">
               <h1 className="text-lg lg:text-2xl font-bold text-slate-100">
-                Kraken Futures Dashboard
+                Futures Dashboard
               </h1>
               {data.version && (
                 <span className="text-[10px] text-cyan-400 font-mono">{data.version}</span>
               )}
               {data.position.in_position && (
-                <div className="relative px-4 py-2 bg-slate-700/80 backdrop-blur-sm rounded-lg border border-cyan-500/40 shadow-lg overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-transparent to-cyan-500/10"></div>
+                <div className={`relative px-4 py-2 bg-slate-700/80 backdrop-blur-sm rounded-lg border ${
+                  data.position.position_side === 'SHORT' ? 'border-orange-500/40' : 'border-cyan-500/40'
+                } shadow-lg overflow-hidden`}>
+                  <div className={`absolute inset-0 bg-gradient-to-r ${
+                    data.position.position_side === 'SHORT' ? 'from-orange-500/10 via-transparent to-orange-500/10' : 'from-cyan-500/10 via-transparent to-cyan-500/10'
+                  }`}></div>
                   <div className="relative flex items-center gap-2.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
-                    <span className="text-xs font-bold text-cyan-300 tracking-wider uppercase">
+                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                      data.position.position_side === 'SHORT' ? 'bg-orange-400' : 'bg-cyan-400'
+                    }`}></div>
+                    <span className={`text-xs font-bold tracking-wider uppercase ${
+                      data.position.position_side === 'SHORT' ? 'text-orange-300' : 'text-cyan-300'
+                    }`}>
                       {data.position.position_side} POSITION
                     </span>
                   </div>

@@ -115,8 +115,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
     tooltipBorder: 'border-slate-600',
     panelBg: 'bg-slate-700/30',
     panelBorder: 'border-slate-600',
-    emaShort: '#60a5fa',
-    emaLong: '#f59e0b',
+    emaShort: '#22d3ee',
+    emaLong: '#fb923c',
     bb: '#a78bfa',
   } : {
     chartBg: 'bg-white/60',
@@ -1119,8 +1119,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                           <g transform={`translate(${lastUpperTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.max(0, priceToY(lastUpperTouch.candle.high) - arrowOffset)})`}>
                             <path
                               d={`M 0 0 L ${arrowSize} ${-arrowSize} L 0 ${-arrowSize * 0.7} L ${-arrowSize} ${-arrowSize} Z`}
-                              fill="#6b7280"
-                              stroke="#6b7280"
+                              fill="#ffffff"
+                              stroke="#ffffff"
                               strokeWidth="1.2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -1132,8 +1132,8 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                           <g transform={`translate(${lastLowerTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.min(priceChartHeight, priceToY(lastLowerTouch.candle.low) + arrowOffset)})`}>
                             <path
                               d={`M 0 0 L ${arrowSize} ${arrowSize} L 0 ${arrowSize * 0.7} L ${-arrowSize} ${arrowSize} Z`}
-                              fill="#6b7280"
-                              stroke="#6b7280"
+                              fill="#ffffff"
+                              stroke="#ffffff"
                               strokeWidth="1.2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
