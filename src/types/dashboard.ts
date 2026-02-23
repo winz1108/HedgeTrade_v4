@@ -42,6 +42,7 @@ export interface TradeEvent {
   entryTime?: number;
   profitNoCommission?: number;
   pnlWithCommission?: number;
+  side?: 'LONG' | 'SHORT'; // 포지션 방향
 }
 
 export interface HoldingInfo {
