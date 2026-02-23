@@ -16,7 +16,7 @@ function FuturesDashboard() {
       setError(null);
       const krakenData = await fetchKrakenDashboard();
 
-      const chart1m = await fetchKrakenChartData('1m', 500);
+      const chart1m = await fetchKrakenChartData('1m', 1000);
       krakenData.priceHistory1m = chart1m.candles;
 
       setData(krakenData);
@@ -115,20 +115,20 @@ function FuturesDashboard() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
-          <div className="w-full lg:w-auto flex flex-col gap-2">
+        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
+          <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1 lg:h-[640px]">
             <KrakenMetricsPanel data={data} position="left" />
           </div>
-
-          <div className="w-full min-w-0 flex flex-col gap-2">
+          <div className="w-full min-w-0 order-1 lg:order-2">
             <KrakenPriceChart data={data} />
-            <div style={{ height: 'calc(100vh - 660px)', minHeight: '300px' }}>
+          </div>
+          <div className="w-full lg:w-[280px] order-3 lg:order-3 lg:h-[640px] flex flex-col gap-2">
+            <div className="w-full flex-shrink-0">
+              <KrakenMetricsPanel data={data} position="right" />
+            </div>
+            <div className="w-full flex-1 lg:min-h-0">
               <KrakenMetricsPanel data={data} position="trades" />
             </div>
-          </div>
-
-          <div className="w-full lg:w-auto flex flex-col gap-2">
-            <KrakenMetricsPanel data={data} position="right" />
           </div>
         </div>
       </div>

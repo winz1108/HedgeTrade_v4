@@ -456,9 +456,9 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
   }
 };
 
-export const fetchKrakenChartData = async (timeframe: string, limit: number = 500) => {
+export const fetchKrakenChartData = async (timeframe: string, limit: number = 1000) => {
   const baseUrl = getApiUrl();
-  const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}`;
+  const url = `${baseUrl}/api/kraken/chart/${timeframe}?limit=${limit}`;
 
   try {
     const response = await fetch(url, {
