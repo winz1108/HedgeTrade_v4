@@ -1491,34 +1491,43 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
               </svg>
             )}
 
-            {data.holding.isHolding && data.holding.buyPrice && (
-              <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
-                {/* 매수 가격선 */}
-                <line
-                  x1="0"
-                  y1={priceToY(data.holding.buyPrice)}
-                  x2="100%"
-                  y2={priceToY(data.holding.buyPrice)}
-                  stroke="#3b82f6"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 2"
-                  opacity="0.75"
-                  filter="drop-shadow(0 0 3px rgba(59, 130, 246, 0.5))"
-                />
-                {/* 본전선 (0.2% 상승 지점) */}
-                <line
-                  x1="0"
-                  y1={priceToY(data.holding.buyPrice * 1.002)}
-                  x2="100%"
-                  y2={priceToY(data.holding.buyPrice * 1.002)}
-                  stroke="#10b981"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 2"
-                  opacity="0.75"
-                  filter="drop-shadow(0 0 3px rgba(16, 185, 129, 0.5))"
-                />
-              </svg>
-            )}
+            {data.holding.isHolding && data.holding.buyPrice && (() => {
+              const isLong = data.holding.positionSide === 'LONG';
+              const entryColor = isLong ? '#06b6d4' : '#ef4444'; // cyan for LONG, red for SHORT
+              const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(239, 68, 68, 0.5)';
+              const breakevenPrice = isLong
+                ? data.holding.buyPrice * 1.001  // +0.1% for LONG
+                : data.holding.buyPrice * 0.999; // -0.1% for SHORT
+
+              return (
+                <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
+                  {/* Entry price line */}
+                  <line
+                    x1="0"
+                    y1={priceToY(data.holding.buyPrice)}
+                    x2="100%"
+                    y2={priceToY(data.holding.buyPrice)}
+                    stroke={entryColor}
+                    strokeWidth="1.5"
+                    strokeDasharray="4 2"
+                    opacity="0.75"
+                    filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
+                  />
+                  {/* Breakeven line (0.1% fee coverage) */}
+                  <line
+                    x1="0"
+                    y1={priceToY(breakevenPrice)}
+                    x2="100%"
+                    y2={priceToY(breakevenPrice)}
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 2"
+                    opacity="0.6"
+                    filter="drop-shadow(0 0 3px rgba(255, 255, 255, 0.4))"
+                  />
+                </svg>
+              );
+            })()}
 
 
             <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, width: `${visibleCandles.length * (candleWidth + candleGap)}px`, overflow: 'visible', zIndex: 5 }}>

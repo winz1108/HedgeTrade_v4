@@ -58,6 +58,7 @@ export interface HoldingInfo {
     takeProfitProb: number;
     stopLossProb: number;
   };
+  positionSide?: 'LONG' | 'SHORT';
 }
 
 export interface MarketState {
@@ -371,6 +372,8 @@ export interface KrakenStrategyA {
     '30m_adx'?: boolean | { long: boolean; short: boolean };
     '1h_adx'?: boolean | { long: boolean; short: boolean };
   };
+  entry_conditions_long?: Record<string, boolean>;
+  entry_conditions_short?: Record<string, boolean>;
 }
 
 export interface KrakenSellConditions {

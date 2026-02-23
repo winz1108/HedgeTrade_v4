@@ -56,6 +56,7 @@ export function KrakenPriceChart({ data }: Props) {
         isHolding: data.position.in_position,
         buyPrice: data.position.entry_price,
         currentProfit: data.position.unrealizedPnlPct,
+        positionSide: data.position.position_side,
       },
       metrics: {
         portfolioReturn: 0,
