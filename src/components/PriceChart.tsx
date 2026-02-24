@@ -1680,7 +1680,7 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
                             : `${trade.side === 'SHORT' ? 'border-orange-400 shadow-[0_0_15px_rgba(251,146,60,0.6)]' : 'border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6)]'} shadow-lg`
                         } ${isHovered ? 'scale-125' : ''} ${trade.isPaired ? '' : trade.side === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500'}`}>
                           <div className="w-full h-full flex items-center justify-center">
-                            <span className={`${trade.isPaired ? (trade.side === 'SHORT' ? 'text-orange-600' : 'text-cyan-500') : 'text-white'} text-xs font-bold`}>{trade.side === 'SHORT' ? 'S' : 'L'}</span>
+                            <span className={`${trade.isPaired ? (trade.side === 'SHORT' ? 'text-orange-600' : 'text-white') : 'text-white'} text-xs font-bold`}>{trade.side === 'SHORT' ? 'S' : 'L'}</span>
                           </div>
                         </div>
                       </div>

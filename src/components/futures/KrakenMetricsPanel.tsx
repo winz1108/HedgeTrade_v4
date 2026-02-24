@@ -51,7 +51,7 @@ const getExitReasonLabel = (reason?: string): string => {
   if (reason === 'SL') return 'SL';
   if (reason === 'HARD_SL') return 'Hard SL';
   if (reason === 'PP') return 'PP';
-  if (reason === 'PP_STOP') return 'PP';
+  if (reason.startsWith('PP_STOP')) return 'PP';
   if (reason === 'VANISH') return 'Vanish';
   if (reason === 'TIMEOUT') return 'Timeout';
   return reason;
