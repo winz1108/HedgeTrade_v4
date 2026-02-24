@@ -115,7 +115,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                       if (currency === 'BTC') {
                         textColor = 'text-yellow-400';
                       } else if (currency === 'EUR') {
-                        textColor = 'text-blue-600';
+                        textColor = 'text-blue-400';
                       }
 
                       return (
