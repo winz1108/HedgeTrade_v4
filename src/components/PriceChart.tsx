@@ -359,10 +359,11 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
   };
 
   const macdData = useMemo(() => {
-    // 백엔드 필드명: macd_line, macd_signal, macd_hist
-    const macdValues = visibleCandles.map(c => c.macd_line).filter((v): v is number => v !== undefined);
-    const signalValues = visibleCandles.map(c => c.macd_signal).filter((v): v is number => v !== undefined);
-    const histogramValues = visibleCandles.map(c => c.macd_hist).filter((v): v is number => v !== undefined);
+    // 백엔드 실제 필드명: macd, signal, histogram (API_SPEC.md 기준)
+    // 레거시 필드명도 폴백으로 지원: macd_line, macd_signal, macd_hist
+    const macdValues = visibleCandles.map(c => c.macd ?? c.macd_line).filter((v): v is number => v !== undefined);
+    const signalValues = visibleCandles.map(c => c.signal ?? c.macd_signal).filter((v): v is number => v !== undefined);
+    const histogramValues = visibleCandles.map(c => c.histogram ?? c.macd_hist).filter((v): v is number => v !== undefined);
 
     if (macdValues.length === 0) return { min: -1, max: 1 };
 
@@ -1907,12 +1908,13 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
               })()}
 
               {visibleCandles.map((candle, idx) => {
-                if (candle.macd_hist === undefined) return null;
+                const hist = candle.histogram ?? candle.macd_hist;
+                if (hist === undefined) return null;
                 const x = idx * (candleWidth + candleGap) + candleWidth / 2;
                 const zeroY = macdToY(0);
-                const histY = macdToY(candle.macd_hist);
+                const histY = macdToY(hist);
                 const height = Math.abs(zeroY - histY);
-                const isPositive = candle.macd_hist >= 0;
+                const isPositive = hist >= 0;
 
                 return (
                   <rect
@@ -1932,14 +1934,16 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
 
                 visibleCandles.forEach((candle, idx) => {
                   const x = idx * (candleWidth + candleGap) + candleWidth / 2;
+                  const macdVal = candle.macd ?? candle.macd_line;
+                  const signalVal = candle.signal ?? candle.macd_signal;
 
-                  if (candle.macd_line !== undefined) {
-                    const y = macdToY(candle.macd_line);
+                  if (macdVal !== undefined) {
+                    const y = macdToY(macdVal);
                     macdPoints.push(`${x},${y}`);
                   }
 
-                  if (candle.macd_signal !== undefined) {
-                    const y = macdToY(candle.macd_signal);
+                  if (signalVal !== undefined) {
+                    const y = macdToY(signalVal);
                     signalPoints.push(`${x},${y}`);
                   }
                 });
@@ -1971,33 +1975,39 @@ export const PriceChart = ({ data, onTradeHover, onTimeframeChange, darkMode = f
             {hoveredCandleIndex !== null && (
               <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none`}>
                 <span className={`${colors.textSecondary} font-medium`}>MACD</span>
-                {visibleCandles[hoveredCandleIndex] && (
+                {visibleCandles[hoveredCandleIndex] && (() => {
+                  const candle = visibleCandles[hoveredCandleIndex];
+                  const macdVal = candle.macd ?? candle.macd_line;
+                  const signalVal = candle.signal ?? candle.macd_signal;
+                  const histVal = candle.histogram ?? candle.macd_hist;
+                  return (
                   <>
-                    {visibleCandles[hoveredCandleIndex].macd_line !== undefined && (
+                    {macdVal !== undefined && (
                       <span className="text-blue-600 font-semibold">
-                        {visibleCandles[hoveredCandleIndex].macd_line!.toFixed(2)}
+                        {macdVal.toFixed(2)}
                       </span>
                     )}
-                    {visibleCandles[hoveredCandleIndex].macd_signal !== undefined && (
+                    {signalVal !== undefined && (
                       <>
                         <span className={colors.textSecondary}>|</span>
                         <span className="${colors.textSecondary} text-[10px]">Signal</span>
                         <span className="text-yellow-500 font-semibold">
-                          {visibleCandles[hoveredCandleIndex].macd_signal!.toFixed(2)}
+                          {signalVal.toFixed(2)}
                         </span>
                       </>
                     )}
-                    {visibleCandles[hoveredCandleIndex].macd_hist !== undefined && (
+                    {histVal !== undefined && (
                       <>
                         <span className={colors.textSecondary}>|</span>
                         <span className="${colors.textSecondary} text-[10px]">Hist</span>
-                        <span className={`font-semibold ${visibleCandles[hoveredCandleIndex].macd_hist! >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {visibleCandles[hoveredCandleIndex].macd_hist!.toFixed(2)}
+                        <span className={`font-semibold ${histVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {histVal.toFixed(2)}
                         </span>
                       </>
                     )}
                   </>
-                )}
+                  );
+                })()}
               </div>
             )}
           </div>

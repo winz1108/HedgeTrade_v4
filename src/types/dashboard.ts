@@ -17,9 +17,14 @@ export interface Candle {
   bb_lower?: number;     // Bollinger Band 하단
   bbw?: number;          // Bollinger Band Width %
   adx?: number;          // ADX(14)
-  macd_line?: number;    // MACD Line (available in all timeframes)
-  macd_signal?: number;  // MACD Signal (available in all timeframes)
-  macd_hist?: number;    // MACD Histogram (available in all timeframes)
+  // MACD - 백엔드 실제 필드명 (모든 타임프레임)
+  macd?: number;         // MACD Line (백엔드 전송 필드명)
+  signal?: number;       // MACD Signal (백엔드 전송 필드명)
+  histogram?: number;    // MACD Histogram (백엔드 전송 필드명)
+  // MACD - 레거시/대체 필드명 (하위 호환성)
+  macd_line?: number;    // MACD Line (레거시)
+  macd_signal?: number;  // MACD Signal (레거시)
+  macd_hist?: number;    // MACD Histogram (레거시)
   rsi?: number;
 }
 

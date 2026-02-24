@@ -26,16 +26,23 @@
 }
 ```
 
-### 모든 타임프레임 MACD 필드
+### 모든 타임프레임 MACD 필드 (백엔드 실제 필드명)
+
+**중요: 백엔드가 실제로 전송하는 필드명입니다 (API_SPEC.md 기준)**
 
 ```typescript
 {
   // ... 기본 필드 ...
-  macd_line: number,      // MACD Line (모든 타임프레임)
-  macd_signal: number,    // MACD Signal (모든 타임프레임)
-  macd_hist: number       // MACD Histogram (모든 타임프레임)
+  macd: number,           // MACD Line (백엔드 전송 필드명)
+  signal: number,         // MACD Signal (백엔드 전송 필드명)
+  histogram: number       // MACD Histogram (백엔드 전송 필드명)
 }
 ```
+
+프론트엔드는 하위 호환성을 위해 레거시 필드명도 지원합니다:
+- `macd_line` (대체: `macd`)
+- `macd_signal` (대체: `signal`)
+- `macd_hist` (대체: `histogram`)
 
 ### 15m 타임프레임 추가 필드
 
@@ -79,9 +86,14 @@ export interface Candle {
   bb_lower?: number;     // 백엔드 필드명
   bbw?: number;
   adx?: number;
-  macd_line?: number;    // 4h 전용
-  macd_signal?: number;  // 4h 전용
-  macd_hist?: number;    // 4h 전용
+  // MACD - 백엔드 실제 필드명 (모든 타임프레임)
+  macd?: number;         // MACD Line
+  signal?: number;       // MACD Signal
+  histogram?: number;    // MACD Histogram
+  // 레거시 필드명 (하위 호환성)
+  macd_line?: number;
+  macd_signal?: number;
+  macd_hist?: number;
 }
 ```
 
@@ -121,18 +133,19 @@ candle.bb_lower
 ```
 
 #### MACD
-**변경 전:**
+**실제 백엔드 필드명 (API_SPEC.md):**
 ```typescript
-candle.macd
-candle.signal
-candle.histogram
+candle.macd        // MACD Line
+candle.signal      // MACD Signal
+candle.histogram   // MACD Histogram
 ```
 
-**변경 후:**
+**프론트엔드 폴백 지원:**
 ```typescript
-candle.macd_line
-candle.macd_signal
-candle.macd_hist
+// 우선순위: 백엔드 실제 필드명 → 레거시 필드명
+const macdVal = candle.macd ?? candle.macd_line;
+const signalVal = candle.signal ?? candle.macd_signal;
+const histVal = candle.histogram ?? candle.macd_hist;
 ```
 
 ### 3. `src/components/futures/KrakenPriceChart.tsx`
@@ -186,12 +199,12 @@ const adxLine = candles30m.map(c => ({ time: c.time, value: c.adx }));
 ### MACD 패널 (모든 타임프레임)
 ```typescript
 const candles = data.priceHistories['1m'];  // 또는 5m, 15m, 30m, 1h, 4h, 1d
-const macdLine = candles.map(c => ({ time: c.time, value: c.macd_line }));
-const signalLine = candles.map(c => ({ time: c.time, value: c.macd_signal }));
+const macdLine = candles.map(c => ({ time: c.time, value: c.macd }));
+const signalLine = candles.map(c => ({ time: c.time, value: c.signal }));
 const histogram = candles.map(c => ({
   time: c.time,
-  value: c.macd_hist,
-  color: c.macd_hist >= 0 ? '#26a69a' : '#ef5350'
+  value: c.histogram,
+  color: c.histogram >= 0 ? '#26a69a' : '#ef5350'
 }));
 ```
 
@@ -207,8 +220,9 @@ const histogram = candles.map(c => ({
    - 백엔드가 타임프레임에 맞는 값을 제공
 
 3. **MACD와 타임프레임별 전용 필드**
-   - 모든 타임프레임: `macd_line`, `macd_signal`, `macd_hist` 포함
+   - 모든 타임프레임: `macd`, `signal`, `histogram` 포함 (백엔드 실제 필드명)
    - 15m 전용: `ema3`, `ema8` 추가
+   - 프론트엔드는 레거시 필드명(`macd_line`, `macd_signal`, `macd_hist`)도 폴백으로 지원
 
 4. **과거 인디케이터 추세**
    - 백엔드가 모든 캔들에 인디케이터를 포함하므로

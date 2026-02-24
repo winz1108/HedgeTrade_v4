@@ -37,7 +37,8 @@ export function KrakenPriceChart({ data }: Props) {
       return null;
     }
 
-    const requiredFields = ['macd_line', 'macd_signal', 'macd_hist', 'ema_short', 'ema_long', 'bb_upper', 'bb_mid', 'bb_lower', 'adx'];
+    // 백엔드 실제 필드명 (API_SPEC.md 기준)
+    const requiredFields = ['macd', 'signal', 'histogram', 'ema_short', 'ema_long', 'bb_upper', 'bb_mid', 'bb_lower', 'adx'];
     const timeframes = { '1m': priceHistory1m, '5m': priceHistory5m, '15m': priceHistory15m, '30m': priceHistory30m, '1h': priceHistory1h, '4h': priceHistory4h, '1d': priceHistory1d };
     const missingByTimeframe: Record<string, string[]> = {};
 
