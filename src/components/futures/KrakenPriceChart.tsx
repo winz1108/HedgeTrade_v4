@@ -54,9 +54,9 @@ export function KrakenPriceChart({ data }: Props) {
       trades: data.recentTrades || [],
       holding: {
         isHolding: data.position.in_position,
-        buyPrice: data.position.entry_price,
-        buyTime: data.position.entry_time ? new Date(data.position.entry_time).getTime() : undefined,
-        currentProfit: data.position.unrealizedPnlPct,
+        buyPrice: data.strategyA.entry_price,
+        buyTime: data.strategyA.entry_time,
+        currentProfit: data.strategyA.current_pnl,
         positionSide: data.position.position_side,
       },
       metrics: {
@@ -68,26 +68,6 @@ export function KrakenPriceChart({ data }: Props) {
       },
     };
   }, [data]);
-
-  console.log('[KrakenPriceChart] Holding data:', {
-    isHolding: transformedData.holding.isHolding,
-    buyPrice: transformedData.holding.buyPrice,
-    buyTime: transformedData.holding.buyTime,
-    positionSide: transformedData.holding.positionSide,
-    currentProfit: transformedData.holding.currentProfit,
-    rawPosition: data.position,
-  });
-
-  console.log('[KrakenPriceChart] MACD data check:', {
-    candleCount: transformedData.priceHistory1m?.length || 0,
-    firstCandle: transformedData.priceHistory1m?.[0],
-    lastCandle: transformedData.priceHistory1m?.[transformedData.priceHistory1m.length - 1],
-    macdFields: {
-      macd_line: transformedData.priceHistory1m?.[0]?.macd_line,
-      macd_signal: transformedData.priceHistory1m?.[0]?.macd_signal,
-      macd_hist: transformedData.priceHistory1m?.[0]?.macd_hist,
-    },
-  });
 
   if (!transformedData.priceHistory1m || transformedData.priceHistory1m.length === 0) {
     return (
