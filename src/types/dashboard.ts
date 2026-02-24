@@ -82,15 +82,14 @@ export interface MarketState {
 export interface BuyConditions {
   '1m_golden_cross': boolean;
   '5m_above': boolean;
-  '15m_above': boolean;
-  '30m_above': boolean;
-  '1h_above': boolean;
+  '15m_ema38_above': boolean;
   '30m_slope_up': boolean;
-  '1h_slope_up': boolean;
-  '5m_bbw': boolean;
   '15m_bbw': boolean;
   '30m_gap': boolean;
   '30m_adx': boolean;
+  // Display-only 필드 (진입 판단에 미사용)
+  '5m_bbw'?: boolean;
+  '1h_adx'?: boolean;
 }
 
 export interface EarlyExitConditions {

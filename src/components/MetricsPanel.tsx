@@ -9,11 +9,10 @@ interface MetricsPanelProps {
 }
 
 const BUY_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
-  { key: '1m_golden_cross', label: '1m GC (Entry)' },
-  { key: '5m_above',        label: '5m EMA(5>13)' },
-  { key: '15m_above',       label: '15m EMA(3>8)' },
-  { key: '30m_slope_up',    label: '30m Slope+' },
-  { key: '5m_bbw',          label: '5m BBW>0.5%' },
+  { key: '1m_golden_cross', label: '1m GC' },
+  { key: '5m_above',        label: '5m EMA5>13' },
+  { key: '15m_ema38_above', label: '15m EMA3>8' },
+  { key: '30m_slope_up',    label: '30m Slope>0' },
   { key: '15m_bbw',         label: '15m BBW>0.6%' },
   { key: '30m_gap',         label: '30m Gap>0.08%' },
   { key: '30m_adx',         label: '30m ADX>15' },
