@@ -7,9 +7,7 @@ interface Props {
 }
 
 export function KrakenPriceChart({ data }: Props) {
-  const transformedData = useMemo((): DashboardData => {
-    // 백엔드가 priceHistories 또는 개별 필드로 제공
-    // 인디케이터는 이미 각 캔들에 포함되어 있음 (ema_short, ema_long, bb_upper, adx 등)
+  const transformedData = useMemo((): DashboardData | null => {
     const getCandles = (timeframe: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'): any[] => {
       let candles: any[] = [];
 
@@ -34,6 +32,40 @@ export function KrakenPriceChart({ data }: Props) {
     const priceHistory1h = getCandles('1h');
     const priceHistory4h = getCandles('4h');
     const priceHistory1d = getCandles('1d');
+
+    if (priceHistory1m.length === 0) {
+      return null;
+    }
+
+    const sampleCandle = priceHistory1m[0];
+    const missingFields: string[] = [];
+
+    if (!('macd_line' in sampleCandle)) missingFields.push('macd_line');
+    if (!('macd_signal' in sampleCandle)) missingFields.push('macd_signal');
+    if (!('macd_hist' in sampleCandle)) missingFields.push('macd_hist');
+    if (!('ema_short' in sampleCandle)) missingFields.push('ema_short');
+    if (!('ema_long' in sampleCandle)) missingFields.push('ema_long');
+    if (!('bb_upper' in sampleCandle)) missingFields.push('bb_upper');
+    if (!('bb_mid' in sampleCandle)) missingFields.push('bb_mid');
+    if (!('bb_lower' in sampleCandle)) missingFields.push('bb_lower');
+    if (!('adx' in sampleCandle)) missingFields.push('adx');
+
+    if (missingFields.length > 0) {
+      (window as any).__KRAKEN_MISSING_FIELDS__ = missingFields;
+    }
+
+    const entryPrice = data.strategyA?.entry_price;
+    const entryTime = data.strategyA?.entry_time;
+    const currentPnl = data.strategyA?.current_pnl;
+
+    if (data.position.in_position && (!entryPrice || !entryTime)) {
+      (window as any).__KRAKEN_POSITION_ERROR__ = {
+        in_position: data.position.in_position,
+        entry_price: entryPrice,
+        entry_time: entryTime,
+        current_pnl: currentPnl,
+      };
+    }
 
     return {
       version: data.version,
@@ -69,16 +101,40 @@ export function KrakenPriceChart({ data }: Props) {
     };
   }, [data]);
 
-  if (!transformedData.priceHistory1m || transformedData.priceHistory1m.length === 0) {
+  if (!transformedData) {
+    const missingFields = (window as any).__KRAKEN_MISSING_FIELDS__;
+    const positionError = (window as any).__KRAKEN_POSITION_ERROR__;
+
     return (
-      <div className="w-full bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-8 flex items-center justify-center">
-        <div className="text-center">
+      <div className="w-full bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-8">
+        <div className="text-center mb-6">
           <div className="text-4xl mb-2">📊</div>
           <div className="text-slate-200 font-bold">No chart data available</div>
-          <div className="text-slate-400 text-sm mt-1">
-            priceHistory1m: {transformedData.priceHistory1m?.length || 0} candles
-          </div>
         </div>
+        {missingFields && missingFields.length > 0 && (
+          <div className="bg-red-900/20 border border-red-700 rounded p-4 mb-4">
+            <div className="text-red-400 font-bold mb-2">백엔드 데이터 누락:</div>
+            <div className="text-red-300 text-sm">
+              priceHistory 캔들에 다음 필드 추가 필요:
+              <ul className="list-disc list-inside mt-2">
+                {missingFields.map((field: string) => (
+                  <li key={field}>{field}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+        {positionError && (
+          <div className="bg-orange-900/20 border border-orange-700 rounded p-4">
+            <div className="text-orange-400 font-bold mb-2">포지션 데이터 오류:</div>
+            <div className="text-orange-300 text-sm">
+              in_position이 true인데 strategyA에 entry_price 또는 entry_time 없음
+              <pre className="mt-2 text-xs bg-black/30 p-2 rounded">
+                {JSON.stringify(positionError, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
