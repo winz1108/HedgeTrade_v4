@@ -26,6 +26,17 @@
 }
 ```
 
+### 모든 타임프레임 MACD 필드
+
+```typescript
+{
+  // ... 기본 필드 ...
+  macd_line: number,      // MACD Line (모든 타임프레임)
+  macd_signal: number,    // MACD Signal (모든 타임프레임)
+  macd_hist: number       // MACD Histogram (모든 타임프레임)
+}
+```
+
 ### 15m 타임프레임 추가 필드
 
 ```typescript
@@ -33,17 +44,6 @@
   // ... 기본 필드 ...
   ema3: number,           // EMA(3) for 15m
   ema8: number            // EMA(8) for 15m
-}
-```
-
-### 4h 타임프레임 추가 필드
-
-```typescript
-{
-  // ... 기본 필드 ...
-  macd_line: number,      // MACD Line
-  macd_signal: number,    // MACD Signal
-  macd_hist: number       // MACD Histogram
 }
 ```
 
@@ -183,12 +183,12 @@ const candles30m = data.priceHistories['30m'];
 const adxLine = candles30m.map(c => ({ time: c.time, value: c.adx }));
 ```
 
-### MACD 패널 (4h 전용)
+### MACD 패널 (모든 타임프레임)
 ```typescript
-const candles4h = data.priceHistories['4h'];
-const macdLine = candles4h.map(c => ({ time: c.time, value: c.macd_line }));
-const signalLine = candles4h.map(c => ({ time: c.time, value: c.macd_signal }));
-const histogram = candles4h.map(c => ({
+const candles = data.priceHistories['1m'];  // 또는 5m, 15m, 30m, 1h, 4h, 1d
+const macdLine = candles.map(c => ({ time: c.time, value: c.macd_line }));
+const signalLine = candles.map(c => ({ time: c.time, value: c.macd_signal }));
+const histogram = candles.map(c => ({
   time: c.time,
   value: c.macd_hist,
   color: c.macd_hist >= 0 ? '#26a69a' : '#ef5350'
@@ -206,9 +206,9 @@ const histogram = candles4h.map(c => ({
    - 나머지 TF: `ema_short` = EMA(5), `ema_long` = EMA(13)
    - 백엔드가 타임프레임에 맞는 값을 제공
 
-3. **15m과 4h 전용 필드**
-   - 15m: `ema3`, `ema8` 추가
-   - 4h: `macd_line`, `macd_signal`, `macd_hist` 추가
+3. **MACD와 타임프레임별 전용 필드**
+   - 모든 타임프레임: `macd_line`, `macd_signal`, `macd_hist` 포함
+   - 15m 전용: `ema3`, `ema8` 추가
 
 4. **과거 인디케이터 추세**
    - 백엔드가 모든 캔들에 인디케이터를 포함하므로

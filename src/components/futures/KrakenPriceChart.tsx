@@ -37,21 +37,22 @@ export function KrakenPriceChart({ data }: Props) {
       return null;
     }
 
-    const sampleCandle = priceHistory1m[0];
-    const missingFields: string[] = [];
+    const requiredFields = ['macd_line', 'macd_signal', 'macd_hist', 'ema_short', 'ema_long', 'bb_upper', 'bb_mid', 'bb_lower', 'adx'];
+    const timeframes = { '1m': priceHistory1m, '5m': priceHistory5m, '15m': priceHistory15m, '30m': priceHistory30m, '1h': priceHistory1h, '4h': priceHistory4h, '1d': priceHistory1d };
+    const missingByTimeframe: Record<string, string[]> = {};
 
-    if (!('macd_line' in sampleCandle)) missingFields.push('macd_line');
-    if (!('macd_signal' in sampleCandle)) missingFields.push('macd_signal');
-    if (!('macd_hist' in sampleCandle)) missingFields.push('macd_hist');
-    if (!('ema_short' in sampleCandle)) missingFields.push('ema_short');
-    if (!('ema_long' in sampleCandle)) missingFields.push('ema_long');
-    if (!('bb_upper' in sampleCandle)) missingFields.push('bb_upper');
-    if (!('bb_mid' in sampleCandle)) missingFields.push('bb_mid');
-    if (!('bb_lower' in sampleCandle)) missingFields.push('bb_lower');
-    if (!('adx' in sampleCandle)) missingFields.push('adx');
+    Object.entries(timeframes).forEach(([tf, candles]) => {
+      if (candles.length > 0) {
+        const sampleCandle = candles[0];
+        const missing = requiredFields.filter(field => !(field in sampleCandle));
+        if (missing.length > 0) {
+          missingByTimeframe[tf] = missing;
+        }
+      }
+    });
 
-    if (missingFields.length > 0) {
-      (window as any).__KRAKEN_MISSING_FIELDS__ = missingFields;
+    if (Object.keys(missingByTimeframe).length > 0) {
+      (window as any).__KRAKEN_MISSING_FIELDS__ = missingByTimeframe;
     }
 
     const entryPrice = data.strategyA?.entry_price;
@@ -111,16 +112,21 @@ export function KrakenPriceChart({ data }: Props) {
           <div className="text-4xl mb-2">📊</div>
           <div className="text-slate-200 font-bold">No chart data available</div>
         </div>
-        {missingFields && missingFields.length > 0 && (
+        {missingFields && Object.keys(missingFields).length > 0 && (
           <div className="bg-red-900/20 border border-red-700 rounded p-4 mb-4">
             <div className="text-red-400 font-bold mb-2">백엔드 데이터 누락:</div>
             <div className="text-red-300 text-sm">
-              priceHistory 캔들에 다음 필드 추가 필요:
-              <ul className="list-disc list-inside mt-2">
-                {missingFields.map((field: string) => (
-                  <li key={field}>{field}</li>
-                ))}
-              </ul>
+              다음 타임프레임 캔들에 필드 추가 필요:
+              {Object.entries(missingFields).map(([tf, fields]: [string, any]) => (
+                <div key={tf} className="mt-2">
+                  <div className="font-bold text-red-400">{tf}:</div>
+                  <ul className="list-disc list-inside ml-4">
+                    {fields.map((field: string) => (
+                      <li key={field}>{field}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </div>
         )}
