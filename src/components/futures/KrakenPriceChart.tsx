@@ -55,6 +55,7 @@ export function KrakenPriceChart({ data }: Props) {
       holding: {
         isHolding: data.position.in_position,
         buyPrice: data.position.entry_price,
+        buyTime: data.position.entry_time ? new Date(data.position.entry_time).getTime() : undefined,
         currentProfit: data.position.unrealizedPnlPct,
         positionSide: data.position.position_side,
       },
@@ -67,6 +68,15 @@ export function KrakenPriceChart({ data }: Props) {
       },
     };
   }, [data]);
+
+  console.log('[KrakenPriceChart] Holding data:', {
+    isHolding: transformedData.holding.isHolding,
+    buyPrice: transformedData.holding.buyPrice,
+    buyTime: transformedData.holding.buyTime,
+    positionSide: transformedData.holding.positionSide,
+    currentProfit: transformedData.holding.currentProfit,
+    rawPosition: data.position,
+  });
 
   if (!transformedData.priceHistory1m || transformedData.priceHistory1m.length === 0) {
     return (
