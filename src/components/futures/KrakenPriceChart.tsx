@@ -78,6 +78,17 @@ export function KrakenPriceChart({ data }: Props) {
     rawPosition: data.position,
   });
 
+  console.log('[KrakenPriceChart] MACD data check:', {
+    candleCount: transformedData.priceHistory1m?.length || 0,
+    firstCandle: transformedData.priceHistory1m?.[0],
+    lastCandle: transformedData.priceHistory1m?.[transformedData.priceHistory1m.length - 1],
+    macdFields: {
+      macd_line: transformedData.priceHistory1m?.[0]?.macd_line,
+      macd_signal: transformedData.priceHistory1m?.[0]?.macd_signal,
+      macd_hist: transformedData.priceHistory1m?.[0]?.macd_hist,
+    },
+  });
+
   if (!transformedData.priceHistory1m || transformedData.priceHistory1m.length === 0) {
     return (
       <div className="w-full bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-8 flex items-center justify-center">
