@@ -51,20 +51,18 @@ const getExitReasonLabel = (reason?: string): string => {
   if (reason === 'SL') return 'SL';
   if (reason === 'HARD_SL') return 'Hard SL';
   if (reason === 'PP') return 'PP';
+  if (reason === 'PP_STOP') return 'PP';
   if (reason === 'VANISH') return 'Vanish';
   if (reason === 'TIMEOUT') return 'Timeout';
-  return reason.length > 8 ? reason.substring(0, 8) : reason;
+  return reason;
 };
 
-const getExitReasonColor = (reason?: string): { bg: string; text: string; border: string } => {
-  if (!reason) return { bg: 'bg-emerald-900/30', text: 'text-emerald-400', border: 'border-emerald-700' };
-  if (reason === 'TP') return { bg: 'bg-emerald-900/30', text: 'text-emerald-400', border: 'border-emerald-700' };
-  if (reason === 'PP') return { bg: 'bg-emerald-900/30', text: 'text-emerald-400', border: 'border-emerald-700' };
-  if (reason === 'HARD_SL') return { bg: 'bg-rose-900/30', text: 'text-rose-400', border: 'border-rose-700' };
-  if (reason === 'SL') return { bg: 'bg-rose-900/30', text: 'text-rose-400', border: 'border-rose-700' };
-  if (reason === 'VANISH') return { bg: 'bg-yellow-900/30', text: 'text-yellow-400', border: 'border-yellow-700' };
-  if (reason === 'TIMEOUT') return { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/50' };
-  return { bg: 'bg-slate-700/30', text: 'text-slate-300', border: 'border-slate-600' };
+const getExitReasonColor = (profit: number | undefined): { bg: string; text: string; border: string } => {
+  if (profit === undefined || profit >= 0) {
+    return { bg: 'bg-emerald-900/30', text: 'text-emerald-400', border: 'border-emerald-700' };
+  } else {
+    return { bg: 'bg-rose-900/30', text: 'text-rose-400', border: 'border-rose-700' };
+  }
 };
 
 export function KrakenMetricsPanel({ data, position }: Props) {
@@ -441,10 +439,10 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                       </div>
                     </div>
                   ) : (
-                    <div className={`${getExitReasonColor(trade.exitReason).bg} ${getExitReasonColor(trade.exitReason).border} border rounded p-1`}>
+                    <div className={`${getExitReasonColor(trade.profit).bg} ${getExitReasonColor(trade.profit).border} border rounded p-1`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
-                          <span className={`text-[10px] font-bold ${getExitReasonColor(trade.exitReason).text}`}>EXIT</span>
+                          <span className={`text-[10px] font-bold ${getExitReasonColor(trade.profit).text}`}>EXIT</span>
                           {trade.exitReason && (
                             <span className={`text-[8px] px-1 py-0.5 rounded font-bold ${
                               trade.profit !== undefined && trade.profit >= 0
