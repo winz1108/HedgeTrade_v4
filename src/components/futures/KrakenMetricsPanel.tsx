@@ -108,12 +108,25 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 {formatCurrency(data.balance.portfolioValue)}
               </div>
               <div className="space-y-0.5 pt-1 border-t border-cyan-500/50">
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-slate-300">Available</span>
-                  <span className="text-[11px] font-bold text-emerald-400">
-                    {formatCurrency(data.balance.available)}
-                  </span>
-                </div>
+                {data.balance.currencies && Object.entries(data.balance.currencies).length > 0 ? (
+                  <>
+                    {Object.entries(data.balance.currencies).map(([currency, info]) => (
+                      <div key={currency} className="flex justify-between items-center">
+                        <span className="text-[9px] text-slate-300">{currency}</span>
+                        <span className="text-[11px] font-bold text-emerald-400">
+                          {formatCurrency(info.valueUsd)}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] text-slate-300">Available</span>
+                    <span className="text-[11px] font-bold text-emerald-400">
+                      {formatCurrency(data.balance.available)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-300">Leverage</span>
                   <span className="text-[11px] font-bold text-cyan-400">

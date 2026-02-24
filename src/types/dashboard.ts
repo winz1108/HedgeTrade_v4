@@ -420,6 +420,12 @@ export interface KrakenBalance {
   available: number;
   portfolioValue: number;
   currency: string;
+  currencies?: {
+    [currencyCode: string]: {
+      quantity: number;
+      valueUsd: number;
+    };
+  };
 }
 
 export interface KrakenFeeRate {
