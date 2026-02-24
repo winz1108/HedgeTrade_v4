@@ -106,23 +106,36 @@ export function KrakenMetricsPanel({ data, position }: Props) {
               <div className="space-y-0.5 pt-1 border-t border-cyan-500/50">
                 {data.balance.currencies && Object.entries(data.balance.currencies).length > 0 ? (
                   <>
-                    {Object.entries(data.balance.currencies).map(([currency, info]) => {
-                      let textColor = 'text-emerald-400'; // USD default
-                      if (currency === 'BTC') {
-                        textColor = 'text-yellow-400';
-                      } else if (currency === 'EUR') {
-                        textColor = 'text-blue-400';
-                      }
+                    {(() => {
+                      const currencies = Object.entries(data.balance.currencies);
+                      const primaryOrder = ['BTC', 'EUR', 'USD'];
+                      const sorted = currencies.sort(([a], [b]) => {
+                        const aIndex = primaryOrder.indexOf(a);
+                        const bIndex = primaryOrder.indexOf(b);
+                        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                        if (aIndex !== -1) return -1;
+                        if (bIndex !== -1) return 1;
+                        return a.localeCompare(b);
+                      });
 
-                      return (
-                        <div key={currency} className="flex justify-between items-center">
-                          <span className="text-[9px] text-slate-300">{currency}</span>
-                          <span className={`text-[11px] font-bold ${textColor}`}>
-                            {formatCurrency(info.valueUsd)}
-                          </span>
-                        </div>
-                      );
-                    })}
+                      return sorted.map(([currency, info]) => {
+                        let textColor = 'text-emerald-400'; // USD default
+                        if (currency === 'BTC') {
+                          textColor = 'text-yellow-400';
+                        } else if (currency === 'EUR') {
+                          textColor = 'text-blue-400';
+                        }
+
+                        return (
+                          <div key={currency} className="flex justify-between items-center">
+                            <span className="text-[9px] text-slate-300">{currency}</span>
+                            <span className={`text-[11px] font-bold ${textColor}`}>
+                              {formatCurrency(info.valueUsd)}
+                            </span>
+                          </div>
+                        );
+                      });
+                    })()}
                   </>
                 ) : (
                   <div className="flex justify-between items-center">
