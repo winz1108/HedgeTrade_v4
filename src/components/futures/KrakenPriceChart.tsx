@@ -69,22 +69,35 @@ export function KrakenPriceChart({ data }: Props) {
       };
     }
 
-    // 거래 데이터 디버깅
-    const trades = data.recentTrades || [];
-    if (trades.length > 0) {
-      console.log('[KrakenPriceChart] 📊 거래 데이터:', {
-        totalTrades: trades.length,
-        trades: trades.map(t => ({
-          timestamp: t.timestamp,
+    // 거래 데이터 필터링: kraken_futures만 표시
+    const allTrades = data.recentTrades || [];
+    const trades = allTrades.filter(trade => {
+      // exchange 필드가 있으면 kraken_futures만 허용
+      if (trade.exchange) {
+        return trade.exchange === 'kraken_futures';
+      }
+
+      // exchange 필드가 없는 경우 (백엔드 업데이트 전)
+      // buy 이벤트는 side 필드가 있어야 함
+      if (trade.type === 'buy' && !trade.side) {
+        console.warn('[KrakenPriceChart] ⚠️ buy 이벤트에 side 필드가 없어 무시됨:', trade);
+        return false;
+      }
+
+      return true;
+    });
+
+    if (allTrades.length !== trades.length) {
+      console.log('[KrakenPriceChart] 🔍 거래 필터링:', {
+        total: allTrades.length,
+        filtered: trades.length,
+        removed: allTrades.length - trades.length,
+        removedTrades: allTrades.filter(t => !trades.includes(t)).map(t => ({
           type: t.type,
           side: (t as any).side,
-          price: t.price,
-          pairId: t.pairId,
+          exchange: t.exchange,
+          timestamp: t.timestamp,
         })),
-        currentPosition: {
-          in_position: data.position.in_position,
-          position_side: data.position.position_side,
-        }
       });
     }
 
