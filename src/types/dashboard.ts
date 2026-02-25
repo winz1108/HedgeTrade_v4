@@ -158,6 +158,9 @@ export interface StrategyStatus {
   sellConditions?: SellConditions;
   inPosition: boolean;
   updatedAt?: string;
+  mfe?: number;
+  pp_stop?: number | null;
+  pp_activated?: boolean;
   strategy?: {
     '1m'?: StrategyTimeframe;
     '5m'?: StrategyTimeframe;

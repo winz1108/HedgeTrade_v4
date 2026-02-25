@@ -287,6 +287,53 @@ export function KrakenMetricsPanel({ data, position }: Props) {
             </div>
           )}
         </div>
+
+        <div className="bg-slate-800/95 border border-purple-600/50 rounded-lg shadow-sm p-2">
+          <div className="flex items-center justify-between mb-1.5">
+            <h3 className="text-[11px] font-bold text-white">Profit Protection</h3>
+          </div>
+
+          {hasPosition && data.strategyA ? (
+            <div className="space-y-1">
+              {data.strategyA.mfe !== undefined && (
+                <div className="bg-purple-900/20 border border-purple-600/50 rounded p-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] text-purple-300 font-medium">Max Profit (MFE)</span>
+                    <span className="text-[11px] font-bold text-purple-400">
+                      +{data.strategyA.mfe.toFixed(2)}%
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {data.strategyA.pp_stop !== null && data.strategyA.pp_stop !== undefined ? (
+                <div className="bg-emerald-900/30 border border-emerald-700/50 rounded p-1.5">
+                  <div className="flex justify-between items-center mb-0.5">
+                    <span className="text-[9px] text-emerald-300 font-medium">Protected Profit</span>
+                    <span className="text-[11px] font-bold text-emerald-400">
+                      +{data.strategyA.pp_stop.toFixed(2)}%
+                    </span>
+                  </div>
+                  {data.strategyA.pp_activated && (
+                    <div className="text-[8px] text-emerald-400/80 mt-0.5">
+                      PP Active - Min profit locked
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-slate-700/30 border border-slate-600 rounded p-1.5">
+                  <div className="text-[9px] text-slate-400 text-center">
+                    PP Not Activated
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-12 text-slate-300 text-[10px]">
+              No position
+            </div>
+          )}
+        </div>
       </div>
     );
   }

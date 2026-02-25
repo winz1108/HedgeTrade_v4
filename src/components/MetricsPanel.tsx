@@ -178,139 +178,49 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           )}
         </div>
 
-        <div className="bg-white/95 border border-amber-200 rounded-lg shadow-sm p-2">
+        <div className="bg-white/95 border border-purple-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-slate-800">Sell Conditions</h3>
-            {strategy?.sellConditions?.any_sell && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-600 text-white animate-pulse">
-                EXIT
-              </span>
-            )}
+            <h3 className="text-[11px] font-bold text-slate-800">Profit Protection</h3>
           </div>
 
-          {strategy?.sellConditions ? (
-            <div className="space-y-1.5">
-              {strategy.sellConditions.smart_trail && (
-                <div className={`px-2 py-1.5 rounded-lg border transition-all ${
-                  strategy.sellConditions.smart_trail.met
-                    ? 'bg-red-50 border-red-300'
-                    : 'bg-slate-50 border-slate-200'
-                }`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold text-slate-800">15m EMA Reversal</span>
-                    <div className={`w-1.5 h-1.5 rounded-full ${
-                      strategy.sellConditions.smart_trail.met ? 'bg-red-500' : 'bg-slate-300'
-                    }`} />
+          {data.holding.isHolding && strategy ? (
+            <div className="space-y-1">
+              {strategy.mfe !== undefined && (
+                <div className="bg-purple-50 border border-purple-300 rounded p-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] text-purple-700 font-medium">Max Profit (MFE)</span>
+                    <span className="text-[11px] font-bold text-purple-600">
+                      +{strategy.mfe.toFixed(2)}%
+                    </span>
                   </div>
+                </div>
+              )}
 
-                  <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-1.5 mb-1 space-y-1 border border-slate-200">
-                    <div className="flex items-center justify-between text-[9px]">
-                      <span className="text-slate-700 font-bold">Market</span>
-                      <span className={`font-bold px-1.5 py-0.5 rounded ${
-                        strategy.sellConditions.smart_trail.regime === 'U'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : strategy.sellConditions.smart_trail.regime === 'S'
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-rose-100 text-rose-700'
-                      }`}>
-                        {strategy.sellConditions.smart_trail.regime === 'U' ? 'UP' :
-                         strategy.sellConditions.smart_trail.regime === 'S' ? 'SIDEWAYS' : 'DOWN'}
-                      </span>
-                    </div>
-                    {strategy.sellConditions.smart_trail.macd_hist !== undefined && (
-                      <div className="flex items-center justify-between text-[9px]">
-                        <span className="text-slate-600">4h MACD</span>
-                        <span className="font-mono text-slate-800 font-bold">
-                          {strategy.sellConditions.smart_trail.macd_hist.toFixed(1)}
-                        </span>
-                      </div>
-                    )}
+              {strategy.pp_stop !== null && strategy.pp_stop !== undefined ? (
+                <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
+                  <div className="flex justify-between items-center mb-0.5">
+                    <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
+                    <span className="text-[11px] font-bold text-emerald-600">
+                      +{strategy.pp_stop.toFixed(2)}%
+                    </span>
                   </div>
-
-                  {strategy.sellConditions.smart_trail.regime === 'U' ? (
-                    <div className="bg-blue-50/50 rounded px-2 py-1 border border-blue-200 mb-1">
-                      <div className="text-[9px] text-blue-700 font-medium">
-                        15m reversal disabled (1h DC only)
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="bg-white/70 rounded p-1.5 mb-1 space-y-1 border border-slate-200/50">
-                        <div className="flex items-center justify-between text-[9px]">
-                          <span className="text-slate-600 font-medium">EMA3</span>
-                          <span className="font-bold text-slate-800">
-                            ${strategy.sellConditions.smart_trail['15m_ema3'].toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-[9px]">
-                          <span className="text-slate-600 font-medium">EMA8</span>
-                          <span className="font-bold text-slate-800">
-                            ${strategy.sellConditions.smart_trail['15m_ema8'].toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className={`flex items-center justify-between text-[9px] rounded px-2 py-1 border mb-1 ${
-                        strategy.sellConditions.smart_trail['15m_above']
-                          ? 'bg-blue-50 border-blue-300'
-                          : 'bg-red-50 border-red-300'
-                      }`}>
-                        <span className="text-slate-700 font-bold">Status</span>
-                        <span className={`font-bold ${
-                          strategy.sellConditions.smart_trail['15m_above']
-                            ? 'text-blue-600'
-                            : 'text-red-600'
-                        }`}>
-                          {strategy.sellConditions.smart_trail['15m_above'] ? 'ABOVE' : 'REVERSED'}
-                        </span>
-                      </div>
-
-                      {strategy.sellConditions.smart_trail.regime !== 'D' && (
-                        <div className={`flex items-center justify-between text-[9px] rounded px-2 py-1 border ${
-                          strategy.sellConditions.smart_trail.regime === 'S'
-                            ? 'bg-amber-50 border-amber-300'
-                            : 'bg-rose-50 border-rose-300'
-                        }`}>
-                          <span className="text-slate-700 font-bold">Min Profit</span>
-                          <span className={`font-bold ${
-                            strategy.sellConditions.smart_trail.regime === 'S'
-                              ? 'text-amber-700'
-                              : 'text-rose-700'
-                          }`}>
-                            ≥{strategy.sellConditions.smart_trail.min_profit}%
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {strategy.sellConditions.smart_trail.entry_price > 0 && (
-                    <div className="bg-slate-50/80 rounded p-1.5 space-y-0.5 text-[8px] border border-slate-200">
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 font-medium">Entry</span>
-                        <span className=" font-bold text-slate-800">
-                          ${strategy.sellConditions.smart_trail.entry_price.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 font-medium">Peak</span>
-                        <div className="flex items-center gap-1">
-                          <span className=" font-bold text-slate-800">
-                            ${strategy.sellConditions.smart_trail.peak_price.toFixed(2)}
-                          </span>
-                          <span className="font-bold text-emerald-600">
-                            +{((strategy.sellConditions.smart_trail.peak_price / strategy.sellConditions.smart_trail.entry_price - 1) * 100).toFixed(2)}%
-                          </span>
-                        </div>
-                      </div>
+                  {strategy.pp_activated && (
+                    <div className="text-[8px] text-emerald-600/80 mt-0.5">
+                      PP Active - Min profit locked
                     </div>
                   )}
+                </div>
+              ) : (
+                <div className="bg-slate-50 border border-slate-200 rounded p-1.5">
+                  <div className="text-[9px] text-slate-500 text-center">
+                    PP Not Activated
+                  </div>
                 </div>
               )}
             </div>
           ) : (
             <div className="flex items-center justify-center h-12 text-slate-500 text-[10px]">
-              Waiting...
+              No position
             </div>
           )}
         </div>
