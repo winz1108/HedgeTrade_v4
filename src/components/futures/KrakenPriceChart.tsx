@@ -69,8 +69,27 @@ export function KrakenPriceChart({ data }: Props) {
       };
     }
 
-    // 거래 데이터 필터링: kraken_futures만 표시
+    // 포지션 상태와 거래 데이터 매칭 검증
     const allTrades = data.recentTrades || [];
+    console.log('[KrakenPriceChart] 🔍 포지션 상태 vs 거래 데이터:', {
+      position: {
+        in_position: data.position.in_position,
+        position_side: data.position.position_side,
+        entry_price: data.position.entry_price,
+      },
+      recentTrades: allTrades.map(t => ({
+        timestamp: new Date(t.timestamp).toLocaleTimeString('ko-KR'),
+        type: t.type,
+        side: (t as any).side,
+        exchange: (t as any).exchange,
+        price: t.price,
+      })),
+      inconsistency: data.position.in_position && allTrades.some(t =>
+        t.type === 'buy' && (t as any).side === data.position.position_side
+      ) ? '⚠️ 이미 포지션 보유 중인데 또 진입 신호 발견!' : null,
+    });
+
+    // 거래 데이터 필터링: kraken_futures만 표시
     const trades = allTrades.filter(trade => {
       // exchange 필드가 있으면 kraken_futures만 허용
       if (trade.exchange) {
