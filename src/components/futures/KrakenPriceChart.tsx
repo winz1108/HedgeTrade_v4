@@ -69,6 +69,25 @@ export function KrakenPriceChart({ data }: Props) {
       };
     }
 
+    // 거래 데이터 디버깅
+    const trades = data.recentTrades || [];
+    if (trades.length > 0) {
+      console.log('[KrakenPriceChart] 📊 거래 데이터:', {
+        totalTrades: trades.length,
+        trades: trades.map(t => ({
+          timestamp: t.timestamp,
+          type: t.type,
+          side: (t as any).side,
+          price: t.price,
+          pairId: t.pairId,
+        })),
+        currentPosition: {
+          in_position: data.position.in_position,
+          position_side: data.position.position_side,
+        }
+      });
+    }
+
     return {
       version: data.version,
       currentAsset: data.balance.portfolioValue,
@@ -85,7 +104,7 @@ export function KrakenPriceChart({ data }: Props) {
       priceHistory4h,
       priceHistory1d,
       pricePredictions: [],
-      trades: data.recentTrades || [],
+      trades,
       holding: {
         isHolding: data.position.in_position,
         buyPrice: data.strategyA.entry_price,
