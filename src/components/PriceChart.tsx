@@ -1548,6 +1548,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
             <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, width: `${visibleCandles.length * (candleWidth + candleGap)}px`, overflow: 'visible', zIndex: 5 }}>
             {(() => {
+              // 백엔드 recentTrades만 신뢰 - 프론트엔드에서 임의로 거래 생성하지 않음
               const allTrades: Array<TradeEvent & { isPaired: boolean }> = [];
 
               data.trades.forEach(trade => {
@@ -1559,21 +1560,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   isPaired: !!pairedTrade
                 });
               });
-
-              if (data.holding.buyPrice && data.holding.buyTime) {
-                const existsInTrades = allTrades.some(
-                  t => t.type === 'buy' && Math.abs(t.timestamp - data.holding.buyTime!) < 5000
-                );
-
-                if (!existsInTrades) {
-                  allTrades.push({
-                    timestamp: data.holding.buyTime,
-                    type: 'buy',
-                    price: data.holding.buyPrice,
-                    isPaired: false
-                  });
-                }
-              }
 
               const timeframeMinutes = getTimeframeMinutes(timeframe);
               const timeframeMs = timeframeMinutes * 60000;
