@@ -25,7 +25,6 @@ export function KrakenPriceChart({ data }: Props) {
       }));
 
       // 타임프레임별 MACD 데이터 병합
-      // data.strategyA.indicators.{tf}.macd_line, macd_signal, macd_hist
       const indicators = data.strategyA?.indicators?.[timeframe];
       if (indicators) {
         const macdLine = indicators.macd_line || [];
@@ -38,14 +37,6 @@ export function KrakenPriceChart({ data }: Props) {
           signal: macdSignal[idx] ?? candle.signal,
           histogram: macdHist[idx] ?? candle.histogram,
         }));
-
-        console.log(`[KrakenPriceChart] 📊 ${timeframe} MACD 병합:`, {
-          candleCount: processedCandles.length,
-          macdLineCount: macdLine.length,
-          sampleMacd: processedCandles[processedCandles.length - 1]?.macd,
-          sampleSignal: processedCandles[processedCandles.length - 1]?.signal,
-          sampleHist: processedCandles[processedCandles.length - 1]?.histogram,
-        });
       }
 
       return processedCandles;
@@ -95,115 +86,20 @@ export function KrakenPriceChart({ data }: Props) {
       };
     }
 
-    // 시장 상태 정보 (4h MACD 기반)
-    console.log('[KrakenPriceChart] 🌐 시장 상태:', {
-      market_regime: data.strategyA?.market_regime, // "U" / "S" / "D"
-      trend_health_score: data.strategyA?.trend_health_score, // 0~100
-      macd_4h: {
-        line: data.strategyA?.macd_line,
-        signal: data.strategyA?.macd_signal,
-        hist: data.strategyA?.macd_hist,
-        hist_prev: data.strategyA?.macd_hist_prev,
-      },
-    });
-
-    // 포지션 상태와 거래 데이터 매칭 검증
     const allTrades = data.recentTrades || [];
 
-    // 각 거래의 상세 정보 출력
-    console.log('[KrakenPriceChart] 📋 recentTrades 상세 분석:');
-    allTrades.forEach((trade, idx) => {
-      console.log(`  [${idx}] ${trade.type.toUpperCase()}:`, {
-        timestamp: new Date(trade.timestamp).toLocaleString('ko-KR'),
-        price: trade.price,
-        side: trade.side || '❌ MISSING',
-        exchange: trade.exchange || '❌ MISSING',
-        confirmed: (trade as any).confirmed ?? '❌ MISSING',
-        pairId: trade.pairId,
-      });
-    });
-
-    console.log('[KrakenPriceChart] 🔍 포지션 상태 vs 거래 데이터:', {
-      position: {
-        in_position: data.position.in_position,
-        position_side: data.position.position_side,
-        entry_price: data.position.entry_price,
-        entry_time: data.position.entry_time,
-      },
-      tradesCount: allTrades.length,
-      inconsistency: data.position.in_position && allTrades.some(t =>
-        t.type === 'buy' && t.side === data.position.position_side
-      ) ? '⚠️ 이미 포지션 보유 중인데 또 같은 방향 진입 신호 발견!' : null,
-    });
-
-    // 거래 데이터 필터링: kraken_futures + confirmed만 표시
-    // 최근 20개만 표시 (너무 많으면 차트가 지저분함)
+    // 거래 데이터 필터링
+    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const trades = allTrades
       .filter(trade => {
-        // 1. exchange가 kraken_futures가 아니면 제외
-        if (trade.exchange && trade.exchange !== 'kraken_futures') {
-          console.log('[KrakenPriceChart] ❌ 제외 (다른 거래소):', {
-            exchange: trade.exchange,
-            type: trade.type,
-            timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
-          });
-          return false;
-        }
-
-        // 2. confirmed가 명시적으로 true가 아니면 제외
+        if (trade.exchange && trade.exchange !== 'kraken_futures') return false;
         const confirmed = (trade as any).confirmed;
-        if (confirmed !== true) {
-          console.log('[KrakenPriceChart] ❌ 제외 (미체결):', {
-            type: trade.type,
-            side: trade.side,
-            confirmed: confirmed,
-            timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
-          });
-          return false;
-        }
-
-        // 3. buy 이벤트는 side 필드가 있어야 함
-        if (trade.type === 'buy' && !trade.side) {
-          console.warn('[KrakenPriceChart] ❌ 제외 (side 없음):', {
-            type: trade.type,
-            timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
-          });
-          return false;
-        }
-
-        // 4. 모든 조건 통과
-        console.log('[KrakenPriceChart] ✅ 포함:', {
-          type: trade.type,
-          side: trade.side,
-          exchange: trade.exchange,
-          confirmed: confirmed,
-          timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
-        });
+        if (confirmed !== true) return false;
+        if (trade.type === 'buy' && !trade.side) return false;
         return true;
       })
-      .slice(-20); // 최근 20개만
-
-    console.log('[KrakenPriceChart] 🔍 거래 필터링 결과:', {
-      total: allTrades.length,
-      filtered: trades.length,
-      removed: allTrades.length - trades.length,
-    });
-
-    console.log('[KrakenPriceChart] 📊 최종 차트 전달 데이터:', {
-      tradesCount: trades.length,
-      holding: {
-        isHolding: data.position.in_position,
-        buyPrice: data.strategyA?.entry_price,
-        buyTime: data.strategyA?.entry_time,
-        positionSide: data.position.position_side,
-      },
-      trades: trades.map(t => ({
-        type: t.type,
-        side: t.side,
-        timestamp: new Date(t.timestamp).toLocaleTimeString('ko-KR'),
-        price: t.price,
-      })),
-    });
+      .filter(trade => trade.timestamp >= oneWeekAgo)
+      .slice(-40);
 
     return {
       version: data.version,
