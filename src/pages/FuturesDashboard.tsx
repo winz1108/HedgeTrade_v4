@@ -20,6 +20,8 @@ function FuturesDashboard() {
       // 백엔드 데이터 디버깅
       console.log('[FuturesDashboard] 📥 백엔드 데이터:', {
         position: krakenData.position,
+        balance: krakenData.balance,
+        balanceCurrencies: krakenData.balance?.currencies,
         recentTrades: krakenData.recentTrades?.map(t => ({
           timestamp: t.timestamp,
           type: t.type,
