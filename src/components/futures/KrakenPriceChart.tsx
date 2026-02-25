@@ -71,38 +71,74 @@ export function KrakenPriceChart({ data }: Props) {
 
     // 포지션 상태와 거래 데이터 매칭 검증
     const allTrades = data.recentTrades || [];
+
+    // 각 거래의 상세 정보 출력
+    console.log('[KrakenPriceChart] 📋 recentTrades 상세 분석:');
+    allTrades.forEach((trade, idx) => {
+      console.log(`  [${idx}] ${trade.type.toUpperCase()}:`, {
+        timestamp: new Date(trade.timestamp).toLocaleString('ko-KR'),
+        price: trade.price,
+        side: trade.side || '❌ MISSING',
+        exchange: trade.exchange || '❌ MISSING',
+        confirmed: (trade as any).confirmed ?? '❌ MISSING',
+        pairId: trade.pairId,
+      });
+    });
+
     console.log('[KrakenPriceChart] 🔍 포지션 상태 vs 거래 데이터:', {
       position: {
         in_position: data.position.in_position,
         position_side: data.position.position_side,
         entry_price: data.position.entry_price,
+        entry_time: data.position.entry_time,
       },
-      recentTrades: allTrades.map(t => ({
-        timestamp: new Date(t.timestamp).toLocaleTimeString('ko-KR'),
-        type: t.type,
-        side: (t as any).side,
-        exchange: (t as any).exchange,
-        price: t.price,
-      })),
+      tradesCount: allTrades.length,
       inconsistency: data.position.in_position && allTrades.some(t =>
-        t.type === 'buy' && (t as any).side === data.position.position_side
-      ) ? '⚠️ 이미 포지션 보유 중인데 또 진입 신호 발견!' : null,
+        t.type === 'buy' && t.side === data.position.position_side
+      ) ? '⚠️ 이미 포지션 보유 중인데 또 같은 방향 진입 신호 발견!' : null,
     });
 
-    // 거래 데이터 필터링: kraken_futures만 표시
+    // 거래 데이터 필터링: kraken_futures + confirmed만 표시
     const trades = allTrades.filter(trade => {
-      // exchange 필드가 있으면 kraken_futures만 허용
-      if (trade.exchange) {
-        return trade.exchange === 'kraken_futures';
-      }
-
-      // exchange 필드가 없는 경우 (백엔드 업데이트 전)
-      // buy 이벤트는 side 필드가 있어야 함
-      if (trade.type === 'buy' && !trade.side) {
-        console.warn('[KrakenPriceChart] ⚠️ buy 이벤트에 side 필드가 없어 무시됨:', trade);
+      // 1. exchange가 kraken_futures가 아니면 제외
+      if (trade.exchange && trade.exchange !== 'kraken_futures') {
+        console.log('[KrakenPriceChart] ❌ 제외 (다른 거래소):', {
+          exchange: trade.exchange,
+          type: trade.type,
+          timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
+        });
         return false;
       }
 
+      // 2. confirmed가 명시적으로 true가 아니면 제외
+      const confirmed = (trade as any).confirmed;
+      if (confirmed !== true) {
+        console.log('[KrakenPriceChart] ❌ 제외 (미체결):', {
+          type: trade.type,
+          side: trade.side,
+          confirmed: confirmed,
+          timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
+        });
+        return false;
+      }
+
+      // 3. buy 이벤트는 side 필드가 있어야 함
+      if (trade.type === 'buy' && !trade.side) {
+        console.warn('[KrakenPriceChart] ❌ 제외 (side 없음):', {
+          type: trade.type,
+          timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
+        });
+        return false;
+      }
+
+      // 4. 모든 조건 통과
+      console.log('[KrakenPriceChart] ✅ 포함:', {
+        type: trade.type,
+        side: trade.side,
+        exchange: trade.exchange,
+        confirmed: confirmed,
+        timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
+      });
       return true;
     });
 

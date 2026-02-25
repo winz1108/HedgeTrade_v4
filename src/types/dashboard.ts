@@ -49,6 +49,7 @@ export interface TradeEvent {
   pnlWithCommission?: number;
   side?: 'LONG' | 'SHORT'; // 포지션 방향
   exchange?: 'binance_spot' | 'kraken_futures'; // 거래소 구분
+  confirmed?: boolean; // kraken_futures: 거래소 체결 확인
 }
 
 export interface HoldingInfo {
