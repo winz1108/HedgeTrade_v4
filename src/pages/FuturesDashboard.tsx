@@ -17,19 +17,6 @@ function FuturesDashboard() {
       setError(null);
       const krakenData = await fetchKrakenDashboard();
 
-      // 백엔드 데이터 디버깅
-      console.log('[FuturesDashboard] 📥 백엔드 데이터:', {
-        position: krakenData.position,
-        balance: krakenData.balance,
-        balanceCurrencies: krakenData.balance?.currencies,
-        recentTrades: krakenData.recentTrades?.map(t => ({
-          timestamp: t.timestamp,
-          type: t.type,
-          side: (t as any).side,
-          exchange: (t as any).exchange,
-        })),
-        recentTradesCount: krakenData.recentTrades?.length,
-      });
 
       // 백엔드에서 priceHistories로 모든 타임프레임을 전달하므로
       // 추가 API 호출은 필요없음 (하위호환성 유지)
