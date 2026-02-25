@@ -19,10 +19,36 @@ export function KrakenPriceChart({ data }: Props) {
       }
 
       // 백엔드는 time(초) 필드 사용, 프론트엔드는 timestamp(밀리초) 필요
-      return candles.map(c => ({
+      let processedCandles = candles.map(c => ({
         ...c,
         timestamp: c.time ? c.time * 1000 : c.timestamp,
       }));
+
+      // 타임프레임별 MACD 데이터 병합
+      // data.strategyA.indicators.{tf}.macd_line, macd_signal, macd_hist
+      const indicators = data.strategyA?.indicators?.[timeframe];
+      if (indicators) {
+        const macdLine = indicators.macd_line || [];
+        const macdSignal = indicators.macd_signal || [];
+        const macdHist = indicators.macd_hist || [];
+
+        processedCandles = processedCandles.map((candle, idx) => ({
+          ...candle,
+          macd: macdLine[idx] ?? candle.macd,
+          signal: macdSignal[idx] ?? candle.signal,
+          histogram: macdHist[idx] ?? candle.histogram,
+        }));
+
+        console.log(`[KrakenPriceChart] 📊 ${timeframe} MACD 병합:`, {
+          candleCount: processedCandles.length,
+          macdLineCount: macdLine.length,
+          sampleMacd: processedCandles[processedCandles.length - 1]?.macd,
+          sampleSignal: processedCandles[processedCandles.length - 1]?.signal,
+          sampleHist: processedCandles[processedCandles.length - 1]?.histogram,
+        });
+      }
+
+      return processedCandles;
     };
 
     const priceHistory1m = getCandles('1m');
@@ -68,6 +94,18 @@ export function KrakenPriceChart({ data }: Props) {
         current_pnl: currentPnl,
       };
     }
+
+    // 시장 상태 정보 (4h MACD 기반)
+    console.log('[KrakenPriceChart] 🌐 시장 상태:', {
+      market_regime: data.strategyA?.market_regime, // "U" / "S" / "D"
+      trend_health_score: data.strategyA?.trend_health_score, // 0~100
+      macd_4h: {
+        line: data.strategyA?.macd_line,
+        signal: data.strategyA?.macd_signal,
+        hist: data.strategyA?.macd_hist,
+        hist_prev: data.strategyA?.macd_hist_prev,
+      },
+    });
 
     // 포지션 상태와 거래 데이터 매칭 검증
     const allTrades = data.recentTrades || [];
