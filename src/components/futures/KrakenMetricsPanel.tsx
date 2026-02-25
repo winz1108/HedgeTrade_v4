@@ -306,27 +306,16 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 </div>
               )}
 
-              {data.strategyA.pp_stop !== null && data.strategyA.pp_stop !== undefined ? (
-                <div className="bg-emerald-900/30 border border-emerald-700/50 rounded p-1.5">
-                  <div className="flex justify-between items-center mb-0.5">
-                    <span className="text-[9px] text-emerald-300 font-medium">Protected Profit</span>
-                    <span className="text-[11px] font-bold text-emerald-400">
-                      +{data.strategyA.pp_stop.toFixed(2)}%
-                    </span>
-                  </div>
-                  {data.strategyA.pp_activated && (
-                    <div className="text-[8px] text-emerald-400/80 mt-0.5">
-                      PP Active - Min profit locked
-                    </div>
-                  )}
+              <div className="bg-emerald-900/30 border border-emerald-700/50 rounded p-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] text-emerald-300 font-medium">Protected Profit</span>
+                  <span className="text-[11px] font-bold text-emerald-400">
+                    {data.strategyA.pp_stop !== null && data.strategyA.pp_stop !== undefined
+                      ? `+${data.strategyA.pp_stop.toFixed(2)}%`
+                      : '-'}
+                  </span>
                 </div>
-              ) : (
-                <div className="bg-slate-700/30 border border-slate-600 rounded p-1.5">
-                  <div className="text-[9px] text-slate-400 text-center">
-                    PP Not Activated
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center h-12 text-slate-300 text-[10px]">

@@ -196,27 +196,16 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
                 </div>
               )}
 
-              {strategy.pp_stop !== null && strategy.pp_stop !== undefined ? (
-                <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
-                  <div className="flex justify-between items-center mb-0.5">
-                    <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
-                    <span className="text-[11px] font-bold text-emerald-600">
-                      +{strategy.pp_stop.toFixed(2)}%
-                    </span>
-                  </div>
-                  {strategy.pp_activated && (
-                    <div className="text-[8px] text-emerald-600/80 mt-0.5">
-                      PP Active - Min profit locked
-                    </div>
-                  )}
+              <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
+                  <span className="text-[11px] font-bold text-emerald-600">
+                    {strategy.pp_stop !== null && strategy.pp_stop !== undefined
+                      ? `+${strategy.pp_stop.toFixed(2)}%`
+                      : '-'}
+                  </span>
                 </div>
-              ) : (
-                <div className="bg-slate-50 border border-slate-200 rounded p-1.5">
-                  <div className="text-[9px] text-slate-500 text-center">
-                    PP Not Activated
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center h-12 text-slate-500 text-[10px]">
