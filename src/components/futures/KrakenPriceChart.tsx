@@ -99,62 +99,73 @@ export function KrakenPriceChart({ data }: Props) {
     });
 
     // 거래 데이터 필터링: kraken_futures + confirmed만 표시
-    const trades = allTrades.filter(trade => {
-      // 1. exchange가 kraken_futures가 아니면 제외
-      if (trade.exchange && trade.exchange !== 'kraken_futures') {
-        console.log('[KrakenPriceChart] ❌ 제외 (다른 거래소):', {
-          exchange: trade.exchange,
-          type: trade.type,
-          timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
-        });
-        return false;
-      }
+    // 최근 20개만 표시 (너무 많으면 차트가 지저분함)
+    const trades = allTrades
+      .filter(trade => {
+        // 1. exchange가 kraken_futures가 아니면 제외
+        if (trade.exchange && trade.exchange !== 'kraken_futures') {
+          console.log('[KrakenPriceChart] ❌ 제외 (다른 거래소):', {
+            exchange: trade.exchange,
+            type: trade.type,
+            timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
+          });
+          return false;
+        }
 
-      // 2. confirmed가 명시적으로 true가 아니면 제외
-      const confirmed = (trade as any).confirmed;
-      if (confirmed !== true) {
-        console.log('[KrakenPriceChart] ❌ 제외 (미체결):', {
+        // 2. confirmed가 명시적으로 true가 아니면 제외
+        const confirmed = (trade as any).confirmed;
+        if (confirmed !== true) {
+          console.log('[KrakenPriceChart] ❌ 제외 (미체결):', {
+            type: trade.type,
+            side: trade.side,
+            confirmed: confirmed,
+            timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
+          });
+          return false;
+        }
+
+        // 3. buy 이벤트는 side 필드가 있어야 함
+        if (trade.type === 'buy' && !trade.side) {
+          console.warn('[KrakenPriceChart] ❌ 제외 (side 없음):', {
+            type: trade.type,
+            timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
+          });
+          return false;
+        }
+
+        // 4. 모든 조건 통과
+        console.log('[KrakenPriceChart] ✅ 포함:', {
           type: trade.type,
           side: trade.side,
+          exchange: trade.exchange,
           confirmed: confirmed,
           timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
         });
-        return false;
-      }
+        return true;
+      })
+      .slice(-20); // 최근 20개만
 
-      // 3. buy 이벤트는 side 필드가 있어야 함
-      if (trade.type === 'buy' && !trade.side) {
-        console.warn('[KrakenPriceChart] ❌ 제외 (side 없음):', {
-          type: trade.type,
-          timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
-        });
-        return false;
-      }
-
-      // 4. 모든 조건 통과
-      console.log('[KrakenPriceChart] ✅ 포함:', {
-        type: trade.type,
-        side: trade.side,
-        exchange: trade.exchange,
-        confirmed: confirmed,
-        timestamp: new Date(trade.timestamp).toLocaleTimeString('ko-KR'),
-      });
-      return true;
+    console.log('[KrakenPriceChart] 🔍 거래 필터링 결과:', {
+      total: allTrades.length,
+      filtered: trades.length,
+      removed: allTrades.length - trades.length,
     });
 
-    if (allTrades.length !== trades.length) {
-      console.log('[KrakenPriceChart] 🔍 거래 필터링:', {
-        total: allTrades.length,
-        filtered: trades.length,
-        removed: allTrades.length - trades.length,
-        removedTrades: allTrades.filter(t => !trades.includes(t)).map(t => ({
-          type: t.type,
-          side: (t as any).side,
-          exchange: t.exchange,
-          timestamp: t.timestamp,
-        })),
-      });
-    }
+    console.log('[KrakenPriceChart] 📊 최종 차트 전달 데이터:', {
+      tradesCount: trades.length,
+      holding: {
+        isHolding: data.position.in_position,
+        buyPrice: data.strategyA?.entry_price,
+        buyTime: data.strategyA?.entry_time,
+        positionSide: data.position.position_side,
+      },
+      trades: trades.map(t => ({
+        type: t.type,
+        side: t.side,
+        timestamp: new Date(t.timestamp).toLocaleTimeString('ko-KR'),
+        price: t.price,
+      })),
+    });
 
     return {
       version: data.version,
