@@ -68,34 +68,9 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
 }
 
 export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false }: PriceChartProps) => {
-  // 거래 데이터 필터링: binance_spot만 표시 (현물 차트)
+  // 거래 데이터는 이미 상위 컴포넌트에서 필터링됨 (KrakenPriceChart 등)
   const data = useMemo(() => {
-    const allTrades = rawData.trades || [];
-    const filteredTrades = allTrades.filter(trade => {
-      // exchange 필드가 있으면 binance_spot만 허용
-      if (trade.exchange) {
-        return trade.exchange === 'binance_spot';
-      }
-
-      // exchange 필드가 없는 경우 (백엔드 업데이트 전)
-      // side 필드가 있으면 선물 거래이므로 제외
-      if (trade.side) {
-        console.warn('[PriceChart] ⚠️ 선물 거래가 현물 차트에 표시되어 무시됨:', trade);
-        return false;
-      }
-
-      return true;
-    });
-
-    if (allTrades.length !== filteredTrades.length) {
-      console.log('[PriceChart] 🔍 거래 필터링:', {
-        total: allTrades.length,
-        filtered: filteredTrades.length,
-        removed: allTrades.length - filteredTrades.length,
-      });
-    }
-
-    return { ...rawData, trades: filteredTrades };
+    return rawData;
   }, [rawData]);
 
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
