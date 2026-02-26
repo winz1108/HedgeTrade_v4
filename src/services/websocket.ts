@@ -239,11 +239,9 @@ class WebSocketService {
       this.lastMessageTime = Date.now();
     });
 
-    this.socket.on('reconnect_error', (error) => {
-    });
+    this.socket.on('reconnect_error', (error) => {});
 
-    this.socket.on('reconnect_failed', () => {
-    });
+    this.socket.on('reconnect_failed', () => {});
 
     this.socket.on('ping', () => {
       this.lastMessageTime = Date.now();
@@ -329,14 +327,11 @@ class WebSocketService {
       this.tradeEventCallbacks.forEach(cb => cb(data));
     });
 
-    this.socket.on('connect_error', (error) => {
-    });
+    this.socket.on('connect_error', (error) => {});
 
-    this.socket.on('error', (error) => {
-    });
+    this.socket.on('error', (error) => {});
 
-    this.socket.io.on('error', (error) => {
-    });
+    this.socket.io.on('error', (error) => {});
   }
 
   disconnect() {
