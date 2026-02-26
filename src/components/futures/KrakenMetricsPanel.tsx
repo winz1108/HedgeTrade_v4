@@ -120,15 +120,21 @@ export function KrakenMetricsPanel({ data, position }: Props) {
 
                       return sorted.map(([currency, info]) => {
                         let textColor = 'text-emerald-400'; // USD default
+                        let displayQuantity = info.quantity.toFixed(2);
+
                         if (currency === 'BTC') {
                           textColor = 'text-yellow-400';
+                          displayQuantity = info.quantity.toFixed(8);
                         } else if (currency === 'EUR') {
                           textColor = 'text-blue-400';
                         }
 
                         return (
                           <div key={currency} className="flex justify-between items-center">
-                            <span className="text-[9px] text-slate-300">{currency}</span>
+                            <div className="flex flex-col">
+                              <span className="text-[9px] text-slate-300">{currency}</span>
+                              <span className="text-[8px] text-slate-400">{displayQuantity}</span>
+                            </div>
                             <span className={`text-[11px] font-bold ${textColor}`}>
                               {formatCurrency(info.valueUsd)}
                             </span>
