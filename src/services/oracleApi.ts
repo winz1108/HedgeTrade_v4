@@ -128,6 +128,7 @@ const convertApiResponseToDashboardData = (
           takeProfitProb: apiResponse.currentPrediction.takeProfitProb,
           stopLossProb: apiResponse.currentPrediction.stopLossProb,
         },
+        ppReversalPrice: (apiResponse as any).pp_reversal_price ?? null,
       },
       prediction: apiResponse.prediction || {
         market_mood: undefined,

@@ -785,7 +785,10 @@ function App() {
 
             // 거래 및 holding 정보 업데이트 (accountData에서 가져옴)
             const updatedTrades = accountData.trades || prevData.trades;
-            const updatedHolding = accountData.holding || prevData.holding;
+            const updatedHolding = {
+              ...(accountData.holding || prevData.holding),
+              ppReversalPrice: (update as any).pp_reversal_price ?? prevData.holding.ppReversalPrice,
+            };
 
             return {
               ...prevData,
@@ -849,7 +852,10 @@ function App() {
           }
         }
 
-        const updatedHolding = update.holding || prevData.holding;
+        const updatedHolding = {
+          ...(update.holding || prevData.holding),
+          ppReversalPrice: (update as any).pp_reversal_price ?? prevData.holding.ppReversalPrice,
+        };
 
         return {
           ...prevData,

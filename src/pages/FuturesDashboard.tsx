@@ -99,6 +99,20 @@ function FuturesDashboard() {
       if (statusData.current_price) {
         updateLiveCandle(statusData.current_price);
       }
+
+      // Update PP reversal price if available
+      if (statusData.pp_reversal_price !== undefined) {
+        setData(prevData => {
+          if (!prevData) return prevData;
+          return {
+            ...prevData,
+            strategyA: {
+              ...prevData.strategyA,
+              pp_reversal_price: statusData.pp_reversal_price,
+            },
+          };
+        });
+      }
     };
 
     websocketService.on('kraken_status_update', handleStatusUpdate);
