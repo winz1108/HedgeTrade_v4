@@ -124,6 +124,7 @@ export function KrakenPriceChart({ data }: Props) {
         buyTime: data.strategyA.entry_time,
         currentProfit: data.strategyA.current_pnl,
         positionSide: data.position.position_side,
+        ppReversalPrice: data.strategyA.pp_reversal_price,
       },
       metrics: {
         portfolioReturn: 0,

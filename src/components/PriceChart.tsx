@@ -1541,6 +1541,20 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     opacity="0.6"
                     filter="drop-shadow(0 0 3px rgba(255, 255, 255, 0.4))"
                   />
+                  {/* PP Reversal Price line */}
+                  {data.holding.ppReversalPrice && (
+                    <line
+                      x1="0"
+                      y1={priceToY(data.holding.ppReversalPrice)}
+                      x2="100%"
+                      y2={priceToY(data.holding.ppReversalPrice)}
+                      stroke="#fbbf24"
+                      strokeWidth="1.5"
+                      strokeDasharray="6 3"
+                      opacity="0.7"
+                      filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.5))"
+                    />
+                  )}
                 </svg>
               );
             })()}

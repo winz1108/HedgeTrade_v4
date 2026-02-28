@@ -66,6 +66,7 @@ export interface HoldingInfo {
     stopLossProb: number;
   };
   positionSide?: 'LONG' | 'SHORT';
+  ppReversalPrice?: number | null;
 }
 
 export interface MarketState {
@@ -361,6 +362,7 @@ export interface KrakenStrategyA {
   mfe?: number;
   pp_stop?: number | null;
   pp_activated?: boolean;
+  pp_reversal_price?: number | null;
   hard_sl: number;
   vanished?: number;
   vanish_threshold: number;
