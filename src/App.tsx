@@ -63,13 +63,16 @@ function App() {
 
     const handleLiveStatus = (statusData: any) => {
       if (!statusData) return;
+      if (statusData.exchange && statusData.exchange !== 'binance_futures') return;
       if (statusData.current_price) {
         updateLiveCandle(statusData.current_price);
       }
       setData(prev => {
         if (!prev) return prev;
         const updated = { ...prev };
+        if (statusData.current_price) updated.currentPrice = statusData.current_price;
         if (statusData.server_time) updated.serverTime = statusData.server_time;
+        if (statusData.ws_healthy !== undefined) updated.wsHealthy = statusData.ws_healthy;
         if (statusData.entry_conditions_long) {
           updated.strategy = { ...updated.strategy, entryConditionsLong: statusData.entry_conditions_long };
         }
@@ -120,11 +123,16 @@ function App() {
         if (!prev) return prev;
         const updated = { ...prev, currentPrice: priceData.price };
         if (priceData.timestamp) updated.serverTime = priceData.timestamp;
+        if (priceData.ws_healthy !== undefined) updated.wsHealthy = priceData.ws_healthy;
         if (priceData.currencies) {
           updated.account = { ...updated.account, currencies: priceData.currencies };
+          const usdtQty = priceData.currencies?.USDT?.quantity;
+          if (usdtQty !== undefined) {
+            updated.account = { ...updated.account, totalAsset: usdtQty };
+          }
         }
-        if (priceData.portfolioValue) {
-          updated.account = { ...updated.account, totalAsset: priceData.portfolioValue };
+        if (priceData.pp_reversal_price !== undefined) {
+          updated.position = { ...updated.position, ppReversalPrice: priceData.pp_reversal_price };
         }
         return updated;
       });
