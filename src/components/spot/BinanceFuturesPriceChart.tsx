@@ -27,22 +27,11 @@ export function BinanceFuturesPriceChart({ data }: Props) {
 
     if (priceHistory1m.length === 0) return null;
 
-    const allTrades = data.trades || [];
     const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
-    const trades: TradeEvent[] = allTrades
+    const trades: TradeEvent[] = (data.recentTrades || [])
       .filter(t => t.timestamp >= oneWeekAgo)
-      .slice(-40)
-      .map(t => ({
-        timestamp: t.timestamp,
-        type: t.type === 'exit' ? 'sell' as const : 'buy' as const,
-        price: t.type === 'exit' ? t.exitPrice : t.entryPrice,
-        profit: t.pnlPercent,
-        side: t.side as 'LONG' | 'SHORT',
-        exitReason: t.reason,
-        exchange: 'binance_spot' as const,
-        confirmed: true,
-      }));
+      .slice(-40);
 
     return {
       version: data.strategy?.version,
