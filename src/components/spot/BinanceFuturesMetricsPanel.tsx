@@ -350,6 +350,14 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
 
             <div className="space-y-0.5">
               <div className="flex justify-between items-center bg-stone-50 p-1 rounded border border-stone-300">
+                <span className="text-[9px] text-slate-800 font-medium">Portfolio Return</span>
+                <span className={`text-[11px] font-bold ${
+                  (data.account.returnPct ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                }`}>
+                  {formatPercent((data.account.returnPct ?? 0) * 100)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center bg-stone-50 p-1 rounded border border-stone-300">
                 <span className="text-[9px] text-slate-800 font-medium">Market Change (30d)</span>
                 <span className={`text-[11px] font-bold ${
                   marketReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'

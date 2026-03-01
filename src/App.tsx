@@ -198,9 +198,10 @@ function App() {
         <div className="flex flex-col mb-2 bg-white border border-amber-200 rounded-lg p-3 shadow-xl gap-3">
           <div className="flex items-center gap-3 flex-wrap justify-between">
             <div className="flex items-center gap-2">
-              <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
-                HedgeTrade Dashboard
-              </h1>
+              <div className="flex items-baseline gap-1.5">
+                <h1 className="text-lg lg:text-2xl font-bold text-slate-800">HedgeTrade</h1>
+                <span className="text-[11px] font-semibold text-slate-500 tracking-wide">Binance</span>
+              </div>
               {data.strategy?.version && (
                 <span className="text-[10px] text-amber-600 font-mono">{data.strategy.version}</span>
               )}
@@ -228,8 +229,6 @@ function App() {
             </div>
             <div className="flex items-center gap-3">
               <div className="text-xs text-slate-600">
-                <span className="font-semibold">{data.account?.name || 'Account B'}</span>
-                <span className="mx-2">&bull;</span>
                 <span className="font-mono">{data.symbol || 'BTCUSDT'}</span>
               </div>
               {data.serverTime && (
