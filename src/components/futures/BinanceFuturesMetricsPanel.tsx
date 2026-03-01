@@ -54,9 +54,9 @@ const getExitReasonLabel = (reason?: string): string => {
 
 const getExitReasonColor = (profit: number | undefined): { bg: string; text: string; border: string } => {
   if (profit === undefined || profit >= 0) {
-    return { bg: 'bg-emerald-900/30', text: 'text-emerald-400', border: 'border-emerald-700' };
+    return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
   } else {
-    return { bg: 'bg-rose-900/30', text: 'text-rose-400', border: 'border-rose-700' };
+    return { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' };
   }
 };
 
@@ -90,29 +90,29 @@ export function BinanceFuturesMetricsPanel({ data, position }: Props) {
 
     return (
       <div className="flex flex-col gap-1.5">
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+        <div className="bg-white/95 border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-white">Status</h3>
-            <Activity className="w-3 h-3 text-slate-300" />
+            <h3 className="text-[11px] font-bold text-stone-800">Status</h3>
+            <Activity className="w-3 h-3 text-stone-600" />
           </div>
 
           <div className="space-y-1.5">
             <div className="flex justify-between text-[10px]">
-              <span className="text-slate-400">Asset</span>
-              <span className="font-mono text-white font-semibold">{formatCurrency(data.account.totalAsset)}</span>
+              <span className="text-stone-600">Asset</span>
+              <span className="font-mono text-stone-900 font-semibold">{formatCurrency(data.account.totalAsset)}</span>
             </div>
             <div className="flex justify-between text-[10px]">
-              <span className="text-slate-400">Return</span>
-              <span className={`font-mono font-semibold ${data.account.returnPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className="text-stone-600">Return</span>
+              <span className={`font-mono font-semibold ${data.account.returnPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                 {data.account.returnPct.toFixed(2)}%
               </span>
             </div>
             <div className="flex justify-between text-[10px]">
-              <span className="text-slate-400">Position</span>
+              <span className="text-stone-600">Position</span>
               <span className={`font-mono font-semibold ${
                 hasPosition
-                  ? positionSide === 'LONG' ? 'text-emerald-400' : 'text-rose-400'
-                  : 'text-slate-400'
+                  ? positionSide === 'LONG' ? 'text-emerald-600' : 'text-rose-600'
+                  : 'text-stone-500'
               }`}>
                 {hasPosition ? positionSide : 'None'}
               </span>
@@ -120,25 +120,25 @@ export function BinanceFuturesMetricsPanel({ data, position }: Props) {
             {hasPosition && entryPrice && (
               <>
                 <div className="flex justify-between text-[10px]">
-                  <span className="text-slate-400">Entry</span>
-                  <span className="font-mono text-white">${entryPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="text-stone-600">Entry</span>
+                  <span className="font-mono text-stone-900">${entryPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
                 <div className="flex justify-between text-[10px]">
-                  <span className="text-slate-400">PnL</span>
-                  <span className={`font-mono font-semibold ${currentPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <span className="text-stone-600">PnL</span>
+                  <span className={`font-mono font-semibold ${currentPnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {currentPnl.toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex justify-between text-[10px]">
-                  <span className="text-slate-400">MFE</span>
-                  <span className="font-mono text-cyan-400 font-semibold">
+                  <span className="text-stone-600">MFE</span>
+                  <span className="font-mono text-cyan-600 font-semibold">
                     {data.position.mfe.toFixed(2)}%
                   </span>
                 </div>
                 {data.position.ppActivated && data.position.ppStop !== null && (
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-slate-400">PP Stop</span>
-                    <span className="font-mono text-amber-400 font-semibold">
+                    <span className="text-stone-600">PP Stop</span>
+                    <span className="font-mono text-amber-600 font-semibold">
                       {data.position.ppStop.toFixed(2)}%
                     </span>
                   </div>
@@ -148,12 +148,12 @@ export function BinanceFuturesMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+        <div className="bg-white/95 border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-white">
+            <h3 className="text-[11px] font-bold text-stone-800">
               {positionSide === 'SHORT' ? 'Short' : 'Long'} Entry
             </h3>
-            <Target className="w-3 h-3 text-slate-300" />
+            <Target className="w-3 h-3 text-stone-600" />
           </div>
 
           <div className="space-y-0.5">
@@ -162,8 +162,8 @@ export function BinanceFuturesMetricsPanel({ data, position }: Props) {
               const met = conditionsData?.[cond.key as keyof typeof conditionsData] ?? false;
               return (
                 <div key={cond.key} className="flex items-center justify-between text-[9px]">
-                  <span className="text-slate-400">{cond.label}</span>
-                  <span className={`font-mono font-semibold ${met ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <span className="text-stone-600">{cond.label}</span>
+                  <span className={`font-mono font-semibold ${met ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {met ? '✓' : '✗'}
                   </span>
                 </div>
@@ -181,97 +181,97 @@ export function BinanceFuturesMetricsPanel({ data, position }: Props) {
 
     return (
       <div className="flex flex-col gap-1.5">
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+        <div className="bg-white/95 border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-white">Indicators</h3>
-            <Activity className="w-3 h-3 text-slate-300" />
+            <h3 className="text-[11px] font-bold text-stone-800">Indicators</h3>
+            <Activity className="w-3 h-3 text-stone-600" />
           </div>
 
           <div className="space-y-1">
             {indicators && (
               <>
-                <div className="text-[9px] font-bold text-slate-300 mt-1 mb-0.5">1m</div>
+                <div className="text-[9px] font-bold text-stone-700 mt-1 mb-0.5">1m</div>
                 <div className="flex justify-between text-[9px]">
-                  <span className="text-slate-400">EMA5</span>
-                  <span className="font-mono text-white">${indicators['1m'].ema_short.toFixed(2)}</span>
+                  <span className="text-stone-600">EMA5</span>
+                  <span className="font-mono text-stone-900">${indicators['1m'].ema_short.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[9px]">
-                  <span className="text-slate-400">Direction</span>
-                  <span className={`font-mono ${indicators['1m'].above ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <span className="text-stone-600">Direction</span>
+                  <span className={`font-mono ${indicators['1m'].above ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {indicators['1m'].above ? 'Above' : 'Below'}
                   </span>
                 </div>
 
-                <div className="text-[9px] font-bold text-slate-300 mt-2 mb-0.5">30m</div>
+                <div className="text-[9px] font-bold text-stone-700 mt-2 mb-0.5">30m</div>
                 <div className="flex justify-between text-[9px]">
-                  <span className="text-slate-400">Slope</span>
-                  <span className={`font-mono ${indicators['30m'].ema_slope >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <span className="text-stone-600">Slope</span>
+                  <span className={`font-mono ${indicators['30m'].ema_slope >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {indicators['30m'].ema_slope.toFixed(4)}%
                   </span>
                 </div>
                 <div className="flex justify-between text-[9px]">
-                  <span className="text-slate-400">Gap</span>
-                  <span className={`font-mono ${indicators['30m'].ema_gap_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <span className="text-stone-600">Gap</span>
+                  <span className={`font-mono ${indicators['30m'].ema_gap_pct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {indicators['30m'].ema_gap_pct.toFixed(4)}%
                   </span>
                 </div>
                 <div className="flex justify-between text-[9px]">
-                  <span className="text-slate-400">ADX</span>
-                  <span className="font-mono text-cyan-400">{indicators['30m'].adx.toFixed(2)}</span>
+                  <span className="text-stone-600">ADX</span>
+                  <span className="font-mono text-cyan-600">{indicators['30m'].adx.toFixed(2)}</span>
                 </div>
 
-                <div className="text-[9px] font-bold text-slate-300 mt-2 mb-0.5">15m BBW</div>
+                <div className="text-[9px] font-bold text-stone-700 mt-2 mb-0.5">15m BBW</div>
                 <div className="flex justify-between text-[9px]">
-                  <span className="text-slate-400">Width</span>
-                  <span className="font-mono text-purple-400">{indicators['15m'].bbw.toFixed(4)}%</span>
+                  <span className="text-stone-600">Width</span>
+                  <span className="font-mono text-purple-600">{indicators['15m'].bbw.toFixed(4)}%</span>
                 </div>
 
-                <div className="text-[9px] font-bold text-slate-300 mt-2 mb-0.5">Market</div>
+                <div className="text-[9px] font-bold text-stone-700 mt-2 mb-0.5">Market</div>
                 <div className="flex justify-between text-[9px]">
-                  <span className="text-slate-400">Regime</span>
+                  <span className="text-stone-600">Regime</span>
                   <span className={`font-mono ${
-                    indicators.market_regime === 'U' ? 'text-emerald-400' :
-                    indicators.market_regime === 'D' ? 'text-rose-400' :
-                    'text-amber-400'
+                    indicators.market_regime === 'U' ? 'text-emerald-600' :
+                    indicators.market_regime === 'D' ? 'text-rose-600' :
+                    'text-amber-600'
                   }`}>
                     {indicators.market_regime === 'U' ? 'Uptrend' : indicators.market_regime === 'D' ? 'Downtrend' : 'Sideways'}
                   </span>
                 </div>
                 <div className="flex justify-between text-[9px]">
-                  <span className="text-slate-400">Health</span>
-                  <span className="font-mono text-cyan-400">{indicators.trend_health_score}</span>
+                  <span className="text-stone-600">Health</span>
+                  <span className="font-mono text-cyan-600">{indicators.trend_health_score}</span>
                 </div>
               </>
             )}
           </div>
         </div>
 
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+        <div className="bg-white/95 border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-white">Performance</h3>
-            <DollarSign className="w-3 h-3 text-slate-300" />
+            <h3 className="text-[11px] font-bold text-stone-800">Performance</h3>
+            <DollarSign className="w-3 h-3 text-stone-600" />
           </div>
 
           <div className="space-y-1">
             <div className="flex justify-between text-[9px]">
-              <span className="text-slate-400">Total Trades</span>
-              <span className="font-mono text-white">{data.metrics.totalTrades}</span>
+              <span className="text-stone-600">Total Trades</span>
+              <span className="font-mono text-stone-900">{data.metrics.totalTrades}</span>
             </div>
             <div className="flex justify-between text-[9px]">
-              <span className="text-slate-400">Win Rate</span>
-              <span className={`font-mono ${data.metrics.winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className="text-stone-600">Win Rate</span>
+              <span className={`font-mono ${data.metrics.winRate >= 50 ? 'text-emerald-600' : 'text-rose-600'}`}>
                 {data.metrics.winRate.toFixed(1)}%
               </span>
             </div>
             <div className="flex justify-between text-[9px]">
-              <span className="text-slate-400">Avg PnL</span>
-              <span className={`font-mono ${data.metrics.avgPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className="text-stone-600">Avg PnL</span>
+              <span className={`font-mono ${data.metrics.avgPnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                 {data.metrics.avgPnl.toFixed(2)}%
               </span>
             </div>
             <div className="flex justify-between text-[9px]">
-              <span className="text-slate-400">Total PnL</span>
-              <span className={`font-mono ${data.metrics.totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className="text-stone-600">Total PnL</span>
+              <span className={`font-mono ${data.metrics.totalPnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                 {data.metrics.totalPnl.toFixed(2)}%
               </span>
             </div>
@@ -291,10 +291,10 @@ export function BinanceFuturesMetricsPanel({ data, position }: Props) {
     }, [data.trades]);
 
     return (
-      <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2 flex flex-col h-full">
+      <div className="bg-white/95 border border-stone-200 rounded-lg shadow-sm p-2 flex flex-col h-full">
         <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
-          <h3 className="text-[11px] font-bold text-white">Recent Trades</h3>
-          <History className="w-3 h-3 text-slate-300" />
+          <h3 className="text-[11px] font-bold text-stone-800">Recent Trades</h3>
+          <History className="w-3 h-3 text-stone-600" />
         </div>
 
         <div ref={tradesListRef} className="flex-1 overflow-y-auto space-y-1 min-h-0">
@@ -310,7 +310,7 @@ export function BinanceFuturesMetricsPanel({ data, position }: Props) {
                 >
                   <div className="flex items-center justify-between mb-0.5">
                     <div className="flex items-center gap-1">
-                      <span className={`text-[9px] font-bold ${trade.side === 'LONG' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <span className={`text-[9px] font-bold ${trade.side === 'LONG' ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {trade.side}
                       </span>
                       <span className={`text-[8px] px-1 py-0.5 rounded ${colors.bg} ${colors.text} border ${colors.border}`}>
@@ -321,11 +321,11 @@ export function BinanceFuturesMetricsPanel({ data, position }: Props) {
                       {trade.pnlPercent >= 0 ? '+' : ''}{trade.pnlPercent.toFixed(2)}%
                     </span>
                   </div>
-                  <div className="flex justify-between text-[8px] text-slate-400">
+                  <div className="flex justify-between text-[8px] text-stone-600">
                     <span>{formatLocalDateTime(trade.timestamp)}</span>
                     <span>{Math.floor(trade.holdSeconds / 60)}m</span>
                   </div>
-                  <div className="flex justify-between text-[8px] text-slate-400 mt-0.5">
+                  <div className="flex justify-between text-[8px] text-stone-600 mt-0.5">
                     <span>Entry: ${trade.entryPrice.toFixed(2)}</span>
                     <span>Exit: ${trade.exitPrice.toFixed(2)}</span>
                   </div>
@@ -333,7 +333,7 @@ export function BinanceFuturesMetricsPanel({ data, position }: Props) {
               );
             })
           ) : (
-            <div className="text-center text-slate-400 text-[10px] py-4">
+            <div className="text-center text-stone-500 text-[10px] py-4">
               No trades yet
             </div>
           )}

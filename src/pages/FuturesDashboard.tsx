@@ -196,12 +196,12 @@ function FuturesDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
         <div className="w-full lg:max-w-[98vw] mx-auto p-2 lg:p-4">
-          <div className="flex flex-col mb-2 bg-slate-800/80 border border-slate-700 rounded-lg p-3 shadow-xl">
+          <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl">
             <div className="flex items-center gap-3">
               <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
-              <h1 className="text-lg lg:text-2xl font-bold text-white">
+              <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
                 Loading Binance Futures Dashboard...
               </h1>
             </div>
@@ -213,17 +213,17 @@ function FuturesDashboard() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center max-w-md bg-slate-800/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-slate-700">
-          <div className="text-rose-400 text-6xl mb-4">⚠</div>
-          <p className="text-white text-xl font-bold mb-2">Failed to load data</p>
-          <p className="text-slate-300 text-sm mb-6">{error || 'No data available'}</p>
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 flex items-center justify-center">
+        <div className="text-center max-w-md bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-stone-200">
+          <div className="text-rose-600 text-6xl mb-4">⚠</div>
+          <p className="text-stone-900 text-xl font-bold mb-2">Failed to load data</p>
+          <p className="text-stone-700 text-sm mb-6">{error || 'No data available'}</p>
           <button
             onClick={() => {
               setLoading(true);
               loadData();
             }}
-            className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg hover:from-cyan-500 hover:to-blue-500 transition-all duration-200 shadow-md font-semibold"
+            className="px-8 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg hover:from-amber-500 hover:to-orange-500 transition-all duration-200 shadow-md font-semibold"
           >
             Retry
           </button>
@@ -233,12 +233,12 @@ function FuturesDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
       <div className="w-full lg:max-w-[98vw] mx-auto p-2 lg:p-4">
-        <div className="flex flex-col mb-2 bg-slate-800/80 border border-slate-700 rounded-lg p-3 shadow-xl gap-3">
+        <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <h1 className="text-lg lg:text-2xl font-bold text-white">
+              <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
                 Binance Futures Dashboard
               </h1>
               {data.strategy.version && (
@@ -259,7 +259,7 @@ function FuturesDashboard() {
 
             <div className="flex items-center gap-3 ml-auto">
               {data.serverTime && (
-                <span className="text-xs text-slate-300 font-mono">
+                <span className="text-xs text-stone-600 font-mono">
                   {formatLocalTime(data.serverTime)}
                 </span>
               )}
