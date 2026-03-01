@@ -18,26 +18,10 @@ export function BinanceFuturesPriceChart({ data }: Props) {
         candles = (data[key] as any[]) || [];
       }
 
-      let processedCandles = candles.map(c => ({
+      const processedCandles = candles.map(c => ({
         ...c,
         timestamp: c.time ? c.time * 1000 : c.timestamp,
       }));
-
-      const indicators = data.strategy?.indicators?.[timeframe];
-      if (indicators) {
-        const macdLine = indicators.macd_line !== undefined ? [indicators.macd_line] : [];
-        const macdSignal = indicators.macd_signal !== undefined ? [indicators.macd_signal] : [];
-        const macdHist = indicators.macd_hist !== undefined ? [indicators.macd_hist] : [];
-
-        if (macdLine.length > 0) {
-          processedCandles = processedCandles.map((candle, idx) => ({
-            ...candle,
-            macd: macdLine[0] ?? candle.macd,
-            signal: macdSignal[0] ?? candle.signal,
-            histogram: macdHist[0] ?? candle.histogram,
-          }));
-        }
-      }
 
       return processedCandles;
     };
