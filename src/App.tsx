@@ -19,10 +19,8 @@ function App() {
       const resp = await fetchBinanceFuturesDashboard();
       if (resp?.data) {
         setData(resp.data);
-      } else if (resp && !resp.data) {
-        setData(resp as any);
       } else {
-        throw new Error('Empty response from API');
+        throw new Error('No data in API response');
       }
       setLoading(false);
     } catch (err) {

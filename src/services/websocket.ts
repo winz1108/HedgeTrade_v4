@@ -193,7 +193,7 @@ class WebSocketService {
   connect() {
     // Connect to API URL without port (Cloudflare only proxies 80/443)
     // Nginx will automatically proxy WebSocket connections to the backend
-    const wsUrl = import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+    const wsUrl = import.meta.env.VITE_API_URL || 'http://130.61.50.101:54321';
 
     this.socket = io(`${wsUrl}/ws/dashboard`, {
       transports: ['websocket', 'polling'],
