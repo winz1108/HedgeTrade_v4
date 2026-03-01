@@ -1,39 +1,20 @@
 import { useMemo } from 'react';
 import { PriceChart } from '../PriceChart';
 import { DashboardData, TradeEvent } from '../../types/dashboard';
+import type { BFDashboardData } from '../../App';
 
 interface Props {
-  data: any;
-  priceHistories: {
-    [tf: string]: any[];
-  };
+  data: BFDashboardData;
 }
 
-export function BinanceFuturesPriceChart({ data: apiData, priceHistories }: Props) {
-  const d = apiData?.data;
-
+export function BinanceFuturesPriceChart({ data }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
-    if (!d) return null;
-
     const getCandles = (timeframe: string): any[] => {
-      const candles: any[] = priceHistories[timeframe] || [];
+      const candles: any[] = data.priceHistories?.[timeframe] || [];
 
       return candles.map(c => ({
         ...c,
         timestamp: c.time ? c.time * 1000 : c.timestamp,
-        ema_short: c.ema_short,
-        ema_long: c.ema_long,
-        ema3: c.ema3,
-        ema8: c.ema8,
-        bb_upper: c.bb_upper,
-        bb_mid: c.bb_mid,
-        bb_lower: c.bb_lower,
-        bbw: c.bbw,
-        macd: c.macd || c.macd_line,
-        signal: c.signal || c.macd_signal,
-        histogram: c.histogram || c.macd_hist,
-        rsi: c.rsi,
-        adx: c.adx,
       }));
     };
 
@@ -47,23 +28,31 @@ export function BinanceFuturesPriceChart({ data: apiData, priceHistories }: Prop
 
     if (priceHistory1m.length === 0) return null;
 
-    const trades: TradeEvent[] = (d.trades || []).map((t: any) => ({
-      timestamp: t.timestamp,
-      type: t.type === 'exit' ? 'sell' : 'buy',
-      price: t.type === 'exit' ? t.exitPrice : t.entryPrice,
-      profit: t.pnlPercent,
-      side: t.side,
-      exitReason: t.reason,
-    }));
+    const allTrades = data.trades || [];
+    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+    const trades: TradeEvent[] = allTrades
+      .filter(t => t.timestamp >= oneWeekAgo)
+      .slice(-40)
+      .map(t => ({
+        timestamp: t.timestamp,
+        type: t.type === 'exit' ? 'sell' as const : 'buy' as const,
+        price: t.type === 'exit' ? t.exitPrice : t.entryPrice,
+        profit: t.pnlPercent,
+        side: t.side as 'LONG' | 'SHORT',
+        exitReason: t.reason,
+        exchange: 'binance_spot' as const,
+        confirmed: true,
+      }));
 
     return {
-      version: d.strategy?.version,
-      currentAsset: d.account?.totalAsset || 0,
+      version: data.strategy?.version,
+      currentAsset: data.account.totalAsset,
       currentBTC: 0,
-      currentCash: d.account?.currencies?.USDT?.quantity || 0,
-      initialAsset: d.account?.initialAsset || 0,
-      currentTime: d.serverTime || Date.now(),
-      currentPrice: d.currentPrice,
+      currentCash: data.account.currencies?.USDT?.quantity || 0,
+      initialAsset: data.account.initialAsset,
+      currentTime: data.serverTime || Date.now(),
+      currentPrice: data.currentPrice,
       priceHistory1m,
       priceHistory5m,
       priceHistory15m,
@@ -74,25 +63,25 @@ export function BinanceFuturesPriceChart({ data: apiData, priceHistories }: Prop
       pricePredictions: [],
       trades,
       holding: {
-        isHolding: d.position?.inPosition || false,
-        buyPrice: d.position?.entryPrice || undefined,
-        buyTime: d.position?.entryTime || undefined,
-        currentProfit: d.position?.currentPnl,
-        positionSide: d.position?.side || undefined,
-        ppReversalPrice: d.strategy?.pp_reversal_price || d.position?.ppReversalPrice || undefined,
+        isHolding: data.position.inPosition,
+        buyPrice: data.position.entryPrice || undefined,
+        buyTime: data.position.entryTime || undefined,
+        currentProfit: data.position.currentPnl,
+        positionSide: data.position.side || undefined,
+        ppReversalPrice: data.strategy?.pp_reversal_price || data.position.ppReversalPrice || undefined,
       },
       metrics: {
         portfolioReturn: 0,
-        marketReturn: d.metrics?.marketReturn || 0,
-        avgTradeReturn: d.metrics?.avgPnl || 0,
+        marketReturn: data.metrics?.marketReturn || 0,
+        avgTradeReturn: data.metrics?.avgPnl || 0,
         takeProfitCount: 0,
         stopLossCount: 0,
-        totalTrades: d.metrics?.totalTrades,
-        winRate: d.metrics?.winRate,
-        totalPnl: d.metrics?.totalPnl,
+        totalTrades: data.metrics?.totalTrades,
+        winRate: data.metrics?.winRate,
+        totalPnl: data.metrics?.totalPnl,
       },
     };
-  }, [d, priceHistories]);
+  }, [data]);
 
   if (!transformedData) {
     return (

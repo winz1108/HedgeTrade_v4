@@ -1,9 +1,10 @@
 import { DollarSign, Activity, Target, History } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
+import type { BFDashboardData } from '../../App';
 
 interface Props {
-  data: any;
+  data: BFDashboardData;
   position: 'left' | 'right' | 'trades';
   currentTime: number;
 }
@@ -33,9 +34,7 @@ const formatHoldingDuration = (entryTime: number, currentTime: number): string =
   const minutes = Math.floor(diffMs / 60000);
   const hours = Math.floor(minutes / 60);
   const remainMinutes = minutes % 60;
-  if (hours > 0) {
-    return `${hours}h ${remainMinutes}m`;
-  }
+  if (hours > 0) return `${hours}h ${remainMinutes}m`;
   return `${minutes}m`;
 };
 
@@ -55,15 +54,11 @@ const getExitReasonLabel = (reason?: string): string => {
 const getExitReasonColor = (profit: number | undefined): { bg: string; text: string; border: string } => {
   if (profit === undefined || profit >= 0) {
     return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-300' };
-  } else {
-    return { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-300' };
   }
+  return { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-300' };
 };
 
-export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTime }: Props) {
-  const data = apiData?.data;
-  if (!data) return null;
-
+export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Props) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -75,10 +70,10 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
 
   if (position === 'left') {
     const leverage = 1;
-    const hasPosition = data.position?.inPosition;
-    const positionSide = data.position?.side;
-    const entryPrice = data.position?.entryPrice;
-    const currentPnl = data.position?.currentPnl;
+    const hasPosition = data.position.inPosition;
+    const positionSide = data.position.side;
+    const entryPrice = data.position.entryPrice;
+    const currentPnl = data.position.currentPnl;
     const entryConditionsLong = data.strategy?.entryConditionsLong;
     const entryConditionsShort = data.strategy?.entryConditionsShort;
 
@@ -103,10 +98,10 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-2 border border-amber-300">
               <div className="text-[10px] text-amber-700 font-medium mb-0.5">TOTAL ASSET</div>
               <div className="text-xl font-bold text-slate-900 mb-1">
-                {formatCurrency(data.account?.totalAsset ?? 0)}
+                {formatCurrency(data.account.totalAsset)}
               </div>
               <div className="space-y-0.5 pt-1 border-t border-amber-300">
-                {data.account?.currencies && Object.entries(data.account.currencies).length > 0 ? (
+                {data.account.currencies && Object.entries(data.account.currencies).length > 0 ? (
                   <>
                     {(() => {
                       const currencies = Object.entries(data.account.currencies);
@@ -122,12 +117,8 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
 
                       return sorted.map(([currency, info]) => {
                         let textColor = 'text-emerald-700';
-
-                        if (currency === 'BTC') {
-                          textColor = 'text-amber-700';
-                        } else if (currency === 'USDT') {
-                          textColor = 'text-emerald-700';
-                        }
+                        if (currency === 'BTC') textColor = 'text-amber-700';
+                        else if (currency === 'USDT') textColor = 'text-emerald-700';
 
                         return (
                           <div key={currency} className="flex justify-between items-center">
@@ -144,15 +135,13 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
                   <div className="flex justify-between items-center">
                     <span className="text-[9px] text-slate-600">Available</span>
                     <span className="text-[11px] font-bold text-emerald-700">
-                      {formatCurrency(data.account?.totalAsset ?? 0)}
+                      {formatCurrency(data.account.totalAsset)}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-600">Leverage</span>
-                  <span className="text-[11px] font-bold text-amber-700">
-                    {leverage}x
-                  </span>
+                  <span className="text-[11px] font-bold text-amber-700">{leverage}x</span>
                 </div>
               </div>
             </div>
@@ -179,7 +168,7 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
                       <span className="text-[11px] font-bold text-slate-600">{formatCurrency(liquidationPrice)}</span>
                     </div>
                   )}
-                  {currentPnl !== undefined && (
+                  {currentPnl !== undefined && currentPnl !== null && (
                     <div className="flex justify-between items-center">
                       <span className="text-[9px] text-amber-700">P&L</span>
                       <span className={`text-[11px] font-bold ${
@@ -189,7 +178,7 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
                       </span>
                     </div>
                   )}
-                  {data.position?.entryTime && (
+                  {data.position.entryTime && (
                     <div className="flex justify-between items-center">
                       <span className="text-[9px] text-amber-700">Duration</span>
                       <span className="text-[11px] font-bold text-amber-700">
@@ -224,14 +213,11 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
                 <div className="grid grid-cols-2 gap-1">
                   {LONG_ENTRY_CONDITIONS.map(({ key, label }) => {
                     const met = entryConditionsLong[key];
-
                     return (
                       <div
                         key={`long-${key}`}
                         className={`flex items-center gap-1 px-1 py-0.5 rounded ${
-                          met
-                            ? 'bg-cyan-200/50'
-                            : 'bg-stone-100'
+                          met ? 'bg-cyan-200/50' : 'bg-stone-100'
                         }`}
                       >
                         <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
@@ -258,14 +244,11 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
                 <div className="grid grid-cols-2 gap-1">
                   {SHORT_ENTRY_CONDITIONS.map(({ key, label }) => {
                     const met = entryConditionsShort[key];
-
                     return (
                       <div
                         key={`short-${key}`}
                         className={`flex items-center gap-1 px-1 py-0.5 rounded ${
-                          met
-                            ? 'bg-orange-200/50'
-                            : 'bg-stone-100'
+                          met ? 'bg-orange-200/50' : 'bg-stone-100'
                         }`}
                       >
                         <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
@@ -289,18 +272,18 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
           )}
         </div>
 
-        <div className="bg-white border border-purple-300 rounded-lg shadow-sm p-2">
+        <div className="bg-white border border-amber-300 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-slate-800">Profit Protection</h3>
           </div>
 
-          {hasPosition && data.position ? (
+          {hasPosition ? (
             <div className="space-y-1">
-              {data.position.mfe !== undefined && (
-                <div className="bg-purple-50 border border-purple-300 rounded p-1.5">
+              {data.position.mfe !== undefined && data.position.mfe !== null && (
+                <div className="bg-amber-50 border border-amber-300 rounded p-1.5">
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-purple-700 font-medium">Max Profit (MFE)</span>
-                    <span className="text-[11px] font-bold text-purple-700">
+                    <span className="text-[9px] text-amber-700 font-medium">Max Profit (MFE)</span>
+                    <span className="text-[11px] font-bold text-amber-700">
                       +{data.position.mfe.toFixed(2)}%
                     </span>
                   </div>
@@ -317,6 +300,30 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
                   </span>
                 </div>
               </div>
+
+              {data.position.ppReversalPrice && (
+                <div className="bg-blue-50 border border-blue-300 rounded p-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] text-blue-700 font-medium">PP Reversal (1h EMA5)</span>
+                    <span className="text-[11px] font-bold text-blue-700">
+                      {formatCurrency(data.position.ppReversalPrice)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {data.position.peakPrice && (
+                <div className="bg-stone-50 border border-stone-300 rounded p-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] text-stone-600 font-medium">
+                      {positionSide === 'SHORT' ? 'Lowest Price' : 'Peak Price'}
+                    </span>
+                    <span className="text-[11px] font-bold text-stone-700">
+                      {formatCurrency(data.position.peakPrice)}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center justify-center h-12 text-slate-600 text-[10px]">
@@ -339,6 +346,7 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
     const winRate = data.metrics?.winRate ?? 0;
     const avgPnl = data.metrics?.avgPnl ?? 0;
     const totalPnl = data.metrics?.totalPnl ?? 0;
+    const marketReturn = data.metrics?.marketReturn ?? 0;
 
     const tp = Math.round(totalTrades * (winRate / 100));
     const sl = totalTrades - tp;
@@ -356,10 +364,10 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
               <div className="text-[10px] text-emerald-700 font-bold mb-0.5">NET PROFIT</div>
               <div
                 className={`text-2xl font-black ${
-                  (data.account?.returnPct ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                  data.account.returnPct >= 0 ? 'text-emerald-600' : 'text-rose-600'
                 }`}
               >
-                {formatPercent((data.account?.returnPct ?? 0) * 100)}
+                {formatPercent(data.account.returnPct * 100)}
               </div>
               {totalPnl !== undefined && (
                 <div className={`text-[11px] font-bold mt-0.5 ${
@@ -371,6 +379,14 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
             </div>
 
             <div className="space-y-0.5">
+              <div className="flex justify-between items-center bg-stone-50 p-1 rounded border border-stone-300">
+                <span className="text-[9px] text-slate-800 font-medium">Market Change (30d)</span>
+                <span className={`text-[11px] font-bold ${
+                  marketReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                }`}>
+                  {formatPercent(marketReturn)}
+                </span>
+              </div>
               <div className="flex justify-between items-center bg-stone-50 p-1 rounded border border-stone-300">
                 <span className="text-[9px] text-slate-800 font-medium">Avg Trade Return</span>
                 <span className={`text-[11px] font-bold ${
@@ -435,11 +451,7 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
     useEffect(() => {
       const container = scrollContainerRef.current;
       if (!container) return;
-
-      const handleScroll = () => {
-        scrollPositionRef.current = container.scrollTop;
-      };
-
+      const handleScroll = () => { scrollPositionRef.current = container.scrollTop; };
       container.addEventListener('scroll', handleScroll);
       return () => container.removeEventListener('scroll', handleScroll);
     }, []);
@@ -480,8 +492,8 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
                           {isLong ? 'LONG' : 'SHORT'}
                         </span>
                         <div className="flex flex-col items-end">
-                          <span className={`text-[10px] font-bold text-slate-900`}>{formatCurrency(trade.entryPrice || 0)}</span>
-                          <span className={`text-[8px] text-slate-600`}>{formatLocalDateTime(trade.timestamp)}</span>
+                          <span className="text-[10px] font-bold text-slate-900">{formatCurrency(trade.entryPrice || 0)}</span>
+                          <span className="text-[8px] text-slate-600">{formatLocalDateTime(trade.timestamp)}</span>
                         </div>
                       </div>
                     </div>
