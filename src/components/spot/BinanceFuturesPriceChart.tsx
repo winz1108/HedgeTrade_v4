@@ -2,109 +2,39 @@ import { useMemo } from 'react';
 import { PriceChart } from '../PriceChart';
 import { DashboardData, TradeEvent } from '../../types/dashboard';
 
-interface BinanceSpotData {
-  success: boolean;
-  data: {
-    currentPrice: number;
-    serverTime: number;
-    wsHealthy: boolean;
-    exchange: string;
-    symbol: string;
-    account: {
-      id: string;
-      name: string;
-      mode: string;
-      totalAsset: number;
-      initialAsset: number;
-      currencies: {
-        [key: string]: {
-          quantity: number;
-          valueUsd: number;
-        };
-      };
-      returnPct: number;
-    };
-    position: {
-      inPosition: boolean;
-      side: 'LONG' | 'SHORT' | null;
-      entryPrice: number | null;
-      entryTime: number | null;
-      currentPnl: number;
-      mfe: number;
-      ppActivated: boolean;
-      ppStop: number | null;
-      ppReversalPrice: number | null;
-      peakPrice: number | null;
-    };
-    strategy: {
-      version: string;
-      entryConditionsLong: { [key: string]: boolean };
-      entryConditionsShort: { [key: string]: boolean };
-      indicators: {
-        [key: string]: any;
-      };
-      pp_reversal_price: number | null;
-    };
-    metrics: {
-      totalTrades: number;
-      winRate: number;
-      avgPnl: number;
-      totalPnl: number;
-    };
-    trades: Array<{
-      timestamp: number;
-      type: string;
-      side: string;
-      entryPrice: number;
-      exitPrice: number;
-      quantity: number;
-      pnlPercent: number;
-      reason: string;
-      holdSeconds: number;
-    }>;
-  };
-}
-
 interface Props {
-  data: BinanceSpotData;
+  data: any;
   priceHistories: {
-    '1m'?: any[];
-    '5m'?: any[];
-    '15m'?: any[];
-    '30m'?: any[];
-    '1h'?: any[];
-    '4h'?: any[];
-    '1d'?: any[];
+    [tf: string]: any[];
   };
 }
 
 export function BinanceFuturesPriceChart({ data: apiData, priceHistories }: Props) {
-  const data = apiData.data;
+  const d = apiData?.data;
 
   const transformedData = useMemo((): DashboardData | null => {
-    const getCandles = (timeframe: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'): any[] => {
-      let candles: any[] = priceHistories[timeframe] || [];
+    if (!d) return null;
 
-      let processedCandles = candles.map(c => ({
+    const getCandles = (timeframe: string): any[] => {
+      const candles: any[] = priceHistories[timeframe] || [];
+
+      return candles.map(c => ({
         ...c,
         timestamp: c.time ? c.time * 1000 : c.timestamp,
+        ema_short: c.ema_short,
+        ema_long: c.ema_long,
+        ema3: c.ema3,
+        ema8: c.ema8,
+        bb_upper: c.bb_upper,
+        bb_mid: c.bb_mid,
+        bb_lower: c.bb_lower,
+        bbw: c.bbw,
+        macd: c.macd || c.macd_line,
+        signal: c.signal || c.macd_signal,
+        histogram: c.histogram || c.macd_hist,
+        rsi: c.rsi,
+        adx: c.adx,
       }));
-
-      const indicators = data.strategy?.indicators?.[timeframe];
-      if (indicators) {
-        const macdLine = indicators.macd_line || [];
-        const macdSignal = indicators.macd_signal || [];
-        const macdHist = indicators.macd_hist || [];
-
-        processedCandles = processedCandles.map((candle, idx) => ({
-          ...candle,
-          macd: macdLine[idx] ?? candle.macd,
-          signal: macdSignal[idx] ?? candle.signal,
-          histogram: macdHist[idx] ?? candle.histogram,
-        }));
-      }
-
-      return processedCandles;
     };
 
     const priceHistory1m = getCandles('1m');
@@ -115,25 +45,25 @@ export function BinanceFuturesPriceChart({ data: apiData, priceHistories }: Prop
     const priceHistory4h = getCandles('4h');
     const priceHistory1d = getCandles('1d');
 
-    if (priceHistory1m.length === 0) {
-      return null;
-    }
+    if (priceHistory1m.length === 0) return null;
 
-    const allTrades = data.trades || [];
-
-    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const trades = allTrades
-      .filter(trade => trade.timestamp >= oneWeekAgo)
-      .slice(-40);
+    const trades: TradeEvent[] = (d.trades || []).map((t: any) => ({
+      timestamp: t.timestamp,
+      type: t.type === 'exit' ? 'sell' : 'buy',
+      price: t.type === 'exit' ? t.exitPrice : t.entryPrice,
+      profit: t.pnlPercent,
+      side: t.side,
+      exitReason: t.reason,
+    }));
 
     return {
-      version: data.strategy.version,
-      currentAsset: data.account.totalAsset,
-      currentBTC: data.account.currencies?.BTC?.valueUsd || 0,
-      currentCash: data.account.currencies?.USDT?.quantity || 0,
-      initialAsset: data.account.initialAsset,
-      currentTime: data.serverTime || Date.now(),
-      currentPrice: data.currentPrice,
+      version: d.strategy?.version,
+      currentAsset: d.account?.totalAsset || 0,
+      currentBTC: 0,
+      currentCash: d.account?.currencies?.USDT?.quantity || 0,
+      initialAsset: d.account?.initialAsset || 0,
+      currentTime: d.serverTime || Date.now(),
+      currentPrice: d.currentPrice,
       priceHistory1m,
       priceHistory5m,
       priceHistory15m,
@@ -144,29 +74,31 @@ export function BinanceFuturesPriceChart({ data: apiData, priceHistories }: Prop
       pricePredictions: [],
       trades,
       holding: {
-        isHolding: data.position.inPosition,
-        buyPrice: data.position.entryPrice || undefined,
-        buyTime: data.position.entryTime || undefined,
-        currentProfit: data.position.currentPnl,
-        positionSide: data.position.side || undefined,
-        ppReversalPrice: data.strategy.pp_reversal_price || undefined,
+        isHolding: d.position?.inPosition || false,
+        buyPrice: d.position?.entryPrice || undefined,
+        buyTime: d.position?.entryTime || undefined,
+        currentProfit: d.position?.currentPnl,
+        positionSide: d.position?.side || undefined,
+        ppReversalPrice: d.strategy?.pp_reversal_price || d.position?.ppReversalPrice || undefined,
       },
       metrics: {
         portfolioReturn: 0,
-        marketReturn: 0,
-        avgTradeReturn: 0,
+        marketReturn: d.metrics?.marketReturn || 0,
+        avgTradeReturn: d.metrics?.avgPnl || 0,
         takeProfitCount: 0,
         stopLossCount: 0,
+        totalTrades: d.metrics?.totalTrades,
+        winRate: d.metrics?.winRate,
+        totalPnl: d.metrics?.totalPnl,
       },
     };
-  }, [data, priceHistories]);
+  }, [d, priceHistories]);
 
   if (!transformedData) {
     return (
       <div className="w-full bg-white border border-amber-200 rounded-lg shadow-sm p-8">
-        <div className="text-center mb-6">
-          <div className="text-4xl mb-2">📊</div>
-          <div className="text-slate-800 font-bold">No chart data available</div>
+        <div className="text-center">
+          <div className="text-slate-800 font-bold">Loading chart data...</div>
         </div>
       </div>
     );
@@ -175,8 +107,8 @@ export function BinanceFuturesPriceChart({ data: apiData, priceHistories }: Prop
   return (
     <PriceChart
       data={transformedData}
-      onTradeHover={(trade: TradeEvent | null) => {}}
-      onTimeframeChange={(timeframe: string) => {}}
+      onTradeHover={(_trade: TradeEvent | null) => {}}
+      onTimeframeChange={(_timeframe: string) => {}}
       darkMode={false}
     />
   );

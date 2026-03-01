@@ -2,68 +2,8 @@ import { DollarSign, Activity, Target, History } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
 
-interface BinanceSpotData {
-  success: boolean;
-  data: {
-    currentPrice: number;
-    serverTime: number;
-    wsHealthy: boolean;
-    exchange: string;
-    symbol: string;
-    account: {
-      id: string;
-      name: string;
-      mode: string;
-      totalAsset: number;
-      initialAsset: number;
-      currencies: {
-        [key: string]: {
-          quantity: number;
-          valueUsd: number;
-        };
-      };
-      returnPct: number;
-    };
-    position: {
-      inPosition: boolean;
-      side: 'LONG' | 'SHORT' | null;
-      entryPrice: number | null;
-      entryTime: number | null;
-      currentPnl: number;
-      mfe: number;
-      ppActivated: boolean;
-      ppStop: number | null;
-      ppReversalPrice: number | null;
-      peakPrice: number | null;
-    };
-    strategy: {
-      version: string;
-      entryConditionsLong: { [key: string]: boolean };
-      entryConditionsShort: { [key: string]: boolean };
-      pp_reversal_price: number | null;
-    };
-    metrics: {
-      totalTrades: number;
-      winRate: number;
-      avgPnl: number;
-      totalPnl: number;
-    };
-    trades: Array<{
-      timestamp: number;
-      type: string;
-      side: string;
-      entryPrice: number;
-      exitPrice: number;
-      quantity: number;
-      pnlPercent: number;
-      reason: string;
-      holdSeconds: number;
-    }>;
-  };
-}
-
 interface Props {
-  data: BinanceSpotData;
+  data: any;
   position: 'left' | 'right' | 'trades';
   currentTime: number;
 }
@@ -121,7 +61,8 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
 };
 
 export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTime }: Props) {
-  const data = apiData.data;
+  const data = apiData?.data;
+  if (!data) return null;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -162,10 +103,10 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-2 border border-amber-300">
               <div className="text-[10px] text-amber-700 font-medium mb-0.5">TOTAL ASSET</div>
               <div className="text-xl font-bold text-slate-900 mb-1">
-                {formatCurrency(data.account.totalAsset)}
+                {formatCurrency(data.account?.totalAsset ?? 0)}
               </div>
               <div className="space-y-0.5 pt-1 border-t border-amber-300">
-                {data.account.currencies && Object.entries(data.account.currencies).length > 0 ? (
+                {data.account?.currencies && Object.entries(data.account.currencies).length > 0 ? (
                   <>
                     {(() => {
                       const currencies = Object.entries(data.account.currencies);
@@ -203,7 +144,7 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
                   <div className="flex justify-between items-center">
                     <span className="text-[9px] text-slate-600">Available</span>
                     <span className="text-[11px] font-bold text-emerald-700">
-                      {formatCurrency(data.account.totalAsset)}
+                      {formatCurrency(data.account?.totalAsset ?? 0)}
                     </span>
                   </div>
                 )}
@@ -415,10 +356,10 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
               <div className="text-[10px] text-emerald-700 font-bold mb-0.5">NET PROFIT</div>
               <div
                 className={`text-2xl font-black ${
-                  data.account.returnPct >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                  (data.account?.returnPct ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'
                 }`}
               >
-                {formatPercent(data.account.returnPct * 100)}
+                {formatPercent((data.account?.returnPct ?? 0) * 100)}
               </div>
               {totalPnl !== undefined && (
                 <div className={`text-[11px] font-bold mt-0.5 ${
@@ -483,7 +424,7 @@ export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTim
 
   if (position === 'trades') {
     const oneWeekAgo = currentTime - (7 * 24 * 60 * 60 * 1000);
-    const recentTrades = [...data.trades]
+    const recentTrades = [...(data.trades || [])]
       .filter(trade => trade.timestamp >= oneWeekAgo)
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 40);
