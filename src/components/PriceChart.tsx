@@ -1459,11 +1459,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     y1={priceToY(breakevenPrice)}
                     x2="100%"
                     y2={priceToY(breakevenPrice)}
-                    stroke="#ffffff"
+                    stroke={darkMode ? '#ffffff' : '#475569'}
                     strokeWidth="1.5"
                     strokeDasharray="4 2"
-                    opacity="0.6"
-                    filter="drop-shadow(0 0 3px rgba(255, 255, 255, 0.4))"
+                    opacity={darkMode ? 0.6 : 0.55}
+                    filter={darkMode ? 'drop-shadow(0 0 3px rgba(255, 255, 255, 0.4))' : 'none'}
                   />
                   {/* PP Reversal Price line */}
                   {data.holding.ppReversalPrice && (
