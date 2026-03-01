@@ -1,7 +1,10 @@
 import { DashboardData, ApiResponse, TradeEvent, StrategyStatus, KrakenDashboardData, Candle } from '../types/dashboard';
 
 const getApiUrl = () => {
-  return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return import.meta.env.VITE_API_URL || 'https://api.hedgetrade.eu';
+  }
+  return 'https://api.hedgetrade.eu';
 };
 
 export interface DashboardQuick {
