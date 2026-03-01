@@ -277,59 +277,29 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
             <h3 className="text-[11px] font-bold text-slate-800">Profit Protection</h3>
           </div>
 
-          {hasPosition ? (
-            <div className="space-y-1">
-              {data.position.mfe !== undefined && data.position.mfe !== null && (
-                <div className="bg-amber-50 border border-amber-300 rounded p-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-amber-700 font-medium">Max Profit (MFE)</span>
-                    <span className="text-[11px] font-bold text-amber-700">
-                      +{data.position.mfe.toFixed(2)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
-                  <span className="text-[11px] font-bold text-emerald-700">
-                    {data.position.ppStop !== null && data.position.ppStop !== undefined
-                      ? `+${data.position.ppStop.toFixed(2)}%`
-                      : '-'}
-                  </span>
-                </div>
+          <div className="space-y-1">
+            <div className="bg-amber-50 border border-amber-300 rounded p-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] text-amber-700 font-medium">Max Profit (MFE)</span>
+                <span className="text-[11px] font-bold text-amber-700">
+                  {hasPosition && data.position.mfe !== undefined && data.position.mfe !== null
+                    ? `+${data.position.mfe.toFixed(2)}%`
+                    : '-'}
+                </span>
               </div>
-
-              {data.position.ppReversalPrice && (
-                <div className="bg-blue-50 border border-blue-300 rounded p-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-blue-700 font-medium">PP Reversal (1h EMA5)</span>
-                    <span className="text-[11px] font-bold text-blue-700">
-                      {formatCurrency(data.position.ppReversalPrice)}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {data.position.peakPrice && (
-                <div className="bg-stone-50 border border-stone-300 rounded p-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-stone-600 font-medium">
-                      {positionSide === 'SHORT' ? 'Lowest Price' : 'Peak Price'}
-                    </span>
-                    <span className="text-[11px] font-bold text-stone-700">
-                      {formatCurrency(data.position.peakPrice)}
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
-          ) : (
-            <div className="flex items-center justify-center h-12 text-slate-600 text-[10px]">
-              No position
+
+            <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
+                <span className="text-[11px] font-bold text-emerald-700">
+                  {hasPosition && data.position.ppStop !== null && data.position.ppStop !== undefined
+                    ? `+${data.position.ppStop.toFixed(2)}%`
+                    : '-'}
+                </span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     );
