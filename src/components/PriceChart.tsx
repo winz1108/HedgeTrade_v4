@@ -528,111 +528,130 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
     const isMobileView = window.innerWidth < 768;
 
-    if (isMobileView) {
-      return createPortal(
-        <div
-          className={`fixed left-2 right-2 bottom-4 ${colors.tooltipBg} backdrop-blur-md border-2 ${colors.tooltipBorder} ${colors.textPrimary} text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto`}
-          style={{
-            zIndex: 999999,
-          }}
-          onClick={handleCloseTooltip}
-        >
+    const isShort = trade.side === 'SHORT';
+    const entryLabel = isShort ? 'SHORT 진입가' : 'LONG 진입가';
+    const exitLabel = isShort ? 'SHORT 청산가' : 'LONG 청산가';
+    const directionColor = isShort ? 'text-orange-500' : 'text-cyan-500';
+    const directionDot = isShort ? 'bg-orange-500' : 'bg-cyan-500';
+    const signalLabel = isShort ? `SHORT 진입 @ $${typeof trade.price === 'number' ? trade.price.toFixed(2) : '-'}` : `LONG 진입 @ $${typeof trade.price === 'number' ? trade.price.toFixed(2) : '-'}`;
+
+    const calcProfit = (entryPrice: number, exitPrice: number, side?: 'LONG' | 'SHORT') => {
+      if (!entryPrice || !exitPrice) return 0;
+      if (side === 'SHORT') return (entryPrice - exitPrice) / entryPrice * 100;
+      return (exitPrice - entryPrice) / entryPrice * 100;
+    };
+
+    const calcCurrentProfit = (entryPrice: number, currentPrice: number, side?: 'LONG' | 'SHORT') => {
+      if (!entryPrice || !currentPrice) return 0;
+      if (side === 'SHORT') return (entryPrice - currentPrice) / entryPrice * 100;
+      return (currentPrice - entryPrice) / entryPrice * 100;
+    };
+
+    const renderTooltipContent = () => (
+      <>
         {!hasPairedSell ? (
           <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
-              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
-              BUY Signal at ${trade.price.toFixed(2)}
+            <div className={`font-bold mb-3 text-sm flex items-center gap-2 ${directionColor}`}>
+              <div className={`w-2 h-2 rounded-full ${directionDot}`} />
+              {signalLabel}
             </div>
-
-            <div>
-              <div className={`space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <div className="flex justify-between gap-6">
-                  <span className={colors.textSecondary}>현재가</span>
-                  <span className={`${colors.textPrimary} font-semibold`}>${data.currentPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between gap-6">
-                  <span className={colors.textSecondary}>현재 수익률</span>
-                  <span className={`font-semibold ${((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                    {((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100).toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex justify-between gap-6">
-                  <span className={colors.textSecondary}>보유 시간</span>
-                  <span className={`${colors.textSecondary} text-[10px]`}>
-                    {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
-                  </span>
-                </div>
+            <div className={`space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+              <div className="flex justify-between gap-6">
+                <span className={colors.textSecondary}>현재가</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${typeof data.currentPrice === 'number' ? data.currentPrice.toFixed(2) : '-'}</span>
+              </div>
+              <div className="flex justify-between gap-6">
+                <span className={colors.textSecondary}>현재 수익률</span>
+                {(() => {
+                  const ep = data.holding.buyPrice || trade.price;
+                  const pct = calcCurrentProfit(ep, data.currentPrice, trade.side);
+                  return <span className={`font-semibold ${pct >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>{pct >= 0 ? '+' : ''}{pct.toFixed(2)}%</span>;
+                })()}
+              </div>
+              <div className="flex justify-between gap-6">
+                <span className={colors.textSecondary}>보유 시간</span>
+                <span className={`${colors.textSecondary} text-[10px]`}>{Math.floor((data.currentTime - trade.timestamp) / 60000)}분</span>
               </div>
             </div>
           </>
         ) : pairedTrade ? (
           <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
-              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
-              거래 완료
+            <div className={`font-bold mb-3 text-sm flex items-center gap-2 ${directionColor}`}>
+              <div className={`w-2 h-2 rounded-full ${directionDot}`} />
+              거래 완료 {isShort ? '(SHORT)' : '(LONG)'}
             </div>
-
             <div className="space-y-2">
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>매수가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${trade.price.toFixed(2)}</span>
+                <span className={colors.textSecondary}>{entryLabel}</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${typeof trade.price === 'number' ? trade.price.toFixed(2) : '-'}</span>
               </div>
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>매도가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${pairedTrade!.price.toFixed(2)}</span>
+                <span className={colors.textSecondary}>{exitLabel}</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${typeof pairedTrade.price === 'number' ? pairedTrade.price.toFixed(2) : '-'}</span>
               </div>
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <span className={colors.textSecondary}>수익률</span>
-                <span className={`font-bold ${((pairedTrade!.price - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                  {((pairedTrade!.price - trade.price) / trade.price * 100).toFixed(2)}%
-                </span>
+                {(() => {
+                  const pct = typeof pairedTrade.profit === 'number' ? pairedTrade.profit : calcProfit(trade.price, pairedTrade.price, trade.side);
+                  return <span className={`font-bold ${pct >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>{pct >= 0 ? '+' : ''}{pct.toFixed(2)}%</span>;
+                })()}
               </div>
+              {pairedTrade.exitReason && (
+                <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                  <span className={colors.textSecondary}>청산 이유</span>
+                  <span className={`${colors.textPrimary} font-semibold`}>{pairedTrade.exitReason}</span>
+                </div>
+              )}
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <span className={colors.textSecondary}>보유 시간</span>
-                <span className={`${colors.textSecondary} text-[10px]`}>
-                  {Math.floor((pairedTrade!.timestamp - trade.timestamp) / 60000)}분
-                </span>
+                <span className={`${colors.textSecondary} text-[10px]`}>{Math.floor((pairedTrade.timestamp - trade.timestamp) / 60000)}분</span>
               </div>
             </div>
           </>
         ) : (
           <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
-              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
-              보유 중
+            <div className={`font-bold mb-3 text-sm flex items-center gap-2 ${directionColor}`}>
+              <div className={`w-2 h-2 rounded-full ${directionDot}`} />
+              보유 중 {isShort ? '(SHORT)' : '(LONG)'}
             </div>
-
             <div className="space-y-2 mb-3">
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>매수가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${trade.price.toFixed(2)}</span>
+                <span className={colors.textSecondary}>{entryLabel}</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${typeof trade.price === 'number' ? trade.price.toFixed(2) : '-'}</span>
               </div>
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <span className={colors.textSecondary}>현재가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${data.currentPrice.toFixed(2)}</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${typeof data.currentPrice === 'number' ? data.currentPrice.toFixed(2) : '-'}</span>
               </div>
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <span className={colors.textSecondary}>현재 수익률</span>
-                <span className={`font-bold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                  {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
-                </span>
+                {(() => {
+                  const pct = calcCurrentProfit(trade.price, data.currentPrice, trade.side);
+                  return <span className={`font-bold ${pct >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>{pct >= 0 ? '+' : ''}{pct.toFixed(2)}%</span>;
+                })()}
               </div>
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <span className={colors.textSecondary}>보유 시간</span>
-                <span className={`${colors.textSecondary} text-[10px]`}>
-                  {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
-                </span>
+                <span className={`${colors.textSecondary} text-[10px]`}>{Math.floor((data.currentTime - trade.timestamp) / 60000)}분</span>
               </div>
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <span className={colors.textSecondary}>마지막 업데이트</span>
-                <span className={`${colors.textSecondary} text-[10px]`}>
-                  {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                </span>
+                <span className={`${colors.textSecondary} text-[10px]`}>{new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
               </div>
             </div>
-
           </>
         )}
+      </>
+    );
+
+    if (isMobileView) {
+      return createPortal(
+        <div
+          className={`fixed left-2 right-2 bottom-4 ${colors.tooltipBg} backdrop-blur-md border-2 ${colors.tooltipBorder} ${colors.textPrimary} text-xs rounded-lg p-4 shadow-2xl max-h-[70vh] overflow-y-auto`}
+          style={{ zIndex: 999999 }}
+          onClick={handleCloseTooltip}
+        >
+          {renderTooltipContent()}
         </div>,
         document.body
       );
@@ -643,19 +662,14 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     const margin = 20;
 
     let leftPos: number;
-    let rightPos: number | undefined;
 
     if (x < window.innerWidth / 2) {
       leftPos = Math.min(x + 40, window.innerWidth - tooltipWidth - margin);
-      rightPos = undefined;
     } else {
       leftPos = Math.max(margin, x - tooltipWidth - 40);
-      rightPos = undefined;
     }
 
-    if (leftPos < margin) {
-      leftPos = margin;
-    }
+    if (leftPos < margin) leftPos = margin;
     if (leftPos + tooltipWidth > window.innerWidth - margin) {
       leftPos = window.innerWidth - tooltipWidth - margin;
     }
@@ -676,102 +690,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           zIndex: 999999,
         }}
       >
-        {!hasPairedSell ? (
-          <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
-              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
-              BUY Signal at ${trade.price.toFixed(2)}
-            </div>
-
-            <div>
-              <div className={`space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <div className="flex justify-between gap-6">
-                  <span className={colors.textSecondary}>현재가</span>
-                  <span className={`${colors.textPrimary} font-semibold`}>${data.currentPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between gap-6">
-                  <span className={colors.textSecondary}>현재 수익률</span>
-                  <span className={`font-semibold ${((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                    {((data.currentPrice - (data.holding.buyPrice || trade.price)) / (data.holding.buyPrice || trade.price) * 100).toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex justify-between gap-6">
-                  <span className={colors.textSecondary}>보유 시간</span>
-                  <span className={`${colors.textSecondary} text-[10px]`}>
-                    {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
-                  </span>
-                </div>
-              </div>
-            </div>
-          </>
-        ) : pairedTrade ? (
-          <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
-              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
-              거래 완료
-            </div>
-
-            <div className="space-y-2">
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>매수가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${trade.price.toFixed(2)}</span>
-              </div>
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>매도가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${pairedTrade!.price.toFixed(2)}</span>
-              </div>
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>수익률</span>
-                <span className={`font-bold ${((pairedTrade!.price - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                  {((pairedTrade!.price - trade.price) / trade.price * 100).toFixed(2)}%
-                </span>
-              </div>
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>보유 시간</span>
-                <span className={`${colors.textSecondary} text-[10px]`}>
-                  {Math.floor((pairedTrade!.timestamp - trade.timestamp) / 60000)}분
-                </span>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="font-bold mb-3 text-sm flex items-center gap-2 text-[#4169E1]">
-              <div className="w-2 h-2 rounded-full bg-[#4169E1]" />
-              보유 중
-            </div>
-
-            <div className="space-y-2 mb-3">
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>매수가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${trade.price.toFixed(2)}</span>
-              </div>
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>현재가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${data.currentPrice.toFixed(2)}</span>
-              </div>
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>현재 수익률</span>
-                <span className={`font-bold ${((data.currentPrice - trade.price) / trade.price * 100) >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                  {((data.currentPrice - trade.price) / trade.price * 100).toFixed(2)}%
-                </span>
-              </div>
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>보유 시간</span>
-                <span className={`${colors.textSecondary} text-[10px]`}>
-                  {Math.floor((data.currentTime - trade.timestamp) / 60000)}분
-                </span>
-              </div>
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>마지막 업데이트</span>
-                <span className={`${colors.textSecondary} text-[10px]`}>
-                  {new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                </span>
-              </div>
-            </div>
-
-          </>
-        )}
+        {renderTooltipContent()}
       </div>,
       document.body
     );
@@ -1486,7 +1405,12 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   const y2 = priceToY(sell.price);
 
                   // 익절/손절에 따라 색상 결정: 익절=초록, 손절=빨강
-                  const isProfit = sell.profit !== undefined && sell.profit >= 0;
+                  const calcedProfit = typeof sell.profit === 'number'
+                    ? sell.profit
+                    : buy.side === 'SHORT'
+                      ? (buy.price - sell.price) / buy.price * 100
+                      : (sell.price - buy.price) / buy.price * 100;
+                  const isProfit = calcedProfit >= 0;
                   const lineColor = isProfit ? '#10b981' : '#ef4444';
 
                   return (
@@ -1696,7 +1620,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       </div>
                     ) : (() => {
                       // EXIT 마커: 흰색 배경에 익절=초록 글씨, 손절=빨강 글씨
-                      const isProfit = trade.profit !== undefined && trade.profit >= 0;
+                      const isProfit = typeof trade.profit === 'number' ? trade.profit >= 0 : true;
                       const textColor = isProfit ? 'text-emerald-500' : 'text-rose-500';
                       const glowColor = isProfit ? 'shadow-emerald-500/50' : 'shadow-rose-500/50';
                       return (
