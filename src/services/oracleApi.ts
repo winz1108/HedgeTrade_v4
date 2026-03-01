@@ -301,11 +301,7 @@ export const fetchChartData = async (timeframe: string, limit: number = 500) => 
   const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}`;
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch chart data: ${response.status} ${response.statusText}`);
@@ -363,11 +359,7 @@ export const fetchDashboardQuick = async (): Promise<DashboardQuick> => {
   const url = `${baseUrl}/api/dashboard/quick`;
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch quick dashboard: ${response.status} ${response.statusText}`);
@@ -386,13 +378,7 @@ export const fetchDashboardData = async (accountId: string): Promise<DashboardDa
   const url = `${baseUrl}/api/dashboard?_=${Date.now()}`;
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`Oracle VM unavailable: ${response.status} ${response.statusText}`);
@@ -417,9 +403,7 @@ export const fetchStrategyStatus = async (): Promise<StrategyStatus | null> => {
   const url = `${baseUrl}/api/strategy-status`;
 
   try {
-    const response = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) return null;
 
@@ -477,13 +461,7 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
   const url = `${baseUrl}/api/kraken/dashboard?_=${Date.now()}`;
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`Kraken API unavailable: ${response.status} ${response.statusText}`);
@@ -513,11 +491,7 @@ export const fetchKrakenChartData = async (timeframe: string, limit: number = 10
   const url = `${baseUrl}/api/kraken/chart/${timeframe}?limit=${limit}`;
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch chart data: ${response.status} ${response.statusText}`);
@@ -572,13 +546,7 @@ export const fetchBinanceFuturesDashboard = async (): Promise<any> => {
   const url = `${baseUrl}/api/binance-futures/dashboard?_=${Date.now()}`;
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`Binance Futures API unavailable: ${response.status} ${response.statusText}`);
@@ -597,11 +565,7 @@ export const fetchBinanceFuturesChartData = async (timeframe: string, limit: num
   const url = `${baseUrl}/api/binance-futures/chart/${timeframe}/${limit}`;
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch Binance Futures chart data: ${response.status} ${response.statusText}`);
