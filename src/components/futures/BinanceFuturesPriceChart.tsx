@@ -18,7 +18,7 @@ export function BinanceFuturesPriceChart({ data }: Props) {
         candles = (data[key] as any[]) || [];
       }
 
-      const processedCandles = candles.map(c => ({
+      let processedCandles = candles.map(c => ({
         ...c,
         timestamp: c.time ? c.time * 1000 : c.timestamp,
       }));
