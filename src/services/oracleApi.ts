@@ -566,3 +566,81 @@ export const fetchKrakenChartData = async (timeframe: string, limit: number = 10
     throw error;
   }
 };
+
+export const fetchBinanceFuturesDashboard = async (): Promise<any> => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/binance-futures/dashboard?_=${Date.now()}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Binance Futures API unavailable: ${response.status} ${response.statusText}`);
+    }
+
+    const rawData: any = await response.json();
+
+    return rawData;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchBinanceFuturesChartData = async (timeframe: string, limit: number = 500) => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/binance-futures/chart/${timeframe}/${limit}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Binance Futures chart data: ${response.status} ${response.statusText}`);
+    }
+
+    const chartResponse = await response.json();
+
+    const mapCandles = (candles: any[]): any[] => candles?.map(c => ({
+      time: c.time,
+      timestamp: c.timestamp,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+      ema_short: c.ema_short,
+      ema_long: c.ema_long,
+      ema3: c.ema3,
+      ema8: c.ema8,
+      macd: c.macd,
+      macd_line: c.macd_line,
+      signal: c.signal,
+      macd_signal: c.macd_signal,
+      histogram: c.histogram,
+      macd_hist: c.macd_hist,
+      rsi: c.rsi,
+      adx: c.adx,
+      bbw: c.bbw,
+      bb_upper: c.bb_upper,
+      bb_mid: c.bb_mid,
+      bb_lower: c.bb_lower,
+    })) || [];
+
+    const mappedCandles = mapCandles(chartResponse.candles);
+
+    return {
+      candles: mappedCandles,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
