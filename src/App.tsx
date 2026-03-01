@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { fetchBinanceFuturesDashboard, fetchBinanceFuturesChartData } from './services/oracleApi';
-import { BinanceSpotMetricsPanel } from './components/spot/BinanceSpotMetricsPanel';
-import { BinanceSpotPriceChart } from './components/spot/BinanceSpotPriceChart';
+import { BinanceFuturesMetricsPanel } from './components/spot/BinanceFuturesMetricsPanel';
+import { BinanceFuturesPriceChart } from './components/spot/BinanceFuturesPriceChart';
 import { formatLocalTime } from './utils/time';
 import { websocketService } from './services/websocket';
 
@@ -63,7 +63,7 @@ function App() {
 
   useEffect(() => {
     if (data?.data?.currentPrice) {
-      document.title = `Binance Spot - $${data.data.currentPrice.toFixed(2)}`;
+      document.title = `Binance Futures - $${data.data.currentPrice.toFixed(2)}`;
     }
   }, [data?.data?.currentPrice]);
 
@@ -117,7 +117,7 @@ function App() {
           <div className="flex items-center gap-3 mb-4 bg-white border border-amber-200 rounded-lg p-3 shadow-xl">
             <RefreshCw className="w-5 h-5 animate-spin text-amber-600" />
             <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
-              Loading Binance Spot Dashboard...
+              Loading Binance Futures Dashboard...
             </h1>
           </div>
         </div>
@@ -153,7 +153,7 @@ function App() {
           <div className="flex items-center gap-3 flex-wrap justify-between">
             <div className="flex items-center gap-2">
               <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
-                Binance Spot Dashboard
+                Binance Futures Dashboard
               </h1>
               {data.data?.strategy?.version && (
                 <span className="text-[10px] text-amber-600 font-mono">{data.data.strategy.version}</span>
@@ -196,17 +196,17 @@ function App() {
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
           <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1 lg:h-[640px]">
-            <BinanceSpotMetricsPanel data={data} position="left" currentTime={currentTime} />
+            <BinanceFuturesMetricsPanel data={data} position="left" currentTime={currentTime} />
           </div>
           <div className="w-full min-w-0 order-1 lg:order-2">
-            <BinanceSpotPriceChart data={data} priceHistories={priceHistories} />
+            <BinanceFuturesPriceChart data={data} priceHistories={priceHistories} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 lg:h-[640px] flex flex-col gap-2">
             <div className="w-full flex-shrink-0">
-              <BinanceSpotMetricsPanel data={data} position="right" currentTime={currentTime} />
+              <BinanceFuturesMetricsPanel data={data} position="right" currentTime={currentTime} />
             </div>
             <div className="w-full flex-1 lg:min-h-0">
-              <BinanceSpotMetricsPanel data={data} position="trades" currentTime={currentTime} />
+              <BinanceFuturesMetricsPanel data={data} position="trades" currentTime={currentTime} />
             </div>
           </div>
         </div>

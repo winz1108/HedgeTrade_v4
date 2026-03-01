@@ -78,7 +78,7 @@ interface Props {
   };
 }
 
-export function BinanceSpotPriceChart({ data: apiData, priceHistories }: Props) {
+export function BinanceFuturesPriceChart({ data: apiData, priceHistories }: Props) {
   const data = apiData.data;
 
   const transformedData = useMemo((): DashboardData | null => {

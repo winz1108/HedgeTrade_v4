@@ -120,7 +120,7 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
   }
 };
 
-export function BinanceSpotMetricsPanel({ data: apiData, position, currentTime }: Props) {
+export function BinanceFuturesMetricsPanel({ data: apiData, position, currentTime }: Props) {
   const data = apiData.data;
 
   const formatCurrency = (value: number) => {
