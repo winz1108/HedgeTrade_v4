@@ -1,211 +1,114 @@
-import { useEffect, useState, useCallback } from 'react';
-import { RefreshCw } from 'lucide-react';
-import { BinanceFuturesDashboardData, Candle } from '../types/dashboard';
-import { fetchBinanceFuturesDashboard, fetchBinanceFuturesChartData } from '../services/oracleApi';
-import { BinanceFuturesMetricsPanel } from '../components/futures/BinanceFuturesMetricsPanel';
-import { BinanceFuturesPriceChart } from '../components/futures/BinanceFuturesPriceChart';
+import { useEffect, useState, useRef } from 'react';
+import { RefreshCw, Bell, BellOff, X } from 'lucide-react';
+import { DashboardData, TradeEvent } from '../types/dashboard';
+import { fetchDashboardData } from '../services/oracleApi';
+import { PriceChart } from '../components/PriceChart';
+import { MetricsPanel } from '../components/MetricsPanel';
+import { sendBuyNotification, sendSellNotification, setNotificationCallback, InAppNotification } from '../services/notifications';
 import { formatLocalTime } from '../utils/time';
-import { websocketService } from '../services/websocket';
+
 
 function FuturesDashboard() {
-  const [data, setData] = useState<BinanceFuturesDashboardData | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notifications, setNotifications] = useState<InAppNotification[]>([]);
+  const previousHoldingState = useRef<boolean>(false);
+  const lastTradeCount = useRef<number>(0);
 
   const loadData = async () => {
     try {
       setError(null);
-      const dashboardData = await fetchBinanceFuturesDashboard();
+      const dashboardData = await fetchDashboardData();
 
-      if (!dashboardData.priceHistory1m || dashboardData.priceHistory1m.length === 0) {
-        const chart1m = await fetchBinanceFuturesChartData('1m', 1000);
-        dashboardData.priceHistory1m = chart1m.candles;
+      if (!dashboardData || !dashboardData.metrics) {
+        throw new Error('Invalid data structure received from API');
       }
 
+      if (data && notificationsEnabled) {
+        if (!previousHoldingState.current && dashboardData.holding.isHolding) {
+          sendBuyNotification(
+            dashboardData.holding.buyPrice || dashboardData.currentPrice,
+            dashboardData.holding.initialTakeProfitProb || 0
+          );
+        }
+
+        if (previousHoldingState.current && !dashboardData.holding.isHolding) {
+          const latestTrade = dashboardData.trades[dashboardData.trades.length - 1];
+          if (latestTrade && latestTrade.type === 'sell' && lastTradeCount.current < dashboardData.trades.length) {
+            const profit = latestTrade.profit ?? 0;
+            sendSellNotification(
+              profit >= 0 ? 'profit' : 'loss',
+              latestTrade.price,
+              profit
+            );
+          }
+        }
+
+        lastTradeCount.current = dashboardData.trades.length;
+      }
+
+      previousHoldingState.current = dashboardData.holding.isHolding;
+
       setData(dashboardData);
-      setLoading(false);
+
+      console.log('📊 Data loaded:', {
+        priceHistory: {
+          '1m': dashboardData.priceHistory1m?.length || 0,
+          '5m': dashboardData.priceHistory5m?.length || 0,
+          '15m': dashboardData.priceHistory15m?.length || 0,
+          '1h': dashboardData.priceHistory1h?.length || 0,
+          '4h': dashboardData.priceHistory4h?.length || 0,
+          '1d': dashboardData.priceHistory1d?.length || 0
+        },
+        holding: dashboardData.holding?.isHolding ?? false,
+        trades: dashboardData.trades?.length ?? 0
+      });
+
+      console.log('🔍 Profit values check:', {
+        'holding.currentProfit': dashboardData.holding.currentProfit,
+        'metrics.portfolioReturnWithCommission': dashboardData.metrics.portfolioReturnWithCommission,
+        'ARE_THEY_EQUAL': dashboardData.holding.currentProfit === dashboardData.metrics.portfolioReturnWithCommission
+      });
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to fetch Binance Futures data');
+      console.error('Failed to fetch dashboard data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch data');
+    } finally {
       setLoading(false);
     }
   };
 
-  const updateLiveCandle = useCallback((price: number) => {
-    if (!price) return;
+  useEffect(() => {
+    setLoading(true);
+    loadData();
 
-    setData(prevData => {
-      if (!prevData) return prevData;
+    setNotificationsEnabled(true);
 
-      const updatedData = { ...prevData, currentPrice: price };
-      const timeframes: Array<'1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'> =
-        ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
-
-      if (prevData.priceHistories) {
-        const updatedHistories = { ...prevData.priceHistories };
-
-        timeframes.forEach(tf => {
-          const candles = updatedHistories[tf];
-          if (candles && candles.length > 0) {
-            const updatedCandles = [...candles];
-            const lastCandle = { ...updatedCandles[updatedCandles.length - 1] };
-
-            lastCandle.close = price;
-            lastCandle.high = Math.max(lastCandle.high, price);
-            lastCandle.low = Math.min(lastCandle.low, price);
-
-            updatedCandles[updatedCandles.length - 1] = lastCandle;
-            updatedHistories[tf] = updatedCandles;
-          }
-        });
-
-        updatedData.priceHistories = updatedHistories;
-      }
-
-      timeframes.forEach(tf => {
-        const key = `priceHistory${tf}` as keyof BinanceFuturesDashboardData;
-        const candles = prevData[key] as Candle[] | undefined;
-
-        if (candles && candles.length > 0) {
-          const updatedCandles = [...candles];
-          const lastCandle = { ...updatedCandles[updatedCandles.length - 1] };
-
-          lastCandle.close = price;
-          lastCandle.high = Math.max(lastCandle.high, price);
-          lastCandle.low = Math.min(lastCandle.low, price);
-
-          updatedCandles[updatedCandles.length - 1] = lastCandle;
-          (updatedData as any)[key] = updatedCandles;
-        }
-      });
-
-      return updatedData;
+    setNotificationCallback((notification) => {
+      setNotifications(prev => [...prev, notification]);
+      setTimeout(() => {
+        setNotifications(prev => prev.filter(n => n.id !== notification.id));
+      }, 5000);
     });
   }, []);
 
   useEffect(() => {
-    loadData();
-    const interval = setInterval(loadData, 10000);
+    const interval = setInterval(() => {
+      loadData();
+    }, 60000);
 
-    websocketService.connect();
+    return () => clearInterval(interval);
+  }, []);
 
-    const handleStatusUpdate = (statusData: any) => {
-      if (statusData.current_price || statusData.price) {
-        updateLiveCandle(statusData.current_price || statusData.price);
-      }
-
-      if (statusData.pp_reversal_price !== undefined) {
-        setData(prevData => {
-          if (!prevData) return prevData;
-          return {
-            ...prevData,
-            position: {
-              ...prevData.position,
-              ppReversalPrice: statusData.pp_reversal_price,
-            },
-          };
-        });
-      }
-
-      if (statusData.in_position !== undefined) {
-        setData(prevData => {
-          if (!prevData) return prevData;
-          return {
-            ...prevData,
-            position: {
-              ...prevData.position,
-              inPosition: statusData.in_position,
-              side: statusData.position_side || prevData.position.side,
-              entryPrice: statusData.entry_price || prevData.position.entryPrice,
-              entryTime: statusData.entry_time || prevData.position.entryTime,
-              currentPnl: statusData.current_pnl !== undefined ? statusData.current_pnl : prevData.position.currentPnl,
-              mfe: statusData.mfe !== undefined ? statusData.mfe : prevData.position.mfe,
-              ppActivated: statusData.pp_activated !== undefined ? statusData.pp_activated : prevData.position.ppActivated,
-              ppStop: statusData.pp_stop !== undefined ? statusData.pp_stop : prevData.position.ppStop,
-            },
-          };
-        });
-      }
-
-      if (statusData.entry_conditions_long) {
-        setData(prevData => {
-          if (!prevData) return prevData;
-          return {
-            ...prevData,
-            strategy: {
-              ...prevData.strategy,
-              entryConditionsLong: {
-                ...prevData.strategy.entryConditionsLong,
-                ...statusData.entry_conditions_long,
-              },
-            },
-          };
-        });
-      }
-
-      if (statusData.entry_conditions_short) {
-        setData(prevData => {
-          if (!prevData) return prevData;
-          return {
-            ...prevData,
-            strategy: {
-              ...prevData.strategy,
-              entryConditionsShort: {
-                ...prevData.strategy.entryConditionsShort,
-                ...statusData.entry_conditions_short,
-              },
-            },
-          };
-        });
-      }
-    };
-
-    const handlePriceTick = (tickData: any) => {
-      if (tickData.price) {
-        updateLiveCandle(tickData.price);
-      }
-
-      if (tickData.portfolioValue !== undefined) {
-        setData(prevData => {
-          if (!prevData) return prevData;
-          return {
-            ...prevData,
-            account: {
-              ...prevData.account,
-              totalAsset: tickData.portfolioValue,
-            },
-          };
-        });
-      }
-    };
-
-    websocketService.on('bf_live_status', handleStatusUpdate);
-    websocketService.on('bf_price_tick', handlePriceTick);
-
-    return () => {
-      clearInterval(interval);
-      websocketService.off('bf_live_status', handleStatusUpdate);
-      websocketService.off('bf_price_tick', handlePriceTick);
-    };
-  }, [updateLiveCandle]);
-
-  useEffect(() => {
-    if (data?.currentPrice) {
-      document.title = `Binance Futures - $${data.currentPrice.toFixed(2)}`;
-    }
-  }, [data?.currentPrice]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
-        <div className="w-full lg:max-w-[98vw] mx-auto p-2 lg:p-4">
-          <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl">
-            <div className="flex items-center gap-3">
-              <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
-              <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
-                Loading Binance Futures Dashboard...
-              </h1>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-16 h-16 animate-spin text-cyan-400 mx-auto mb-6 drop-shadow-lg" />
+          <p className="text-slate-300 text-lg font-semibold">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -213,17 +116,17 @@ function FuturesDashboard() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 flex items-center justify-center">
-        <div className="text-center max-w-md bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-stone-200">
-          <div className="text-rose-600 text-6xl mb-4">⚠</div>
-          <p className="text-stone-900 text-xl font-bold mb-2">Failed to load data</p>
-          <p className="text-stone-700 text-sm mb-6">{error || 'No data available'}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-400 text-6xl mb-4">⚠</div>
+          <p className="text-slate-300 text-lg font-semibold mb-2">Failed to load data</p>
+          <p className="text-slate-400 text-sm mb-6">{error || 'No data available'}</p>
           <button
             onClick={() => {
               setLoading(true);
               loadData();
             }}
-            className="px-8 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg hover:from-amber-500 hover:to-orange-500 transition-all duration-200 shadow-md font-semibold"
+            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 shadow-lg font-semibold"
           >
             Retry
           </button>
@@ -233,67 +136,113 @@ function FuturesDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
-      <div className="w-full lg:max-w-[98vw] mx-auto p-2 lg:p-4">
-        <div className="flex flex-col mb-2 bg-white/80 border border-amber-200 rounded-lg p-3 shadow-xl gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+        {notifications.map((notification) => (
+          <div
+            key={notification.id}
+            className={`p-4 rounded-lg shadow-2xl border-2 animate-slide-in backdrop-blur-sm ${
+              notification.type === 'buy'
+                ? 'bg-emerald-500/90 border-emerald-400 text-white'
+                : notification.type === 'sell-profit'
+                ? 'bg-blue-500/90 border-blue-400 text-white'
+                : 'bg-rose-500/90 border-rose-400 text-white'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                <div className="font-bold text-sm mb-1">{notification.title}</div>
+                <div className="text-xs whitespace-pre-line opacity-90">{notification.message}</div>
+              </div>
+              <button
+                onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
+                className="p-1 hover:bg-white/20 rounded transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="max-w-[98vw] mx-auto p-2 lg:p-4">
+        <div className="flex flex-col mb-2 bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-xl gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <h1 className="text-lg lg:text-2xl font-bold text-slate-800">
-                Binance Futures Dashboard
+              <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                HedgeTrade Dashboard
               </h1>
-              {data.strategy.version && (
-                <span className="text-[10px] text-emerald-400 font-mono">{data.strategy.version}</span>
+              {data.version && (
+                <span className="text-[10px] text-emerald-400 font-mono">{data.version}</span>
               )}
-              {data.position.inPosition && (
-                <div className="relative px-4 py-2 bg-blue-100/80 backdrop-blur-sm rounded-lg border border-blue-400/40 shadow-lg overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-200/20 via-transparent to-blue-200/20"></div>
-                  <div className="relative flex items-center gap-2.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-                    <span className="text-xs font-bold text-blue-700 tracking-wider uppercase">
-                      {data.position.side} POSITION
-                    </span>
-                  </div>
+              {data.holding.isHolding && (
+                <div className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-bold border-2 border-emerald-500/50 animate-pulse shadow-lg shadow-emerald-500/30">
+                  🟢 HOLDING BTC
                 </div>
               )}
             </div>
-
-            <div className="flex items-center gap-3 ml-auto">
-              {data.serverTime && (
-                <span className="text-xs text-stone-600 font-mono">
-                  {formatLocalTime(data.serverTime)}
+            <div className="flex items-center gap-2 ml-auto">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] text-slate-400 font-mono">
+                  {formatLocalTime(data.currentTime)}
                 </span>
-              )}
-              <div className={`w-2 h-2 rounded-full ${data.wsHealthy ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
+                <span className="text-[8px] text-slate-500">
+                  바이낸스 서버 시간 기준
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setNotificationsEnabled(!notificationsEnabled);
+                }}
+                className={`p-1.5 rounded transition-all duration-200 ${
+                  notificationsEnabled
+                    ? 'text-emerald-400 hover:bg-emerald-500/10'
+                    : 'text-slate-500 hover:bg-slate-700/50'
+                }`}
+                title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
+              >
+                {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 bg-slate-800/70 px-2 py-1.5 rounded-lg border border-slate-600 overflow-x-auto">
+            <span className="text-[10px] text-slate-400 mr-1 whitespace-nowrap">Market:</span>
+            <div className="flex gap-1">
+              {[
+                { key: 'bullDiv', label: 'Bull Div', value: data.marketState?.bullDiv ?? 0, colors: { active: 'bg-emerald-500 text-white border-emerald-300', inactive: 'bg-emerald-950/30 text-emerald-700/40 border-emerald-900/40' } },
+                { key: 'bullConv', label: 'Bull Conv', value: data.marketState?.bullConv ?? 0, colors: { active: 'bg-emerald-600 text-white border-emerald-400', inactive: 'bg-emerald-950/40 text-emerald-700/50 border-emerald-900/50' } },
+                { key: 'sideways', label: 'Sideways', value: data.marketState?.sideways ?? 0, colors: { active: 'bg-amber-500 text-white border-amber-300', inactive: 'bg-amber-950/30 text-amber-700/40 border-amber-900/40' } },
+                { key: 'bearConv', label: 'Bear Conv', value: data.marketState?.bearConv ?? 0, colors: { active: 'bg-rose-600 text-white border-rose-400', inactive: 'bg-rose-950/40 text-rose-700/50 border-rose-900/50' } },
+                { key: 'bearDiv', label: 'Bear Div', value: data.marketState?.bearDiv ?? 0, colors: { active: 'bg-rose-500 text-white border-rose-300', inactive: 'bg-rose-950/30 text-rose-700/40 border-rose-900/40' } }
+              ].map((state) => {
+                const isActive = state.value > 0.5;
+                return (
+                  <div
+                    key={state.key}
+                    className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
+                      isActive
+                        ? `${state.colors.active} font-bold shadow-lg`
+                        : state.colors.inactive
+                    }`}
+                  >
+                    {state.label}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
-          <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1 lg:h-[640px]">
-            <BinanceFuturesMetricsPanel
-              key={`left-${data.serverTime}`}
-              data={data}
-              position="left"
-            />
+        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2">
+          <div className="flex flex-col gap-2 order-2 lg:order-1">
+            <MetricsPanel data={data} position="left" />
           </div>
-          <div className="w-full min-w-0 order-1 lg:order-2">
-            <BinanceFuturesPriceChart data={data} />
+          <div className="min-w-0 order-1 lg:order-2">
+            <PriceChart data={data} onTradeHover={setHoveredTrade} />
           </div>
-          <div className="w-full lg:w-[280px] order-3 lg:order-3 lg:h-[640px] flex flex-col gap-2">
-            <div className="w-full flex-shrink-0">
-              <BinanceFuturesMetricsPanel
-                key={`right-${data.serverTime}`}
-                data={data}
-                position="right"
-              />
-            </div>
-            <div className="w-full flex-1 lg:min-h-0">
-              <BinanceFuturesMetricsPanel
-                key={`trades-${data.trades?.length}-${data.serverTime}`}
-                data={data}
-                position="trades"
-              />
-            </div>
+          <div className="flex flex-col gap-2 order-3 lg:order-3">
+            <MetricsPanel data={data} position="right" />
+            <MetricsPanel data={data} position="trades" />
           </div>
         </div>
       </div>
