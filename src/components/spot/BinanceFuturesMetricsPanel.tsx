@@ -1,7 +1,7 @@
 import { DollarSign, Activity, Target, History } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
-import type { BFDashboardData } from '../../App';
+import type { BFDashboardData } from '../../types/dashboard';
 
 interface Props {
   data: BFDashboardData;

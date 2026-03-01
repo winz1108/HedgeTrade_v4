@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { PriceChart } from '../PriceChart';
-import { DashboardData, TradeEvent } from '../../types/dashboard';
-import type { BFDashboardData } from '../../App';
+import { DashboardData, TradeEvent, BFDashboardData } from '../../types/dashboard';
 
 interface Props {
   data: BFDashboardData;

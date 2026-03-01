@@ -531,3 +531,58 @@ export interface KrakenDashboardData {
     '1d': Candle[];
   };
 }
+
+export interface BFDashboardData {
+  currentPrice: number;
+  serverTime: number;
+  wsHealthy: boolean;
+  exchange: string;
+  symbol: string;
+  account: {
+    id: string;
+    name: string;
+    mode: string;
+    totalAsset: number;
+    initialAsset: number;
+    currencies: Record<string, { quantity: number; valueUsd: number }>;
+    returnPct: number;
+  };
+  position: {
+    inPosition: boolean;
+    side: 'LONG' | 'SHORT' | null;
+    entryPrice: number | null;
+    entryTime: number | null;
+    currentPnl: number;
+    mfe: number;
+    ppActivated: boolean;
+    ppStop: number | null;
+    ppReversalPrice: number | null;
+    peakPrice: number | null;
+  };
+  strategy: {
+    version: string;
+    entryConditionsLong: Record<string, boolean>;
+    entryConditionsShort: Record<string, boolean>;
+    indicators: Record<string, any>;
+    pp_reversal_price: number | null;
+  };
+  metrics: {
+    totalTrades: number;
+    winRate: number;
+    avgPnl: number;
+    totalPnl: number;
+    marketReturn: number;
+  };
+  trades: Array<{
+    timestamp: number;
+    type: string;
+    side: string;
+    entryPrice: number;
+    exitPrice: number;
+    quantity: number;
+    pnlPercent: number;
+    reason: string;
+    holdSeconds: number;
+  }>;
+  priceHistories: Record<string, any[]>;
+}
