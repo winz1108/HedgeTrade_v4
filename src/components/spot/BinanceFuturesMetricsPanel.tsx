@@ -410,7 +410,8 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
 
   if (position === 'trades') {
     const oneWeekAgo = currentTime - (7 * 24 * 60 * 60 * 1000);
-    const recentTrades = [...(data.trades || [])]
+    const allTrades = (data.recentTrades || data.trades || []) as any[];
+    const recentTrades = [...allTrades]
       .filter(trade => trade.timestamp >= oneWeekAgo)
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 40);
@@ -450,8 +451,8 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
         >
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, index) => {
-              const isLong = trade.side === 'LONG';
-              const isEntry = trade.type === 'entry';
+              const isLong = (trade as any).side !== 'SHORT';
+              const isEntry = trade.type === 'buy';
 
               return (
                 <div key={`${trade.timestamp}-${index}`}>
@@ -462,36 +463,45 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                           {isLong ? 'LONG' : 'SHORT'}
                         </span>
                         <div className="flex flex-col items-end">
-                          <span className="text-[10px] font-bold text-slate-900">{formatCurrency(trade.entryPrice || 0)}</span>
+                          <span className="text-[10px] font-bold text-slate-900">{formatCurrency(trade.price)}</span>
                           <span className="text-[8px] text-slate-600">{formatLocalDateTime(trade.timestamp)}</span>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className={`${getExitReasonColor(trade.pnlPercent).bg} ${getExitReasonColor(trade.pnlPercent).border} border rounded p-1`}>
+                    <div className={`${getExitReasonColor(trade.profit).bg} ${getExitReasonColor(trade.profit).border} border rounded p-1`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
-                          <span className={`text-[10px] font-bold ${getExitReasonColor(trade.pnlPercent).text}`}>EXIT</span>
-                          {trade.reason && (
+                          <span className={`text-[10px] font-bold ${getExitReasonColor(trade.profit).text}`}>EXIT</span>
+                          {trade.exitReason && (
                             <span className={`text-[8px] px-1 py-0.5 rounded font-bold ${
-                              trade.pnlPercent !== undefined && trade.pnlPercent >= 0
+                              typeof trade.profit === 'number' && trade.profit >= 0
                                 ? 'bg-emerald-500 text-white'
                                 : 'bg-rose-500 text-white'
-                            }`} title={trade.reason}>{getExitReasonLabel(trade.reason)}</span>
+                            }`} title={trade.exitReason}>{getExitReasonLabel(trade.exitReason)}</span>
                           )}
                         </div>
                         <div className="flex flex-col items-end">
                           <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-slate-800">{formatCurrency(trade.exitPrice || 0)}</span>
-                            {trade.pnlPercent !== undefined && (
+                            <span className="text-[10px] font-bold text-slate-800">{formatCurrency(trade.price)}</span>
+                            {typeof trade.profit === 'number' && (
                               <span className={`text-[9px] font-bold ${
-                                trade.pnlPercent >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                                trade.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'
                               }`}>
-                                {trade.pnlPercent >= 0 ? '+' : ''}{trade.pnlPercent.toFixed(2)}%
+                                {trade.profit >= 0 ? '+' : ''}{trade.profit.toFixed(2)}%
                               </span>
                             )}
                           </div>
-                          <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[8px] text-slate-500">{formatLocalDateTime(trade.timestamp)}</span>
+                            {typeof trade.pnl === 'number' && (
+                              <span className={`text-[8px] font-bold ${
+                                trade.pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                              }`}>
+                                {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -584,5 +584,6 @@ export interface BFDashboardData {
     reason: string;
     holdSeconds: number;
   }>;
+  recentTrades?: TradeEvent[];
   priceHistories: Record<string, any[]>;
 }
