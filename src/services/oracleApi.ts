@@ -296,6 +296,92 @@ const convertApiResponseToDashboardData = (
   };
 };
 
+export const fetchBinanceFuturesDashboard = async () => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/binance-futures/dashboard`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Binance Futures dashboard: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (!result.success || !result.data) {
+      throw new Error(result.error || 'Failed to load Binance Futures dashboard');
+    }
+
+    return result.data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Unknown error fetching Binance Futures dashboard');
+  }
+};
+
+export const fetchBinanceFuturesChartData = async (timeframe: string, limit: number = 200) => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/binance-futures/chart/${timeframe}/${limit}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Binance Futures chart data: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (!result.candles) {
+      throw new Error('No candles data in response');
+    }
+
+    const mapCandles = (candles: any[]) => candles.map(c => ({
+      time: c.time,
+      timestamp: c.timestamp || (c.time * 1000),
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+      ema_short: c.ema_short,
+      ema_long: c.ema_long,
+      ema3: c.ema3,
+      ema8: c.ema8,
+      macd: c.macd ?? c.macd_line,
+      macd_line: c.macd_line ?? c.macd,
+      signal: c.signal ?? c.macd_signal,
+      macd_signal: c.macd_signal ?? c.signal,
+      histogram: c.histogram ?? c.macd_hist,
+      macd_hist: c.macd_hist ?? c.histogram,
+      rsi: c.rsi,
+      adx: c.adx,
+      bbw: c.bbw,
+      bb_upper: c.bb_upper,
+      bb_mid: c.bb_mid,
+      bb_lower: c.bb_lower,
+    }));
+
+    return { candles: mapCandles(result.candles) };
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Unknown error fetching Binance Futures chart data');
+  }
+};
+
 export const fetchChartData = async (timeframe: string, limit: number = 500) => {
   const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/chart/${timeframe}?limit=${limit}`;
