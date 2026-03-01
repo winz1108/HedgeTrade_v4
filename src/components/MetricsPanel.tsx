@@ -183,35 +183,29 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             <h3 className="text-[11px] font-bold text-slate-800">Profit Protection</h3>
           </div>
 
-          {data.holding.isHolding && strategy ? (
-            <div className="space-y-1">
-              {strategy.mfe !== undefined && (
-                <div className="bg-purple-50 border border-purple-300 rounded p-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-purple-700 font-medium">Max Profit (MFE)</span>
-                    <span className="text-[11px] font-bold text-purple-600">
-                      +{strategy.mfe.toFixed(2)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
-                  <span className="text-[11px] font-bold text-emerald-600">
-                    {strategy.pp_stop !== null && strategy.pp_stop !== undefined
-                      ? `+${strategy.pp_stop.toFixed(2)}%`
-                      : '-'}
-                  </span>
-                </div>
+          <div className="space-y-1">
+            <div className="bg-purple-50 border border-purple-300 rounded p-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] text-purple-700 font-medium">Max Profit (MFE)</span>
+                <span className="text-[11px] font-bold text-purple-600">
+                  {data.holding.isHolding && strategy?.mfe !== undefined
+                    ? `+${strategy.mfe.toFixed(2)}%`
+                    : '-'}
+                </span>
               </div>
             </div>
-          ) : (
-            <div className="flex items-center justify-center h-12 text-slate-500 text-[10px]">
-              No position
+
+            <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
+                <span className="text-[11px] font-bold text-emerald-600">
+                  {data.holding.isHolding && strategy?.pp_stop !== null && strategy?.pp_stop !== undefined
+                    ? `+${strategy.pp_stop.toFixed(2)}%`
+                    : '-'}
+                </span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     );
