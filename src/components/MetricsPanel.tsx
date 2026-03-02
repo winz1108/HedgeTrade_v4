@@ -178,16 +178,16 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
           )}
         </div>
 
-        <div className="bg-white/95 border border-purple-200 rounded-lg shadow-sm p-2">
+        <div className="bg-white/95 border border-amber-300 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-slate-800">Profit Protection</h3>
+            <h3 className="text-[11px] font-bold text-slate-800">PP</h3>
           </div>
 
           <div className="space-y-1">
-            <div className="bg-purple-50 border border-purple-300 rounded p-1.5">
+            <div className="bg-amber-50 border border-amber-300 rounded p-1.5">
               <div className="flex justify-between items-center">
-                <span className="text-[9px] text-purple-700 font-medium">Max Profit (MFE)</span>
-                <span className="text-[11px] font-bold text-purple-600">
+                <span className="text-[9px] text-amber-700 font-medium">MFE</span>
+                <span className="text-[11px] font-bold text-amber-700">
                   {data.holding.isHolding && strategy?.mfe !== undefined
                     ? `+${strategy.mfe.toFixed(2)}%`
                     : '-'}

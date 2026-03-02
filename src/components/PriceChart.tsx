@@ -1492,21 +1492,25 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       filter="drop-shadow(0 0 3px rgba(239, 68, 68, 0.5))"
                     />
                   )}
-                  {/* PP Step Level mfe_threshold_price lines */}
-                  {data.holding.stepLevels && data.holding.stepLevels.map((level, idx) => (
-                    <line
-                      key={`step-${idx}`}
-                      x1="0"
-                      y1={priceToY(level.mfe_threshold_price)}
-                      x2="100%"
-                      y2={priceToY(level.mfe_threshold_price)}
-                      stroke={level.reached ? '#fbbf24' : '#fde68a'}
-                      strokeWidth={level.reached ? 1.5 : 1}
-                      strokeDasharray="3 4"
-                      opacity={level.reached ? 0.8 : 0.45}
-                      filter={level.reached ? 'drop-shadow(0 0 3px rgba(251, 191, 36, 0.5))' : 'none'}
-                    />
-                  ))}
+                  {/* PP Floor Price line - currently active (last reached) level */}
+                  {(() => {
+                    if (!data.holding.stepLevels) return null;
+                    const reached = [...data.holding.stepLevels].filter(l => l.reached).pop();
+                    if (!reached) return null;
+                    return (
+                      <line
+                        x1="0"
+                        y1={priceToY(reached.floor_price)}
+                        x2="100%"
+                        y2={priceToY(reached.floor_price)}
+                        stroke="#fbbf24"
+                        strokeWidth="1.5"
+                        strokeDasharray="6 3"
+                        opacity="0.85"
+                        filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.5))"
+                      />
+                    );
+                  })()}
                 </svg>
               );
             })()}

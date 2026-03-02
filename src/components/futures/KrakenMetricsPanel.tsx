@@ -289,75 +289,37 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           )}
         </div>
 
-        <div className="bg-slate-800/95 border border-purple-600/50 rounded-lg shadow-sm p-2">
+        <div className="bg-slate-800/95 border border-yellow-600/50 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-white">Profit Protection</h3>
+            <h3 className="text-[11px] font-bold text-white">PP</h3>
           </div>
 
           {hasPosition && data.strategyA ? (
             <div className="space-y-1">
-              {data.strategyA.mfe !== undefined && (
-                <div className="bg-purple-900/20 border border-purple-600/50 rounded p-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-purple-300 font-medium">Max Profit (MFE)</span>
-                    <span className="text-[11px] font-bold text-purple-400">
-                      +{data.strategyA.mfe.toFixed(2)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-rose-900/30 border border-rose-700/50 rounded p-1.5">
+              <div className="bg-yellow-900/20 border border-yellow-600/50 rounded p-1.5">
                 <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-rose-300 font-medium">SL</span>
-                  <span className="text-[11px] font-bold text-rose-400">
-                    {(data.strategyA.current_sl_pct ?? data.strategyA.pp_step_levels?.current_sl_pct) !== undefined
-                      ? `-${(data.strategyA.current_sl_pct ?? data.strategyA.pp_step_levels?.current_sl_pct)!.toFixed(2)}%`
-                      : '-'}
+                  <span className="text-[9px] text-yellow-300 font-medium">MFE</span>
+                  <span className="text-[11px] font-bold text-yellow-400">
+                    {data.strategyA.mfe !== undefined ? `+${data.strategyA.mfe.toFixed(2)}%` : '-'}
                   </span>
                 </div>
               </div>
 
-              {data.strategyA.pp_step_levels?.step_levels && data.strategyA.pp_step_levels.step_levels.length > 0 ? (
-                <div className="space-y-0.5">
-                  {data.strategyA.pp_step_levels.step_levels.map((level, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex justify-between items-center rounded px-1.5 py-1 border ${
-                        level.reached
-                          ? 'bg-emerald-900/30 border-emerald-700/50'
-                          : 'bg-slate-800/60 border-slate-700/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-1">
-                        <div className={`w-1 h-1 rounded-full ${level.reached ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-                        <span className={`text-[8px] font-medium ${level.reached ? 'text-emerald-300' : 'text-slate-500'}`}>
-                          {level.label}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-[8px] ${level.reached ? 'text-emerald-500' : 'text-slate-500'}`}>
-                          MFE≥{level.mfe_threshold_pct.toFixed(1)}%
-                        </span>
-                        <span className={`text-[9px] font-bold ${level.reached ? 'text-emerald-400' : 'text-slate-400'}`}>
-                          +{level.floor_pct.toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+              <div className="bg-emerald-900/30 border border-emerald-700/50 rounded p-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] text-emerald-300 font-medium">Protected Profit</span>
+                  <span className="text-[11px] font-bold text-emerald-400">
+                    {data.strategyA.pp_stop !== null && data.strategyA.pp_stop !== undefined
+                      ? `+${data.strategyA.pp_stop.toFixed(2)}%`
+                      : (() => {
+                          const levels = data.strategyA.pp_step_levels?.step_levels;
+                          if (!levels) return '-';
+                          const reached = [...levels].filter(l => l.reached).pop();
+                          return reached ? `+${reached.floor_pct.toFixed(2)}%` : '-';
+                        })()}
+                  </span>
                 </div>
-              ) : (
-                <div className="bg-emerald-900/30 border border-emerald-700/50 rounded p-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-emerald-300 font-medium">Protected Profit</span>
-                    <span className="text-[11px] font-bold text-emerald-400">
-                      {data.strategyA.pp_stop !== null && data.strategyA.pp_stop !== undefined
-                        ? `+${data.strategyA.pp_stop.toFixed(2)}%`
-                        : '-'}
-                    </span>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center h-12 text-slate-300 text-[10px]">
