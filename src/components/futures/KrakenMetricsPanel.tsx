@@ -309,14 +309,11 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-emerald-300 font-medium">Protected Profit</span>
                   <span className="text-[11px] font-bold text-emerald-400">
-                    {data.strategyA.pp_stop !== null && data.strategyA.pp_stop !== undefined
-                      ? `+${data.strategyA.pp_stop.toFixed(2)}%`
-                      : (() => {
-                          const levels = data.strategyA.pp_step_levels?.step_levels;
-                          if (!levels) return '-';
-                          const reached = [...levels].filter(l => l.reached).pop();
-                          return reached ? `+${reached.floor_pct.toFixed(2)}%` : '-';
-                        })()}
+                    {data.strategyA.floor_pct != null
+                      ? `+${data.strategyA.floor_pct.toFixed(2)}%`
+                      : data.strategyA.pp_stop != null
+                        ? `+${data.strategyA.pp_stop.toFixed(2)}%`
+                        : '-'}
                   </span>
                 </div>
               </div>

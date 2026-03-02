@@ -52,15 +52,6 @@ export interface TradeEvent {
   confirmed?: boolean; // kraken_futures: 거래소 체결 확인
 }
 
-export interface StepLevel {
-  label: string;
-  mfe_threshold_pct: number;
-  mfe_threshold_price: number;
-  floor_pct: number;
-  floor_price: number;
-  reached: boolean;
-}
-
 export interface HoldingInfo {
   isHolding: boolean;
   buyPrice?: number;
@@ -76,7 +67,7 @@ export interface HoldingInfo {
   };
   positionSide?: 'LONG' | 'SHORT';
   ppReversalPrice?: number | null;
-  stepLevels?: StepLevel[];
+  floorPrice?: number | null;
   currentSlPct?: number;
 }
 
@@ -383,15 +374,11 @@ export interface KrakenStrategyA {
   '1h_adx'?: number;
   '1h_ema5_slope'?: number;
   entry_time?: number;
+  pp_active?: boolean;
+  floor_pct?: number | null;
+  floor_price?: number | null;
   current_sl_pct?: number;
   sl_price?: number | null;
-  pp_step_levels?: {
-    current_pp_stop_pct: number | null;
-    current_pp_stop_price: number | null;
-    current_sl_pct: number;
-    sl_price: number;
-    step_levels: StepLevel[];
-  } | null;
   entry_conditions_live?: {
     '1m_golden_cross'?: boolean | { long: boolean; short: boolean };
     '5m_above'?: boolean | { long: boolean; short: boolean };
@@ -578,15 +565,11 @@ export interface BFDashboardData {
     ppStop: number | null;
     ppReversalPrice: number | null;
     peakPrice: number | null;
+    ppActive?: boolean;
+    floorPct?: number | null;
+    floorPrice?: number | null;
     currentSlPct?: number;
     slPrice?: number | null;
-    ppStepLevels?: {
-      current_pp_stop_pct: number | null;
-      current_pp_stop_price: number | null;
-      current_sl_pct: number;
-      sl_price: number;
-      step_levels: StepLevel[];
-    } | null;
   };
   strategy: {
     version: string;

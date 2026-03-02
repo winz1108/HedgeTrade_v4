@@ -293,17 +293,11 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
               <div className="flex justify-between items-center">
                 <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
                 <span className="text-[11px] font-bold text-emerald-700">
-                  {hasPosition ? (() => {
-                    if (data.position.ppStop !== null && data.position.ppStop !== undefined) {
-                      return `+${data.position.ppStop.toFixed(2)}%`;
-                    }
-                    const levels = data.position.ppStepLevels?.step_levels;
-                    if (levels) {
-                      const reached = [...levels].filter(l => l.reached).pop();
-                      return reached ? `+${reached.floor_pct.toFixed(2)}%` : '-';
-                    }
-                    return '-';
-                  })() : '-'}
+                  {hasPosition && data.position.floorPct != null
+                    ? `+${data.position.floorPct.toFixed(2)}%`
+                    : hasPosition && data.position.ppStop != null
+                      ? `+${data.position.ppStop.toFixed(2)}%`
+                      : '-'}
                 </span>
               </div>
             </div>

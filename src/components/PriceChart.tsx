@@ -1492,25 +1492,20 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       filter="drop-shadow(0 0 3px rgba(239, 68, 68, 0.5))"
                     />
                   )}
-                  {/* PP Floor Price line - currently active (last reached) level */}
-                  {(() => {
-                    if (!data.holding.stepLevels) return null;
-                    const reached = [...data.holding.stepLevels].filter(l => l.reached).pop();
-                    if (!reached) return null;
-                    return (
-                      <line
-                        x1="0"
-                        y1={priceToY(reached.floor_price)}
-                        x2="100%"
-                        y2={priceToY(reached.floor_price)}
-                        stroke="#fbbf24"
-                        strokeWidth="1.5"
-                        strokeDasharray="6 3"
-                        opacity="0.85"
-                        filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.5))"
-                      />
-                    );
-                  })()}
+                  {/* PP Floor Price line - active floor price from backend */}
+                  {data.holding.floorPrice != null && (
+                    <line
+                      x1="0"
+                      y1={priceToY(data.holding.floorPrice)}
+                      x2="100%"
+                      y2={priceToY(data.holding.floorPrice)}
+                      stroke="#fbbf24"
+                      strokeWidth="1.5"
+                      strokeDasharray="6 3"
+                      opacity="0.85"
+                      filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.5))"
+                    />
+                  )}
                 </svg>
               );
             })()}
