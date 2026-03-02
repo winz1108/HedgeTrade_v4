@@ -1479,6 +1479,35 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.5))"
                     />
                   )}
+                  {/* SL Price line */}
+                  {data.holding.slPrice && (
+                    <line
+                      x1="0"
+                      y1={priceToY(data.holding.slPrice)}
+                      x2="100%"
+                      y2={priceToY(data.holding.slPrice)}
+                      stroke="#ef4444"
+                      strokeWidth="1.5"
+                      strokeDasharray="5 3"
+                      opacity="0.75"
+                      filter="drop-shadow(0 0 3px rgba(239, 68, 68, 0.5))"
+                    />
+                  )}
+                  {/* PP Step Level floor_price lines */}
+                  {data.holding.stepLevels && data.holding.stepLevels.map((level, idx) => (
+                    <line
+                      key={`step-${idx}`}
+                      x1="0"
+                      y1={priceToY(level.floor_price)}
+                      x2="100%"
+                      y2={priceToY(level.floor_price)}
+                      stroke={level.reached ? '#10b981' : '#6ee7b7'}
+                      strokeWidth={level.reached ? 1.5 : 1}
+                      strokeDasharray="3 4"
+                      opacity={level.reached ? 0.75 : 0.4}
+                      filter={level.reached ? 'drop-shadow(0 0 2px rgba(16, 185, 129, 0.4))' : 'none'}
+                    />
+                  ))}
                 </svg>
               );
             })()}

@@ -289,16 +289,59 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
               </div>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
+            <div className="bg-rose-50 border border-rose-300 rounded p-1.5">
               <div className="flex justify-between items-center">
-                <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
-                <span className="text-[11px] font-bold text-emerald-700">
-                  {hasPosition && data.position.ppStop !== null && data.position.ppStop !== undefined
-                    ? `+${data.position.ppStop.toFixed(2)}%`
+                <span className="text-[9px] text-rose-700 font-medium">SL</span>
+                <span className="text-[11px] font-bold text-rose-700">
+                  {hasPosition && (data.position.currentSlPct ?? data.position.ppStepLevels?.current_sl_pct) !== undefined
+                    ? `-${(data.position.currentSlPct ?? data.position.ppStepLevels?.current_sl_pct)!.toFixed(2)}%`
                     : '-'}
                 </span>
               </div>
             </div>
+
+            {hasPosition && data.position.ppStepLevels?.step_levels && data.position.ppStepLevels.step_levels.length > 0 && (
+              <div className="space-y-0.5">
+                {data.position.ppStepLevels.step_levels.map((level, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex justify-between items-center rounded px-1.5 py-1 border ${
+                      level.reached
+                        ? 'bg-emerald-50 border-emerald-300'
+                        : 'bg-stone-50 border-stone-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <div className={`w-1 h-1 rounded-full ${level.reached ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                      <span className={`text-[8px] font-medium ${level.reached ? 'text-emerald-700' : 'text-slate-500'}`}>
+                        {level.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[8px] ${level.reached ? 'text-emerald-600' : 'text-slate-400'}`}>
+                        MFE≥{level.mfe_threshold_pct.toFixed(1)}%
+                      </span>
+                      <span className={`text-[9px] font-bold ${level.reached ? 'text-emerald-700' : 'text-slate-500'}`}>
+                        +{level.floor_pct.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {hasPosition && !data.position.ppStepLevels?.step_levels && (
+              <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] text-emerald-700 font-medium">Protected Profit</span>
+                  <span className="text-[11px] font-bold text-emerald-700">
+                    {data.position.ppStop !== null && data.position.ppStop !== undefined
+                      ? `+${data.position.ppStop.toFixed(2)}%`
+                      : '-'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

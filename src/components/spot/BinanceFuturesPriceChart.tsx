@@ -57,6 +57,9 @@ export function BinanceFuturesPriceChart({ data }: Props) {
         currentProfit: data.position.currentPnl,
         positionSide: data.position.side || undefined,
         ppReversalPrice: data.strategy?.pp_reversal_price || data.position.ppReversalPrice || undefined,
+        slPrice: data.position.slPrice ?? data.position.ppStepLevels?.sl_price ?? undefined,
+        currentSlPct: data.position.currentSlPct ?? data.position.ppStepLevels?.current_sl_pct ?? undefined,
+        stepLevels: data.position.ppStepLevels?.step_levels ?? undefined,
       },
       metrics: {
         portfolioReturn: 0,

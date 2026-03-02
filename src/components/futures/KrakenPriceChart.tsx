@@ -125,6 +125,9 @@ export function KrakenPriceChart({ data }: Props) {
         currentProfit: data.strategyA.current_pnl,
         positionSide: data.position.position_side,
         ppReversalPrice: data.strategyA.pp_reversal_price,
+        slPrice: data.strategyA.sl_price ?? data.strategyA.pp_step_levels?.sl_price ?? undefined,
+        currentSlPct: data.strategyA.current_sl_pct ?? data.strategyA.pp_step_levels?.current_sl_pct ?? undefined,
+        stepLevels: data.strategyA.pp_step_levels?.step_levels ?? undefined,
       },
       metrics: {
         portfolioReturn: 0,
