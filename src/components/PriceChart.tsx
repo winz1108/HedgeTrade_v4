@@ -1472,11 +1472,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       y1={priceToY(data.holding.ppReversalPrice)}
                       x2="100%"
                       y2={priceToY(data.holding.ppReversalPrice)}
-                      stroke="#fbbf24"
-                      strokeWidth="1.5"
-                      strokeDasharray="6 3"
-                      opacity="0.7"
-                      filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.5))"
+                      stroke="#64748b"
+                      strokeWidth="1"
+                      strokeDasharray="6 4"
+                      opacity="0.45"
                     />
                   )}
                   {/* SL Price line */}
@@ -1493,19 +1492,19 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       filter="drop-shadow(0 0 3px rgba(239, 68, 68, 0.5))"
                     />
                   )}
-                  {/* PP Step Level floor_price lines */}
+                  {/* PP Step Level mfe_threshold_price lines */}
                   {data.holding.stepLevels && data.holding.stepLevels.map((level, idx) => (
                     <line
                       key={`step-${idx}`}
                       x1="0"
-                      y1={priceToY(level.floor_price)}
+                      y1={priceToY(level.mfe_threshold_price)}
                       x2="100%"
-                      y2={priceToY(level.floor_price)}
-                      stroke={level.reached ? '#10b981' : '#6ee7b7'}
+                      y2={priceToY(level.mfe_threshold_price)}
+                      stroke={level.reached ? '#fbbf24' : '#fde68a'}
                       strokeWidth={level.reached ? 1.5 : 1}
                       strokeDasharray="3 4"
-                      opacity={level.reached ? 0.75 : 0.4}
-                      filter={level.reached ? 'drop-shadow(0 0 2px rgba(16, 185, 129, 0.4))' : 'none'}
+                      opacity={level.reached ? 0.8 : 0.45}
+                      filter={level.reached ? 'drop-shadow(0 0 3px rgba(251, 191, 36, 0.5))' : 'none'}
                     />
                   ))}
                 </svg>
