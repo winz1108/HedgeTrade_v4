@@ -740,6 +740,33 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <div className="w-3 h-0.5 border-t border-dashed" style={{ borderColor: colors.bb }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
+            {data.holding.isHolding && (
+              <>
+                <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
+                <div className="flex items-center gap-1">
+                  <svg width="14" height="6" style={{ display: 'block' }}>
+                    <line x1="0" y1="3" x2="14" y2="3" stroke={data.holding.positionSide === 'SHORT' ? '#f97316' : '#06b6d4'} strokeWidth="1.5" strokeDasharray="4 2" />
+                  </svg>
+                  <span className={colors.textSecondary}>Entry</span>
+                </div>
+                {data.holding.slPrice && (
+                  <div className="flex items-center gap-1">
+                    <svg width="14" height="6" style={{ display: 'block' }}>
+                      <line x1="0" y1="3" x2="14" y2="3" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="5 3" />
+                    </svg>
+                    <span className={colors.textSecondary}>SL</span>
+                  </div>
+                )}
+                {data.holding.floorPrice != null && (
+                  <div className="flex items-center gap-1">
+                    <svg width="14" height="6" style={{ display: 'block' }}>
+                      <line x1="0" y1="3" x2="14" y2="3" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="6 3" />
+                    </svg>
+                    <span className={colors.textSecondary}>PP Floor</span>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           <div className="flex items-center gap-1.5">
           <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5 overflow-x-auto`}>
