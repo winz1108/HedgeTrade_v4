@@ -60,6 +60,8 @@ export function BinanceFuturesPriceChart({ data }: Props) {
         floorPrice: data.position.floorPrice ?? null,
         slPrice: data.position.slPrice ?? undefined,
         currentSlPct: data.position.currentSlPct ?? undefined,
+        exitFloorPrice: data.position.exit_prices?.floor_price ?? data.position.floorPrice ?? null,
+        exitSlPrice: data.position.exit_prices?.sl_price ?? data.position.slPrice ?? undefined,
       },
       metrics: {
         portfolioReturn: 0,

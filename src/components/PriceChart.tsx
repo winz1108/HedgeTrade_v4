@@ -749,7 +749,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   </svg>
                   <span className={colors.textSecondary}>Entry</span>
                 </div>
-                {data.holding.slPrice && (
+                {(data.holding.exitSlPrice ?? data.holding.slPrice) && (
                   <div className="flex items-center gap-1">
                     <svg width="14" height="6" style={{ display: 'block' }}>
                       <line x1="0" y1="3" x2="14" y2="3" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="5 3" />
@@ -757,7 +757,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     <span className={colors.textSecondary}>SL</span>
                   </div>
                 )}
-                {data.holding.floorPrice != null && (
+                {(data.holding.exitFloorPrice ?? data.holding.floorPrice) != null && (
                   <div className="flex items-center gap-1">
                     <svg width="14" height="6" style={{ display: 'block' }}>
                       <line x1="0" y1="3" x2="14" y2="3" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="6 3" />
@@ -1505,13 +1505,13 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       opacity="0.45"
                     />
                   )}
-                  {/* SL Price line */}
-                  {data.holding.slPrice && (
+                  {/* SL Price line - exit_prices.sl_price 우선, fallback slPrice */}
+                  {(data.holding.exitSlPrice ?? data.holding.slPrice) && (
                     <line
                       x1="0"
-                      y1={priceToY(data.holding.slPrice)}
+                      y1={priceToY((data.holding.exitSlPrice ?? data.holding.slPrice)!)}
                       x2="100%"
-                      y2={priceToY(data.holding.slPrice)}
+                      y2={priceToY((data.holding.exitSlPrice ?? data.holding.slPrice)!)}
                       stroke="#ef4444"
                       strokeWidth="1.5"
                       strokeDasharray="5 3"
@@ -1519,13 +1519,13 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       filter="drop-shadow(0 0 3px rgba(239, 68, 68, 0.5))"
                     />
                   )}
-                  {/* PP Floor Price line - active floor price from backend */}
-                  {data.holding.floorPrice != null && (
+                  {/* PP Floor Price line - exit_prices.floor_price 우선, fallback floorPrice */}
+                  {(data.holding.exitFloorPrice ?? data.holding.floorPrice) != null && (
                     <line
                       x1="0"
-                      y1={priceToY(data.holding.floorPrice)}
+                      y1={priceToY((data.holding.exitFloorPrice ?? data.holding.floorPrice)!)}
                       x2="100%"
-                      y2={priceToY(data.holding.floorPrice)}
+                      y2={priceToY((data.holding.exitFloorPrice ?? data.holding.floorPrice)!)}
                       stroke="#fbbf24"
                       strokeWidth="1.5"
                       strokeDasharray="6 3"

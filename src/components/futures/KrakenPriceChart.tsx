@@ -128,6 +128,8 @@ export function KrakenPriceChart({ data }: Props) {
         floorPrice: data.strategyA.floor_price ?? null,
         slPrice: data.strategyA.sl_price ?? undefined,
         currentSlPct: data.strategyA.current_sl_pct ?? undefined,
+        exitFloorPrice: data.strategyA.exit_prices?.floor_price ?? data.strategyA.floor_price ?? null,
+        exitSlPrice: data.strategyA.exit_prices?.sl_price ?? data.strategyA.sl_price ?? undefined,
       },
       metrics: {
         portfolioReturn: 0,

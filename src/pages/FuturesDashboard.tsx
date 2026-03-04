@@ -213,13 +213,13 @@ function FuturesDashboard() {
         </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
-          <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1 lg:h-[640px]">
+          <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1 lg:h-[590px]">
             <KrakenMetricsPanel data={data} position="left" />
           </div>
           <div className="w-full min-w-0 order-1 lg:order-2">
             <KrakenPriceChart data={data} />
           </div>
-          <div className="w-full lg:w-[280px] order-3 lg:order-3 lg:h-[640px] flex flex-col gap-2">
+          <div className="w-full lg:w-[280px] order-3 lg:order-3 lg:h-[590px] flex flex-col gap-2">
             <div className="w-full flex-shrink-0">
               <KrakenMetricsPanel data={data} position="right" />
             </div>

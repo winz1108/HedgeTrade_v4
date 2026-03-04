@@ -69,6 +69,8 @@ export interface HoldingInfo {
   ppReversalPrice?: number | null;
   floorPrice?: number | null;
   currentSlPct?: number;
+  exitFloorPrice?: number | null;
+  exitSlPrice?: number | null;
 }
 
 export interface MarketState {
@@ -362,6 +364,8 @@ export interface KrakenStrategyA {
   entry_price?: number;
   current_pnl?: number;
   mfe?: number;
+  mae?: number;
+  health_score?: number;
   pp_stop?: number | null;
   pp_activated?: boolean;
   pp_reversal_price?: number | null;
@@ -379,6 +383,12 @@ export interface KrakenStrategyA {
   floor_price?: number | null;
   current_sl_pct?: number;
   sl_price?: number | null;
+  exit_prices?: {
+    floor_price?: number | null;
+    sl_price?: number | null;
+    floor_pct?: number | null;
+    sl_pct?: number | null;
+  };
   entry_conditions_live?: {
     '1m_golden_cross'?: boolean | { long: boolean; short: boolean };
     '5m_above'?: boolean | { long: boolean; short: boolean };
@@ -561,6 +571,8 @@ export interface BFDashboardData {
     entryTime: number | null;
     currentPnl: number;
     mfe: number;
+    mae?: number;
+    health_score?: number;
     ppActivated: boolean;
     ppStop: number | null;
     ppReversalPrice: number | null;
@@ -570,6 +582,12 @@ export interface BFDashboardData {
     floorPrice?: number | null;
     currentSlPct?: number;
     slPrice?: number | null;
+    exit_prices?: {
+      floor_price?: number | null;
+      sl_price?: number | null;
+      floor_pct?: number | null;
+      sl_pct?: number | null;
+    };
   };
   strategy: {
     version: string;
