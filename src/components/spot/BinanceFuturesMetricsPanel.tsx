@@ -272,77 +272,58 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           )}
         </div>
 
-        <div className="bg-white border border-amber-300 rounded-lg shadow-sm p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-slate-800">PP</h3>
-          </div>
+        <div className="bg-white border border-amber-300 rounded-lg shadow-sm p-1.5">
+          <h3 className="text-[10px] font-bold text-slate-800 mb-1">PP</h3>
 
-          <div className="space-y-1">
-            {/* Health Score */}
+          <div className="space-y-0.5">
             {hasPosition && data.position.health_score !== undefined && (
-              <div className="bg-stone-50 border border-stone-300 rounded p-1.5">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[9px] text-slate-600 font-medium">Health</span>
-                  <span className={`text-[11px] font-bold ${
-                    data.position.health_score >= 70 ? 'text-emerald-600' :
-                    data.position.health_score >= 40 ? 'text-amber-600' : 'text-rose-600'
-                  }`}>
-                    {data.position.health_score.toFixed(0)}
-                  </span>
-                </div>
-                <div className="w-full bg-stone-200 rounded-full h-1.5 overflow-hidden">
+              <div className="flex items-center gap-1.5 bg-stone-50 border border-stone-200 rounded px-1.5 py-0.5">
+                <span className="text-[8px] text-slate-500 w-9 shrink-0">Health</span>
+                <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
                   <div
-                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                    className={`h-1 rounded-full transition-all duration-500 ${
                       data.position.health_score >= 70 ? 'bg-emerald-500' :
                       data.position.health_score >= 40 ? 'bg-amber-500' : 'bg-rose-500'
                     }`}
                     style={{ width: `${Math.min(100, data.position.health_score)}%` }}
                   />
                 </div>
+                <span className={`text-[10px] font-bold w-6 text-right shrink-0 ${
+                  data.position.health_score >= 70 ? 'text-emerald-600' :
+                  data.position.health_score >= 40 ? 'text-amber-600' : 'text-rose-600'
+                }`}>
+                  {data.position.health_score.toFixed(0)}
+                </span>
               </div>
             )}
-
-            {/* MFE / MAE row */}
-            <div className="grid grid-cols-2 gap-1">
-              <div className="bg-amber-50 border border-amber-300 rounded p-1.5">
-                <div className="text-[8px] text-amber-700 font-medium mb-0.5">MFE</div>
-                <div className="text-[11px] font-bold text-amber-700">
-                  {hasPosition && data.position.mfe !== undefined && data.position.mfe !== null
-                    ? `+${data.position.mfe.toFixed(2)}%`
-                    : '-'}
-                </div>
+            <div className="grid grid-cols-2 gap-0.5">
+              <div className="flex justify-between items-center bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+                <span className="text-[8px] text-amber-600">MFE</span>
+                <span className="text-[10px] font-bold text-amber-700">
+                  {hasPosition && data.position.mfe != null ? `+${data.position.mfe.toFixed(2)}%` : '-'}
+                </span>
               </div>
-              <div className="bg-rose-50 border border-rose-300 rounded p-1.5">
-                <div className="text-[8px] text-rose-600 font-medium mb-0.5">MAE</div>
-                <div className="text-[11px] font-bold text-rose-600">
-                  {hasPosition && data.position.mae !== undefined && data.position.mae !== null
-                    ? `${data.position.mae.toFixed(2)}%`
-                    : '-'}
-                </div>
+              <div className="flex justify-between items-center bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5">
+                <span className="text-[8px] text-rose-500">MAE</span>
+                <span className="text-[10px] font-bold text-rose-600">
+                  {hasPosition && data.position.mae != null ? `${data.position.mae.toFixed(2)}%` : '-'}
+                </span>
               </div>
-            </div>
-
-            {/* PP Floor % */}
-            <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5">
-              <div className="flex justify-between items-center">
-                <span className="text-[9px] text-emerald-700 font-medium">PP Floor</span>
-                <span className="text-[11px] font-bold text-emerald-700">
+              <div className="flex justify-between items-center bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">
+                <span className="text-[8px] text-emerald-600">PP Floor</span>
+                <span className="text-[10px] font-bold text-emerald-700">
                   {(() => {
-                    const floorPct = data.position.exit_prices?.floor_pct ?? data.position.floorPct ?? data.position.ppStop;
-                    return hasPosition && floorPct != null ? `+${floorPct.toFixed(2)}%` : '-';
+                    const p = data.position.exit_prices?.floor_pct ?? data.position.floorPct ?? data.position.ppStop;
+                    return hasPosition && p != null ? `+${p.toFixed(2)}%` : '-';
                   })()}
                 </span>
               </div>
-            </div>
-
-            {/* SL % */}
-            <div className="bg-rose-50 border border-rose-300 rounded p-1.5">
-              <div className="flex justify-between items-center">
-                <span className="text-[9px] text-rose-600 font-medium">SL</span>
-                <span className="text-[11px] font-bold text-rose-600">
+              <div className="flex justify-between items-center bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5">
+                <span className="text-[8px] text-rose-500">SL</span>
+                <span className="text-[10px] font-bold text-rose-600">
                   {(() => {
-                    const slPct = data.position.exit_prices?.sl_pct ?? data.position.currentSlPct;
-                    return hasPosition && slPct != null ? `${slPct.toFixed(2)}%` : '-';
+                    const p = data.position.exit_prices?.sl_pct ?? data.position.currentSlPct;
+                    return hasPosition && p != null ? `${p.toFixed(2)}%` : '-';
                   })()}
                 </span>
               </div>

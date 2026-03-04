@@ -289,85 +289,66 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           )}
         </div>
 
-        <div className="bg-slate-800/95 border border-yellow-600/50 rounded-lg shadow-sm p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-white">PP</h3>
-          </div>
+        <div className="bg-slate-800/95 border border-yellow-600/50 rounded-lg shadow-sm p-1.5">
+          <h3 className="text-[10px] font-bold text-white mb-1">PP</h3>
 
           {hasPosition && data.strategyA ? (
-            <div className="space-y-1">
-              {/* Health Score */}
+            <div className="space-y-0.5">
               {data.strategyA.health_score !== undefined && (
-                <div className="bg-slate-700/50 border border-slate-600 rounded p-1.5">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[9px] text-slate-300 font-medium">Health</span>
-                    <span className={`text-[11px] font-bold ${
-                      data.strategyA.health_score >= 70 ? 'text-emerald-400' :
-                      data.strategyA.health_score >= 40 ? 'text-yellow-400' : 'text-rose-400'
-                    }`}>
-                      {data.strategyA.health_score.toFixed(0)}
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                <div className="flex items-center gap-1.5 bg-slate-700/50 border border-slate-600 rounded px-1.5 py-0.5">
+                  <span className="text-[8px] text-slate-400 w-9 shrink-0">Health</span>
+                  <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
                     <div
-                      className={`h-1.5 rounded-full transition-all duration-500 ${
+                      className={`h-1 rounded-full transition-all duration-500 ${
                         data.strategyA.health_score >= 70 ? 'bg-emerald-500' :
                         data.strategyA.health_score >= 40 ? 'bg-yellow-500' : 'bg-rose-500'
                       }`}
                       style={{ width: `${Math.min(100, data.strategyA.health_score)}%` }}
                     />
                   </div>
+                  <span className={`text-[10px] font-bold w-6 text-right shrink-0 ${
+                    data.strategyA.health_score >= 70 ? 'text-emerald-400' :
+                    data.strategyA.health_score >= 40 ? 'text-yellow-400' : 'text-rose-400'
+                  }`}>
+                    {data.strategyA.health_score.toFixed(0)}
+                  </span>
                 </div>
               )}
-
-              {/* MFE / MAE row */}
-              <div className="grid grid-cols-2 gap-1">
-                <div className="bg-yellow-900/20 border border-yellow-600/50 rounded p-1.5">
-                  <div className="text-[8px] text-yellow-400 font-medium mb-0.5">MFE</div>
-                  <div className="text-[11px] font-bold text-yellow-400">
+              <div className="grid grid-cols-2 gap-0.5">
+                <div className="flex justify-between items-center bg-yellow-900/20 border border-yellow-600/40 rounded px-1.5 py-0.5">
+                  <span className="text-[8px] text-yellow-500">MFE</span>
+                  <span className="text-[10px] font-bold text-yellow-400">
                     {data.strategyA.mfe !== undefined ? `+${data.strategyA.mfe.toFixed(2)}%` : '-'}
-                  </div>
+                  </span>
                 </div>
-                <div className="bg-rose-900/20 border border-rose-700/50 rounded p-1.5">
-                  <div className="text-[8px] text-rose-400 font-medium mb-0.5">MAE</div>
-                  <div className="text-[11px] font-bold text-rose-400">
+                <div className="flex justify-between items-center bg-rose-900/20 border border-rose-700/40 rounded px-1.5 py-0.5">
+                  <span className="text-[8px] text-rose-500">MAE</span>
+                  <span className="text-[10px] font-bold text-rose-400">
                     {data.strategyA.mae !== undefined ? `${data.strategyA.mae.toFixed(2)}%` : '-'}
-                  </div>
+                  </span>
                 </div>
-              </div>
-
-              {/* Protected Profit with floor_pct */}
-              <div className="bg-emerald-900/30 border border-emerald-700/50 rounded p-1.5">
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-emerald-300 font-medium">PP Floor</span>
-                  <div className="flex items-center gap-1.5">
+                <div className="flex justify-between items-center bg-emerald-900/30 border border-emerald-700/40 rounded px-1.5 py-0.5">
+                  <span className="text-[8px] text-emerald-400">PP Floor</span>
+                  <span className="text-[10px] font-bold text-emerald-400">
                     {(() => {
-                      const floorPct = data.strategyA.exit_prices?.floor_pct ?? data.strategyA.floor_pct ?? data.strategyA.pp_stop;
-                      return (
-                        <span className="text-[11px] font-bold text-emerald-400">
-                          {floorPct != null ? `+${floorPct.toFixed(2)}%` : '-'}
-                        </span>
-                      );
+                      const p = data.strategyA.exit_prices?.floor_pct ?? data.strategyA.floor_pct ?? data.strategyA.pp_stop;
+                      return p != null ? `+${p.toFixed(2)}%` : '-';
                     })()}
-                  </div>
+                  </span>
                 </div>
-              </div>
-
-              {/* SL % */}
-              <div className="bg-rose-900/20 border border-rose-700/50 rounded p-1.5">
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-rose-300 font-medium">SL</span>
-                  <span className="text-[11px] font-bold text-rose-400">
+                <div className="flex justify-between items-center bg-rose-900/20 border border-rose-700/40 rounded px-1.5 py-0.5">
+                  <span className="text-[8px] text-rose-400">SL</span>
+                  <span className="text-[10px] font-bold text-rose-400">
                     {(() => {
-                      const slPct = data.strategyA.exit_prices?.sl_pct ?? data.strategyA.current_sl_pct;
-                      return slPct != null ? `${slPct.toFixed(2)}%` : '-';
+                      const p = data.strategyA.exit_prices?.sl_pct ?? data.strategyA.current_sl_pct;
+                      return p != null ? `${p.toFixed(2)}%` : '-';
                     })()}
                   </span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-12 text-slate-300 text-[10px]">
+            <div className="flex items-center justify-center h-7 text-slate-500 text-[9px]">
               No position
             </div>
           )}
