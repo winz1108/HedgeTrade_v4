@@ -10,24 +10,26 @@ interface Props {
 
 // 롱 진입 조건 7개 (트레이딩용)
 const LONG_ENTRY_CONDITIONS: { key: string; label: string }[] = [
-  { key: '1m_golden_cross', label: '1m GC' },
+  { key: '1m_above', label: '1m Above' },
   { key: '5m_above', label: '5m EMA5>13' },
   { key: '15m_ema38_above', label: '15m EMA3>8' },
   { key: '30m_slope_up', label: '30m Slope>0' },
   { key: '15m_bbw', label: '15m BBW>0.6%' },
   { key: '30m_gap', label: '30m Gap>0.08%' },
-  { key: '30m_adx', label: '30m ADX>15' }
+  { key: '30m_adx', label: '30m ADX>15' },
+  { key: '1h_slope_up', label: '1h Slope Up' }
 ];
 
 // 숏 진입 조건 7개 (트레이딩용, 롱의 정반대)
 const SHORT_ENTRY_CONDITIONS: { key: string; label: string }[] = [
-  { key: '1m_dead_cross', label: '1m DC' },
+  { key: '1m_below', label: '1m Below' },
   { key: '5m_below', label: '5m EMA5<13' },
   { key: '15m_ema38_below', label: '15m EMA3<8' },
   { key: '30m_slope_down', label: '30m Slope<0' },
   { key: '15m_bbw', label: '15m BBW>0.6%' },
   { key: '30m_gap', label: '30m Gap<-0.08%' },
-  { key: '30m_adx', label: '30m ADX>15' }
+  { key: '30m_adx', label: '30m ADX>15' },
+  { key: '1h_slope_down', label: '1h Slope Down' }
 ];
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
