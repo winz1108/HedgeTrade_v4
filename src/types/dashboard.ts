@@ -62,6 +62,33 @@ export interface EntryConditions {
   '1m_below': boolean;
   '1h_slope_up': boolean;
   '1h_slope_down': boolean;
+  '5m_above': boolean;
+  '5m_below': boolean;
+  '15m_ema38_above': boolean;
+  '15m_ema38_below': boolean;
+  '30m_slope_up': boolean;
+  '30m_slope_down': boolean;
+  '15m_bbw': boolean;
+  '30m_gap': boolean;
+  '30m_gap_short': boolean;
+  '30m_adx': boolean;
+}
+
+export interface FuturesEntryConditions {
+  '1m_above': boolean;
+  '1m_below': boolean;
+  '1h_slope_up': boolean;
+  '1h_slope_down': boolean;
+  '5m_above': boolean;
+  '5m_below': boolean;
+  '15m_ema38_above': boolean;
+  '15m_ema38_below': boolean;
+  '30m_slope_up': boolean;
+  '30m_slope_down': boolean;
+  '15m_bbw': boolean;
+  '30m_gap': boolean;
+  '30m_gap_short': boolean;
+  '30m_adx': boolean;
 }
 
 export interface DashboardData {

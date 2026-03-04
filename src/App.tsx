@@ -235,32 +235,65 @@ function App() {
             </div>
 
             {data.entryConditions && (
-              <div className="flex items-center gap-1 bg-slate-800/70 px-2 py-1.5 rounded-lg border border-slate-600 overflow-x-auto">
-                <span className="text-[10px] text-slate-400 mr-1 whitespace-nowrap">Entry:</span>
-                <div className="flex gap-1">
-                  {[
-                    { key: '1m_above', label: '1m Trend ↑', value: data.entryConditions['1m_above'], type: 'long' },
-                    { key: '1m_below', label: '1m Trend ↓', value: data.entryConditions['1m_below'], type: 'short' },
-                    { key: '1h_slope_up', label: '1h Slope ↑', value: data.entryConditions['1h_slope_up'], type: 'long' },
-                    { key: '1h_slope_down', label: '1h Slope ↓', value: data.entryConditions['1h_slope_down'], type: 'short' }
-                  ].map((condition) => {
-                    const isActive = condition.value;
-                    const isLong = condition.type === 'long';
-                    return (
-                      <div
-                        key={condition.key}
-                        className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
-                          isActive
-                            ? isLong
+              <div className="flex items-center gap-2 bg-slate-800/70 px-2 py-1.5 rounded-lg border border-slate-600 overflow-x-auto">
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-emerald-400 font-bold whitespace-nowrap">LONG:</span>
+                  <div className="flex gap-0.5">
+                    {([
+                      { key: '1m_above', label: '1m Above' },
+                      { key: '5m_above', label: '5m EMA5>13' },
+                      { key: '15m_ema38_above', label: '15m EMA3>8' },
+                      { key: '30m_slope_up', label: '30m Slope>0' },
+                      { key: '15m_bbw', label: '15m BBW>0.6%' },
+                      { key: '30m_gap', label: '30m Gap>0.08%' },
+                      { key: '30m_adx', label: '30m ADX>15' },
+                      { key: '1h_slope_up', label: '1h Slope Up' },
+                    ] as const).map((c) => {
+                      const active = !!(data.entryConditions as Record<string, boolean>)?.[c.key];
+                      return (
+                        <div
+                          key={c.key}
+                          className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
+                            active
                               ? 'bg-emerald-500 text-white border-emerald-300 font-bold shadow-lg'
-                              : 'bg-rose-500 text-white border-rose-300 font-bold shadow-lg'
-                            : 'bg-slate-700/30 text-slate-600 border-slate-700/40'
-                        }`}
-                      >
-                        {condition.label}
-                      </div>
-                    );
-                  })}
+                              : 'bg-slate-700/30 text-slate-600 border-slate-700/40'
+                          }`}
+                        >
+                          {c.label}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="w-px h-4 bg-slate-600" />
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-rose-400 font-bold whitespace-nowrap">SHORT:</span>
+                  <div className="flex gap-0.5">
+                    {([
+                      { key: '1m_below', label: '1m Below' },
+                      { key: '5m_below', label: '5m EMA5<13' },
+                      { key: '15m_ema38_below', label: '15m EMA3<8' },
+                      { key: '30m_slope_down', label: '30m Slope<0' },
+                      { key: '15m_bbw', label: '15m BBW>0.6%' },
+                      { key: '30m_gap_short', label: '30m Gap<-0.08%' },
+                      { key: '30m_adx', label: '30m ADX>15' },
+                      { key: '1h_slope_down', label: '1h Slope Down' },
+                    ] as const).map((c) => {
+                      const active = !!(data.entryConditions as Record<string, boolean>)?.[c.key];
+                      return (
+                        <div
+                          key={c.key}
+                          className={`text-[9px] px-1.5 py-0.5 rounded transition-all whitespace-nowrap border ${
+                            active
+                              ? 'bg-rose-500 text-white border-rose-300 font-bold shadow-lg'
+                              : 'bg-slate-700/30 text-slate-600 border-slate-700/40'
+                          }`}
+                        >
+                          {c.label}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}

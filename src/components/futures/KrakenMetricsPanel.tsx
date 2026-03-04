@@ -1,13 +1,35 @@
 import { TrendingUp, TrendingDown, DollarSign, Activity, History } from 'lucide-react';
-import { DashboardData } from '../types/dashboard';
-import { formatLocalTime, formatLocalDateTime } from '../utils/time';
+import { DashboardData } from '../../types/dashboard';
+import { formatLocalTime, formatLocalDateTime } from '../../utils/time';
 
-interface MetricsPanelProps {
+interface KrakenMetricsPanelProps {
   data: DashboardData;
   position: 'left' | 'right' | 'trades';
 }
 
-export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
+const LONG_ENTRY_CONDITIONS = [
+  { key: '1m_above', label: '1m Above' },
+  { key: '5m_above', label: '5m EMA5>13' },
+  { key: '15m_ema38_above', label: '15m EMA3>8' },
+  { key: '30m_slope_up', label: '30m Slope>0' },
+  { key: '15m_bbw', label: '15m BBW>0.6%' },
+  { key: '30m_gap', label: '30m Gap>0.08%' },
+  { key: '30m_adx', label: '30m ADX>15' },
+  { key: '1h_slope_up', label: '1h Slope Up' },
+] as const;
+
+const SHORT_ENTRY_CONDITIONS = [
+  { key: '1m_below', label: '1m Below' },
+  { key: '5m_below', label: '5m EMA5<13' },
+  { key: '15m_ema38_below', label: '15m EMA3<8' },
+  { key: '30m_slope_down', label: '30m Slope<0' },
+  { key: '15m_bbw', label: '15m BBW>0.6%' },
+  { key: '30m_gap_short', label: '30m Gap<-0.08%' },
+  { key: '30m_adx', label: '30m ADX>15' },
+  { key: '1h_slope_down', label: '1h Slope Down' },
+] as const;
+
+export const KrakenMetricsPanel = ({ data, position }: KrakenMetricsPanelProps) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -24,8 +46,6 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
-
-  // 백엔드에서 계산된 portfolioReturnWithCommission 값을 사용 (더 정확한 계산)
   const currentProfit = data.metrics.portfolioReturnWithCommission ?? 0;
 
   if (position === 'left') {
@@ -212,16 +232,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               <div>
                 <div className="text-[10px] text-emerald-400 font-bold mb-1">LONG</div>
                 <div className="flex flex-wrap gap-1">
-                  {([
-                    { key: '1m_above', label: '1m Above' },
-                    { key: '5m_above', label: '5m EMA5>13' },
-                    { key: '15m_ema38_above', label: '15m EMA3>8' },
-                    { key: '30m_slope_up', label: '30m Slope>0' },
-                    { key: '15m_bbw', label: '15m BBW>0.6%' },
-                    { key: '30m_gap', label: '30m Gap>0.08%' },
-                    { key: '30m_adx', label: '30m ADX>15' },
-                    { key: '1h_slope_up', label: '1h Slope Up' },
-                  ] as const).map((c) => {
+                  {LONG_ENTRY_CONDITIONS.map((c) => {
                     const active = !!(data.entryConditions as Record<string, boolean>)?.[c.key];
                     return (
                       <span
@@ -241,16 +252,7 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
               <div>
                 <div className="text-[10px] text-rose-400 font-bold mb-1">SHORT</div>
                 <div className="flex flex-wrap gap-1">
-                  {([
-                    { key: '1m_below', label: '1m Below' },
-                    { key: '5m_below', label: '5m EMA5<13' },
-                    { key: '15m_ema38_below', label: '15m EMA3<8' },
-                    { key: '30m_slope_down', label: '30m Slope<0' },
-                    { key: '15m_bbw', label: '15m BBW>0.6%' },
-                    { key: '30m_gap_short', label: '30m Gap<-0.08%' },
-                    { key: '30m_adx', label: '30m ADX>15' },
-                    { key: '1h_slope_down', label: '1h Slope Down' },
-                  ] as const).map((c) => {
+                  {SHORT_ENTRY_CONDITIONS.map((c) => {
                     const active = !!(data.entryConditions as Record<string, boolean>)?.[c.key];
                     return (
                       <span
@@ -278,11 +280,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
     const recentTrades = [...data.trades].reverse().slice(0, 10);
 
     return (
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-2.5 hover:shadow-purple-500/10 transition-all duration-300">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg shadow-xl p-2.5 hover:shadow-blue-500/10 transition-all duration-300">
         <div className="flex items-center justify-between mb-1.5">
           <h3 className="text-xs font-bold text-white">Recent Trades</h3>
-          <div className="p-0.5 bg-purple-500/20 rounded">
-            <History className="w-2.5 h-2.5 text-purple-400" />
+          <div className="p-0.5 bg-blue-500/20 rounded">
+            <History className="w-2.5 h-2.5 text-blue-400" />
           </div>
         </div>
 
