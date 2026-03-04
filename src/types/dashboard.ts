@@ -57,6 +57,13 @@ export interface MarketState {
   activeState: string;
 }
 
+export interface EntryConditions {
+  '1m_above': boolean;
+  '1m_below': boolean;
+  '1h_slope_up': boolean;
+  '1h_slope_down': boolean;
+}
+
 export interface DashboardData {
   version?: string;
   currentAsset: number;
@@ -80,6 +87,7 @@ export interface DashboardData {
   };
   lastPredictionUpdateTime?: number;
   marketState?: MarketState;
+  entryConditions?: EntryConditions;
   gateWeights?: number[];
   metrics: {
     portfolioReturn: number;
