@@ -1,4 +1,4 @@
-import { KrakenDashboardData } from '../../types/dashboard';
+import { KrakenDashboardData, V10StrategyStatus } from '../../types/dashboard';
 import { DollarSign, Activity, Target, History } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
@@ -8,28 +8,10 @@ interface Props {
   position: 'left' | 'right' | 'trades';
 }
 
-// 롱 진입 조건 7개 (트레이딩용)
-const LONG_ENTRY_CONDITIONS: { key: string; label: string }[] = [
-  { key: '1m_above', label: '1m Above' },
-  { key: '5m_above', label: '5m EMA5>13' },
-  { key: '15m_ema38_above', label: '15m EMA3>8' },
-  { key: '30m_slope_up', label: '30m Slope>0' },
-  { key: '15m_bbw', label: '15m BBW>0.6%' },
-  { key: '30m_gap', label: '30m Gap>0.08%' },
-  { key: '30m_adx', label: '30m ADX>15' },
-  { key: '1h_slope_up', label: '1h Slope Up' }
-];
-
-// 숏 진입 조건 7개 (트레이딩용, 롱의 정반대)
-const SHORT_ENTRY_CONDITIONS: { key: string; label: string }[] = [
-  { key: '1m_below', label: '1m Below' },
-  { key: '5m_below', label: '5m EMA5<13' },
-  { key: '15m_ema38_below', label: '15m EMA3<8' },
-  { key: '30m_slope_down', label: '30m Slope<0' },
-  { key: '15m_bbw', label: '15m BBW>0.6%' },
-  { key: '30m_gap', label: '30m Gap<-0.08%' },
-  { key: '30m_adx', label: '30m ADX>15' },
-  { key: '1h_slope_down', label: '1h Slope Down' }
+const V10_ENTRY_CONDITIONS: { key: string; label: string }[] = [
+  { key: '1h_ema_bu', label: '1h EMA bu' },
+  { key: '1h_ema_bd', label: '1h EMA bd' },
+  { key: '1h_adx_20', label: '1h ADX >= 15' },
 ];
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
@@ -79,6 +61,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
     const positionSide = data.position?.position_side;
     const entryPrice = data.strategyA?.entry_price;
     const currentPnl = data.strategyA?.current_pnl;
+    const ss = data.strategyStatus;
     const entryConditionsLong = data.strategyA?.entry_conditions_long;
     const entryConditionsShort = data.strategyA?.entry_conditions_short;
 
@@ -207,154 +190,131 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-white">Entry Conditions</h3>
-          </div>
-
-          {entryConditionsLong && entryConditionsShort ? (
-            <div className="space-y-2">
-              {/* Long Conditions */}
-              <div className="bg-cyan-900/20 border border-cyan-600/50 rounded-lg p-1.5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-cyan-400">LONG</span>
-                  <span className="text-[9px] font-bold text-cyan-400">
-                    {LONG_ENTRY_CONDITIONS.filter(({ key }) => entryConditionsLong[key]).length}/{LONG_ENTRY_CONDITIONS.length}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-1">
-                  {LONG_ENTRY_CONDITIONS.map(({ key, label }) => {
-                    const met = entryConditionsLong[key];
-
-                    return (
-                      <div
-                        key={`long-${key}`}
-                        className={`flex items-center gap-1 px-1 py-0.5 rounded ${
-                          met
-                            ? 'bg-cyan-600/30'
-                            : 'bg-slate-700/30'
-                        }`}
-                      >
-                        <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
-                          met ? 'bg-cyan-400' : 'bg-slate-600'
-                        }`} />
-                        <span className={`text-[8px] font-medium leading-tight ${
-                          met ? 'text-cyan-200' : 'text-slate-500'
-                        }`}>
-                          {label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Short Conditions */}
-              <div className="bg-orange-900/20 border border-orange-600/50 rounded-lg p-1.5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-orange-400">SHORT</span>
-                  <span className="text-[9px] font-bold text-orange-400">
-                    {SHORT_ENTRY_CONDITIONS.filter(({ key }) => entryConditionsShort[key]).length}/{SHORT_ENTRY_CONDITIONS.length}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-1">
-                  {SHORT_ENTRY_CONDITIONS.map(({ key, label }) => {
-                    const met = entryConditionsShort[key];
-
-                    return (
-                      <div
-                        key={`short-${key}`}
-                        className={`flex items-center gap-1 px-1 py-0.5 rounded ${
-                          met
-                            ? 'bg-orange-600/30'
-                            : 'bg-slate-700/30'
-                        }`}
-                      >
-                        <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
-                          met ? 'bg-orange-400' : 'bg-slate-600'
-                        }`} />
-                        <span className={`text-[8px] font-medium leading-tight ${
-                          met ? 'text-orange-200' : 'text-slate-500'
-                        }`}>
-                          {label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-12 text-slate-300 text-[10px]">
-              Waiting...
-            </div>
-          )}
-        </div>
-
-        <div className="bg-slate-800/95 border border-yellow-600/50 rounded-lg shadow-sm p-1.5">
-          <h3 className="text-[10px] font-bold text-white mb-1">PP</h3>
-
-          {hasPosition && data.strategyA ? (
-            <div className="space-y-0.5">
-              {data.strategyA.health_score !== undefined && (
-                <div className="flex items-center gap-1.5 bg-slate-700/50 border border-slate-600 rounded px-1.5 py-0.5">
-                  <span className="text-[8px] text-slate-400 w-9 shrink-0">Health</span>
-                  <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
-                    <div
-                      className={`h-1 rounded-full transition-all duration-500 ${
-                        data.strategyA.health_score >= 70 ? 'bg-emerald-500' :
-                        data.strategyA.health_score >= 40 ? 'bg-yellow-500' : 'bg-rose-500'
-                      }`}
-                      style={{ width: `${Math.min(100, data.strategyA.health_score)}%` }}
-                    />
-                  </div>
-                  <span className={`text-[10px] font-bold w-6 text-right shrink-0 ${
-                    data.strategyA.health_score >= 70 ? 'text-emerald-400' :
-                    data.strategyA.health_score >= 40 ? 'text-yellow-400' : 'text-rose-400'
-                  }`}>
-                    {data.strategyA.health_score.toFixed(0)}
-                  </span>
-                </div>
+        {!hasPosition ? (
+          <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-2">
+            <div className="flex items-center justify-between mb-1.5">
+              <h3 className="text-[11px] font-bold text-white">Entry Conditions</h3>
+              {ss && (
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                  ss.allBuyMet ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-600/50' : 'bg-slate-700/50 text-slate-400 border border-slate-600'
+                }`}>
+                  {ss.allBuyMet ? 'READY' : 'NOT MET'}
+                </span>
               )}
-              <div className="grid grid-cols-2 gap-0.5">
+            </div>
+
+            {ss?.buyConditions ? (
+              <div className="space-y-1.5">
+                <div className="grid grid-cols-1 gap-1">
+                  {V10_ENTRY_CONDITIONS.map(({ key, label }) => {
+                    const met = ss.buyConditions?.[key];
+                    return (
+                      <div key={key} className={`flex items-center gap-1.5 px-1.5 py-1 rounded ${met ? 'bg-emerald-900/30 border border-emerald-700/40' : 'bg-slate-700/30 border border-slate-600'}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${met ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                        <span className={`text-[9px] font-medium ${met ? 'text-emerald-300' : 'text-slate-500'}`}>{label}</span>
+                        {key === '1h_adx_20' && ss.indicators?.['1h']?.adx !== undefined && (
+                          <span className={`text-[8px] ml-auto font-bold ${met ? 'text-emerald-400' : 'text-slate-500'}`}>{ss.indicators['1h'].adx.toFixed(1)}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {ss.indicators?.['5m'] && (
+                  <div className="bg-amber-900/20 border border-amber-600/40 rounded p-1.5">
+                    <div className="text-[8px] text-amber-400 font-bold mb-0.5">5m EMA Breakout</div>
+                    <div className="grid grid-cols-2 gap-1">
+                      {ss.indicators['5m'].bd !== undefined && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-[8px] text-rose-400">bd</span>
+                          <span className="text-[9px] font-bold text-rose-400">${ss.indicators['5m'].bd.toFixed(0)}</span>
+                        </div>
+                      )}
+                      {ss.indicators['5m'].bu !== undefined && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-[8px] text-emerald-400">bu</span>
+                          <span className="text-[9px] font-bold text-emerald-400">${ss.indicators['5m'].bu.toFixed(0)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-slate-700/30 border border-slate-600 rounded p-1.5">
+                  <div className="text-[8px] text-slate-400">bd break up = LONG, break down = SHORT (market)</div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-12 text-slate-400 text-[10px]">
+                Waiting...
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-slate-800/95 border border-yellow-600/50 rounded-lg shadow-sm p-2">
+            <div className="flex items-center justify-between mb-1.5">
+              <h3 className="text-[11px] font-bold text-white">Exit Conditions</h3>
+            </div>
+
+            <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-0.5 mb-1.5">
                 <div className="flex justify-between items-center bg-yellow-900/20 border border-yellow-600/40 rounded px-1.5 py-0.5">
                   <span className="text-[8px] text-yellow-500">MFE</span>
                   <span className="text-[10px] font-bold text-yellow-400">
-                    {data.strategyA.mfe !== undefined ? `+${data.strategyA.mfe.toFixed(2)}%` : '-'}
+                    {ss?.mfe != null ? `+${ss.mfe.toFixed(2)}%` : data.strategyA?.mfe != null ? `+${data.strategyA.mfe.toFixed(2)}%` : '-'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center bg-rose-900/20 border border-rose-700/40 rounded px-1.5 py-0.5">
                   <span className="text-[8px] text-rose-500">MAE</span>
                   <span className="text-[10px] font-bold text-rose-400">
-                    {data.strategyA.mae !== undefined ? `${data.strategyA.mae.toFixed(2)}%` : '-'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center bg-emerald-900/30 border border-emerald-700/40 rounded px-1.5 py-0.5">
-                  <span className="text-[8px] text-emerald-400">PP Floor</span>
-                  <span className="text-[10px] font-bold text-emerald-400">
-                    {(() => {
-                      const p = data.strategyA.exit_prices?.floor_pct ?? data.strategyA.floor_pct ?? data.strategyA.pp_stop;
-                      return p != null ? `+${p.toFixed(2)}%` : '-';
-                    })()}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center bg-rose-900/20 border border-rose-700/40 rounded px-1.5 py-0.5">
-                  <span className="text-[8px] text-rose-400">SL</span>
-                  <span className="text-[10px] font-bold text-rose-400">
-                    {(() => {
-                      const p = data.strategyA.exit_prices?.sl_pct ?? data.strategyA.current_sl_pct;
-                      return p != null ? `${p.toFixed(2)}%` : '-';
-                    })()}
+                    {ss?.mae != null ? `${ss.mae.toFixed(2)}%` : data.strategyA?.mae != null ? `${data.strategyA.mae.toFixed(2)}%` : '-'}
                   </span>
                 </div>
               </div>
+
+              <div className="bg-blue-900/20 border border-blue-700/40 rounded p-1.5">
+                <div className="flex items-center gap-1 mb-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <span className="text-[9px] font-bold text-blue-300">EMA Exit</span>
+                </div>
+                <div className="text-[8px] text-blue-400/80">{"1h EMA band break (MFE>=0.3%, PnL>=0.2%)"}</div>
+                {ss?.exitPrices?.ema_exit && (
+                  <div className="text-[9px] font-bold text-blue-300 mt-0.5">${ss.exitPrices.ema_exit.toFixed(2)}</div>
+                )}
+              </div>
+
+              <div className="bg-yellow-900/20 border border-yellow-600/40 rounded p-1.5">
+                <div className="flex items-center gap-1 mb-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
+                  <span className="text-[9px] font-bold text-yellow-300">VREG Exit</span>
+                </div>
+                <div className="text-[8px] text-yellow-400/80">Vol spike + regression break</div>
+                {ss?.exitPrices?.vreg_exit && (
+                  <div className="text-[9px] font-bold text-yellow-300 mt-0.5">${ss.exitPrices.vreg_exit.toFixed(2)}</div>
+                )}
+              </div>
+
+              <div className="bg-rose-900/20 border border-rose-700/40 rounded p-1.5">
+                <div className="flex items-center gap-1 mb-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                  <span className="text-[9px] font-bold text-rose-300">CUT</span>
+                </div>
+                <div className="text-[8px] text-rose-400/80">MAE {'<'} -0.5% + 1m EMA reversal</div>
+                {ss?.exitPrices?.cut_threshold_mae && (
+                  <div className="text-[9px] font-bold text-rose-300 mt-0.5">{ss.exitPrices.cut_threshold_mae.toFixed(2)}%</div>
+                )}
+              </div>
+
+              <div className="bg-slate-700/30 border border-slate-600 rounded p-1.5">
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                  <span className="text-[9px] font-bold text-slate-300">FLIP</span>
+                </div>
+                <div className="text-[8px] text-slate-400">CUT after reverse re-entry</div>
+              </div>
             </div>
-          ) : (
-            <div className="flex items-center justify-center h-7 text-slate-500 text-[9px]">
-              No position
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   }

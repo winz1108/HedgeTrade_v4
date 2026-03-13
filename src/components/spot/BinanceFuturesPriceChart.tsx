@@ -92,6 +92,7 @@ export function BinanceFuturesPriceChart({ data }: Props) {
       onTradeHover={(_trade: TradeEvent | null) => {}}
       onTimeframeChange={(_timeframe: string) => {}}
       darkMode={false}
+      v10Strategy={data.strategyStatus || null}
     />
   );
 }

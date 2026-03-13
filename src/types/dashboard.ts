@@ -73,6 +73,40 @@ export interface HoldingInfo {
   exitSlPrice?: number | null;
 }
 
+export interface V10StrategyStatus {
+  strategyVersion?: string;
+  inPosition: boolean;
+  positionSide?: 'LONG' | 'SHORT' | null;
+  entryPrice?: number;
+  currentPnl?: number;
+  mfe?: number;
+  mae?: number;
+  holdHours?: number;
+  currentPrice?: number;
+  updatedAt?: string;
+  allBuyMet?: boolean;
+  buyConditionsMet?: number;
+  buyConditionsTotal?: number;
+  buyConditions?: {
+    '1h_ema_bu'?: boolean;
+    '1h_ema_bd'?: boolean;
+    '1h_adx_20'?: boolean;
+    [key: string]: boolean | undefined;
+  };
+  exitPrices?: {
+    ema_exit?: number;
+    vreg_exit?: number;
+    cut_threshold_mae?: number;
+  };
+  vregLine?: number;
+  vregSeries?: (number | null)[];
+  indicators?: {
+    '5m'?: { bd?: number; bu?: number; [key: string]: any };
+    '1h'?: { ema8?: number; ema13?: number; adx?: number; [key: string]: any };
+    [key: string]: any;
+  };
+}
+
 export interface MarketState {
   BULL?: number;
   BEAR?: number;
@@ -355,6 +389,7 @@ export interface DashboardData {
   accountName?: string;
   availableAccounts?: Array<{ id: string; name: string }>;
   _updateTimestamp?: number;
+  v10Strategy?: V10StrategyStatus | null;
 }
 
 export interface KrakenStrategyA {
@@ -547,6 +582,7 @@ export interface KrakenDashboardData {
     '4h': Candle[];
     '1d': Candle[];
   };
+  strategyStatus?: V10StrategyStatus;
 }
 
 export interface BFDashboardData {
@@ -616,4 +652,5 @@ export interface BFDashboardData {
   }>;
   recentTrades?: TradeEvent[];
   priceHistories: Record<string, any[]>;
+  strategyStatus?: V10StrategyStatus;
 }

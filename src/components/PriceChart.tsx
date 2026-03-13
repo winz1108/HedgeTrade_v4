@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ZoomIn, ZoomOut, Maximize2, Minimize2, Eye, EyeOff, ChevronsRight } from 'lucide-react';
-import { DashboardData, TradeEvent, Candle } from '../types/dashboard';
+import { DashboardData, TradeEvent, Candle, V10StrategyStatus } from '../types/dashboard';
 import { formatLocalTime, formatChartTime } from '../utils/time';
 import { websocketService } from '../services/websocket';
 
@@ -10,6 +10,7 @@ interface PriceChartProps {
   onTradeHover: (trade: TradeEvent | null) => void;
   onTimeframeChange?: (timeframe: string) => void;
   darkMode?: boolean;
+  v10Strategy?: V10StrategyStatus | null;
 }
 
 type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
@@ -67,7 +68,7 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
   return aggregated.sort((a, b) => a.timestamp - b.timestamp);
 }
 
-export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false }: PriceChartProps) => {
+export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false, v10Strategy }: PriceChartProps) => {
   // 거래 데이터는 이미 상위 컴포넌트에서 필터링됨 (KrakenPriceChart 등)
   const data = useMemo(() => {
     return rawData;
@@ -561,17 +562,34 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 <span className={`${colors.textPrimary} font-semibold`}>${typeof data.currentPrice === 'number' ? data.currentPrice.toFixed(2) : '-'}</span>
               </div>
               <div className="flex justify-between gap-6">
-                <span className={colors.textSecondary}>현재 수익률</span>
+                <span className={colors.textSecondary}>수익률</span>
                 {(() => {
                   const ep = data.holding.buyPrice || trade.price;
                   const pct = calcCurrentProfit(ep, data.currentPrice, trade.side);
                   return <span className={`font-semibold ${pct >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>{pct >= 0 ? '+' : ''}{pct.toFixed(2)}%</span>;
                 })()}
               </div>
+              {v10Strategy?.mfe !== undefined && (
+                <div className="flex justify-between gap-6">
+                  <span className={colors.textSecondary}>MFE / MAE</span>
+                  <span className={`${colors.textPrimary} font-semibold`}>+{v10Strategy.mfe?.toFixed(2)}% / {v10Strategy.mae?.toFixed(2)}%</span>
+                </div>
+              )}
               <div className="flex justify-between gap-6">
                 <span className={colors.textSecondary}>보유 시간</span>
-                <span className={`${colors.textSecondary} text-[10px]`}>{Math.floor((data.currentTime - trade.timestamp) / 60000)}분</span>
+                <span className={`${colors.textSecondary} text-[10px]`}>
+                  {v10Strategy?.holdHours !== undefined
+                    ? `${v10Strategy.holdHours.toFixed(1)}h`
+                    : `${Math.floor((data.currentTime - trade.timestamp) / 60000)}m`
+                  }
+                </span>
               </div>
+              {v10Strategy?.exitPrices?.ema_exit && (
+                <div className="flex justify-between gap-6">
+                  <span className={colors.textSecondary}>EMA 청산</span>
+                  <span className={`text-blue-400 font-semibold`}>${v10Strategy.exitPrices.ema_exit.toFixed(2)}</span>
+                </div>
+              )}
             </div>
           </>
         ) : pairedTrade ? (
@@ -624,19 +642,26 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 <span className={`${colors.textPrimary} font-semibold`}>${typeof data.currentPrice === 'number' ? data.currentPrice.toFixed(2) : '-'}</span>
               </div>
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>현재 수익률</span>
+                <span className={colors.textSecondary}>수익률</span>
                 {(() => {
-                  const pct = calcCurrentProfit(trade.price, data.currentPrice, trade.side);
+                  const pct = v10Strategy?.currentPnl ?? calcCurrentProfit(trade.price, data.currentPrice, trade.side);
                   return <span className={`font-bold ${pct >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>{pct >= 0 ? '+' : ''}{pct.toFixed(2)}%</span>;
                 })()}
               </div>
+              {v10Strategy?.mfe !== undefined && (
+                <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
+                  <span className={colors.textSecondary}>MFE / MAE</span>
+                  <span className={`${colors.textPrimary} font-semibold`}>+{v10Strategy.mfe?.toFixed(2)}% / {v10Strategy.mae?.toFixed(2)}%</span>
+                </div>
+              )}
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <span className={colors.textSecondary}>보유 시간</span>
-                <span className={`${colors.textSecondary} text-[10px]`}>{Math.floor((data.currentTime - trade.timestamp) / 60000)}분</span>
-              </div>
-              <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
-                <span className={colors.textSecondary}>마지막 업데이트</span>
-                <span className={`${colors.textSecondary} text-[10px]`}>{new Date(data.currentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                <span className={`${colors.textSecondary} text-[10px]`}>
+                  {v10Strategy?.holdHours !== undefined
+                    ? `${v10Strategy.holdHours.toFixed(1)}h`
+                    : `${Math.floor((data.currentTime - trade.timestamp) / 60000)}m`
+                  }
+                </span>
               </div>
             </div>
           </>
@@ -740,7 +765,58 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <div className="w-3 h-0.5 border-t border-dashed" style={{ borderColor: colors.bb }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
-            {data.holding.isHolding && (
+            {v10Strategy && !v10Strategy.inPosition && (
+              <>
+                <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
+                <div className="flex items-center gap-1">
+                  <svg width="14" height="6" style={{ display: 'block' }}>
+                    <line x1="0" y1="3" x2="14" y2="3" stroke="#ef4444" strokeWidth="1.2" strokeDasharray="5 3" />
+                  </svg>
+                  <span className={colors.textSecondary}>bd</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <svg width="14" height="6" style={{ display: 'block' }}>
+                    <line x1="0" y1="3" x2="14" y2="3" stroke="#22c55e" strokeWidth="1.2" strokeDasharray="5 3" />
+                  </svg>
+                  <span className={colors.textSecondary}>bu</span>
+                </div>
+              </>
+            )}
+            {v10Strategy && (
+              <>
+                <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#f97316' }}></div>
+                  <span className={colors.textSecondary}>1h E8</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#a855f7' }}></div>
+                  <span className={colors.textSecondary}>1h E13</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#eab308' }}></div>
+                  <span className={colors.textSecondary}>VREG</span>
+                </div>
+              </>
+            )}
+            {v10Strategy?.inPosition && (
+              <>
+                <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-0.5 rounded bg-white"></div>
+                  <span className={colors.textSecondary}>Entry</span>
+                </div>
+                {v10Strategy.exitPrices?.ema_exit && (
+                  <div className="flex items-center gap-1">
+                    <svg width="14" height="6" style={{ display: 'block' }}>
+                      <line x1="0" y1="3" x2="14" y2="3" stroke="#3b82f6" strokeWidth="1.2" strokeDasharray="5 3" />
+                    </svg>
+                    <span className={colors.textSecondary}>EMA Exit</span>
+                  </div>
+                )}
+              </>
+            )}
+            {!v10Strategy && data.holding.isHolding && (
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
                 <div className="flex items-center gap-1">
@@ -1043,6 +1119,70 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       opacity="0.9"
                     />
                   )}
+
+                  {/* v10.1 Overlays: bd/bu, 1h EMA8/EMA13, VREG, Entry, EMA Exit */}
+                  {(() => {
+                    if (!v10Strategy) return null;
+                    const isHolding = v10Strategy.inPosition;
+                    const bd = v10Strategy.indicators?.['5m']?.bd;
+                    const bu = v10Strategy.indicators?.['5m']?.bu;
+                    const ema8_1h = v10Strategy.indicators?.['1h']?.ema8;
+                    const ema13_1h = v10Strategy.indicators?.['1h']?.ema13;
+                    const entryPrice = v10Strategy.entryPrice;
+                    const emaExit = v10Strategy.exitPrices?.ema_exit;
+                    const vregSeries = v10Strategy.vregSeries;
+                    const chartW = visibleCandles.length * (candleWidth + candleGap);
+
+                    const vregPoints: string[] = [];
+                    if (vregSeries && vregSeries.length > 0 && timeframe === '5m') {
+                      const totalCandles5m = candlesByTimeframe['5m']?.length || 0;
+                      const offset = totalCandles5m - vregSeries.length;
+                      vregSeries.forEach((val, i) => {
+                        if (val === null || val === undefined) return;
+                        const globalIdx = offset + i;
+                        const localIdx = globalIdx - visibleStartIndex;
+                        if (localIdx < 0 || localIdx >= visibleCandles.length) return;
+                        const x = localIdx * (candleWidth + candleGap) + candleWidth / 2;
+                        const y = priceToY(val);
+                        vregPoints.push(`${x},${y}`);
+                      });
+                    }
+
+                    return (
+                      <>
+                        {!isHolding && bd !== undefined && bd > minPrice && bd < maxPrice && (
+                          <line x1="0" y1={priceToY(bd)} x2={chartW} y2={priceToY(bd)}
+                            stroke="#ef4444" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.8" />
+                        )}
+                        {!isHolding && bu !== undefined && bu > minPrice && bu < maxPrice && (
+                          <line x1="0" y1={priceToY(bu)} x2={chartW} y2={priceToY(bu)}
+                            stroke="#22c55e" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.8" />
+                        )}
+                        {ema8_1h !== undefined && ema8_1h > minPrice && ema8_1h < maxPrice && (
+                          <line x1="0" y1={priceToY(ema8_1h)} x2={chartW} y2={priceToY(ema8_1h)}
+                            stroke="#f97316" strokeWidth="1.5" opacity="0.7" />
+                        )}
+                        {ema13_1h !== undefined && ema13_1h > minPrice && ema13_1h < maxPrice && (
+                          <line x1="0" y1={priceToY(ema13_1h)} x2={chartW} y2={priceToY(ema13_1h)}
+                            stroke="#a855f7" strokeWidth="1.5" opacity="0.7" />
+                        )}
+                        {vregPoints.length > 1 && (
+                          <polyline points={vregPoints.join(' ')} fill="none"
+                            stroke="#eab308" strokeWidth="1.8" opacity="0.9" />
+                        )}
+                        {isHolding && entryPrice !== undefined && entryPrice > minPrice && entryPrice < maxPrice && (
+                          <line x1="0" y1={priceToY(entryPrice)} x2={chartW} y2={priceToY(entryPrice)}
+                            stroke="#ffffff" strokeWidth="1.5" opacity="0.85"
+                            filter="drop-shadow(0 0 3px rgba(255,255,255,0.5))" />
+                        )}
+                        {isHolding && emaExit !== undefined && emaExit > minPrice && emaExit < maxPrice && (
+                          <line x1="0" y1={priceToY(emaExit)} x2={chartW} y2={priceToY(emaExit)}
+                            stroke="#3b82f6" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.8"
+                            filter="drop-shadow(0 0 3px rgba(59,130,246,0.5))" />
+                        )}
+                      </>
+                    );
+                  })()}
 
                   {/* BB Touch Markers - Most Recent Only */}
                   {(() => {
@@ -1458,7 +1598,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               </svg>
             )}
 
-            {data.holding.isHolding && data.holding.buyPrice && (() => {
+            {!v10Strategy && data.holding.isHolding && data.holding.buyPrice && (() => {
               const isLong = data.holding.positionSide === 'LONG';
               const entryColor = isLong ? '#06b6d4' : '#f97316'; // cyan for LONG, orange for SHORT
               const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(249, 115, 22, 0.5)';
