@@ -61,8 +61,8 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
     const entryPrice = data.position.entryPrice;
     const currentPnl = data.position.currentPnl;
     const ss = data.strategyStatus;
-    const entryConditionsLong = data.strategy?.entryConditionsLong;
-    const entryConditionsShort = data.strategy?.entryConditionsShort;
+    const entryConditionsLong = data.strategy?.entryConditionsLong || data.strategy?.entry_conditions_long;
+    const entryConditionsShort = data.strategy?.entryConditionsShort || data.strategy?.entry_conditions_short;
 
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {

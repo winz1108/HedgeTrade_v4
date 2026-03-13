@@ -1101,11 +1101,25 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   {(() => {
                     if (!v10Strategy) return null;
                     const isHolding = v10Strategy.inPosition || data.holding.isHolding;
-                    const bd = v10Strategy.indicators?.['5m']?.bd;
-                    const bu = v10Strategy.indicators?.['5m']?.bu;
-                    const ema8_1h = v10Strategy.indicators?.['1h']?.ema8;
-                    const ema13_1h = v10Strategy.indicators?.['1h']?.ema13;
-                    const vregSeries = v10Strategy.vregSeries;
+                    const ind = v10Strategy.indicators;
+                    const bd = ind?.['5m']?.bd;
+                    const bu = ind?.['5m']?.bu;
+                    const ema8_1h = ind?.['1h']?.ema8;
+                    const ema13_1h = ind?.['1h']?.ema13;
+                    const vregSeries = v10Strategy.vregSeries || v10Strategy.vreg_series;
+                    console.log('[v10 overlay]', {
+                      isHolding, bd, bu, ema8_1h, ema13_1h,
+                      vregLen: vregSeries?.length,
+                      vregSample: vregSeries?.slice(-3),
+                      minPrice, maxPrice, timeframe,
+                      indKeys: ind ? Object.keys(ind) : 'none',
+                      ind5m: ind?.['5m'] ? Object.keys(ind['5m']) : 'none',
+                      ind1h: ind?.['1h'] ? Object.keys(ind['1h']) : 'none',
+                      bdInRange: bd !== undefined ? (bd > minPrice && bd < maxPrice) : 'n/a',
+                      buInRange: bu !== undefined ? (bu > minPrice && bu < maxPrice) : 'n/a',
+                      ema8InRange: ema8_1h !== undefined ? (ema8_1h > minPrice && ema8_1h < maxPrice) : 'n/a',
+                      ema13InRange: ema13_1h !== undefined ? (ema13_1h > minPrice && ema13_1h < maxPrice) : 'n/a',
+                    });
                     const chartW = visibleCandles.length * (candleWidth + candleGap);
 
                     const vregPoints: string[] = [];

@@ -426,6 +426,26 @@ export const fetchStrategyStatus = async (): Promise<StrategyStatus | null> => {
   }
 };
 
+const normalizeStrategyStatus = (raw: any): any => {
+  if (!raw) return null;
+  return {
+    ...raw,
+    inPosition: raw.inPosition ?? raw.in_position ?? false,
+    positionSide: raw.positionSide ?? raw.position_side ?? null,
+    entryPrice: raw.entryPrice ?? raw.entry_price,
+    currentPnl: raw.currentPnl ?? raw.current_pnl,
+    allBuyMet: raw.allBuyMet ?? raw.all_buy_met,
+    buyConditionsMet: raw.buyConditionsMet ?? raw.buy_conditions_met,
+    buyConditionsTotal: raw.buyConditionsTotal ?? raw.buy_conditions_total,
+    buyConditions: raw.buyConditions ?? raw.buy_conditions,
+    vregSeries: raw.vregSeries ?? raw.vreg_series,
+    vregLine: raw.vregLine ?? raw.vreg_line,
+    exitPrices: raw.exitPrices ?? raw.exit_prices,
+    holdHours: raw.holdHours ?? raw.hold_hours,
+    updatedAt: raw.updatedAt ?? raw.updated_at,
+  };
+};
+
 const normalizeKrakenCandles = (candles: any[]): Candle[] => {
   if (!candles || candles.length === 0) return [];
 
@@ -469,7 +489,7 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
 
     const rawData: any = await response.json();
 
-    const ssRaw = rawData.strategyStatus || rawData.strategy_status || null;
+    const ssRaw = normalizeStrategyStatus(rawData.strategyStatus || rawData.strategy_status || null);
 
     const data: KrakenDashboardData = {
       ...rawData,
@@ -558,9 +578,24 @@ export const fetchBinanceFuturesDashboard = async (): Promise<any> => {
 
     const rawData: any = await response.json();
 
-    if (rawData.strategy_status && !rawData.strategyStatus) {
-      rawData.strategyStatus = rawData.strategy_status;
+    rawData.strategyStatus = normalizeStrategyStatus(rawData.strategyStatus || rawData.strategy_status || null);
+
+    if (rawData.position) {
+      const p = rawData.position;
+      rawData.position = {
+        ...p,
+        inPosition: p.inPosition ?? p.in_position ?? false,
+        entryPrice: p.entryPrice ?? p.entry_price,
+        entryTime: p.entryTime ?? p.entry_time,
+        currentPnl: p.currentPnl ?? p.current_pnl,
+        side: p.side ?? p.position_side,
+        ppReversalPrice: p.ppReversalPrice ?? p.pp_reversal_price,
+        floorPrice: p.floorPrice ?? p.floor_price,
+        slPrice: p.slPrice ?? p.sl_price,
+        currentSlPct: p.currentSlPct ?? p.current_sl_pct,
+      };
     }
+
     console.log('[BinanceFutures] strategyStatus:', rawData.strategyStatus ? Object.keys(rawData.strategyStatus) : 'null', 'vregSeries length:', rawData.strategyStatus?.vregSeries?.length ?? 0);
     console.log('[BinanceFutures] position:', { inPosition: rawData.position?.inPosition, entryPrice: rawData.position?.entryPrice, side: rawData.position?.side });
 
