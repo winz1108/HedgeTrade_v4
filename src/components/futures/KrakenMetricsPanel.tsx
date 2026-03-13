@@ -190,74 +190,86 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        {!hasPosition ? (
-          <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-2">
-            <div className="flex items-center justify-between mb-1.5">
-              <h3 className="text-[11px] font-bold text-white">Entry Conditions</h3>
-              {ss && (
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                  ss.allBuyMet ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-600/50' : 'bg-slate-700/50 text-slate-400 border border-slate-600'
-                }`}>
-                  {ss.allBuyMet ? 'READY' : 'NOT MET'}
-                </span>
-              )}
-            </div>
-
-            {ss?.buyConditions ? (
-              <div className="space-y-1.5">
-                <div className="grid grid-cols-1 gap-1">
-                  {V10_ENTRY_CONDITIONS.map(({ key, label }) => {
-                    const met = ss.buyConditions?.[key];
-                    return (
-                      <div key={key} className={`flex items-center gap-1.5 px-1.5 py-1 rounded ${met ? 'bg-emerald-900/30 border border-emerald-700/40' : 'bg-slate-700/30 border border-slate-600'}`}>
-                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${met ? 'bg-emerald-400' : 'bg-slate-600'}`} />
-                        <span className={`text-[9px] font-medium ${met ? 'text-emerald-300' : 'text-slate-500'}`}>{label}</span>
-                        {key === '1h_adx_20' && ss.indicators?.['1h']?.adx !== undefined && (
-                          <span className={`text-[8px] ml-auto font-bold ${met ? 'text-emerald-400' : 'text-slate-500'}`}>{ss.indicators['1h'].adx.toFixed(1)}</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {ss.indicators?.['5m'] && (
-                  <div className="bg-amber-900/20 border border-amber-600/40 rounded p-1.5">
-                    <div className="text-[8px] text-amber-400 font-bold mb-0.5">5m EMA Breakout</div>
-                    <div className="grid grid-cols-2 gap-1">
-                      {ss.indicators['5m'].bd !== undefined && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-[8px] text-rose-400">bd</span>
-                          <span className="text-[9px] font-bold text-rose-400">${ss.indicators['5m'].bd.toFixed(0)}</span>
-                        </div>
-                      )}
-                      {ss.indicators['5m'].bu !== undefined && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-[8px] text-emerald-400">bu</span>
-                          <span className="text-[9px] font-bold text-emerald-400">${ss.indicators['5m'].bu.toFixed(0)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-slate-700/30 border border-slate-600 rounded p-1.5">
-                  <div className="text-[8px] text-slate-400">bd break up = LONG, break down = SHORT (market)</div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-12 text-slate-400 text-[10px]">
-                Waiting...
-              </div>
+        <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-2">
+          <div className="flex items-center justify-between mb-1.5">
+            <h3 className="text-[11px] font-bold text-white">Entry Conditions</h3>
+            {ss && (
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                ss.allBuyMet ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-600/50' : 'bg-slate-700/50 text-slate-400 border border-slate-600'
+              }`}>
+                {ss.allBuyMet ? 'READY' : 'NOT MET'}
+              </span>
             )}
           </div>
-        ) : (
-          <div className="bg-slate-800/95 border border-yellow-600/50 rounded-lg shadow-sm p-2">
-            <div className="flex items-center justify-between mb-1.5">
-              <h3 className="text-[11px] font-bold text-white">Exit Conditions</h3>
-            </div>
 
-            <div className="space-y-1">
-              <div className="grid grid-cols-2 gap-0.5 mb-1.5">
+          {ss?.buyConditions ? (
+            <div className="space-y-1.5">
+              <div className="grid grid-cols-1 gap-0.5">
+                {V10_ENTRY_CONDITIONS.map(({ key, label }) => {
+                  const met = ss.buyConditions?.[key];
+                  return (
+                    <div key={key} className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded ${met ? 'bg-emerald-900/30 border border-emerald-700/40' : 'bg-slate-700/30 border border-slate-600'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${met ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                      <span className={`text-[8px] font-medium ${met ? 'text-emerald-300' : 'text-slate-500'}`}>{label}</span>
+                      {key === '1h_adx_20' && ss.indicators?.['1h']?.adx !== undefined && (
+                        <span className={`text-[8px] ml-auto font-bold ${met ? 'text-emerald-400' : 'text-slate-500'}`}>{ss.indicators['1h'].adx.toFixed(1)}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {ss.indicators?.['5m'] && (
+                <div className="grid grid-cols-2 gap-1">
+                  <div className="bg-cyan-900/20 border border-cyan-700/40 rounded p-1.5">
+                    <div className="text-[8px] text-cyan-400 font-bold mb-0.5">LONG</div>
+                    <div className="text-[8px] text-slate-400">bu touch</div>
+                    {ss.indicators['5m'].bu !== undefined && (
+                      <div className="text-[9px] font-bold text-emerald-400">${ss.indicators['5m'].bu.toFixed(0)}</div>
+                    )}
+                  </div>
+                  <div className="bg-orange-900/20 border border-orange-700/40 rounded p-1.5">
+                    <div className="text-[8px] text-orange-400 font-bold mb-0.5">SHORT</div>
+                    <div className="text-[8px] text-slate-400">bd touch</div>
+                    {ss.indicators['5m'].bd !== undefined && (
+                      <div className="text-[9px] font-bold text-rose-400">${ss.indicators['5m'].bd.toFixed(0)}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : entryConditionsLong && entryConditionsShort ? (
+            <div className="grid grid-cols-2 gap-1">
+              <div className="bg-cyan-900/20 border border-cyan-600/50 rounded p-1">
+                <div className="text-[8px] font-bold text-cyan-400 mb-0.5">LONG</div>
+                {Object.entries(entryConditionsLong).map(([key, met]) => (
+                  <div key={`l-${key}`} className="flex items-center gap-1">
+                    <div className={`w-1 h-1 rounded-full ${met ? 'bg-cyan-400' : 'bg-slate-600'}`} />
+                    <span className={`text-[7px] ${met ? 'text-cyan-200' : 'text-slate-500'}`}>{key}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-orange-900/20 border border-orange-600/50 rounded p-1">
+                <div className="text-[8px] font-bold text-orange-400 mb-0.5">SHORT</div>
+                {Object.entries(entryConditionsShort).map(([key, met]) => (
+                  <div key={`s-${key}`} className="flex items-center gap-1">
+                    <div className={`w-1 h-1 rounded-full ${met ? 'bg-orange-400' : 'bg-slate-600'}`} />
+                    <span className={`text-[7px] ${met ? 'text-orange-200' : 'text-slate-500'}`}>{key}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-8 text-slate-400 text-[10px]">
+              Waiting...
+            </div>
+          )}
+        </div>
+
+        {hasPosition && (
+          <>
+            <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-1.5">
+              <div className="grid grid-cols-2 gap-0.5">
                 <div className="flex justify-between items-center bg-yellow-900/20 border border-yellow-600/40 rounded px-1.5 py-0.5">
                   <span className="text-[8px] text-yellow-500">MFE</span>
                   <span className="text-[10px] font-bold text-yellow-400">
@@ -271,49 +283,40 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   </span>
                 </div>
               </div>
+            </div>
 
-              <div className="bg-blue-900/20 border border-blue-700/40 rounded p-1.5">
-                <div className="flex items-center gap-1 mb-0.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                  <span className="text-[9px] font-bold text-blue-300">EMA Exit</span>
+            <div className="bg-slate-800/95 border border-yellow-600/50 rounded-lg shadow-sm p-2">
+              <h3 className="text-[10px] font-bold text-white mb-1">Exit Conditions</h3>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1 bg-blue-900/20 border border-blue-700/40 rounded px-1.5 py-0.5">
+                  <div className="w-1 h-1 rounded-full bg-blue-400 flex-shrink-0" />
+                  <span className="text-[8px] text-blue-300">EMA</span>
+                  <span className="text-[8px] text-blue-400/70 ml-auto">
+                    {ss?.exitPrices?.ema_exit ? `$${ss.exitPrices.ema_exit.toFixed(0)}` : '1h band'}
+                  </span>
                 </div>
-                <div className="text-[8px] text-blue-400/80">{"1h EMA band break (MFE>=0.3%, PnL>=0.2%)"}</div>
-                {ss?.exitPrices?.ema_exit && (
-                  <div className="text-[9px] font-bold text-blue-300 mt-0.5">${ss.exitPrices.ema_exit.toFixed(2)}</div>
-                )}
-              </div>
-
-              <div className="bg-yellow-900/20 border border-yellow-600/40 rounded p-1.5">
-                <div className="flex items-center gap-1 mb-0.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
-                  <span className="text-[9px] font-bold text-yellow-300">VREG Exit</span>
+                <div className="flex items-center gap-1 bg-yellow-900/20 border border-yellow-600/40 rounded px-1.5 py-0.5">
+                  <div className="w-1 h-1 rounded-full bg-yellow-400 flex-shrink-0" />
+                  <span className="text-[8px] text-yellow-300">VREG</span>
+                  <span className="text-[8px] text-yellow-400/70 ml-auto">
+                    {ss?.exitPrices?.vreg_exit ? `$${ss.exitPrices.vreg_exit.toFixed(0)}` : 'vol+reg'}
+                  </span>
                 </div>
-                <div className="text-[8px] text-yellow-400/80">Vol spike + regression break</div>
-                {ss?.exitPrices?.vreg_exit && (
-                  <div className="text-[9px] font-bold text-yellow-300 mt-0.5">${ss.exitPrices.vreg_exit.toFixed(2)}</div>
-                )}
-              </div>
-
-              <div className="bg-rose-900/20 border border-rose-700/40 rounded p-1.5">
-                <div className="flex items-center gap-1 mb-0.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                  <span className="text-[9px] font-bold text-rose-300">CUT</span>
+                <div className="flex items-center gap-1 bg-rose-900/20 border border-rose-700/40 rounded px-1.5 py-0.5">
+                  <div className="w-1 h-1 rounded-full bg-rose-400 flex-shrink-0" />
+                  <span className="text-[8px] text-rose-300">CUT</span>
+                  <span className="text-[8px] text-rose-400/70 ml-auto">
+                    {ss?.exitPrices?.cut_threshold_mae ? `${ss.exitPrices.cut_threshold_mae.toFixed(1)}%` : '-0.5%'}
+                  </span>
                 </div>
-                <div className="text-[8px] text-rose-400/80">MAE {'<'} -0.5% + 1m EMA reversal</div>
-                {ss?.exitPrices?.cut_threshold_mae && (
-                  <div className="text-[9px] font-bold text-rose-300 mt-0.5">{ss.exitPrices.cut_threshold_mae.toFixed(2)}%</div>
-                )}
-              </div>
-
-              <div className="bg-slate-700/30 border border-slate-600 rounded p-1.5">
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                  <span className="text-[9px] font-bold text-slate-300">FLIP</span>
+                <div className="flex items-center gap-1 bg-slate-700/30 border border-slate-600 rounded px-1.5 py-0.5">
+                  <div className="w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" />
+                  <span className="text-[8px] text-slate-300">FLIP</span>
+                  <span className="text-[8px] text-slate-400 ml-auto">reverse</span>
                 </div>
-                <div className="text-[8px] text-slate-400">CUT after reverse re-entry</div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     );

@@ -816,7 +816,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 )}
               </>
             )}
-            {!v10Strategy && data.holding.isHolding && (
+            {data.holding.isHolding && (
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
                 <div className="flex items-center gap-1">
@@ -831,14 +831,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       <line x1="0" y1="3" x2="14" y2="3" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="5 3" />
                     </svg>
                     <span className={colors.textSecondary}>SL</span>
-                  </div>
-                )}
-                {(data.holding.exitFloorPrice ?? data.holding.floorPrice) != null && (
-                  <div className="flex items-center gap-1">
-                    <svg width="14" height="6" style={{ display: 'block' }}>
-                      <line x1="0" y1="3" x2="14" y2="3" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="6 3" />
-                    </svg>
-                    <span className={colors.textSecondary}>PP Floor</span>
                   </div>
                 )}
               </>
@@ -1123,7 +1115,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   {/* v10.1 Overlays: bd/bu, 1h EMA8/EMA13, VREG, Entry, EMA Exit */}
                   {(() => {
                     if (!v10Strategy) return null;
-                    const isHolding = v10Strategy.inPosition;
+                    const isHolding = v10Strategy.inPosition || data.holding.isHolding;
                     const bd = v10Strategy.indicators?.['5m']?.bd;
                     const bu = v10Strategy.indicators?.['5m']?.bu;
                     const ema8_1h = v10Strategy.indicators?.['1h']?.ema8;
@@ -1598,7 +1590,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               </svg>
             )}
 
-            {!v10Strategy && data.holding.isHolding && data.holding.buyPrice && (() => {
+            {data.holding.isHolding && data.holding.buyPrice && (() => {
               const isLong = data.holding.positionSide === 'LONG';
               const entryColor = isLong ? '#06b6d4' : '#f97316'; // cyan for LONG, orange for SHORT
               const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(249, 115, 22, 0.5)';
