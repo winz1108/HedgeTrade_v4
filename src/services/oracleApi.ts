@@ -469,8 +469,11 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
 
     const rawData: any = await response.json();
 
+    const ssRaw = rawData.strategyStatus || rawData.strategy_status || null;
+
     const data: KrakenDashboardData = {
       ...rawData,
+      strategyStatus: ssRaw,
       priceHistory1m: normalizeKrakenCandles(rawData.priceHistories?.['1m'] || rawData.priceHistory1m || []),
       priceHistory5m: normalizeKrakenCandles(rawData.priceHistories?.['5m'] || rawData.priceHistory5m || []),
       priceHistory15m: normalizeKrakenCandles(rawData.priceHistories?.['15m'] || rawData.priceHistory15m || []),
@@ -479,6 +482,7 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
       priceHistory4h: normalizeKrakenCandles(rawData.priceHistories?.['4h'] || rawData.priceHistory4h || []),
       priceHistory1d: normalizeKrakenCandles(rawData.priceHistories?.['1d'] || rawData.priceHistory1d || []),
     };
+    console.log('[Kraken] strategyStatus:', ssRaw ? Object.keys(ssRaw) : 'null', 'vregSeries length:', ssRaw?.vregSeries?.length ?? 0);
 
     return data;
   } catch (error) {
@@ -553,6 +557,12 @@ export const fetchBinanceFuturesDashboard = async (): Promise<any> => {
     }
 
     const rawData: any = await response.json();
+
+    if (rawData.strategy_status && !rawData.strategyStatus) {
+      rawData.strategyStatus = rawData.strategy_status;
+    }
+    console.log('[BinanceFutures] strategyStatus:', rawData.strategyStatus ? Object.keys(rawData.strategyStatus) : 'null', 'vregSeries length:', rawData.strategyStatus?.vregSeries?.length ?? 0);
+    console.log('[BinanceFutures] position:', { inPosition: rawData.position?.inPosition, entryPrice: rawData.position?.entryPrice, side: rawData.position?.side });
 
     return rawData;
   } catch (error) {

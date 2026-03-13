@@ -69,10 +69,12 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
 }
 
 export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false, v10Strategy }: PriceChartProps) => {
-  // 거래 데이터는 이미 상위 컴포넌트에서 필터링됨 (KrakenPriceChart 등)
   const data = useMemo(() => {
     return rawData;
   }, [rawData]);
+
+  console.log('[PriceChart] entry line check:', { isHolding: data.holding.isHolding, buyPrice: data.holding.buyPrice, positionSide: data.holding.positionSide });
+  console.log('[PriceChart] v10Strategy:', v10Strategy ? { inPosition: v10Strategy.inPosition, indicators: v10Strategy.indicators ? Object.keys(v10Strategy.indicators) : 'none', vregLen: v10Strategy.vregSeries?.length ?? 0 } : 'null');
 
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [hoveredCandle, setHoveredCandle] = useState<Candle | null>(null);

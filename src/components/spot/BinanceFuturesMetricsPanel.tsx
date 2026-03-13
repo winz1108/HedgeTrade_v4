@@ -201,13 +201,13 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                 {V10_ENTRY_CONDITIONS.map(({ key, label }) => {
                   const met = ss.buyConditions?.[key];
                   return (
-                    <div key={key} className="flex items-center justify-between py-[3px] px-1.5">
+                    <div key={key} className={`flex items-center justify-between py-[3px] px-2 rounded transition-colors ${met ? 'bg-emerald-50 border border-emerald-200' : ''}`}>
                       <div className="flex items-center gap-1.5">
                         <div className={`w-1.5 h-1.5 rounded-full ${met ? 'bg-emerald-500' : 'bg-stone-300'}`} />
-                        <span className={`text-[9px] ${met ? 'text-slate-700' : 'text-slate-400'}`}>{label}</span>
+                        <span className={`text-[9px] ${met ? 'text-emerald-700' : 'text-slate-400'}`}>{label}</span>
                       </div>
                       {key === '1h_adx_20' && ss.indicators?.['1h']?.adx !== undefined && (
-                        <span className={`text-[9px] tabular-nums ${met ? 'text-slate-600' : 'text-slate-400'}`}>{ss.indicators['1h'].adx.toFixed(1)}</span>
+                        <span className={`text-[9px] tabular-nums ${met ? 'text-emerald-600' : 'text-slate-400'}`}>{ss.indicators['1h'].adx.toFixed(1)}</span>
                       )}
                     </div>
                   );
@@ -219,9 +219,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   <div className="text-[8px] text-cyan-600 font-semibold tracking-wide mb-1">LONG</div>
                   {entryConditionsLong ? (
                     Object.entries(entryConditionsLong).map(([key, met]) => (
-                      <div key={`l-${key}`} className="flex items-center gap-1.5 py-[2px]">
+                      <div key={`l-${key}`} className={`flex items-center gap-1.5 py-[2px] px-1 rounded transition-colors ${met ? 'bg-cyan-50' : ''}`}>
                         <div className={`w-1 h-1 rounded-full ${met ? 'bg-cyan-500' : 'bg-stone-300'}`} />
-                        <span className={`text-[8px] ${met ? 'text-slate-600' : 'text-slate-400'}`}>{key}</span>
+                        <span className={`text-[8px] ${met ? 'text-cyan-700' : 'text-slate-400'}`}>{key}</span>
                       </div>
                     ))
                   ) : (
@@ -237,9 +237,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   <div className="text-[8px] text-orange-600 font-semibold tracking-wide mb-1">SHORT</div>
                   {entryConditionsShort ? (
                     Object.entries(entryConditionsShort).map(([key, met]) => (
-                      <div key={`s-${key}`} className="flex items-center gap-1.5 py-[2px]">
+                      <div key={`s-${key}`} className={`flex items-center gap-1.5 py-[2px] px-1 rounded transition-colors ${met ? 'bg-orange-50' : ''}`}>
                         <div className={`w-1 h-1 rounded-full ${met ? 'bg-orange-500' : 'bg-stone-300'}`} />
-                        <span className={`text-[8px] ${met ? 'text-slate-600' : 'text-slate-400'}`}>{key}</span>
+                        <span className={`text-[8px] ${met ? 'text-orange-700' : 'text-slate-400'}`}>{key}</span>
                       </div>
                     ))
                   ) : (
@@ -258,18 +258,18 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
               <div className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
                 <div className="text-[8px] text-cyan-600 font-semibold tracking-wide mb-1">LONG</div>
                 {Object.entries(entryConditionsLong).map(([key, met]) => (
-                  <div key={`l-${key}`} className="flex items-center gap-1.5 py-[2px]">
+                  <div key={`l-${key}`} className={`flex items-center gap-1.5 py-[2px] px-1 rounded transition-colors ${met ? 'bg-cyan-50' : ''}`}>
                     <div className={`w-1 h-1 rounded-full ${met ? 'bg-cyan-500' : 'bg-stone-300'}`} />
-                    <span className={`text-[8px] ${met ? 'text-slate-600' : 'text-slate-400'}`}>{key}</span>
+                    <span className={`text-[8px] ${met ? 'text-cyan-700' : 'text-slate-400'}`}>{key}</span>
                   </div>
                 ))}
               </div>
               <div className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
                 <div className="text-[8px] text-orange-600 font-semibold tracking-wide mb-1">SHORT</div>
                 {Object.entries(entryConditionsShort).map(([key, met]) => (
-                  <div key={`s-${key}`} className="flex items-center gap-1.5 py-[2px]">
+                  <div key={`s-${key}`} className={`flex items-center gap-1.5 py-[2px] px-1 rounded transition-colors ${met ? 'bg-orange-50' : ''}`}>
                     <div className={`w-1 h-1 rounded-full ${met ? 'bg-orange-500' : 'bg-stone-300'}`} />
-                    <span className={`text-[8px] ${met ? 'text-slate-600' : 'text-slate-400'}`}>{key}</span>
+                    <span className={`text-[8px] ${met ? 'text-orange-700' : 'text-slate-400'}`}>{key}</span>
                   </div>
                 ))}
               </div>
