@@ -190,133 +190,122 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-[11px] font-bold text-white">Entry Conditions</h3>
+        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Entry Conditions</h3>
             {ss && (
-              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                ss.allBuyMet ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-600/50' : 'bg-slate-700/50 text-slate-400 border border-slate-600'
+              <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded ${
+                ss.allBuyMet ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-700/60 text-slate-500'
               }`}>
-                {ss.allBuyMet ? 'READY' : 'NOT MET'}
+                {ss.buyConditionsMet ?? 0}/{ss.buyConditionsTotal ?? V10_ENTRY_CONDITIONS.length}
               </span>
             )}
           </div>
 
           {ss?.buyConditions ? (
-            <div className="space-y-1.5">
-              <div className="grid grid-cols-1 gap-0.5">
+            <div className="space-y-2">
+              <div className="space-y-0.5">
                 {V10_ENTRY_CONDITIONS.map(({ key, label }) => {
                   const met = ss.buyConditions?.[key];
                   return (
-                    <div key={key} className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded ${met ? 'bg-emerald-900/30 border border-emerald-700/40' : 'bg-slate-700/30 border border-slate-600'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${met ? 'bg-emerald-400' : 'bg-slate-600'}`} />
-                      <span className={`text-[8px] font-medium ${met ? 'text-emerald-300' : 'text-slate-500'}`}>{label}</span>
+                    <div key={key} className="flex items-center justify-between py-[3px] px-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${met ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                        <span className={`text-[9px] ${met ? 'text-slate-200' : 'text-slate-500'}`}>{label}</span>
+                      </div>
                       {key === '1h_adx_20' && ss.indicators?.['1h']?.adx !== undefined && (
-                        <span className={`text-[8px] ml-auto font-bold ${met ? 'text-emerald-400' : 'text-slate-500'}`}>{ss.indicators['1h'].adx.toFixed(1)}</span>
+                        <span className={`text-[9px] tabular-nums ${met ? 'text-slate-300' : 'text-slate-600'}`}>{ss.indicators['1h'].adx.toFixed(1)}</span>
                       )}
                     </div>
                   );
                 })}
               </div>
 
-              {ss.indicators?.['5m'] && (
-                <div className="grid grid-cols-2 gap-1">
-                  <div className="bg-cyan-900/20 border border-cyan-700/40 rounded p-1.5">
-                    <div className="text-[8px] text-cyan-400 font-bold mb-0.5">LONG</div>
-                    <div className="text-[8px] text-slate-400">bu touch</div>
-                    {ss.indicators['5m'].bu !== undefined && (
-                      <div className="text-[9px] font-bold text-emerald-400">${ss.indicators['5m'].bu.toFixed(0)}</div>
-                    )}
-                  </div>
-                  <div className="bg-orange-900/20 border border-orange-700/40 rounded p-1.5">
-                    <div className="text-[8px] text-orange-400 font-bold mb-0.5">SHORT</div>
-                    <div className="text-[8px] text-slate-400">bd touch</div>
-                    {ss.indicators['5m'].bd !== undefined && (
-                      <div className="text-[9px] font-bold text-rose-400">${ss.indicators['5m'].bd.toFixed(0)}</div>
-                    )}
-                  </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <div className="rounded-md bg-slate-700/40 p-1.5">
+                  <div className="text-[8px] text-cyan-400 font-semibold tracking-wide mb-1">LONG</div>
+                  {entryConditionsLong ? (
+                    Object.entries(entryConditionsLong).map(([key, met]) => (
+                      <div key={`l-${key}`} className="flex items-center gap-1.5 py-[2px]">
+                        <div className={`w-1 h-1 rounded-full ${met ? 'bg-cyan-400' : 'bg-slate-600'}`} />
+                        <span className={`text-[8px] ${met ? 'text-slate-300' : 'text-slate-600'}`}>{key}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex items-center gap-1.5 py-[2px]">
+                      <span className="text-[8px] text-slate-500">bu touch</span>
+                      {ss.indicators?.['5m']?.bu !== undefined && (
+                        <span className="text-[8px] text-slate-400 ml-auto tabular-nums">${ss.indicators['5m'].bu.toFixed(0)}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
+                <div className="rounded-md bg-slate-700/40 p-1.5">
+                  <div className="text-[8px] text-orange-400 font-semibold tracking-wide mb-1">SHORT</div>
+                  {entryConditionsShort ? (
+                    Object.entries(entryConditionsShort).map(([key, met]) => (
+                      <div key={`s-${key}`} className="flex items-center gap-1.5 py-[2px]">
+                        <div className={`w-1 h-1 rounded-full ${met ? 'bg-orange-400' : 'bg-slate-600'}`} />
+                        <span className={`text-[8px] ${met ? 'text-slate-300' : 'text-slate-600'}`}>{key}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex items-center gap-1.5 py-[2px]">
+                      <span className="text-[8px] text-slate-500">bd touch</span>
+                      {ss.indicators?.['5m']?.bd !== undefined && (
+                        <span className="text-[8px] text-slate-400 ml-auto tabular-nums">${ss.indicators['5m'].bd.toFixed(0)}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           ) : entryConditionsLong && entryConditionsShort ? (
-            <div className="grid grid-cols-2 gap-1">
-              <div className="bg-cyan-900/20 border border-cyan-600/50 rounded p-1">
-                <div className="text-[8px] font-bold text-cyan-400 mb-0.5">LONG</div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="rounded-md bg-slate-700/40 p-1.5">
+                <div className="text-[8px] text-cyan-400 font-semibold tracking-wide mb-1">LONG</div>
                 {Object.entries(entryConditionsLong).map(([key, met]) => (
-                  <div key={`l-${key}`} className="flex items-center gap-1">
+                  <div key={`l-${key}`} className="flex items-center gap-1.5 py-[2px]">
                     <div className={`w-1 h-1 rounded-full ${met ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-                    <span className={`text-[7px] ${met ? 'text-cyan-200' : 'text-slate-500'}`}>{key}</span>
+                    <span className={`text-[8px] ${met ? 'text-slate-300' : 'text-slate-600'}`}>{key}</span>
                   </div>
                 ))}
               </div>
-              <div className="bg-orange-900/20 border border-orange-600/50 rounded p-1">
-                <div className="text-[8px] font-bold text-orange-400 mb-0.5">SHORT</div>
+              <div className="rounded-md bg-slate-700/40 p-1.5">
+                <div className="text-[8px] text-orange-400 font-semibold tracking-wide mb-1">SHORT</div>
                 {Object.entries(entryConditionsShort).map(([key, met]) => (
-                  <div key={`s-${key}`} className="flex items-center gap-1">
+                  <div key={`s-${key}`} className="flex items-center gap-1.5 py-[2px]">
                     <div className={`w-1 h-1 rounded-full ${met ? 'bg-orange-400' : 'bg-slate-600'}`} />
-                    <span className={`text-[7px] ${met ? 'text-orange-200' : 'text-slate-500'}`}>{key}</span>
+                    <span className={`text-[8px] ${met ? 'text-slate-300' : 'text-slate-600'}`}>{key}</span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-8 text-slate-400 text-[10px]">
+            <div className="flex items-center justify-center h-8 text-slate-500 text-[10px]">
               Waiting...
             </div>
           )}
         </div>
 
         {hasPosition && (
-          <>
-            <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-1.5">
-              <div className="grid grid-cols-2 gap-0.5">
-                <div className="flex justify-between items-center bg-yellow-900/20 border border-yellow-600/40 rounded px-1.5 py-0.5">
-                  <span className="text-[8px] text-yellow-500">MFE</span>
-                  <span className="text-[10px] font-bold text-yellow-400">
-                    {ss?.mfe != null ? `+${ss.mfe.toFixed(2)}%` : data.strategyA?.mfe != null ? `+${data.strategyA.mfe.toFixed(2)}%` : '-'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center bg-rose-900/20 border border-rose-700/40 rounded px-1.5 py-0.5">
-                  <span className="text-[8px] text-rose-500">MAE</span>
-                  <span className="text-[10px] font-bold text-rose-400">
-                    {ss?.mae != null ? `${ss.mae.toFixed(2)}%` : data.strategyA?.mae != null ? `${data.strategyA.mae.toFixed(2)}%` : '-'}
-                  </span>
-                </div>
+          <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+            <div className="text-[9px] text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Extremes</div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="flex justify-between items-center bg-slate-700/40 rounded-md px-2 py-1">
+                <span className="text-[9px] text-slate-400">MFE</span>
+                <span className="text-[10px] font-bold text-emerald-400 tabular-nums">
+                  {ss?.mfe != null ? `+${ss.mfe.toFixed(2)}%` : data.strategyA?.mfe != null ? `+${data.strategyA.mfe.toFixed(2)}%` : '-'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center bg-slate-700/40 rounded-md px-2 py-1">
+                <span className="text-[9px] text-slate-400">MAE</span>
+                <span className="text-[10px] font-bold text-rose-400 tabular-nums">
+                  {ss?.mae != null ? `${ss.mae.toFixed(2)}%` : data.strategyA?.mae != null ? `${data.strategyA.mae.toFixed(2)}%` : '-'}
+                </span>
               </div>
             </div>
-
-            <div className="bg-slate-800/95 border border-yellow-600/50 rounded-lg shadow-sm p-2">
-              <h3 className="text-[10px] font-bold text-white mb-1">Exit Conditions</h3>
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-1 bg-blue-900/20 border border-blue-700/40 rounded px-1.5 py-0.5">
-                  <div className="w-1 h-1 rounded-full bg-blue-400 flex-shrink-0" />
-                  <span className="text-[8px] text-blue-300">EMA</span>
-                  <span className="text-[8px] text-blue-400/70 ml-auto">
-                    {ss?.exitPrices?.ema_exit ? `$${ss.exitPrices.ema_exit.toFixed(0)}` : '1h band'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 bg-yellow-900/20 border border-yellow-600/40 rounded px-1.5 py-0.5">
-                  <div className="w-1 h-1 rounded-full bg-yellow-400 flex-shrink-0" />
-                  <span className="text-[8px] text-yellow-300">VREG</span>
-                  <span className="text-[8px] text-yellow-400/70 ml-auto">
-                    {ss?.exitPrices?.vreg_exit ? `$${ss.exitPrices.vreg_exit.toFixed(0)}` : 'vol+reg'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 bg-rose-900/20 border border-rose-700/40 rounded px-1.5 py-0.5">
-                  <div className="w-1 h-1 rounded-full bg-rose-400 flex-shrink-0" />
-                  <span className="text-[8px] text-rose-300">CUT</span>
-                  <span className="text-[8px] text-rose-400/70 ml-auto">
-                    {ss?.exitPrices?.cut_threshold_mae ? `${ss.exitPrices.cut_threshold_mae.toFixed(1)}%` : '-0.5%'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 bg-slate-700/30 border border-slate-600 rounded px-1.5 py-0.5">
-                  <div className="w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" />
-                  <span className="text-[8px] text-slate-300">FLIP</span>
-                  <span className="text-[8px] text-slate-400 ml-auto">reverse</span>
-                </div>
-              </div>
-            </div>
-          </>
+          </div>
         )}
       </div>
     );

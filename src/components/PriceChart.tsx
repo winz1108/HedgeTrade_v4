@@ -79,7 +79,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const [scrollOffset, setScrollOffset] = useState(0);
   const [resetScroll, setResetScroll] = useState(0);
   const [candleWidth, setCandleWidth] = useState(4);
-  const [timeframe, setTimeframe] = useState<Timeframe>('1m');
+  const [timeframe, setTimeframe] = useState<Timeframe>('5m');
   const [volumeHeight, setVolumeHeight] = useState(60);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number; trade: TradeEvent; hasPairedSell: boolean; pairedTrade?: TradeEvent } | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -799,23 +799,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 </div>
               </>
             )}
-            {v10Strategy?.inPosition && (
-              <>
-                <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-0.5 rounded bg-white"></div>
-                  <span className={colors.textSecondary}>Entry</span>
-                </div>
-                {v10Strategy.exitPrices?.ema_exit && (
-                  <div className="flex items-center gap-1">
-                    <svg width="14" height="6" style={{ display: 'block' }}>
-                      <line x1="0" y1="3" x2="14" y2="3" stroke="#3b82f6" strokeWidth="1.2" strokeDasharray="5 3" />
-                    </svg>
-                    <span className={colors.textSecondary}>EMA Exit</span>
-                  </div>
-                )}
-              </>
-            )}
             {data.holding.isHolding && (
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
@@ -1112,7 +1095,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* v10.1 Overlays: bd/bu, 1h EMA8/EMA13, VREG, Entry, EMA Exit */}
+                  {/* v10.1 Overlays: bd/bu, 1h EMA8/EMA13, VREG */}
                   {(() => {
                     if (!v10Strategy) return null;
                     const isHolding = v10Strategy.inPosition || data.holding.isHolding;
@@ -1120,24 +1103,24 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     const bu = v10Strategy.indicators?.['5m']?.bu;
                     const ema8_1h = v10Strategy.indicators?.['1h']?.ema8;
                     const ema13_1h = v10Strategy.indicators?.['1h']?.ema13;
-                    const entryPrice = v10Strategy.entryPrice;
-                    const emaExit = v10Strategy.exitPrices?.ema_exit;
                     const vregSeries = v10Strategy.vregSeries;
                     const chartW = visibleCandles.length * (candleWidth + candleGap);
 
                     const vregPoints: string[] = [];
-                    if (vregSeries && vregSeries.length > 0 && timeframe === '5m') {
-                      const totalCandles5m = candlesByTimeframe['5m']?.length || 0;
-                      const offset = totalCandles5m - vregSeries.length;
-                      vregSeries.forEach((val, i) => {
-                        if (val === null || val === undefined) return;
-                        const globalIdx = offset + i;
-                        const localIdx = globalIdx - visibleStartIndex;
-                        if (localIdx < 0 || localIdx >= visibleCandles.length) return;
-                        const x = localIdx * (candleWidth + candleGap) + candleWidth / 2;
-                        const y = priceToY(val);
-                        vregPoints.push(`${x},${y}`);
-                      });
+                    if (vregSeries && vregSeries.length > 0) {
+                      const src = timeframe === '5m' ? candlesByTimeframe['5m'] : null;
+                      if (src) {
+                        const offset = src.length - vregSeries.length;
+                        vregSeries.forEach((val, i) => {
+                          if (val === null || val === undefined) return;
+                          const globalIdx = offset + i;
+                          const localIdx = globalIdx - visibleStartIndex;
+                          if (localIdx < 0 || localIdx >= visibleCandles.length) return;
+                          const x = localIdx * (candleWidth + candleGap) + candleWidth / 2;
+                          const y = priceToY(val);
+                          vregPoints.push(`${x},${y}`);
+                        });
+                      }
                     }
 
                     return (
@@ -1161,16 +1144,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         {vregPoints.length > 1 && (
                           <polyline points={vregPoints.join(' ')} fill="none"
                             stroke="#eab308" strokeWidth="1.8" opacity="0.9" />
-                        )}
-                        {isHolding && entryPrice !== undefined && entryPrice > minPrice && entryPrice < maxPrice && (
-                          <line x1="0" y1={priceToY(entryPrice)} x2={chartW} y2={priceToY(entryPrice)}
-                            stroke="#ffffff" strokeWidth="1.5" opacity="0.85"
-                            filter="drop-shadow(0 0 3px rgba(255,255,255,0.5))" />
-                        )}
-                        {isHolding && emaExit !== undefined && emaExit > minPrice && emaExit < maxPrice && (
-                          <line x1="0" y1={priceToY(emaExit)} x2={chartW} y2={priceToY(emaExit)}
-                            stroke="#3b82f6" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.8"
-                            filter="drop-shadow(0 0 3px rgba(59,130,246,0.5))" />
                         )}
                       </>
                     );
