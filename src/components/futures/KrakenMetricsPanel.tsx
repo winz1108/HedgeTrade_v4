@@ -12,6 +12,7 @@ interface ExitConditionsPanelProps {
   exitConditions?: ExitConditions;
   exitPrices?: { ema_exit?: number; vreg_exit?: number; cut_threshold_mae?: number };
   inPosition: boolean;
+  strategyParams?: { vreg_vol_mult?: number; vreg_min_pnl?: number; [key: string]: any };
 }
 
 function ConditionDot({ met }: { met: boolean }) {
@@ -61,7 +62,7 @@ function DistanceBar({ distance_pct, label }: { distance_pct: number; label: str
   );
 }
 
-function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitConditionsPanelProps) {
+function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams }: ExitConditionsPanelProps) {
   const vreg = exitConditions?.VREG;
   const ema = exitConditions?.EMA;
   const cut = exitConditions?.CUT;
@@ -121,7 +122,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={vreg.pnl_ok} />
                   <span className={`text-[8px] ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'} w-[36px]`}>PnL</span>
-                  <ProgressBar current={vreg.pnl_current} target={vreg.pnl_min} />
+                  <ProgressBar current={vreg.pnl_current} target={strategyParams?.vreg_min_pnl ?? vreg.pnl_min} />
                   <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
                     {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
                   </span>
@@ -131,15 +132,15 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                   <span className={`text-[8px] ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'} w-[36px]`}>거래량</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
-                      <ProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
+                      <ProgressBar current={vreg.vol_current_ratio} target={strategyParams?.vreg_vol_mult ?? vreg.vol_mult} />
                       <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
+                        {vreg.vol_current_ratio.toFixed(1)}/{strategyParams?.vreg_vol_mult ?? vreg.vol_mult}
                       </span>
                     </>
                   ) : (
                     <>
                       <div className="flex-1 bg-slate-700 rounded-full h-1" />
-                      <span className="text-[8px] text-slate-600 min-w-[36px] text-right">{vreg.vol_mult}</span>
+                      <span className="text-[8px] text-slate-600 min-w-[36px] text-right">{strategyParams?.vreg_vol_mult ?? vreg.vol_mult}</span>
                     </>
                   )}
                 </div>
@@ -513,6 +514,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           exitConditions={ss?.exitConditions}
           exitPrices={ss?.exitPrices}
           inPosition={!!hasPosition}
+          strategyParams={ss?.strategy_params}
         />
       </div>
     );

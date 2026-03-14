@@ -43,6 +43,7 @@ interface BinanceExitConditionsPanelProps {
   exitConditions?: ExitConditions;
   exitPrices?: { ema_exit?: number; vreg_exit?: number; cut_threshold_mae?: number };
   inPosition: boolean;
+  strategyParams?: { vreg_vol_mult?: number; vreg_min_pnl?: number; [key: string]: any };
 }
 
 function BConditionDot({ met }: { met: boolean }) {
@@ -88,7 +89,7 @@ function BDistanceBar({ distance_pct, label }: { distance_pct: number; label: st
   );
 }
 
-function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: BinanceExitConditionsPanelProps) {
+function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams }: BinanceExitConditionsPanelProps) {
   const vreg = exitConditions?.VREG;
   const ema = exitConditions?.EMA;
   const cut = exitConditions?.CUT;
@@ -150,7 +151,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.pnl_ok} />
                   <span className={`text-[8px] ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>PnL</span>
-                  <BProgressBar current={vreg.pnl_current} target={vreg.pnl_min} />
+                  <BProgressBar current={vreg.pnl_current} target={strategyParams?.vreg_min_pnl ?? vreg.pnl_min} />
                   <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>
                     {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
                   </span>
@@ -160,13 +161,13 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                   <span className={`text-[8px] ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>거래량 스파이크</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
-                      <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
+                      <BProgressBar current={vreg.vol_current_ratio} target={strategyParams?.vreg_vol_mult ?? vreg.vol_mult} />
                       <span className={`text-[8px] tabular-nums min-w-[48px] text-right ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
+                        {vreg.vol_current_ratio.toFixed(1)}/{strategyParams?.vreg_vol_mult ?? vreg.vol_mult}
                       </span>
                     </>
                   ) : (
-                    <span className="text-[8px] text-stone-500 ml-auto">{vreg.vol_mult}</span>
+                    <span className="text-[8px] text-stone-500 ml-auto">{strategyParams?.vreg_vol_mult ?? vreg.vol_mult}</span>
                   )}
                 </div>
               </div>
@@ -498,6 +499,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           exitConditions={ss?.exitConditions}
           exitPrices={ss?.exitPrices}
           inPosition={!!hasPosition}
+          strategyParams={ss?.strategy_params}
         />
       </div>
     );

@@ -147,6 +147,12 @@ export interface EntryDetails {
 export interface V10StrategyStatus {
   strategyVersion?: string;
   inPosition: boolean;
+  strategy_params?: {
+    vreg_vol_mult?: number;
+    vreg_min_pnl?: number;
+    vreg_reg_n?: number;
+    [key: string]: any;
+  };
   positionSide?: 'LONG' | 'SHORT' | null;
   side?: 'LONG' | 'SHORT' | null;
   entryPrice?: number;
