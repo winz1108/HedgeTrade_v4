@@ -152,14 +152,53 @@ function FuturesDashboard() {
     // Connect to WebSocket for real-time price updates
     websocketService.connect();
 
-    const handleStatusUpdate = (statusData: any) => {
-      if (statusData.current_price) {
-        updateLiveCandle(statusData.current_price);
+    const applyPriceToCandles = (prevData: KrakenDashboardData, price: number): KrakenDashboardData => {
+      const updated = { ...prevData, currentPrice: price };
+      const tfs: Array<'1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'> = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
+      if (prevData.priceHistories) {
+        const updatedHistories = { ...prevData.priceHistories };
+        tfs.forEach(tf => {
+          const candles = updatedHistories[tf];
+          if (candles && candles.length > 0) {
+            const updatedCandles = [...candles];
+            const last = { ...updatedCandles[updatedCandles.length - 1] };
+            last.close = price;
+            last.high = Math.max(last.high, price);
+            last.low = Math.min(last.low, price);
+            updatedCandles[updatedCandles.length - 1] = last;
+            updatedHistories[tf] = updatedCandles;
+          }
+        });
+        updated.priceHistories = updatedHistories;
       }
+      tfs.forEach(tf => {
+        const key = `priceHistory${tf}` as keyof KrakenDashboardData;
+        const candles = prevData[key] as Candle[] | undefined;
+        if (candles && candles.length > 0) {
+          const updatedCandles = [...candles];
+          const last = { ...updatedCandles[updatedCandles.length - 1] };
+          last.close = price;
+          last.high = Math.max(last.high, price);
+          last.low = Math.min(last.low, price);
+          updatedCandles[updatedCandles.length - 1] = last;
+          (updated as any)[key] = updatedCandles;
+        }
+      });
+      return updated;
+    };
 
+    const handleStatusUpdate = (statusData: any) => {
       setData(prevData => {
         if (!prevData) return prevData;
-        const updated = { ...prevData };
+        let updated = { ...prevData };
+
+        if (statusData.current_price) {
+          const p = Number(statusData.current_price);
+          if (!isNaN(p) && p > 0) {
+            document.title = `Kraken - $${p.toFixed(2)}`;
+            updated = applyPriceToCandles(updated, p);
+          }
+        }
 
         if (statusData.pp_reversal_price !== undefined) {
           updated.strategyA = { ...updated.strategyA, pp_reversal_price: statusData.pp_reversal_price };
@@ -180,10 +219,13 @@ function FuturesDashboard() {
 
       setData(prevData => {
         if (!prevData) return prevData;
-        const updated = { ...prevData };
+        let updated = { ...prevData };
 
         if (priceData.price != null) {
-          updated.currentPrice = Number(priceData.price);
+          const p = Number(priceData.price);
+          if (!isNaN(p) && p > 0) {
+            updated = applyPriceToCandles(updated, p);
+          }
         }
 
         if (priceData.portfolioValue !== undefined) {
@@ -315,13 +357,13 @@ function FuturesDashboard() {
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);
     };
-  }, [updateLiveCandle, selectedTimeframe]);
+  }, [selectedTimeframe]);
 
   useEffect(() => {
     if (data?.currentPrice != null) {
-      const price = Number(data.currentPrice);
-      if (!isNaN(price) && price > 0) {
-        document.title = `Kraken - $${price.toFixed(2)}`;
+      const p = Number(data.currentPrice);
+      if (!isNaN(p) && p > 0) {
+        document.title = `Kraken - $${p.toFixed(2)}`;
       }
     }
   }, [data?.currentPrice]);

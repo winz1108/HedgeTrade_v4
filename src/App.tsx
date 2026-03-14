@@ -126,7 +126,6 @@ function App() {
       if (!statusData) return;
       if (statusData.exchange && statusData.exchange !== 'binance_futures') return;
       if (statusData.current_price) {
-        updateLiveCandle(statusData.current_price);
         const livePrice = Number(statusData.current_price);
         if (!isNaN(livePrice) && livePrice > 0) {
           document.title = `Binance - $${livePrice.toFixed(2)}`;
@@ -135,7 +134,26 @@ function App() {
       setData(prev => {
         if (!prev) return prev;
         const updated = { ...prev };
-        if (statusData.current_price) updated.currentPrice = statusData.current_price;
+        if (statusData.current_price) {
+          const livePrice = Number(statusData.current_price);
+          updated.currentPrice = livePrice;
+          if (prev.priceHistories) {
+            const updatedHistories = { ...prev.priceHistories };
+            ['1m', '5m', '15m', '30m', '1h', '4h', '1d'].forEach(tf => {
+              const candles = updatedHistories[tf];
+              if (candles && candles.length > 0) {
+                const updatedCandles = [...candles];
+                const last = { ...updatedCandles[updatedCandles.length - 1] };
+                last.close = livePrice;
+                last.high = Math.max(last.high, livePrice);
+                last.low = Math.min(last.low, livePrice);
+                updatedCandles[updatedCandles.length - 1] = last;
+                updatedHistories[tf] = updatedCandles;
+              }
+            });
+            updated.priceHistories = updatedHistories;
+          }
+        }
         if (statusData.server_time) updated.serverTime = statusData.server_time;
         if (statusData.ws_healthy !== undefined) updated.wsHealthy = statusData.ws_healthy;
         if (statusData.entry_conditions_long) {
@@ -183,14 +201,13 @@ function App() {
 
     const handlePriceTick = (priceData: any) => {
       if (!priceData?.price) return;
-      updateLiveCandle(priceData.price);
-      const tickPrice = Number(priceData.price);
-      if (!isNaN(tickPrice) && tickPrice > 0) {
-        document.title = `Binance - $${tickPrice.toFixed(2)}`;
+      const price = Number(priceData.price);
+      if (!isNaN(price) && price > 0) {
+        document.title = `Binance - $${price.toFixed(2)}`;
       }
       setData(prev => {
         if (!prev) return prev;
-        const updated = { ...prev, currentPrice: Number(priceData.price) };
+        const updated = { ...prev, currentPrice: price };
         if (priceData.timestamp) updated.serverTime = priceData.timestamp;
         if (priceData.ws_healthy !== undefined) updated.wsHealthy = priceData.ws_healthy;
         if (priceData.currencies) {
@@ -215,6 +232,22 @@ function App() {
         if (priceData.position_side !== undefined) { positionUpdate.side = priceData.position_side; positionChanged = true; }
         if (priceData.entry_price !== undefined) { positionUpdate.entryPrice = priceData.entry_price; positionChanged = true; }
         if (positionChanged) updated.position = positionUpdate;
+        if (prev.priceHistories) {
+          const updatedHistories = { ...prev.priceHistories };
+          ['1m', '5m', '15m', '30m', '1h', '4h', '1d'].forEach(tf => {
+            const candles = updatedHistories[tf];
+            if (candles && candles.length > 0) {
+              const updatedCandles = [...candles];
+              const last = { ...updatedCandles[updatedCandles.length - 1] };
+              last.close = price;
+              last.high = Math.max(last.high, price);
+              last.low = Math.min(last.low, price);
+              updatedCandles[updatedCandles.length - 1] = last;
+              updatedHistories[tf] = updatedCandles;
+            }
+          });
+          updated.priceHistories = updatedHistories;
+        }
         return updated;
       });
     };
@@ -309,9 +342,9 @@ function App() {
 
   useEffect(() => {
     if (data?.currentPrice != null) {
-      const price = Number(data.currentPrice);
-      if (!isNaN(price) && price > 0) {
-        document.title = `Binance - $${price.toFixed(2)}`;
+      const p = Number(data.currentPrice);
+      if (!isNaN(p) && p > 0) {
+        document.title = `Binance - $${p.toFixed(2)}`;
       }
     }
   }, [data?.currentPrice]);
