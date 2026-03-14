@@ -437,13 +437,21 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   rows.push({ label: 'ADX', pct: Math.min(100, (adx.current / adx.threshold) * 100), met, value: `${adx.current.toFixed(1)}/${adx.threshold}` });
                 }
 
-                if (entryDetails.EMA && isLongSide) {
+                if (entryDetails.EMA) {
                   const ema = entryDetails.EMA!;
-                  const met = ema.long_met ?? false;
-                  const dist = ema.long_distance_pct ?? 0;
-                  const pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
-                  const value = met ? '진입 가능' : `bd까지 ${dist.toFixed(2)}%`;
-                  rows.push({ label: 'EMA', pct, met, value });
+                  if (isLongSide) {
+                    const met = ema.long_met ?? false;
+                    const dist = ema.long_distance_pct ?? 0;
+                    const pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
+                    const value = met ? '진입 가능' : `bd까지 ${dist.toFixed(2)}%`;
+                    rows.push({ label: 'EMA', pct, met, value });
+                  } else {
+                    const met = ema.short_met ?? false;
+                    const dist = ema.long_distance_pct ?? 0;
+                    const pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
+                    const value = met ? '진입 가능' : `bd까지 ${dist.toFixed(2)}%`;
+                    rows.push({ label: 'EMA', pct, met, value });
+                  }
                 }
 
                 if (entryDetails.Range) {
