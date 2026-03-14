@@ -426,23 +426,27 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
                     met = ema.price < ema.bd;
-                    if (ema.long_distance_pct != null) {
-                      const dist = ema.long_distance_pct;
-                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(dist) / 5) * 100));
-                      value = met ? '진입 가능' : `bd까지 ${Math.abs(dist).toFixed(2)}%`;
+                    const distPct = ema.long_distance_pct != null
+                      ? ema.long_distance_pct
+                      : ema.bu > ema.bd ? ((ema.bd - ema.price) / ema.bd) * 100 : null;
+                    if (distPct != null) {
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(distPct) / 5) * 100));
+                      value = met ? '진입 가능' : `bd -${Math.abs(distPct).toFixed(2)}%`;
                     } else {
-                      pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.bu - ema.price) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
-                      value = `${pct.toFixed(0)}%`;
+                      pct = met ? 100 : 0;
+                      value = met ? '진입 가능' : '-';
                     }
                   } else {
                     met = ema.price > ema.bu;
-                    if (ema.short_distance_pct != null) {
-                      const dist = ema.short_distance_pct;
-                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(dist) / 5) * 100));
-                      value = met ? '진입 가능' : `bu까지 ${Math.abs(dist).toFixed(2)}%`;
+                    const distPct = ema.short_distance_pct != null
+                      ? ema.short_distance_pct
+                      : ema.bu > 0 ? ((ema.price - ema.bu) / ema.bu) * 100 : null;
+                    if (distPct != null) {
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(distPct) / 5) * 100));
+                      value = met ? '진입 가능' : `bu +${Math.abs(distPct).toFixed(2)}%`;
                     } else {
-                      pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.price - ema.bd) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
-                      value = `${pct.toFixed(0)}%`;
+                      pct = met ? 100 : 0;
+                      value = met ? '진입 가능' : '-';
                     }
                   }
                   rows.push({ label: 'EMA', pct, met, value });
