@@ -167,6 +167,17 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                     {ema.pnl_current >= 0 ? '+' : ''}{ema.pnl_current.toFixed(2)}%
                   </span>
                 </div>
+                {ema.band_distance_pct != null && (
+                  <div className="flex items-center gap-1.5">
+                    <ConditionDot met={(ema.price_past_band === false) || ema.band_distance_pct >= 0} />
+                    <span className={`text-[8px] ${ema.band_distance_pct >= 0 ? 'text-slate-300' : 'text-slate-600'}`}>Band</span>
+                    <span className={`text-[8px] tabular-nums ml-auto ${
+                      ema.band_distance_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    }`}>
+                      {ema.band_distance_pct >= 0 ? '+' : ''}{ema.band_distance_pct.toFixed(2)}%
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -188,6 +188,17 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                     {ema.pnl_current >= 0 ? '+' : ''}{ema.pnl_current.toFixed(2)}%
                   </span>
                 </div>
+                {ema.band_distance_pct != null && (
+                  <div className="flex items-center gap-1.5">
+                    <BConditionDot met={(ema.price_past_band === false) || ema.band_distance_pct >= 0} />
+                    <span className={`text-[8px] ${ema.band_distance_pct >= 0 ? 'text-slate-600' : 'text-stone-400'}`}>Band</span>
+                    <span className={`text-[8px] tabular-nums ml-auto ${
+                      ema.band_distance_pct >= 0 ? 'text-emerald-600' : 'text-rose-500'
+                    }`}>
+                      {ema.band_distance_pct >= 0 ? '+' : ''}{ema.band_distance_pct.toFixed(2)}%
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}

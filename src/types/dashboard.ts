@@ -94,6 +94,8 @@ export interface ExitConditionEMA {
   pnl_ok: boolean;
   pnl_current: number;
   pnl_gate: number;
+  price_past_band?: boolean;
+  band_distance_pct?: number;
 }
 
 export interface ExitConditionCUT {
