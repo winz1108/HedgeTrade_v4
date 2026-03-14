@@ -947,81 +947,63 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return Math.abs(mouseY - priceToY(val)) < HOVER_THRESHOLD ? (val as number) : null;
               })();
 
-              const dateLabel = (
-                <div className={`flex items-center gap-2 pb-1 mb-0.5 border-b ${darkMode ? 'border-slate-600/40' : 'border-stone-200/60'}`}>
-                  <span className={`${colors.textSecondary} font-mono text-[10px]`}>{formatChartTime(hoveredCandle.timestamp)}</span>
-                  {hoveredCandle.isComplete === false && (
-                    <span className="px-1 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[9px] font-bold border border-blue-400/40 animate-pulse">진행 중</span>
-                  )}
-                </div>
-              );
-
-              if (isBBHovered && hoveredCandle.bb_upper) {
-                return (
-                  <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
-                    {dateLabel}
-                    <div className="flex items-center gap-2.5">
-                      <span className={`${colors.textSecondary} text-[10px] font-semibold`}>BB</span>
-                      <span className={`${colors.textSecondary} text-[10px]`}>상단</span>
-                      <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_upper.toFixed(2)}</span>
-                      <span className={`${colors.textSecondary} text-[10px]`}>중앙</span>
-                      <span className={`${darkMode ? 'text-slate-300' : 'text-slate-600'} font-semibold tabular-nums`}>{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span>
-                      <span className={`${colors.textSecondary} text-[10px]`}>하단</span>
-                      <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_lower?.toFixed(2) ?? '-'}</span>
-                      {hoveredCandle.bbw != null && (
-                        <>
-                          <span className={`${colors.textSecondary} text-[10px]`}>BBW</span>
-                          <span className={`${colors.textSecondary} font-medium tabular-nums`}>{hoveredCandle.bbw.toFixed(3)}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-
-              if (isEmaShortHovered || isEmaLongHovered) {
-                return (
-                  <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
-                    {dateLabel}
-                    <div className="flex items-center gap-2.5">
-                      <span className={`${colors.textSecondary} text-[10px] font-semibold`}>EMA</span>
-                      {hoveredCandle.ema_short && (
-                        <>
-                          <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">Short</span>
-                          <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema_short.toFixed(2)}</span>
-                        </>
-                      )}
-                      {hoveredCandle.ema_long && (
-                        <>
-                          <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">Long</span>
-                          <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-
-              if (hoveredVregValue !== null) {
-                return (
-                  <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
-                    {dateLabel}
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="text-[10px] font-semibold" style={{ color: '#4ade80' }}>VREG</span>
-                      <span className="font-bold tabular-nums" style={{ color: '#4ade80' }}>{hoveredVregValue.toFixed(2)}</span>
-                    </div>
-                  </div>
-                );
-              }
+              const anyIndicatorHovered = isBBHovered || isEmaShortHovered || isEmaLongHovered || hoveredVregValue !== null;
 
               return (
-                <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-1`}>
-                  {dateLabel}
-                  <div className="flex items-center gap-2.5">
-                    <span className={`${colors.textSecondary} font-medium`}>O <span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.open.toFixed(2)}</span></span>
-                    <span className={`${colors.textSecondary} font-medium`}>H <span className="text-emerald-400 font-bold tabular-nums">{hoveredCandle.high.toFixed(2)}</span></span>
-                    <span className={`${colors.textSecondary} font-medium`}>L <span className="text-rose-400 font-bold tabular-nums">{hoveredCandle.low.toFixed(2)}</span></span>
-                    <span className={`${colors.textSecondary} font-medium`}>C <span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.close.toFixed(2)}</span></span>
+                <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg`}>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`${colors.textSecondary} font-mono text-[10px]`}>{formatChartTime(hoveredCandle.timestamp)}</span>
+                    {hoveredCandle.isComplete === false && (
+                      <span className="px-1 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[9px] font-bold border border-blue-400/40 animate-pulse">진행 중</span>
+                    )}
+                    {!anyIndicatorHovered && (
+                      <>
+                        <span className={`${colors.textSecondary} text-[10px]`}>O</span><span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.open.toFixed(2)}</span>
+                        <span className={`${colors.textSecondary} text-[10px]`}>H</span><span className="text-emerald-400 font-bold tabular-nums">{hoveredCandle.high.toFixed(2)}</span>
+                        <span className={`${colors.textSecondary} text-[10px]`}>L</span><span className="text-rose-400 font-bold tabular-nums">{hoveredCandle.low.toFixed(2)}</span>
+                        <span className={`${colors.textSecondary} text-[10px]`}>C</span><span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.close.toFixed(2)}</span>
+                      </>
+                    )}
+                    {hoveredVregValue !== null && (
+                      <>
+                        <span className="text-[10px] font-semibold" style={{ color: '#4ade80' }}>VREG</span>
+                        <span className="font-bold tabular-nums" style={{ color: '#4ade80' }}>{hoveredVregValue.toFixed(2)}</span>
+                      </>
+                    )}
+                    {isBBHovered && hoveredCandle.bb_upper && (
+                      <>
+                        <span className={`${colors.textSecondary} text-[10px] font-semibold`}>BB</span>
+                        <span className={`${colors.textSecondary} text-[10px]`}>상단</span>
+                        <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_upper.toFixed(2)}</span>
+                        <span className={`${colors.textSecondary} text-[10px]`}>중앙</span>
+                        <span className={`${darkMode ? 'text-slate-300' : 'text-slate-600'} font-semibold tabular-nums`}>{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span>
+                        <span className={`${colors.textSecondary} text-[10px]`}>하단</span>
+                        <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_lower?.toFixed(2) ?? '-'}</span>
+                        {hoveredCandle.bbw != null && (
+                          <>
+                            <span className={`${colors.textSecondary} text-[10px]`}>BBW</span>
+                            <span className={`${colors.textSecondary} font-medium tabular-nums`}>{hoveredCandle.bbw.toFixed(3)}</span>
+                          </>
+                        )}
+                      </>
+                    )}
+                    {(isEmaShortHovered || isEmaLongHovered) && (
+                      <>
+                        <span className={`${colors.textSecondary} text-[10px] font-semibold`}>EMA</span>
+                        {hoveredCandle.ema_short && (
+                          <>
+                            <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">Short</span>
+                            <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema_short.toFixed(2)}</span>
+                          </>
+                        )}
+                        {hoveredCandle.ema_long && (
+                          <>
+                            <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">Long</span>
+                            <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
+                          </>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               );

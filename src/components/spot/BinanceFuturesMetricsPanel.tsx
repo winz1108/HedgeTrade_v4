@@ -124,12 +124,19 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                 ? 'bg-cyan-50 border-cyan-300'
                 : 'bg-stone-50 border-stone-200'
             }`}>
-              <div className="flex items-center mb-1">
-                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                  vreg.armed ? 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]' : 'bg-stone-300'
-                }`} />
-                <span className={`text-[9px] font-bold ml-1.5 ${vreg.armed ? 'text-cyan-700' : 'text-slate-500'}`}>VREG</span>
-                <span className="text-[7px] text-stone-400 ml-1">익절</span>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    vreg.armed ? 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]' : 'bg-stone-300'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${vreg.armed ? 'text-cyan-700' : 'text-slate-500'}`}>VREG</span>
+                  <span className="text-[7px] text-stone-400">익절</span>
+                </div>
+                {exitPrices?.vreg_exit != null && (
+                  <span className={`text-[9px] font-bold tabular-nums ${vreg.armed ? 'text-cyan-700' : 'text-slate-400'}`}>
+                    ${exitPrices.vreg_exit.toFixed(1)}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
@@ -150,21 +157,18 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.vol_spike} />
-                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>거래량</span>
+                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>거래량 스파이크</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
                       <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
                       <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}x/{vreg.vol_mult}x
+                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
                       </span>
                     </>
                   ) : (
-                    <span className="text-[8px] text-stone-500 ml-auto">{vreg.vol_mult}x</span>
+                    <span className="text-[8px] text-stone-500 ml-auto">{vreg.vol_mult}</span>
                   )}
                 </div>
-                {vreg.line_distance_pct != null && (
-                  <BDistanceBar distance_pct={vreg.line_distance_pct} label="VREG선" />
-                )}
               </div>
             </div>
           )}
@@ -175,12 +179,19 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                 ? 'bg-emerald-50 border-emerald-300'
                 : 'bg-stone-50 border-stone-200'
             }`}>
-              <div className="flex items-center mb-1">
-                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                  ema.armed ? 'bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]' : 'bg-stone-300'
-                }`} />
-                <span className={`text-[9px] font-bold ml-1.5 ${ema.armed ? 'text-emerald-700' : 'text-slate-500'}`}>EMA</span>
-                <span className="text-[7px] text-stone-400 ml-1">익절</span>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    ema.armed ? 'bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]' : 'bg-stone-300'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${ema.armed ? 'text-emerald-700' : 'text-slate-500'}`}>EMA</span>
+                  <span className="text-[7px] text-stone-400">익절</span>
+                </div>
+                {exitPrices?.ema_exit != null && (
+                  <span className={`text-[9px] font-bold tabular-nums ${ema.armed ? 'text-emerald-700' : 'text-slate-400'}`}>
+                    ${exitPrices.ema_exit.toFixed(1)}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
@@ -199,9 +210,6 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                     {ema.pnl_current >= 0 ? '+' : ''}{ema.pnl_current.toFixed(2)}%
                   </span>
                 </div>
-                {ema.band_distance_pct != null && (
-                  <BDistanceBar distance_pct={ema.band_distance_pct} label="Band" />
-                )}
               </div>
             </div>
           )}
@@ -470,7 +478,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                             <span className={`text-[8px] tabular-nums ${row.met ? textActive : 'text-stone-400'}`}>{row.value}</span>
                           </div>
                           <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
-                            <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-stone-300'}`} style={{ width: `${row.pct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-slate-400'}`} style={{ width: `${row.pct}%` }} />
                           </div>
                         </div>
                       ))}
