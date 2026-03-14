@@ -783,7 +783,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <span className={colors.textSecondary}>{(timeframe === '1h' || timeframe === '15m') ? 'EMA 8' : 'EMA 13'}</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-2.5 sm:w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(148,163,184,0.7)' : 'rgba(100,116,139,0.7)' }}></div>
+              <div className="w-2.5 sm:w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
             {data.holding.isHolding && (
@@ -1031,7 +1031,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       <polyline
                         points={bbUpperPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(120, 120, 120, 0.55)"
+                        stroke={darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)'}
                         strokeWidth="1"
                         strokeDasharray="4 4"
                       />
@@ -1039,7 +1039,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         <polyline
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
-                          stroke="rgba(140, 140, 140, 0.4)"
+                          stroke={darkMode ? 'rgba(175,175,175,0.45)' : 'rgba(95,95,95,0.44)'}
                           strokeWidth="0.8"
                           strokeDasharray="3 3"
                         />
@@ -1047,7 +1047,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       <polyline
                         points={bbLowerPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(120, 120, 120, 0.55)"
+                        stroke={darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)'}
                         strokeWidth="1"
                         strokeDasharray="4 4"
                       />
