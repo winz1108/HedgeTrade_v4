@@ -195,7 +195,6 @@ function FuturesDashboard() {
         if (statusData.current_price) {
           const p = Number(statusData.current_price);
           if (!isNaN(p) && p > 0) {
-            document.title = `Kraken - $${p.toFixed(2)}`;
             updated = applyPriceToCandles(updated, p);
           }
         }
@@ -212,9 +211,7 @@ function FuturesDashboard() {
 
       if (priceData.price != null) {
         const krakenPrice = Number(priceData.price);
-        if (!isNaN(krakenPrice) && krakenPrice > 0) {
-          document.title = `Kraken - $${krakenPrice.toFixed(2)}`;
-        }
+        if (isNaN(krakenPrice) || krakenPrice <= 0) return;
       }
 
       setData(prevData => {
@@ -359,14 +356,6 @@ function FuturesDashboard() {
     };
   }, [selectedTimeframe]);
 
-  useEffect(() => {
-    if (data?.currentPrice != null) {
-      const p = Number(data.currentPrice);
-      if (!isNaN(p) && p > 0) {
-        document.title = `Kraken - $${p.toFixed(2)}`;
-      }
-    }
-  }, [data?.currentPrice]);
 
   if (loading) {
     return (

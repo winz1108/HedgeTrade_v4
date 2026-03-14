@@ -531,10 +531,17 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
   const latestCandle = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1] : null;
   const trueLatestCandle = selectedCandles.length > 0 ? selectedCandles[selectedCandles.length - 1] : latestCandle;
-  const displayPrice = (data.currentPrice != null && data.currentPrice > 0) ? data.currentPrice : (trueLatestCandle?.close ?? latestCandle?.close);
+  const displayPrice = trueLatestCandle?.close ?? latestCandle?.close;
   const firstCandle = visibleCandles.length > 0 ? visibleCandles[0] : null;
   const priceChange = displayPrice != null && firstCandle ? displayPrice - firstCandle.open : 0;
   const priceChangePercent = displayPrice != null && firstCandle && firstCandle.open ? (priceChange / firstCandle.open) * 100 : 0;
+
+  useEffect(() => {
+    if (displayPrice != null && displayPrice > 0) {
+      const exchangeName = darkMode ? 'Kraken' : 'Binance';
+      document.title = `${exchangeName} - $${displayPrice.toFixed(2)}`;
+    }
+  }, [displayPrice, darkMode]);
 
   const renderTooltip = () => {
     if (!tooltipPosition) return null;
