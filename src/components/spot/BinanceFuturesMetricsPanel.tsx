@@ -161,7 +161,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                   {vreg.vol_current_ratio != null ? (
                     <>
                       <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
-                      <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>
+                      <span className={`text-[8px] tabular-nums min-w-[48px] text-right ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>
                         {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
                       </span>
                     </>

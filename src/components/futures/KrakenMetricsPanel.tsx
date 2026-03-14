@@ -133,13 +133,13 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                     <>
                       <ProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
                       <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}x/{vreg.vol_mult}x
+                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
                       </span>
                     </>
                   ) : (
                     <>
                       <div className="flex-1 bg-slate-700 rounded-full h-1" />
-                      <span className="text-[8px] text-slate-600 min-w-[36px] text-right">{vreg.vol_mult}x</span>
+                      <span className="text-[8px] text-slate-600 min-w-[36px] text-right">{vreg.vol_mult}</span>
                     </>
                   )}
                 </div>
