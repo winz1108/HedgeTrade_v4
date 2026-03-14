@@ -777,7 +777,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <div className="w-2.5 sm:w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(148,163,184,0.7)' : 'rgba(100,116,139,0.7)' }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
-            {v10Strategy && (
+            {v10Strategy && timeframe !== '1m' && (
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
                 <div className="flex items-center gap-1">
@@ -1077,6 +1077,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   {/* v10.1 Overlays: VREG */}
                   {showTradeMarkers && (() => {
                     if (!v10Strategy) return null;
+                    if (timeframe === '1m') return null;
                     const vregSeries = v10Strategy.vregSeries || (v10Strategy as any).vreg_series;
 
                     const vregPoints: string[] = [];
