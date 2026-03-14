@@ -83,8 +83,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     return rawData;
   }, [rawData]);
 
-  console.log('[PriceChart] entry line check:', { isHolding: data.holding.isHolding, buyPrice: data.holding.buyPrice, positionSide: data.holding.positionSide });
-  console.log('[PriceChart] v10Strategy:', v10Strategy ? { inPosition: v10Strategy.inPosition, indicators: v10Strategy.indicators ? Object.keys(v10Strategy.indicators) : 'none', vregLen: v10Strategy.vregSeries?.length ?? 0 } : 'null');
 
   const [hoveredTrade, setHoveredTrade] = useState<TradeEvent | null>(null);
   const [hoveredCandle, setHoveredCandle] = useState<Candle | null>(null);

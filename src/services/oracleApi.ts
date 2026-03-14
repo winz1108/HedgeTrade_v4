@@ -502,7 +502,6 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
       priceHistory4h: normalizeKrakenCandles(rawData.priceHistories?.['4h'] || rawData.priceHistory4h || []),
       priceHistory1d: normalizeKrakenCandles(rawData.priceHistories?.['1d'] || rawData.priceHistory1d || []),
     };
-    console.log('[Kraken] strategyStatus:', ssRaw ? Object.keys(ssRaw) : 'null', 'vregSeries length:', ssRaw?.vregSeries?.length ?? 0);
 
     return data;
   } catch (error) {
@@ -596,8 +595,6 @@ export const fetchBinanceFuturesDashboard = async (): Promise<any> => {
       };
     }
 
-    console.log('[BinanceFutures] strategyStatus:', rawData.strategyStatus ? Object.keys(rawData.strategyStatus) : 'null', 'vregSeries length:', rawData.strategyStatus?.vregSeries?.length ?? 0);
-    console.log('[BinanceFutures] position:', { inPosition: rawData.position?.inPosition, entryPrice: rawData.position?.entryPrice, side: rawData.position?.side });
 
     return rawData;
   } catch (error) {

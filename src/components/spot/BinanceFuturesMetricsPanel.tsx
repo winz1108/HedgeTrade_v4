@@ -58,7 +58,7 @@ function BProgressBar({ current, target }: { current: number; target: number }) 
   const pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
   const met = current >= target;
   return (
-    <div className="w-[60px] bg-stone-200 rounded-full h-1 overflow-hidden flex-shrink-0">
+    <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
       <div
         className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-slate-400'}`}
         style={{ width: `${pct}%` }}
@@ -76,7 +76,7 @@ function BDistanceBar({ distance_pct, label }: { distance_pct: number; label: st
     <div className="flex items-center gap-1.5">
       <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSafe ? 'bg-emerald-500' : 'bg-rose-500'}`} />
       <span className={`text-[8px] ${isSafe ? 'text-slate-500' : 'text-stone-400'}`}>{label}</span>
-      <div className="w-[60px] bg-stone-200 rounded-full h-1 overflow-hidden flex-shrink-0">
+      <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
         <div
           className={`h-1 rounded-full transition-all duration-300 ${isSafe ? 'bg-emerald-500' : 'bg-rose-500'}`}
           style={{ width: `${pct}%` }}
@@ -428,15 +428,13 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   if (isLongSide) {
                     const met = ema.long_met ?? false;
                     const dist = ema.long_distance_pct ?? 0;
-                    const pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
-                    const value = met ? '진입 가능' : `${dist.toFixed(2)}%`;
-                    rows.push({ label: 'EMA', pct, met, value });
+                    const value = met ? '진입 가능' : `${dist.toFixed(2)}% 남음`;
+                    rows.push({ label: 'EMA', pct: met ? 100 : 0, met, value });
                   } else {
                     const met = ema.short_met ?? false;
                     const dist = ema.short_distance_pct ?? 0;
-                    const pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
-                    const value = met ? '진입 가능' : `${dist.toFixed(2)}%`;
-                    rows.push({ label: 'EMA', pct, met, value });
+                    const value = met ? '진입 가능' : `${dist.toFixed(2)}% 남음`;
+                    rows.push({ label: 'EMA', pct: met ? 100 : 0, met, value });
                   }
                 }
 
