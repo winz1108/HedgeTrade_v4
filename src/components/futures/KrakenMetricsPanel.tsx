@@ -468,14 +468,16 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
                     const longPct = range.long_pct ?? range.position_pct;
-                    met = longPct <= range.long_max;
-                    pct = Math.min(100, (longPct / range.long_max) * 100);
-                    value = `${longPct.toFixed(1)}% / 80`;
+                    const longMax = range.long_max ?? 80;
+                    met = longPct <= longMax;
+                    pct = Math.min(100, (longPct / longMax) * 100);
+                    value = `${longPct.toFixed(1)}%`;
                   } else {
-                    const shortPct = range.short_pct ?? (100 - range.position_pct);
-                    met = shortPct >= (100 - range.short_min);
-                    pct = Math.min(100, (shortPct / 20) * 100);
-                    value = `${shortPct.toFixed(1)}% / 20`;
+                    const shortPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
+                    const shortMin = range.short_min ?? 20;
+                    met = shortPct >= (100 - shortMin);
+                    pct = Math.min(100, (shortPct / (100 - shortMin)) * 100);
+                    value = `${shortPct.toFixed(1)}%`;
                   }
                   rows.push({ label: 'Range', pct, met, value });
                 }

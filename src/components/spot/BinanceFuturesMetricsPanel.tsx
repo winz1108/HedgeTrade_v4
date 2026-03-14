@@ -66,6 +66,28 @@ function BProgressBar({ current, target }: { current: number; target: number }) 
   );
 }
 
+function BDistanceBar({ distance_pct, label }: { distance_pct: number; label: string }) {
+  const isSafe = distance_pct >= 0;
+  const absVal = Math.abs(distance_pct);
+  const maxRange = 2;
+  const pct = Math.min(100, (absVal / maxRange) * 100);
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSafe ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+      <span className={`text-[8px] ${isSafe ? 'text-slate-500' : 'text-stone-400'}`}>{label}</span>
+      <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
+        <div
+          className={`h-1 rounded-full transition-all duration-300 ${isSafe ? 'bg-emerald-500' : 'bg-rose-500'}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className={`text-[8px] tabular-nums min-w-[44px] text-right ${isSafe ? 'text-emerald-600' : 'text-rose-500'}`}>
+        {isSafe ? `+${distance_pct.toFixed(2)}%` : `${distance_pct.toFixed(2)}%`}
+      </span>
+    </div>
+  );
+}
+
 function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: BinanceExitConditionsPanelProps) {
   const vreg = exitConditions?.VREG;
   const ema = exitConditions?.EMA;
@@ -102,19 +124,12 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                 ? 'bg-cyan-50 border-cyan-300'
                 : 'bg-stone-50 border-stone-200'
             }`}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    vreg.armed ? 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]' : 'bg-stone-300'
-                  }`} />
-                  <span className={`text-[9px] font-bold ${vreg.armed ? 'text-cyan-700' : 'text-slate-500'}`}>VREG</span>
-                  <span className="text-[7px] text-stone-400">익절</span>
-                </div>
-                {exitPrices?.vreg_exit != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${vreg.armed ? 'text-cyan-700' : 'text-slate-400'}`}>
-                    ${exitPrices.vreg_exit.toFixed(1)}
-                  </span>
-                )}
+              <div className="flex items-center mb-1">
+                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  vreg.armed ? 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]' : 'bg-stone-300'
+                }`} />
+                <span className={`text-[9px] font-bold ml-1.5 ${vreg.armed ? 'text-cyan-700' : 'text-slate-500'}`}>VREG</span>
+                <span className="text-[7px] text-stone-400 ml-1">익절</span>
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
@@ -135,18 +150,21 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.vol_spike} />
-                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>거래량 스파이크</span>
+                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>거래량</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
                       <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
                       <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
+                        {vreg.vol_current_ratio.toFixed(1)}x/{vreg.vol_mult}x
                       </span>
                     </>
                   ) : (
-                    <span className="text-[8px] text-stone-500 ml-auto">{vreg.vol_mult}</span>
+                    <span className="text-[8px] text-stone-500 ml-auto">{vreg.vol_mult}x</span>
                   )}
                 </div>
+                {vreg.line_distance_pct != null && (
+                  <BDistanceBar distance_pct={vreg.line_distance_pct} label="VREG선" />
+                )}
               </div>
             </div>
           )}
@@ -157,19 +175,12 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                 ? 'bg-emerald-50 border-emerald-300'
                 : 'bg-stone-50 border-stone-200'
             }`}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    ema.armed ? 'bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]' : 'bg-stone-300'
-                  }`} />
-                  <span className={`text-[9px] font-bold ${ema.armed ? 'text-emerald-700' : 'text-slate-500'}`}>EMA</span>
-                  <span className="text-[7px] text-stone-400">익절</span>
-                </div>
-                {exitPrices?.ema_exit != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${ema.armed ? 'text-emerald-700' : 'text-slate-400'}`}>
-                    ${exitPrices.ema_exit.toFixed(1)}
-                  </span>
-                )}
+              <div className="flex items-center mb-1">
+                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  ema.armed ? 'bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]' : 'bg-stone-300'
+                }`} />
+                <span className={`text-[9px] font-bold ml-1.5 ${ema.armed ? 'text-emerald-700' : 'text-slate-500'}`}>EMA</span>
+                <span className="text-[7px] text-stone-400 ml-1">익절</span>
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
@@ -189,15 +200,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                   </span>
                 </div>
                 {ema.band_distance_pct != null && (
-                  <div className="flex items-center gap-1.5">
-                    <BConditionDot met={(ema.price_past_band === false) || ema.band_distance_pct >= 0} />
-                    <span className={`text-[8px] ${ema.band_distance_pct >= 0 ? 'text-slate-600' : 'text-stone-400'}`}>Band</span>
-                    <span className={`text-[8px] tabular-nums ml-auto ${
-                      ema.band_distance_pct >= 0 ? 'text-emerald-600' : 'text-rose-500'
-                    }`}>
-                      {ema.band_distance_pct >= 0 ? '+' : ''}{ema.band_distance_pct.toFixed(2)}%
-                    </span>
-                  </div>
+                  <BDistanceBar distance_pct={ema.band_distance_pct} label="Band" />
                 )}
               </div>
             </div>
@@ -412,28 +415,48 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
 
                 if (entryDetails.EMA) {
                   const ema = entryDetails.EMA!;
-                  let pct: number; let met: boolean;
+                  let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
                     met = ema.price < ema.bd;
-                    pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.bu - ema.price) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                    if (ema.long_distance_pct != null) {
+                      const dist = ema.long_distance_pct;
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(dist) / 5) * 100));
+                      value = met ? '진입 가능' : `bd까지 ${Math.abs(dist).toFixed(2)}%`;
+                    } else {
+                      pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.bu - ema.price) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                      value = `${pct.toFixed(0)}%`;
+                    }
                   } else {
                     met = ema.price > ema.bu;
-                    pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.price - ema.bd) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                    if (ema.short_distance_pct != null) {
+                      const dist = ema.short_distance_pct;
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(dist) / 5) * 100));
+                      value = met ? '진입 가능' : `bu까지 ${Math.abs(dist).toFixed(2)}%`;
+                    } else {
+                      pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.price - ema.bd) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                      value = `${pct.toFixed(0)}%`;
+                    }
                   }
-                  rows.push({ label: 'EMA', pct, met, value: `${pct.toFixed(0)}%` });
+                  rows.push({ label: 'EMA', pct, met, value });
                 }
 
                 if (entryDetails.Range) {
                   const range = entryDetails.Range!;
-                  let pct: number; let met: boolean;
+                  let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
-                    met = range.position_pct <= range.long_max;
-                    pct = Math.min(100, (range.position_pct / range.long_max) * 100);
+                    const longPct = range.long_pct ?? range.position_pct;
+                    const longMax = range.long_max ?? 80;
+                    met = longPct <= longMax;
+                    pct = Math.min(100, (longPct / longMax) * 100);
+                    value = `${longPct.toFixed(1)}%`;
                   } else {
-                    met = range.position_pct >= range.short_min;
-                    pct = Math.min(100, ((100 - range.position_pct) / (100 - range.short_min)) * 100);
+                    const shortPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
+                    const shortMin = range.short_min ?? 20;
+                    met = shortPct >= (100 - shortMin);
+                    pct = Math.min(100, (shortPct / (100 - shortMin)) * 100);
+                    value = `${shortPct.toFixed(1)}%`;
                   }
-                  rows.push({ label: 'Range', pct, met, value: `${range.position_pct.toFixed(1)}%` });
+                  rows.push({ label: 'Range', pct, met, value });
                 }
 
                 return (

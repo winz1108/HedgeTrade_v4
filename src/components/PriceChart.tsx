@@ -960,25 +960,21 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return (
                   <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
                     {dateLabel}
-                    <span className={`${colors.textSecondary} text-[10px] font-semibold mb-0.5`}>Bollinger Bands</span>
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2.5">
+                      <span className={`${colors.textSecondary} text-[10px] font-semibold`}>BB</span>
                       <span className={`${colors.textSecondary} text-[10px]`}>상단</span>
                       <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_upper.toFixed(2)}</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-4">
                       <span className={`${colors.textSecondary} text-[10px]`}>중앙</span>
                       <span className={`${darkMode ? 'text-slate-300' : 'text-slate-600'} font-semibold tabular-nums`}>{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-4">
                       <span className={`${colors.textSecondary} text-[10px]`}>하단</span>
                       <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_lower?.toFixed(2) ?? '-'}</span>
+                      {hoveredCandle.bbw != null && (
+                        <>
+                          <span className={`${colors.textSecondary} text-[10px]`}>BBW</span>
+                          <span className={`${colors.textSecondary} font-medium tabular-nums`}>{hoveredCandle.bbw.toFixed(3)}</span>
+                        </>
+                      )}
                     </div>
-                    {hoveredCandle.bbw != null && (
-                      <div className="flex items-center justify-between gap-4 mt-0.5 pt-0.5 border-t border-slate-600/30">
-                        <span className={`${colors.textSecondary} text-[10px]`}>BBW</span>
-                        <span className={`${colors.textSecondary} font-medium tabular-nums`}>{hoveredCandle.bbw.toFixed(3)}</span>
-                      </div>
-                    )}
                   </div>
                 );
               }
@@ -987,19 +983,21 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return (
                   <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
                     {dateLabel}
-                    <span className={`${colors.textSecondary} text-[10px] font-semibold mb-0.5`}>EMA</span>
-                    {hoveredCandle.ema_short && (
-                      <div className="flex items-center justify-between gap-4">
-                        <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">Short</span>
-                        <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema_short.toFixed(2)}</span>
-                      </div>
-                    )}
-                    {hoveredCandle.ema_long && (
-                      <div className="flex items-center justify-between gap-4">
-                        <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">Long</span>
-                        <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2.5">
+                      <span className={`${colors.textSecondary} text-[10px] font-semibold`}>EMA</span>
+                      {hoveredCandle.ema_short && (
+                        <>
+                          <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">Short</span>
+                          <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema_short.toFixed(2)}</span>
+                        </>
+                      )}
+                      {hoveredCandle.ema_long && (
+                        <>
+                          <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">Long</span>
+                          <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 );
               }
