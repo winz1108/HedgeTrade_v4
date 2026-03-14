@@ -83,6 +83,7 @@ export interface ExitConditionVREG {
   pnl_min: number;
   vol_spike: boolean;
   vol_mult: number;
+  vol_current_ratio?: number;
 }
 
 export interface ExitConditionEMA {

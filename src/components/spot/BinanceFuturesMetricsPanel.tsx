@@ -134,7 +134,16 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.vol_spike} />
                   <span className={`text-[8px] ${vreg.vol_spike ? 'text-slate-600' : 'text-stone-400'}`}>거래량 스파이크</span>
-                  <span className="text-[8px] text-stone-300 ml-auto">{vreg.vol_mult}x</span>
+                  {vreg.vol_current_ratio != null ? (
+                    <>
+                      <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
+                      <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-cyan-600' : 'text-slate-400'}`}>
+                        {vreg.vol_current_ratio.toFixed(2)}x/{vreg.vol_mult}x
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-[8px] text-stone-300 ml-auto">{vreg.vol_mult}x</span>
+                  )}
                 </div>
               </div>
             </div>
