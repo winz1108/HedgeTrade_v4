@@ -242,7 +242,24 @@ function FuturesDashboard() {
               (lastCandle.time ? lastCandle.time * 1000 : 0);
 
             const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
-            if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
+            if (isFinal) {
+              const targetIdx = updatedCandles.findIndex(c => {
+                const ts = c.open_time_ms ?? c.timestamp ?? (c.time ? c.time * 1000 : 0);
+                return ts === openTimeMs || Math.floor(ts / 1000) === Math.floor(openTimeMs / 1000);
+              });
+              if (targetIdx !== -1) {
+                updatedCandles[targetIdx] = {
+                  ...updatedCandles[targetIdx],
+                  open: candleData.open,
+                  high: candleData.high,
+                  low: candleData.low,
+                  close: candleData.close,
+                  volume: candleData.volume ?? updatedCandles[targetIdx].volume,
+                  is_final: true,
+                  ...(wsIndicators ? { indicators: { ...updatedCandles[targetIdx].indicators, ...wsIndicators } } : {}),
+                };
+              }
+            } else if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
                 ...lastCandle,
                 high: Math.max(lastCandle.high, candleData.high),
@@ -252,19 +269,13 @@ function FuturesDashboard() {
                 ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
               };
             } else if (openTimeMs > lastTs) {
-              if (isFinal) {
-                updatedCandles[updatedCandles.length - 1] = {
-                  ...lastCandle,
-                  close: candleData.open,
-                };
-              }
               updatedCandles.push({
                 open_time_ms: openTimeMs,
                 timestamp: openTimeMs,
                 time: Math.floor(openTimeMs / 1000),
-                open: lastCandle.close,
-                high: Math.max(lastCandle.close, candleData.high),
-                low: Math.min(lastCandle.close, candleData.low),
+                open: candleData.open ?? lastCandle.close,
+                high: candleData.high,
+                low: candleData.low,
                 close: candleData.close,
                 volume: candleData.volume || 0,
                 ...(wsIndicators ? { indicators: wsIndicators } : {}),
