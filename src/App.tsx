@@ -38,20 +38,24 @@ function App() {
           merged[tf] = prevArr;
         } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
           const preserved = [...newArr];
+          const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
           preserved[preserved.length - 1] = {
             ...newLast,
             close: prevLast.close,
             high: Math.max(newLast.high, prevLast.high),
             low: Math.min(newLast.low, prevLast.low),
+            ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
           };
           merged[tf] = preserved;
         } else if (!newLastIsFinal) {
           const preserved = [...newArr];
+          const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
           preserved[preserved.length - 1] = {
             ...newLast,
             close: prevLast.close,
             high: Math.max(newLast.high, prevLast.high),
             low: Math.min(newLast.low, prevLast.low),
+            ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
           };
           merged[tf] = preserved;
         } else {
@@ -218,6 +222,7 @@ function App() {
               lastCandle.timestamp ??
               (lastCandle.time ? lastCandle.time * 1000 : 0);
 
+            const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
             if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
                 ...lastCandle,
@@ -225,6 +230,7 @@ function App() {
                 low: Math.min(lastCandle.low, candleData.low),
                 close: candleData.close,
                 volume: candleData.volume ?? lastCandle.volume,
+                ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
               };
             } else if (openTimeMs > lastTs) {
               if (isFinal) {
@@ -242,6 +248,7 @@ function App() {
                 low: Math.min(lastCandle.close, candleData.low),
                 close: candleData.close,
                 volume: candleData.volume || 0,
+                ...(wsIndicators ? { indicators: wsIndicators } : {}),
               });
             }
             updatedHistories[tf] = updatedCandles;
