@@ -117,32 +117,32 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.bars_ok} />
-                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-slate-600' : 'text-stone-400'}`}>봉수</span>
+                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-amber-300' : 'text-stone-500'}`}>봉수</span>
                   <BProgressBar current={vreg.bars_held} target={vreg.bars_min} />
-                  <span className="text-[8px] text-slate-400 tabular-nums min-w-[28px] text-right">
+                  <span className={`text-[8px] tabular-nums min-w-[28px] text-right ${vreg.bars_ok ? 'text-amber-300' : 'text-stone-500'}`}>
                     {vreg.bars_held}/{vreg.bars_min}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.pnl_ok} />
-                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-slate-600' : 'text-stone-400'}`}>PnL</span>
+                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-amber-300' : 'text-stone-500'}`}>PnL</span>
                   <BProgressBar current={vreg.pnl_current} target={vreg.pnl_min} />
-                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-600' : 'text-slate-400'}`}>
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-400' : 'text-stone-500'}`}>
                     {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.vol_spike} />
-                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-slate-600' : 'text-stone-400'}`}>거래량 스파이크</span>
+                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-amber-300' : 'text-stone-500'}`}>거래량 스파이크</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
                       <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
-                      <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-cyan-600' : 'text-slate-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}x
+                      <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-amber-300' : 'text-stone-500'}`}>
+                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
                       </span>
                     </>
                   ) : (
-                    <span className="text-[8px] text-stone-300 ml-auto">{vreg.vol_mult}x</span>
+                    <span className="text-[8px] text-stone-500 ml-auto">{vreg.vol_mult}</span>
                   )}
                 </div>
               </div>

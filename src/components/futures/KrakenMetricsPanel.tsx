@@ -96,7 +96,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                   <ConditionDot met={vreg.bars_ok} />
                   <span className={`text-[8px] ${vreg.bars_ok ? 'text-white' : 'text-slate-500'}`}>봉수</span>
                   <ProgressBar current={vreg.bars_held} target={vreg.bars_min} />
-                  <span className="text-[8px] text-slate-500 tabular-nums min-w-[28px] text-right">
+                  <span className={`text-[8px] tabular-nums min-w-[28px] text-right ${vreg.bars_ok ? 'text-white' : 'text-slate-500'}`}>
                     {vreg.bars_held}/{vreg.bars_min}
                   </span>
                 </div>
@@ -115,11 +115,11 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                     <>
                       <ProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
                       <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-cyan-400' : 'text-slate-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}x
+                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
                       </span>
                     </>
                   ) : (
-                    <span className="text-[8px] text-slate-600 ml-auto">{vreg.vol_mult}x</span>
+                    <span className="text-[8px] text-slate-600 ml-auto">{vreg.vol_mult}</span>
                   )}
                 </div>
               </div>

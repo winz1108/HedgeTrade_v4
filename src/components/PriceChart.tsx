@@ -1092,7 +1092,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
                     return (
                       <polyline points={vregPoints.join(' ')} fill="none"
-                        stroke={darkMode ? '#ffffff' : '#0ea5e9'} strokeWidth="1.5" opacity="0.95" />
+                        stroke={darkMode ? '#ffffff' : '#b45309'} strokeWidth="1.5" opacity="0.95" />
                     );
                   })()}
 
