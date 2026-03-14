@@ -15,17 +15,26 @@ interface PriceChartProps {
 
 type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
 
+function normalizeTimestamp(ts: number): number {
+  if (!ts) return 0;
+  return ts < 1e12 ? ts * 1000 : ts;
+}
+
 function deduplicateCandles(candles: Candle[]): Candle[] {
   const candleMap = new Map<number, Candle>();
 
   for (const candle of candles) {
-    const existing = candleMap.get(candle.timestamp);
+    const key = normalizeTimestamp(candle.timestamp);
+    const normalized = key !== candle.timestamp ? { ...candle, timestamp: key } : candle;
+    const existing = candleMap.get(key);
 
     if (!existing) {
-      candleMap.set(candle.timestamp, candle);
+      candleMap.set(key, normalized);
     } else {
-      if (candle.isComplete === false) {
-        candleMap.set(candle.timestamp, candle);
+      if (normalized.isComplete === false) {
+        candleMap.set(key, normalized);
+      } else if (existing.isComplete !== false) {
+        candleMap.set(key, normalized);
       }
     }
   }
@@ -42,7 +51,8 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
   const buckets = new Map<number, Candle[]>();
 
   for (const candle of sourceCandles) {
-    const bucketKey = Math.floor(candle.timestamp / timeframeMs) * timeframeMs;
+    const ts = normalizeTimestamp(candle.timestamp);
+    const bucketKey = Math.floor(ts / timeframeMs) * timeframeMs;
 
     if (!buckets.has(bucketKey)) {
       buckets.set(bucketKey, []);
@@ -52,7 +62,7 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
 
   const aggregated: Candle[] = [];
   for (const [bucketKey, candlesInBucket] of buckets.entries()) {
-    candlesInBucket.sort((a, b) => a.timestamp - b.timestamp);
+    candlesInBucket.sort((a, b) => normalizeTimestamp(a.timestamp) - normalizeTimestamp(b.timestamp));
     const aggregatedCandle = {
       timestamp: bucketKey,
       open: candlesInBucket[0].open,

@@ -9,13 +9,21 @@ interface Props {
 
 export function BinanceFuturesPriceChart({ data, onTimeframeChange }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
+    const toMs = (v: number): number => {
+      if (!v) return 0;
+      return v < 1e12 ? v * 1000 : v;
+    };
+
     const getCandles = (timeframe: string): any[] => {
       const candles: any[] = data.priceHistories?.[timeframe] || [];
 
-      return candles.map(c => ({
-        ...c,
-        timestamp: c.time ? c.time * 1000 : c.timestamp,
-      }));
+      return candles.map(c => {
+        const raw = c.open_time_ms ?? c.timestamp ?? c.time ?? 0;
+        return {
+          ...c,
+          timestamp: toMs(raw),
+        };
+      });
     };
 
     const priceHistory1m = getCandles('1m');

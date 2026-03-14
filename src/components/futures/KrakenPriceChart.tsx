@@ -9,6 +9,11 @@ interface Props {
 
 export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
+    const toMs = (v: number): number => {
+      if (!v) return 0;
+      return v < 1e12 ? v * 1000 : v;
+    };
+
     const getCandles = (timeframe: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'): any[] => {
       let candles: any[] = [];
 
@@ -19,11 +24,13 @@ export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
         candles = (data[key] as any[]) || [];
       }
 
-      // 백엔드는 time(초) 필드 사용, 프론트엔드는 timestamp(밀리초) 필요
-      let processedCandles = candles.map(c => ({
-        ...c,
-        timestamp: c.time ? c.time * 1000 : c.timestamp,
-      }));
+      let processedCandles = candles.map(c => {
+        const raw = c.open_time_ms ?? c.timestamp ?? c.time ?? 0;
+        return {
+          ...c,
+          timestamp: toMs(raw),
+        };
+      });
 
       // 타임프레임별 MACD 데이터 병합
       const indicators = data.strategyA?.indicators?.[timeframe];
