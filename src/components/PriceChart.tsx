@@ -907,45 +907,100 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       >
 
         <div className="absolute inset-0 overflow-visible">
-          {/* OHLC Display */}
-          {hoveredCandle && (
-            <div className={`absolute left-3 top-3 z-30 flex flex-col gap-1.5 text-xs ${colors.tooltipBg} px-3 py-2 rounded-lg border ${colors.tooltipBorder} shadow-lg`}>
-              <div className="flex items-center gap-3">
-                <span className={`${colors.textSecondary} font-mono font-medium`}>{formatChartTime(hoveredCandle.timestamp)}</span>
-                <span className={`${colors.textSecondary} font-medium`}>O <span className={`${colors.textPrimary} font-bold`}>{hoveredCandle.open.toFixed(2)}</span></span>
-                <span className={`${colors.textSecondary} font-medium`}>H <span className="text-emerald-400 font-bold">{hoveredCandle.high.toFixed(2)}</span></span>
-                <span className={`${colors.textSecondary} font-medium`}>L <span className="text-rose-400 font-bold">{hoveredCandle.low.toFixed(2)}</span></span>
-                <span className={`${colors.textSecondary} font-medium`}>C <span className={`${colors.textPrimary} font-bold`}>{hoveredCandle.close.toFixed(2)}</span></span>
-                {hoveredCandle.isComplete === false && (
-                  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[10px] font-bold border border-blue-400/40 animate-pulse shadow-lg">
-                    진행 중
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3 text-[10px]">
-                {hoveredCandle.ema_short && (
-                  <span className={`${colors.textSecondary} font-medium`}>EMA Short <span className={darkMode ? 'text-blue-400' : 'text-blue-600'} font-bold>{hoveredCandle.ema_short.toFixed(2)}</span></span>
-                )}
-                {hoveredCandle.ema_long && (
-                  <span className={`${colors.textSecondary} font-medium`}>EMA Long <span className={darkMode ? 'text-yellow-400' : 'text-yellow-600'} font-bold>{hoveredCandle.ema_long.toFixed(2)}</span></span>
-                )}
-                {hoveredCandle.bb_upper && (
-                  <>
-                    <span className={colors.textSecondary}>|</span>
-                    <span className={`${colors.textSecondary} font-medium`}>BB <span className="text-violet-600 font-bold">{hoveredCandle.bb_upper.toFixed(2)}</span></span>
-                    <span className={`${colors.textSecondary} font-medium`}>/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span></span>
-                    <span className={`${colors.textSecondary} font-medium`}>/ <span className="text-violet-600 font-bold">{hoveredCandle.bb_lower?.toFixed(2)}</span></span>
-                  </>
-                )}
-                {hoveredCandle.adx && (
-                  <>
-                    <span className={colors.textSecondary}>|</span>
-                    <span className={`${colors.textSecondary} font-medium`}>ADX <span className="text-emerald-600 font-bold">{hoveredCandle.adx.toFixed(1)}</span></span>
-                  </>
-                )}
-              </div>
+          {/* 날짜/시간 항상 표시 */}
+          <div className={`absolute left-3 top-3 z-30 flex flex-col gap-1 pointer-events-none`}>
+            <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex items-center gap-2`}>
+              <span className={`${colors.textSecondary} font-mono font-medium`}>
+                {hoveredCandle ? formatChartTime(hoveredCandle.timestamp) : (trueLatestCandle ? formatChartTime(trueLatestCandle.timestamp) : '--:--')}
+              </span>
+              {hoveredCandle?.isComplete === false && (
+                <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[10px] font-bold border border-blue-400/40 animate-pulse">
+                  진행 중
+                </span>
+              )}
             </div>
-          )}
+
+            {/* OHLC - 캔들 호버 시만 표시 */}
+            {hoveredCandle && (() => {
+              const HOVER_THRESHOLD = 6;
+              const mouseY = crosshairPosition?.y ?? null;
+              const ci = hoveredCandleIndex;
+              const candle = ci !== null ? visibleCandles[ci] : null;
+
+              const isBBHovered = (() => {
+                if (mouseY === null || !candle) return false;
+                const upperY = candle.bb_upper !== undefined ? priceToY(candle.bb_upper) : null;
+                const lowerY = candle.bb_lower !== undefined ? priceToY(candle.bb_lower) : null;
+                return (upperY !== null && Math.abs(mouseY - upperY) < HOVER_THRESHOLD) ||
+                       (lowerY !== null && Math.abs(mouseY - lowerY) < HOVER_THRESHOLD);
+              })();
+
+              const isEmaShortHovered = (() => {
+                if (mouseY === null || !candle || candle.ema_short === undefined) return false;
+                return Math.abs(mouseY - priceToY(candle.ema_short)) < HOVER_THRESHOLD;
+              })();
+
+              const isEmaLongHovered = (() => {
+                if (mouseY === null || !candle || candle.ema_long === undefined) return false;
+                return Math.abs(mouseY - priceToY(candle.ema_long)) < HOVER_THRESHOLD;
+              })();
+
+              if (isBBHovered && hoveredCandle.bb_upper) {
+                return (
+                  <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
+                    <span className={`${colors.textSecondary} text-[10px] font-semibold mb-0.5`}>Bollinger Bands</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`${colors.textSecondary} text-[10px]`}>상단</span>
+                      <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_upper.toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`${colors.textSecondary} text-[10px]`}>중앙</span>
+                      <span className={`${darkMode ? 'text-slate-300' : 'text-slate-600'} font-semibold tabular-nums`}>{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`${colors.textSecondary} text-[10px]`}>하단</span>
+                      <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_lower?.toFixed(2) ?? '-'}</span>
+                    </div>
+                    {hoveredCandle.bbw != null && (
+                      <div className="flex items-center gap-2 mt-0.5 border-t border-slate-600/30 pt-0.5">
+                        <span className={`${colors.textSecondary} text-[10px]`}>BBW</span>
+                        <span className={`${colors.textSecondary} font-medium tabular-nums`}>{hoveredCandle.bbw.toFixed(3)}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (isEmaShortHovered || isEmaLongHovered) {
+                return (
+                  <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
+                    <span className={`${colors.textSecondary} text-[10px] font-semibold mb-0.5`}>EMA</span>
+                    {hoveredCandle.ema_short && (
+                      <div className="flex items-center gap-2">
+                        <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">Short</span>
+                        <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema_short.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {hoveredCandle.ema_long && (
+                      <div className="flex items-center gap-2">
+                        <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">Long</span>
+                        <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex items-center gap-2.5`}>
+                  <span className={`${colors.textSecondary} font-medium`}>O <span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.open.toFixed(2)}</span></span>
+                  <span className={`${colors.textSecondary} font-medium`}>H <span className="text-emerald-400 font-bold tabular-nums">{hoveredCandle.high.toFixed(2)}</span></span>
+                  <span className={`${colors.textSecondary} font-medium`}>L <span className="text-rose-400 font-bold tabular-nums">{hoveredCandle.low.toFixed(2)}</span></span>
+                  <span className={`${colors.textSecondary} font-medium`}>C <span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.close.toFixed(2)}</span></span>
+                </div>
+              );
+            })()}
+          </div>
 
           {/* Grid lines - zIndex 1 (bottom layer) */}
           <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 1 }}>
@@ -1976,16 +2031,19 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               })}
             </div>
 
-            {hoveredCandleIndex !== null && (
-              <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none`}>
-                <span className={`${colors.textSecondary} font-medium`}>Volume</span>
-                {visibleCandles[hoveredCandleIndex] && (
-                  <span className={`${colors.textPrimary} font-semibold`}>
-                    {visibleCandles[hoveredCandleIndex].volume.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC
+            {hoveredCandleIndex !== null && (() => {
+              const candle = visibleCandles[hoveredCandleIndex];
+              if (!candle) return null;
+              const isGreen = candle.close >= candle.open;
+              return (
+                <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-2 py-1 rounded-md flex items-center gap-2 pointer-events-none border ${darkMode ? 'border-slate-700/60' : 'border-stone-200'}`}>
+                  <span className={`${colors.textSecondary} font-semibold text-[10px]`}>Vol</span>
+                  <span className={`font-bold tabular-nums ${isGreen ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {candle.volume.toLocaleString(undefined, { maximumFractionDigits: 3 })}
                   </span>
-                )}
-              </div>
-            )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* MACD Chart Background */}
@@ -2064,6 +2122,28 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               {(() => {
                 const macdPoints: string[] = [];
                 const signalPoints: string[] = [];
+                const MACD_HOVER_THRESHOLD = 8;
+                const mouseY = crosshairPosition?.y ?? null;
+                const macdPanelTop = priceChartHeight + volumeChartHeight + 36;
+                const localMouseY = mouseY !== null ? mouseY - macdPanelTop : null;
+
+                const isMacdHovered = (() => {
+                  if (localMouseY === null || hoveredCandleIndex === null) return false;
+                  const candle = visibleCandles[hoveredCandleIndex];
+                  if (!candle) return false;
+                  const macdVal = candle.macd ?? candle.macd_line;
+                  if (macdVal === undefined) return false;
+                  return Math.abs(localMouseY - macdToY(macdVal)) < MACD_HOVER_THRESHOLD;
+                })();
+
+                const isSignalHovered = (() => {
+                  if (localMouseY === null || hoveredCandleIndex === null) return false;
+                  const candle = visibleCandles[hoveredCandleIndex];
+                  if (!candle) return false;
+                  const signalVal = candle.signal ?? candle.macd_signal;
+                  if (signalVal === undefined) return false;
+                  return Math.abs(localMouseY - macdToY(signalVal)) < MACD_HOVER_THRESHOLD;
+                })();
 
                 visibleCandles.forEach((candle, idx) => {
                   const x = idx * (candleWidth + candleGap) + candleWidth / 2;
@@ -2088,8 +2168,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         points={macdPoints.join(' ')}
                         fill="none"
                         stroke="#2dd4bf"
-                        strokeWidth="1.5"
-                        opacity="0.95"
+                        strokeWidth={isMacdHovered ? '2.5' : '1.5'}
+                        opacity={isMacdHovered ? '1' : '0.95'}
+                        style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
                       />
                     )}
                     {signalPoints.length > 1 && (
@@ -2097,52 +2178,44 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         points={signalPoints.join(' ')}
                         fill="none"
                         stroke="#fb923c"
-                        strokeWidth="1.5"
-                        opacity="0.95"
+                        strokeWidth={isSignalHovered ? '2.5' : '1.5'}
+                        opacity={isSignalHovered ? '1' : '0.95'}
+                        style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
                       />
                     )}
                   </>
                 );
               })()}
             </svg>
-            {hoveredCandleIndex !== null && (
-              <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none`}>
-                <span className={`${colors.textSecondary} font-medium`}>MACD</span>
-                {visibleCandles[hoveredCandleIndex] && (() => {
-                  const candle = visibleCandles[hoveredCandleIndex];
-                  const macdVal = candle.macd ?? candle.macd_line;
-                  const signalVal = candle.signal ?? candle.macd_signal;
-                  const histVal = candle.histogram ?? candle.macd_hist;
-                  return (
-                  <>
-                    {macdVal !== undefined && (
-                      <span className="text-blue-600 font-semibold">
-                        {macdVal.toFixed(2)}
-                      </span>
-                    )}
-                    {signalVal !== undefined && (
-                      <>
-                        <span className={colors.textSecondary}>|</span>
-                        <span className="${colors.textSecondary} text-[10px]">Signal</span>
-                        <span className="text-yellow-500 font-semibold">
-                          {signalVal.toFixed(2)}
-                        </span>
-                      </>
-                    )}
-                    {histVal !== undefined && (
-                      <>
-                        <span className={colors.textSecondary}>|</span>
-                        <span className="${colors.textSecondary} text-[10px]">Hist</span>
-                        <span className={`font-semibold ${histVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {histVal.toFixed(2)}
-                        </span>
-                      </>
-                    )}
-                  </>
-                  );
-                })()}
-              </div>
-            )}
+            {hoveredCandleIndex !== null && (() => {
+              const candle = visibleCandles[hoveredCandleIndex];
+              if (!candle) return null;
+              const macdVal = candle.macd ?? candle.macd_line;
+              const signalVal = candle.signal ?? candle.macd_signal;
+              const histVal = candle.histogram ?? candle.macd_hist;
+              const hasMacd = macdVal !== undefined || signalVal !== undefined || histVal !== undefined;
+              if (!hasMacd) return null;
+              return (
+                <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-2 py-1 rounded-md flex items-center gap-2 pointer-events-none border ${darkMode ? 'border-slate-700/60' : 'border-stone-200'}`}>
+                  <span className={`${colors.textSecondary} font-semibold text-[10px]`}>MACD</span>
+                  {macdVal !== undefined && (
+                    <span className="text-cyan-400 font-bold tabular-nums">{macdVal.toFixed(2)}</span>
+                  )}
+                  {signalVal !== undefined && (
+                    <>
+                      <span className={`${colors.textSecondary} text-[10px]`}>Sig</span>
+                      <span className="text-orange-400 font-bold tabular-nums">{signalVal.toFixed(2)}</span>
+                    </>
+                  )}
+                  {histVal !== undefined && (
+                    <>
+                      <span className={`${colors.textSecondary} text-[10px]`}>H</span>
+                      <span className={`font-bold tabular-nums ${histVal >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{histVal.toFixed(2)}</span>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* ADX Chart Background */}
@@ -2201,6 +2274,17 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
               {(() => {
                 const adxPoints: string[] = [];
+                const ADX_HOVER_THRESHOLD = 8;
+                const mouseY = crosshairPosition?.y ?? null;
+                const adxPanelTop = priceChartHeight + volumeChartHeight + macdChartHeight + 44;
+                const localMouseY = mouseY !== null ? mouseY - adxPanelTop : null;
+
+                const isAdxLineHovered = (() => {
+                  if (localMouseY === null || hoveredCandleIndex === null) return false;
+                  const candle = visibleCandles[hoveredCandleIndex];
+                  if (!candle || candle.adx === undefined) return false;
+                  return Math.abs(localMouseY - adxToY(candle.adx)) < ADX_HOVER_THRESHOLD;
+                })();
 
                 visibleCandles.forEach((candle, idx) => {
                   if (candle.adx === undefined) return;
@@ -2216,28 +2300,38 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         points={adxPoints.join(' ')}
                         fill="none"
                         stroke={colors.bb}
-                        strokeWidth="1.5"
-                        opacity="0.95"
+                        strokeWidth={isAdxLineHovered ? '2.5' : '1.5'}
+                        opacity={isAdxLineHovered ? '1' : '0.95'}
+                        style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
                       />
                     )}
                   </>
                 );
               })()}
             </svg>
-            {hoveredCandleIndex !== null && (
-              <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-1.5 py-0.5 rounded flex items-center gap-2 pointer-events-none`}>
-                <span className={`${colors.textSecondary} font-medium`}>ADX</span>
-                {visibleCandles[hoveredCandleIndex] && visibleCandles[hoveredCandleIndex].adx !== undefined && (
-                  <span className={`font-semibold ${
-                    visibleCandles[hoveredCandleIndex].adx! >= 25 ? 'text-emerald-500' :
-                    visibleCandles[hoveredCandleIndex].adx! >= 15 ? 'text-blue-400' :
+            {hoveredCandleIndex !== null && (() => {
+              const candle = visibleCandles[hoveredCandleIndex];
+              if (!candle || candle.adx === undefined) return null;
+              return (
+                <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-2 py-1 rounded-md flex items-center gap-2 pointer-events-none border ${darkMode ? 'border-slate-700/60' : 'border-stone-200'}`}>
+                  <span className={`${colors.textSecondary} font-semibold text-[10px]`}>ADX</span>
+                  <span className={`font-bold tabular-nums ${
+                    candle.adx >= 25 ? 'text-emerald-400' :
+                    candle.adx >= 15 ? 'text-blue-400' :
                     'text-slate-400'
                   }`}>
-                    {visibleCandles[hoveredCandleIndex].adx!.toFixed(1)}
+                    {candle.adx.toFixed(1)}
                   </span>
-                )}
-              </div>
-            )}
+                  <span className={`text-[10px] ${
+                    candle.adx >= 25 ? 'text-emerald-500/70' :
+                    candle.adx >= 15 ? 'text-blue-500/70' :
+                    'text-slate-500'
+                  }`}>
+                    {candle.adx >= 25 ? '추세 강함' : candle.adx >= 15 ? '추세 약함' : '추세 없음'}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
 
         </div>
