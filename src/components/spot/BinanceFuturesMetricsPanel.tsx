@@ -59,7 +59,7 @@ function BProgressBar({ current, target }: { current: number; target: number }) 
   return (
     <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
       <div
-        className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-stone-400'}`}
+        className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-slate-400'}`}
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -137,7 +137,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                   {vreg.vol_current_ratio != null ? (
                     <>
                       <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
-                      <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-cyan-600' : 'text-slate-400'}`}>
+                      <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-cyan-600' : 'text-slate-500'}`}>
                         {vreg.vol_current_ratio.toFixed(2)}x/{vreg.vol_mult}x
                       </span>
                     </>

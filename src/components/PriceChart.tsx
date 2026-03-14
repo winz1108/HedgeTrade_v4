@@ -958,8 +958,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             })()}
           </svg>
 
-          {/* Indicators (EMA, BB) - zIndex 2 (middle layer) */}
-          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 2 }}>
+          {/* Indicators (EMA, BB, VREG) - zIndex 4 (above candles) */}
+          <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 4 }}>
             <defs>
               <linearGradient id="predictionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="rgba(252, 213, 53, 0.15)" />
