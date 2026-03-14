@@ -73,15 +73,55 @@ export interface HoldingInfo {
   exitSlPrice?: number | null;
 }
 
+export interface ExitConditionVREG {
+  armed: boolean;
+  bars_ok: boolean;
+  bars_held: number;
+  bars_min: number;
+  pnl_ok: boolean;
+  pnl_current: number;
+  pnl_min: number;
+  vol_spike: boolean;
+  vol_mult: number;
+}
+
+export interface ExitConditionEMA {
+  armed: boolean;
+  mfe_ok: boolean;
+  mfe_current: number;
+  mfe_gate: number;
+  pnl_ok: boolean;
+  pnl_current: number;
+  pnl_gate: number;
+}
+
+export interface ExitConditionCUT {
+  armed: boolean;
+  mae_ok: boolean;
+  mae_current: number;
+  mae_threshold: number;
+  pnl_ok: boolean;
+  ema_reversed: boolean;
+}
+
+export interface ExitConditions {
+  VREG?: ExitConditionVREG;
+  EMA?: ExitConditionEMA;
+  CUT?: ExitConditionCUT;
+}
+
 export interface V10StrategyStatus {
   strategyVersion?: string;
   inPosition: boolean;
   positionSide?: 'LONG' | 'SHORT' | null;
+  side?: 'LONG' | 'SHORT' | null;
   entryPrice?: number;
+  entryTime?: number;
   currentPnl?: number;
   mfe?: number;
   mae?: number;
   holdHours?: number;
+  healthScore?: number;
   currentPrice?: number;
   updatedAt?: string;
   allBuyMet?: boolean;
@@ -98,7 +138,9 @@ export interface V10StrategyStatus {
     vreg_exit?: number;
     cut_threshold_mae?: number;
   };
+  exitConditions?: ExitConditions;
   vregLine?: number;
+  vreg_series?: (number | null)[];
   vregSeries?: (number | null)[];
   indicators?: {
     '5m'?: { bd?: number; bu?: number; [key: string]: any };
@@ -469,11 +511,20 @@ export interface KrakenSellConditions {
 export interface KrakenPosition {
   in_position: boolean;
   position_side?: 'LONG' | 'SHORT';
+  inPosition?: boolean;
+  side?: 'LONG' | 'SHORT';
   entry_price?: number;
+  entryPrice?: number;
   entry_quantity?: number;
   entry_time?: string;
+  entryTime?: number;
   currentPrice?: number;
   unrealizedPnlPct?: number;
+  currentPnl?: number;
+  mfe?: number;
+  mae?: number;
+  holdHours?: number;
+  healthScore?: number;
   mode: string;
   symbol: string;
   exchange: string;

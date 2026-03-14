@@ -1,11 +1,211 @@
-import { KrakenDashboardData, V10StrategyStatus } from '../../types/dashboard';
-import { DollarSign, Activity, Target, History } from 'lucide-react';
+import { KrakenDashboardData, V10StrategyStatus, ExitConditions } from '../../types/dashboard';
+import { DollarSign, Activity, Target, History, ShieldAlert } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
 
 interface Props {
   data: KrakenDashboardData;
   position: 'left' | 'right' | 'trades';
+}
+
+interface ExitConditionsPanelProps {
+  exitConditions?: ExitConditions;
+  exitPrices?: { ema_exit?: number; vreg_exit?: number; cut_threshold_mae?: number };
+  inPosition: boolean;
+}
+
+function ConditionDot({ met }: { met: boolean }) {
+  return (
+    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
+      met ? 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]' : 'bg-slate-600'
+    }`} />
+  );
+}
+
+function ProgressBar({ current, target, reverse = false }: { current: number; target: number; reverse?: boolean }) {
+  let pct: number;
+  if (reverse) {
+    pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
+  } else {
+    pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
+  }
+  const met = reverse ? current <= target : current >= target;
+  return (
+    <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
+      <div
+        className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-400' : 'bg-slate-500'}`}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitConditionsPanelProps) {
+  const vreg = exitConditions?.VREG;
+  const ema = exitConditions?.EMA;
+  const cut = exitConditions?.CUT;
+
+  const hasData = !!(vreg || ema || cut);
+
+  return (
+    <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="text-[9px] text-slate-400 uppercase tracking-wide font-semibold">Exit Conditions</div>
+        <ShieldAlert className="w-3 h-3 text-slate-500" />
+      </div>
+
+      {!hasData ? (
+        <div className="flex flex-col gap-1">
+          {(['VREG', 'EMA', 'CUT'] as const).map(name => (
+            <div key={name} className="flex items-center justify-between bg-slate-700/20 border border-slate-700/50 rounded px-2 py-1.5">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-700 flex-shrink-0" />
+                <span className="text-[9px] text-slate-600 font-semibold">{name}</span>
+                <span className="text-[8px] text-slate-700">{name === 'CUT' ? '손절' : '익절'}</span>
+              </div>
+              <span className="text-[8px] text-slate-700">--</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          {vreg && (
+            <div className={`rounded-md border p-1.5 transition-all ${
+              vreg.armed
+                ? 'bg-cyan-900/30 border-cyan-600/50'
+                : 'bg-slate-700/20 border-slate-700/50'
+            }`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    vreg.armed
+                      ? 'bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.9)]'
+                      : 'bg-slate-600'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${vreg.armed ? 'text-cyan-300' : 'text-slate-400'}`}>VREG</span>
+                  <span className="text-[7px] text-slate-500">익절</span>
+                </div>
+                {exitPrices?.vreg_exit != null && (
+                  <span className={`text-[9px] font-bold tabular-nums ${vreg.armed ? 'text-cyan-300' : 'text-slate-500'}`}>
+                    ${exitPrices.vreg_exit.toFixed(1)}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <ConditionDot met={vreg.bars_ok} />
+                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-slate-300' : 'text-slate-600'}`}>봉수</span>
+                  <ProgressBar current={vreg.bars_held} target={vreg.bars_min} />
+                  <span className="text-[8px] text-slate-500 tabular-nums min-w-[28px] text-right">
+                    {vreg.bars_held}/{vreg.bars_min}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <ConditionDot met={vreg.pnl_ok} />
+                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-slate-300' : 'text-slate-600'}`}>PnL</span>
+                  <ProgressBar current={vreg.pnl_current} target={vreg.pnl_min} />
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
+                    {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <ConditionDot met={vreg.vol_spike} />
+                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-slate-300' : 'text-slate-600'}`}>거래량 스파이크</span>
+                  <span className="text-[8px] text-slate-600 ml-auto">{vreg.vol_mult}x</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {ema && (
+            <div className={`rounded-md border p-1.5 transition-all ${
+              ema.armed
+                ? 'bg-emerald-900/30 border-emerald-600/50'
+                : 'bg-slate-700/20 border-slate-700/50'
+            }`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    ema.armed
+                      ? 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.9)]'
+                      : 'bg-slate-600'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${ema.armed ? 'text-emerald-300' : 'text-slate-400'}`}>EMA</span>
+                  <span className="text-[7px] text-slate-500">익절</span>
+                </div>
+                {exitPrices?.ema_exit != null && (
+                  <span className={`text-[9px] font-bold tabular-nums ${ema.armed ? 'text-emerald-300' : 'text-slate-500'}`}>
+                    ${exitPrices.ema_exit.toFixed(1)}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <ConditionDot met={ema.mfe_ok} />
+                  <span className={`text-[8px] ${ema.mfe_ok ? 'text-slate-300' : 'text-slate-600'}`}>MFE</span>
+                  <ProgressBar current={ema.mfe_current} target={ema.mfe_gate} />
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${ema.mfe_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
+                    {ema.mfe_current >= 0 ? '+' : ''}{ema.mfe_current.toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <ConditionDot met={ema.pnl_ok} />
+                  <span className={`text-[8px] ${ema.pnl_ok ? 'text-slate-300' : 'text-slate-600'}`}>PnL</span>
+                  <ProgressBar current={ema.pnl_current} target={ema.pnl_gate} />
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${ema.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
+                    {ema.pnl_current >= 0 ? '+' : ''}{ema.pnl_current.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {cut && (
+            <div className={`rounded-md border p-1.5 transition-all ${
+              cut.armed
+                ? 'bg-rose-900/30 border-rose-600/50'
+                : 'bg-slate-700/20 border-slate-700/50'
+            }`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    cut.armed
+                      ? 'bg-rose-400 shadow-[0_0_5px_rgba(248,113,113,0.9)]'
+                      : 'bg-slate-600'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${cut.armed ? 'text-rose-300' : 'text-slate-400'}`}>CUT</span>
+                  <span className="text-[7px] text-slate-500">손절</span>
+                </div>
+                {exitPrices?.cut_threshold_mae != null && (
+                  <span className={`text-[9px] font-bold tabular-nums ${cut.armed ? 'text-rose-300' : 'text-slate-500'}`}>
+                    MAE {exitPrices.cut_threshold_mae.toFixed(1)}%
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <ConditionDot met={cut.mae_ok} />
+                  <span className={`text-[8px] ${cut.mae_ok ? 'text-slate-300' : 'text-slate-600'}`}>MAE</span>
+                  <ProgressBar current={Math.abs(cut.mae_current)} target={Math.abs(cut.mae_threshold)} />
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
+                    {cut.mae_current.toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <ConditionDot met={cut.pnl_ok} />
+                  <span className={`text-[8px] ${cut.pnl_ok ? 'text-rose-300' : 'text-slate-600'}`}>PnL &lt; 0</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <ConditionDot met={cut.ema_reversed} />
+                  <span className={`text-[8px] ${cut.ema_reversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 
@@ -232,157 +432,11 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           )}
         </div>
 
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
-          <div className="text-[9px] text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Exit Conditions</div>
-          {(() => {
-            const sc = data.sellConditions;
-            const sa = data.strategyA;
-
-            const hardSlThreshold = sc?.hard_sl?.threshold ?? sa?.hard_sl;
-            const hardSlActive = sc?.hard_sl?.active ?? false;
-            const ppActive = sc?.pp?.active ?? sa?.pp_active ?? sa?.pp_activated ?? false;
-            const ppMfe = sc?.pp?.mfe ?? sa?.mfe;
-            const ppStopLevel = sc?.pp?.stop_level ?? sa?.pp_stop;
-            const vanishCurrent = typeof sc?.vanish?.current === 'number' ? sc.vanish.current : null;
-            const vanishThreshold = sc?.vanish?.threshold ?? sa?.vanish_threshold;
-            const vanishMet = sc?.vanish?.met ?? false;
-            const timeoutElapsed = sc?.timeout?.elapsed;
-            const timeoutRemaining = sc?.timeout?.remaining;
-            const timeoutMet = sc?.timeout?.met ?? false;
-            const floorPrice = sa?.floor_price ?? sa?.exit_prices?.floor_price;
-            const slPrice = sa?.sl_price ?? sa?.exit_prices?.sl_price;
-            const currentSlPct = sa?.current_sl_pct;
-
-            const hasAnyData = floorPrice != null || slPrice != null || vanishCurrent !== null || timeoutElapsed != null || hardSlThreshold != null;
-
-            if (!hasPosition && !hasAnyData) {
-              return (
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between bg-slate-700/30 border border-slate-600/50 rounded px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-slate-600 flex-shrink-0" />
-                      <span className="text-[9px] text-slate-500 font-medium">Stop Loss</span>
-                    </div>
-                    <span className="text-[9px] text-slate-600 tabular-nums">
-                      {hardSlThreshold != null ? `${hardSlThreshold.toFixed(1)}%` : '--'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between bg-slate-700/30 border border-slate-600/50 rounded px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-slate-600 flex-shrink-0" />
-                      <span className="text-[9px] text-slate-500 font-medium">Peak Protection</span>
-                    </div>
-                    <span className="text-[9px] text-slate-600">--</span>
-                  </div>
-                  <div className="flex items-center justify-between bg-slate-700/30 border border-slate-600/50 rounded px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-slate-600 flex-shrink-0" />
-                      <span className="text-[9px] text-slate-500 font-medium">Vanish</span>
-                    </div>
-                    <span className="text-[9px] text-slate-600">
-                      {vanishThreshold != null ? `/ ${vanishThreshold}` : '--'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between bg-slate-700/30 border border-slate-600/50 rounded px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-slate-600 flex-shrink-0" />
-                      <span className="text-[9px] text-slate-500 font-medium">Timeout</span>
-                    </div>
-                    <span className="text-[9px] text-slate-600">
-                      {sa?.timeout_min != null ? `${sa.timeout_min}m limit` : '--'}
-                    </span>
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-              <div className="flex flex-col gap-1">
-                {floorPrice != null && (
-                  <div className="flex items-center justify-between bg-slate-700/30 border border-slate-600 rounded px-2 py-1">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                      <span className="text-[9px] text-slate-300 font-medium">Floor</span>
-                    </div>
-                    <span className="text-[10px] font-bold text-emerald-400 tabular-nums">
-                      ${floorPrice.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-
-                {(slPrice != null || hardSlThreshold != null) && (
-                  <div className={`flex items-center justify-between rounded px-2 py-1 border ${
-                    hardSlActive
-                      ? 'bg-rose-900/30 border-rose-600/60'
-                      : 'bg-slate-700/30 border-slate-600'
-                  }`}>
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${hardSlActive ? 'bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.9)]' : 'bg-rose-600'}`} />
-                      <span className={`text-[9px] font-medium ${hardSlActive ? 'text-rose-300' : 'text-slate-300'}`}>
-                        Stop Loss{currentSlPct != null ? ` (${currentSlPct.toFixed(1)}%)` : hardSlThreshold != null ? ` (${hardSlThreshold.toFixed(1)}%)` : ''}
-                      </span>
-                    </div>
-                    <span className={`text-[10px] font-bold tabular-nums ${hardSlActive ? 'text-rose-300' : 'text-rose-500'}`}>
-                      {slPrice != null ? `$${slPrice.toFixed(2)}` : '--'}
-                    </span>
-                  </div>
-                )}
-
-                <div className={`flex items-center justify-between rounded px-2 py-1 border ${
-                  ppActive
-                    ? 'bg-amber-900/30 border-amber-600/60'
-                    : 'bg-slate-700/30 border-slate-600'
-                }`}>
-                  <div className="flex items-center gap-1.5">
-                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${ppActive ? 'bg-amber-400 shadow-[0_0_4px_rgba(251,191,36,0.9)]' : 'bg-slate-600'}`} />
-                    <span className={`text-[9px] font-medium ${ppActive ? 'text-amber-300' : 'text-slate-500'}`}>
-                      Peak Protection{ppMfe != null ? ` (MFE ${ppMfe.toFixed(2)}%)` : ''}
-                    </span>
-                  </div>
-                  {ppStopLevel != null && ppActive ? (
-                    <span className="text-[10px] font-bold text-amber-300 tabular-nums">
-                      ${ppStopLevel.toFixed(2)}
-                    </span>
-                  ) : (
-                    <span className="text-[9px] text-slate-500">Waiting</span>
-                  )}
-                </div>
-
-                <div className={`flex items-center justify-between rounded px-2 py-1 border ${
-                  vanishMet
-                    ? 'bg-rose-900/30 border-rose-600/60'
-                    : 'bg-slate-700/30 border-slate-600'
-                }`}>
-                  <div className="flex items-center gap-1.5">
-                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${vanishMet ? 'bg-rose-400' : 'bg-slate-600'}`} />
-                    <span className={`text-[9px] font-medium ${vanishMet ? 'text-rose-300' : 'text-slate-500'}`}>Vanish</span>
-                  </div>
-                  <span className={`text-[10px] font-bold tabular-nums ${vanishMet ? 'text-rose-300' : 'text-slate-400'}`}>
-                    {vanishCurrent !== null
-                      ? `${vanishCurrent.toFixed(2)}${vanishThreshold != null ? ` / ${vanishThreshold.toFixed(2)}` : ''}`
-                      : vanishThreshold != null ? `/ ${vanishThreshold}` : '--'}
-                  </span>
-                </div>
-
-                <div className={`flex items-center justify-between rounded px-2 py-1 border ${
-                  timeoutMet
-                    ? 'bg-rose-900/30 border-rose-600/60'
-                    : 'bg-slate-700/30 border-slate-600'
-                }`}>
-                  <div className="flex items-center gap-1.5">
-                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${timeoutMet ? 'bg-rose-400' : 'bg-slate-600'}`} />
-                    <span className={`text-[9px] font-medium ${timeoutMet ? 'text-rose-300' : 'text-slate-500'}`}>Timeout</span>
-                  </div>
-                  <span className={`text-[10px] font-bold tabular-nums ${timeoutMet ? 'text-rose-300' : 'text-slate-400'}`}>
-                    {timeoutElapsed != null
-                      ? `${timeoutElapsed.toFixed(0)}m${timeoutRemaining != null && !timeoutMet ? ` / ${timeoutRemaining.toFixed(0)}m left` : ''}`
-                      : sa?.timeout_min != null ? `${sa.timeout_min}m limit` : '--'}
-                  </span>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
+        <ExitConditionsPanel
+          exitConditions={ss?.exitConditions}
+          exitPrices={ss?.exitPrices}
+          inPosition={!!hasPosition}
+        />
 
         <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
           <div className="text-[9px] text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Extremes</div>
