@@ -232,6 +232,122 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           )}
         </div>
 
+        {hasPosition && data.sellConditions && (
+          <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+            <div className="text-[9px] text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Exit Conditions</div>
+            <div className="flex flex-col gap-1">
+              {(() => {
+                const sc = data.sellConditions;
+                const sa = data.strategyA;
+
+                const hardSlThreshold = sc.hard_sl?.threshold ?? sa?.hard_sl;
+                const hardSlActive = sc.hard_sl?.active ?? false;
+                const ppActive = sc.pp?.active ?? sa?.pp_active ?? sa?.pp_activated ?? false;
+                const ppMfe = sc.pp?.mfe ?? sa?.mfe;
+                const ppStopLevel = sc.pp?.stop_level ?? sa?.pp_stop;
+                const vanishCurrent = typeof sc.vanish?.current === 'number' ? sc.vanish.current : null;
+                const vanishThreshold = sc.vanish?.threshold ?? sa?.vanish_threshold;
+                const vanishMet = sc.vanish?.met ?? false;
+                const timeoutElapsed = sc.timeout?.elapsed;
+                const timeoutRemaining = sc.timeout?.remaining;
+                const timeoutMet = sc.timeout?.met ?? false;
+                const floorPrice = sa?.floor_price ?? sa?.exit_prices?.floor_price;
+                const slPrice = sa?.sl_price ?? sa?.exit_prices?.sl_price;
+                const currentSlPct = sa?.current_sl_pct;
+
+                return (
+                  <>
+                    {floorPrice != null && (
+                      <div className="flex items-center justify-between bg-slate-700/30 border border-slate-600 rounded px-2 py-1">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                          <span className="text-[9px] text-slate-300 font-medium">Floor</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-400 tabular-nums">
+                          ${floorPrice.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {slPrice != null && (
+                      <div className={`flex items-center justify-between rounded px-2 py-1 border ${
+                        hardSlActive
+                          ? 'bg-rose-900/30 border-rose-600/60'
+                          : 'bg-slate-700/30 border-slate-600'
+                      }`}>
+                        <div className="flex items-center gap-1.5">
+                          <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${hardSlActive ? 'bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.9)]' : 'bg-rose-600'}`} />
+                          <span className={`text-[9px] font-medium ${hardSlActive ? 'text-rose-300' : 'text-slate-300'}`}>
+                            Stop Loss{currentSlPct != null ? ` (${currentSlPct.toFixed(1)}%)` : hardSlThreshold != null ? ` (${hardSlThreshold.toFixed(1)}%)` : ''}
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-bold tabular-nums ${hardSlActive ? 'text-rose-300' : 'text-rose-500'}`}>
+                          ${slPrice.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {ppActive !== null && (
+                      <div className={`flex items-center justify-between rounded px-2 py-1 border ${
+                        ppActive
+                          ? 'bg-amber-900/30 border-amber-600/60'
+                          : 'bg-slate-700/30 border-slate-600'
+                      }`}>
+                        <div className="flex items-center gap-1.5">
+                          <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${ppActive ? 'bg-amber-400 shadow-[0_0_4px_rgba(251,191,36,0.9)]' : 'bg-slate-600'}`} />
+                          <span className={`text-[9px] font-medium ${ppActive ? 'text-amber-300' : 'text-slate-500'}`}>
+                            Peak Protection{ppMfe != null ? ` (MFE ${ppMfe.toFixed(2)}%)` : ''}
+                          </span>
+                        </div>
+                        {ppStopLevel != null && ppActive && (
+                          <span className="text-[10px] font-bold text-amber-300 tabular-nums">
+                            ${ppStopLevel.toFixed(2)}
+                          </span>
+                        )}
+                        {!ppActive && (
+                          <span className="text-[9px] text-slate-500">Waiting</span>
+                        )}
+                      </div>
+                    )}
+
+                    {vanishCurrent !== null && (
+                      <div className={`flex items-center justify-between rounded px-2 py-1 border ${
+                        vanishMet
+                          ? 'bg-rose-900/30 border-rose-600/60'
+                          : 'bg-slate-700/30 border-slate-600'
+                      }`}>
+                        <div className="flex items-center gap-1.5">
+                          <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${vanishMet ? 'bg-rose-400' : 'bg-slate-600'}`} />
+                          <span className={`text-[9px] font-medium ${vanishMet ? 'text-rose-300' : 'text-slate-500'}`}>Vanish</span>
+                        </div>
+                        <span className={`text-[10px] font-bold tabular-nums ${vanishMet ? 'text-rose-300' : 'text-slate-400'}`}>
+                          {vanishCurrent.toFixed(2)}{vanishThreshold != null ? ` / ${vanishThreshold.toFixed(2)}` : ''}
+                        </span>
+                      </div>
+                    )}
+
+                    {timeoutElapsed != null && (
+                      <div className={`flex items-center justify-between rounded px-2 py-1 border ${
+                        timeoutMet
+                          ? 'bg-rose-900/30 border-rose-600/60'
+                          : 'bg-slate-700/30 border-slate-600'
+                      }`}>
+                        <div className="flex items-center gap-1.5">
+                          <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${timeoutMet ? 'bg-rose-400' : 'bg-slate-600'}`} />
+                          <span className={`text-[9px] font-medium ${timeoutMet ? 'text-rose-300' : 'text-slate-500'}`}>Timeout</span>
+                        </div>
+                        <span className={`text-[10px] font-bold tabular-nums ${timeoutMet ? 'text-rose-300' : 'text-slate-400'}`}>
+                          {timeoutElapsed.toFixed(0)}m{timeoutRemaining != null && !timeoutMet ? ` / ${timeoutRemaining.toFixed(0)}m left` : ''}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
         {hasPosition && (
           <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
             <div className="text-[9px] text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Extremes</div>

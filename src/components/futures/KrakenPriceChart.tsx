@@ -192,13 +192,48 @@ export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
     );
   }
 
+  const v10Strategy = useMemo(() => {
+    const base = data.strategyStatus;
+    const krakenInd = data.indicators;
+
+    const bdbu5m: Record<string, number | undefined> = {};
+    if (krakenInd?.['5m']) {
+      const ind5m = krakenInd['5m'] as any;
+      if (ind5m.bd !== undefined) bdbu5m.bd = ind5m.bd;
+      if (ind5m.bu !== undefined) bdbu5m.bu = ind5m.bu;
+    }
+    if (data.strategyA) {
+      const sa = data.strategyA as any;
+      if (sa.bd !== undefined && bdbu5m.bd === undefined) bdbu5m.bd = sa.bd;
+      if (sa.bu !== undefined && bdbu5m.bu === undefined) bdbu5m.bu = sa.bu;
+      if (sa['5m_bd'] !== undefined && bdbu5m.bd === undefined) bdbu5m.bd = sa['5m_bd'];
+      if (sa['5m_bu'] !== undefined && bdbu5m.bu === undefined) bdbu5m.bu = sa['5m_bu'];
+    }
+
+    const merged: any = base
+      ? { ...base }
+      : { inPosition: data.position?.in_position ?? false };
+
+    if (Object.keys(bdbu5m).length > 0) {
+      merged.indicators = {
+        ...merged.indicators,
+        '5m': {
+          ...(merged.indicators?.['5m'] ?? {}),
+          ...bdbu5m,
+        },
+      };
+    }
+
+    return merged;
+  }, [data.strategyStatus, data.indicators, data.strategyA, data.position?.in_position]);
+
   return (
     <PriceChart
       data={transformedData}
       onTradeHover={(trade: TradeEvent | null) => {}}
       onTimeframeChange={(timeframe: string) => onTimeframeChange?.(timeframe)}
       darkMode={true}
-      v10Strategy={data.strategyStatus || null}
+      v10Strategy={v10Strategy}
     />
   );
 }

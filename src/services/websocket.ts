@@ -216,6 +216,7 @@ class WebSocketService {
       this.connectionStatusCallbacks.forEach(cb => cb(true));
       this.startStatsTracking();
       this.startHeartbeatMonitor();
+      this.bindGenericCallbacks();
     });
 
     this.socket.on('disconnect', (reason) => {
@@ -235,8 +236,9 @@ class WebSocketService {
       this.reconnectCount = attemptNumber;
     });
 
-    this.socket.on('reconnect', (attemptNumber) => {
+    this.socket.on('reconnect', (_attemptNumber: number) => {
       this.lastMessageTime = Date.now();
+      this.bindGenericCallbacks();
     });
 
     this.socket.on('reconnect_error', (error) => {});
@@ -431,16 +433,39 @@ class WebSocketService {
     return () => this.connectionStatusCallbacks.delete(callback);
   }
 
-  // Generic event listener for any event
+  private genericCallbacks: Map<string, Set<(data: any) => void>> = new Map();
+
+  private bindGenericCallbacks() {
+    for (const [eventName, callbacks] of this.genericCallbacks.entries()) {
+      if (callbacks.size > 0 && this.socket) {
+        this.socket.off(eventName);
+        this.socket.on(eventName, (data: any) => {
+          this.lastMessageTime = Date.now();
+          callbacks.forEach(cb => cb(data));
+        });
+      }
+    }
+  }
+
   on(eventName: string, callback: (data: any) => void) {
+    if (!this.genericCallbacks.has(eventName)) {
+      this.genericCallbacks.set(eventName, new Set());
+    }
+    this.genericCallbacks.get(eventName)!.add(callback);
     if (this.socket) {
-      this.socket.on(eventName, callback);
+      this.socket.off(eventName);
+      const callbacks = this.genericCallbacks.get(eventName)!;
+      this.socket.on(eventName, (data: any) => {
+        this.lastMessageTime = Date.now();
+        callbacks.forEach(cb => cb(data));
+      });
     }
   }
 
   off(eventName: string, callback: (data: any) => void) {
-    if (this.socket) {
-      this.socket.off(eventName, callback);
+    const callbacks = this.genericCallbacks.get(eventName);
+    if (callbacks) {
+      callbacks.delete(callback);
     }
   }
 

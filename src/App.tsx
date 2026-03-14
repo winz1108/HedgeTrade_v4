@@ -22,6 +22,7 @@ function App() {
       if (!prevHistories || !newHistories) return newHistories;
       const merged: Record<string, any[]> = {};
       const tfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
+      const getTs = (c: any) => c.open_time_ms ?? c.timestamp ?? (c.time ? c.time * 1000 : 0);
       tfs.forEach(tf => {
         const newArr = newHistories[tf];
         const prevArr = prevHistories[tf];
@@ -29,9 +30,11 @@ function App() {
         if (!prevArr || prevArr.length === 0) { merged[tf] = newArr; return; }
         const prevLast = prevArr[prevArr.length - 1];
         const newLast = newArr[newArr.length - 1];
-        const prevTs = prevLast.open_time_ms ?? prevLast.timestamp ?? (prevLast.time ? prevLast.time * 1000 : 0);
-        const newTs = newLast.open_time_ms ?? newLast.timestamp ?? (newLast.time ? newLast.time * 1000 : 0);
-        if (prevTs === newTs) {
+        const prevTs = getTs(prevLast);
+        const newTs = getTs(newLast);
+        if (prevTs > newTs) {
+          merged[tf] = prevArr;
+        } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
           const preserved = [...newArr];
           preserved[preserved.length - 1] = {
             ...newLast,
@@ -41,7 +44,11 @@ function App() {
           };
           merged[tf] = preserved;
         } else {
-          merged[tf] = newArr;
+          const result = [...newArr];
+          if (prevTs > newTs) {
+            result.push(prevLast);
+          }
+          merged[tf] = result;
         }
       });
       return merged;
