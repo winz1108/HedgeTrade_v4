@@ -171,6 +171,13 @@ function FuturesDashboard() {
     const handleKrakenPriceUpdate = (priceData: any) => {
       if (!priceData) return;
 
+      if (priceData.price != null) {
+        const krakenPrice = Number(priceData.price);
+        if (!isNaN(krakenPrice) && krakenPrice > 0) {
+          document.title = `Kraken - $${krakenPrice.toFixed(2)}`;
+        }
+      }
+
       setData(prevData => {
         if (!prevData) return prevData;
         const updated = { ...prevData };
@@ -311,9 +318,11 @@ function FuturesDashboard() {
   }, [updateLiveCandle, selectedTimeframe]);
 
   useEffect(() => {
-    if (data?.currentPrice) {
+    if (data?.currentPrice != null) {
       const price = Number(data.currentPrice);
-      document.title = `Kraken - $${isNaN(price) ? data.currentPrice : price.toFixed(2)}`;
+      if (!isNaN(price) && price > 0) {
+        document.title = `Kraken - $${price.toFixed(2)}`;
+      }
     }
   }, [data?.currentPrice]);
 

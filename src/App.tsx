@@ -127,6 +127,10 @@ function App() {
       if (statusData.exchange && statusData.exchange !== 'binance_futures') return;
       if (statusData.current_price) {
         updateLiveCandle(statusData.current_price);
+        const livePrice = Number(statusData.current_price);
+        if (!isNaN(livePrice) && livePrice > 0) {
+          document.title = `Binance - $${livePrice.toFixed(2)}`;
+        }
       }
       setData(prev => {
         if (!prev) return prev;
@@ -180,6 +184,10 @@ function App() {
     const handlePriceTick = (priceData: any) => {
       if (!priceData?.price) return;
       updateLiveCandle(priceData.price);
+      const tickPrice = Number(priceData.price);
+      if (!isNaN(tickPrice) && tickPrice > 0) {
+        document.title = `Binance - $${tickPrice.toFixed(2)}`;
+      }
       setData(prev => {
         if (!prev) return prev;
         const updated = { ...prev, currentPrice: Number(priceData.price) };
@@ -300,9 +308,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (data?.currentPrice) {
+    if (data?.currentPrice != null) {
       const price = Number(data.currentPrice);
-      document.title = `Binance - $${isNaN(price) ? data.currentPrice : price.toFixed(2)}`;
+      if (!isNaN(price) && price > 0) {
+        document.title = `Binance - $${price.toFixed(2)}`;
+      }
     }
   }, [data?.currentPrice]);
 
