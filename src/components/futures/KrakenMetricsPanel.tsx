@@ -94,7 +94,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={vreg.bars_ok} />
-                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-slate-300' : 'text-slate-600'}`}>봉수</span>
+                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-white' : 'text-slate-500'}`}>봉수</span>
                   <ProgressBar current={vreg.bars_held} target={vreg.bars_min} />
                   <span className="text-[8px] text-slate-500 tabular-nums min-w-[28px] text-right">
                     {vreg.bars_held}/{vreg.bars_min}
@@ -102,7 +102,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={vreg.pnl_ok} />
-                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-slate-300' : 'text-slate-600'}`}>PnL</span>
+                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-white' : 'text-slate-500'}`}>PnL</span>
                   <ProgressBar current={vreg.pnl_current} target={vreg.pnl_min} />
                   <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
                     {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
@@ -110,12 +110,12 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={vreg.vol_spike} />
-                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-slate-300' : 'text-slate-600'}`}>거래량 스파이크</span>
+                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-white' : 'text-slate-500'}`}>거래량 스파이크</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
                       <ProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
                       <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-cyan-400' : 'text-slate-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(2)}x/{vreg.vol_mult}x
+                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}x
                       </span>
                     </>
                   ) : (

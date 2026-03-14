@@ -138,7 +138,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
                     <>
                       <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
                       <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-cyan-600' : 'text-slate-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(2)}x/{vreg.vol_mult}x
+                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}x
                       </span>
                     </>
                   ) : (
