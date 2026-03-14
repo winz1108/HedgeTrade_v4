@@ -197,17 +197,17 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={ema.mfe_ok} />
-                  <span className={`text-[8px] ${ema.mfe_ok ? 'text-slate-600' : 'text-stone-400'}`}>MFE</span>
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${ema.mfe_ok ? 'text-slate-600' : 'text-stone-400'}`}>MFE</span>
                   <BProgressBar current={ema.mfe_current} target={ema.mfe_gate} />
-                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${ema.mfe_ok ? 'text-emerald-600' : 'text-slate-400'}`}>
+                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${ema.mfe_ok ? 'text-emerald-600' : 'text-slate-400'}`}>
                     {ema.mfe_current >= 0 ? '+' : ''}{ema.mfe_current.toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={ema.pnl_ok} />
-                  <span className={`text-[8px] ${ema.pnl_ok ? 'text-slate-600' : 'text-stone-400'}`}>PnL</span>
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${ema.pnl_ok ? 'text-slate-600' : 'text-stone-400'}`}>PnL</span>
                   <BProgressBar current={ema.pnl_current} target={ema.pnl_gate} />
-                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${ema.pnl_ok ? 'text-emerald-600' : 'text-slate-400'}`}>
+                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${ema.pnl_ok ? 'text-emerald-600' : 'text-slate-400'}`}>
                     {ema.pnl_current >= 0 ? '+' : ''}{ema.pnl_current.toFixed(2)}%
                   </span>
                 </div>
@@ -423,16 +423,16 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   rows.push({ label: 'ADX', pct: Math.min(100, (adx.current / adx.threshold) * 100), met, value: `${adx.current.toFixed(1)}/${adx.threshold}` });
                 }
 
-                if (entryDetails.EMA) {
-                  const ema = entryDetails.EMA!;
+                const emaEntry = entryDetails.EMA ?? entryDetails.ema ?? entryDetails['5m_ema'];
+                if (emaEntry) {
                   if (isLongSide) {
-                    const met = ema.long_met ?? false;
-                    const dist = ema.long_distance_pct ?? 0;
+                    const met = emaEntry.long_met ?? false;
+                    const dist = emaEntry.long_distance_pct ?? 0;
                     const value = met ? '진입 가능' : `${dist.toFixed(2)}% 남음`;
                     rows.push({ label: 'EMA', pct: met ? 100 : 0, met, value });
                   } else {
-                    const met = ema.short_met ?? false;
-                    const dist = ema.short_distance_pct ?? 0;
+                    const met = emaEntry.short_met ?? false;
+                    const dist = emaEntry.short_distance_pct ?? 0;
                     const value = met ? '진입 가능' : `${dist.toFixed(2)}% 남음`;
                     rows.push({ label: 'EMA', pct: met ? 100 : 0, met, value });
                   }
@@ -451,7 +451,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                     const shortPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
                     const shortMin = range.short_min ?? 20;
                     met = shortPct >= shortMin;
-                    pct = Math.min(100, (shortPct / 100) * 100);
+                    pct = Math.min(100, (shortPct / 80) * 100);
                     value = `${shortPct.toFixed(1)}%`;
                   }
                   rows.push({ label: 'Range', pct, met, value });
