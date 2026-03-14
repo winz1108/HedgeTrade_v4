@@ -84,6 +84,7 @@ export interface ExitConditionVREG {
   vol_spike: boolean;
   vol_mult: number;
   vol_current_ratio?: number;
+  line_distance_pct?: number;
 }
 
 export interface ExitConditionEMA {
@@ -122,12 +123,16 @@ export interface EntryDetailEMA {
   price: number;
   bd: number;
   bu: number;
+  long_distance_pct?: number;
+  short_distance_pct?: number;
 }
 
 export interface EntryDetailRange {
   position_pct: number;
   long_max: number;
   short_min: number;
+  long_pct?: number;
+  short_pct?: number;
 }
 
 export interface EntryDetails {

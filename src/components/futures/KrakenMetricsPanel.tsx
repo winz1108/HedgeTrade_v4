@@ -22,20 +22,41 @@ function ConditionDot({ met }: { met: boolean }) {
   );
 }
 
-function ProgressBar({ current, target, reverse = false }: { current: number; target: number; reverse?: boolean }) {
+function ProgressBar({ current, target, reverse = false, color }: { current: number; target: number; reverse?: boolean; color?: string }) {
   let pct: number;
-  if (reverse) {
-    pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
-  } else {
-    pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
-  }
+  pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
   const met = reverse ? current <= target : current >= target;
+  const barColor = color ?? (met ? 'bg-cyan-400' : 'bg-slate-500');
   return (
     <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
       <div
-        className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-400' : 'bg-slate-500'}`}
+        className={`h-1 rounded-full transition-all duration-300 ${barColor}`}
         style={{ width: `${pct}%` }}
       />
+    </div>
+  );
+}
+
+function DistanceBar({ distance_pct, label }: { distance_pct: number; label: string }) {
+  const isSafe = distance_pct >= 0;
+  const absVal = Math.abs(distance_pct);
+  const maxRange = 2;
+  const pct = isSafe
+    ? Math.min(100, (absVal / maxRange) * 100)
+    : Math.min(100, (absVal / maxRange) * 100);
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSafe ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+      <span className={`text-[8px] ${isSafe ? 'text-slate-400' : 'text-slate-500'}`}>{label}</span>
+      <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
+        <div
+          className={`h-1 rounded-full transition-all duration-300 ${isSafe ? 'bg-emerald-400' : 'bg-rose-500'}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className={`text-[8px] tabular-nums min-w-[44px] text-right ${isSafe ? 'text-emerald-400' : 'text-rose-400'}`}>
+        {isSafe ? `+${distance_pct.toFixed(2)}%` : `${distance_pct.toFixed(2)}%`}
+      </span>
     </div>
   );
 }
@@ -87,43 +108,44 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                   <span className={`text-[9px] font-bold ${vreg.armed ? 'text-cyan-300' : 'text-slate-400'}`}>VREG</span>
                   <span className="text-[7px] text-slate-500">익절</span>
                 </div>
-                {exitPrices?.vreg_exit != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${vreg.armed ? 'text-cyan-300' : 'text-slate-500'}`}>
-                    ${exitPrices.vreg_exit.toFixed(1)}
-                  </span>
-                )}
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={vreg.bars_ok} />
-                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-cyan-300' : 'text-slate-500'}`}>봉수</span>
+                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-cyan-300' : 'text-slate-500'} w-[36px]`}>봉수</span>
                   <ProgressBar current={vreg.bars_held} target={vreg.bars_min} />
-                  <span className={`text-[8px] tabular-nums min-w-[28px] text-right ${vreg.bars_ok ? 'text-cyan-300' : 'text-slate-500'}`}>
+                  <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${vreg.bars_ok ? 'text-cyan-300' : 'text-slate-500'}`}>
                     {vreg.bars_held}/{vreg.bars_min}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={vreg.pnl_ok} />
-                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>PnL</span>
+                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'} w-[36px]`}>PnL</span>
                   <ProgressBar current={vreg.pnl_current} target={vreg.pnl_min} />
-                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
+                  <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
                     {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={vreg.vol_spike} />
-                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'}`}>거래량 스파이크</span>
+                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'} w-[36px]`}>거래량</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
                       <ProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
-                      <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
+                      <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'}`}>
+                        {vreg.vol_current_ratio.toFixed(1)}x/{vreg.vol_mult}x
                       </span>
                     </>
                   ) : (
-                    <span className="text-[8px] text-slate-600 ml-auto">{vreg.vol_mult}</span>
+                    <>
+                      <div className="flex-1 bg-slate-700 rounded-full h-1" />
+                      <span className="text-[8px] text-slate-600 min-w-[36px] text-right">{vreg.vol_mult}x</span>
+                    </>
                   )}
                 </div>
+                {vreg.line_distance_pct != null && (
+                  <DistanceBar distance_pct={vreg.line_distance_pct} label="VREG선" />
+                )}
               </div>
             </div>
           )}
@@ -134,49 +156,34 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
                 ? 'bg-emerald-900/30 border-emerald-600/50'
                 : 'bg-slate-700/20 border-slate-700/50'
             }`}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    ema.armed
-                      ? 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.9)]'
-                      : 'bg-slate-600'
-                  }`} />
-                  <span className={`text-[9px] font-bold ${ema.armed ? 'text-emerald-300' : 'text-slate-400'}`}>EMA</span>
-                  <span className="text-[7px] text-slate-500">익절</span>
-                </div>
-                {exitPrices?.ema_exit != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${ema.armed ? 'text-emerald-300' : 'text-slate-500'}`}>
-                    ${exitPrices.ema_exit.toFixed(1)}
-                  </span>
-                )}
+              <div className="flex items-center mb-1">
+                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  ema.armed
+                    ? 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.9)]'
+                    : 'bg-slate-600'
+                }`} />
+                <span className={`text-[9px] font-bold ml-1.5 ${ema.armed ? 'text-emerald-300' : 'text-slate-400'}`}>EMA</span>
+                <span className="text-[7px] text-slate-500 ml-1">익절</span>
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={ema.mfe_ok} />
-                  <span className={`text-[8px] ${ema.mfe_ok ? 'text-slate-300' : 'text-slate-600'}`}>MFE</span>
+                  <span className={`text-[8px] ${ema.mfe_ok ? 'text-slate-300' : 'text-slate-600'} w-[36px]`}>MFE</span>
                   <ProgressBar current={ema.mfe_current} target={ema.mfe_gate} />
-                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${ema.mfe_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
+                  <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${ema.mfe_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
                     {ema.mfe_current >= 0 ? '+' : ''}{ema.mfe_current.toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={ema.pnl_ok} />
-                  <span className={`text-[8px] ${ema.pnl_ok ? 'text-slate-300' : 'text-slate-600'}`}>PnL</span>
+                  <span className={`text-[8px] ${ema.pnl_ok ? 'text-slate-300' : 'text-slate-600'} w-[36px]`}>PnL</span>
                   <ProgressBar current={ema.pnl_current} target={ema.pnl_gate} />
-                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${ema.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
+                  <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${ema.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
                     {ema.pnl_current >= 0 ? '+' : ''}{ema.pnl_current.toFixed(2)}%
                   </span>
                 </div>
                 {ema.band_distance_pct != null && (
-                  <div className="flex items-center gap-1.5">
-                    <ConditionDot met={(ema.price_past_band === false) || ema.band_distance_pct >= 0} />
-                    <span className={`text-[8px] ${ema.band_distance_pct >= 0 ? 'text-slate-300' : 'text-slate-600'}`}>Band</span>
-                    <span className={`text-[8px] tabular-nums ml-auto ${
-                      ema.band_distance_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}>
-                      {ema.band_distance_pct >= 0 ? '+' : ''}{ema.band_distance_pct.toFixed(2)}%
-                    </span>
-                  </div>
+                  <DistanceBar distance_pct={ema.band_distance_pct} label="Band" />
                 )}
               </div>
             </div>
@@ -207,9 +214,9 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.mae_ok} />
-                  <span className={`text-[8px] ${cut.mae_ok ? 'text-slate-300' : 'text-slate-600'}`}>MAE</span>
+                  <span className={`text-[8px] ${cut.mae_ok ? 'text-slate-300' : 'text-slate-600'} w-[36px]`}>MAE</span>
                   <ProgressBar current={Math.abs(cut.mae_current)} target={Math.abs(cut.mae_threshold)} />
-                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
+                  <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
                     {cut.mae_current.toFixed(2)}%
                   </span>
                 </div>
@@ -431,28 +438,46 @@ export function KrakenMetricsPanel({ data, position }: Props) {
 
                 if (entryDetails.EMA) {
                   const ema = entryDetails.EMA!;
-                  let pct: number; let met: boolean;
+                  let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
                     met = ema.price < ema.bd;
-                    pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.bu - ema.price) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                    if (ema.long_distance_pct != null) {
+                      const dist = ema.long_distance_pct;
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(dist) / 5) * 100));
+                      value = met ? '진입 가능' : `bd까지 ${Math.abs(dist).toFixed(2)}%`;
+                    } else {
+                      pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.bu - ema.price) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                      value = `${pct.toFixed(0)}%`;
+                    }
                   } else {
                     met = ema.price > ema.bu;
-                    pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.price - ema.bd) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                    if (ema.short_distance_pct != null) {
+                      const dist = ema.short_distance_pct;
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(dist) / 5) * 100));
+                      value = met ? '진입 가능' : `bu까지 ${Math.abs(dist).toFixed(2)}%`;
+                    } else {
+                      pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.price - ema.bd) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                      value = `${pct.toFixed(0)}%`;
+                    }
                   }
-                  rows.push({ label: 'EMA', pct, met, value: `${pct.toFixed(0)}%` });
+                  rows.push({ label: 'EMA', pct, met, value });
                 }
 
                 if (entryDetails.Range) {
                   const range = entryDetails.Range!;
-                  let pct: number; let met: boolean;
+                  let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
-                    met = range.position_pct <= range.long_max;
-                    pct = Math.min(100, (range.position_pct / range.long_max) * 100);
+                    const longPct = range.long_pct ?? range.position_pct;
+                    met = longPct <= range.long_max;
+                    pct = Math.min(100, (longPct / range.long_max) * 100);
+                    value = `${longPct.toFixed(1)}% / 80`;
                   } else {
-                    met = range.position_pct >= range.short_min;
-                    pct = Math.min(100, ((100 - range.position_pct) / (100 - range.short_min)) * 100);
+                    const shortPct = range.short_pct ?? (100 - range.position_pct);
+                    met = shortPct >= (100 - range.short_min);
+                    pct = Math.min(100, (shortPct / 20) * 100);
+                    value = `${shortPct.toFixed(1)}% / 20`;
                   }
-                  rows.push({ label: 'Range', pct, met, value: `${range.position_pct.toFixed(1)}%` });
+                  rows.push({ label: 'Range', pct, met, value });
                 }
 
                 return (

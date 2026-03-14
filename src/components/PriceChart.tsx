@@ -907,20 +907,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       >
 
         <div className="absolute inset-0 overflow-visible">
-          {/* 날짜/시간 항상 표시 */}
+          {/* 호버 툴팁: 호버 시에만 표시 */}
           <div className={`absolute left-3 top-3 z-30 flex flex-col gap-1 pointer-events-none`}>
-            <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex items-center gap-2`}>
-              <span className={`${colors.textSecondary} font-mono font-medium`}>
-                {hoveredCandle ? formatChartTime(hoveredCandle.timestamp) : (trueLatestCandle ? formatChartTime(trueLatestCandle.timestamp) : '--:--')}
-              </span>
-              {hoveredCandle?.isComplete === false && (
-                <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[10px] font-bold border border-blue-400/40 animate-pulse">
-                  진행 중
-                </span>
-              )}
-            </div>
-
-            {/* OHLC - 캔들 호버 시만 표시 */}
             {hoveredCandle && (() => {
               const HOVER_THRESHOLD = 6;
               const mouseY = crosshairPosition?.y ?? null;
@@ -945,24 +933,34 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return Math.abs(mouseY - priceToY(candle.ema_long)) < HOVER_THRESHOLD;
               })();
 
+              const dateLabel = (
+                <div className={`flex items-center gap-2 pb-1 mb-0.5 border-b ${darkMode ? 'border-slate-600/40' : 'border-stone-200/60'}`}>
+                  <span className={`${colors.textSecondary} font-mono text-[10px]`}>{formatChartTime(hoveredCandle.timestamp)}</span>
+                  {hoveredCandle.isComplete === false && (
+                    <span className="px-1 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[9px] font-bold border border-blue-400/40 animate-pulse">진행 중</span>
+                  )}
+                </div>
+              );
+
               if (isBBHovered && hoveredCandle.bb_upper) {
                 return (
                   <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
+                    {dateLabel}
                     <span className={`${colors.textSecondary} text-[10px] font-semibold mb-0.5`}>Bollinger Bands</span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-4">
                       <span className={`${colors.textSecondary} text-[10px]`}>상단</span>
                       <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_upper.toFixed(2)}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-4">
                       <span className={`${colors.textSecondary} text-[10px]`}>중앙</span>
                       <span className={`${darkMode ? 'text-slate-300' : 'text-slate-600'} font-semibold tabular-nums`}>{hoveredCandle.bb_mid?.toFixed(2) ?? '-'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-4">
                       <span className={`${colors.textSecondary} text-[10px]`}>하단</span>
                       <span className={`${darkMode ? 'text-slate-200' : 'text-slate-700'} font-bold tabular-nums`}>{hoveredCandle.bb_lower?.toFixed(2) ?? '-'}</span>
                     </div>
                     {hoveredCandle.bbw != null && (
-                      <div className="flex items-center gap-2 mt-0.5 border-t border-slate-600/30 pt-0.5">
+                      <div className="flex items-center justify-between gap-4 mt-0.5 pt-0.5 border-t border-slate-600/30">
                         <span className={`${colors.textSecondary} text-[10px]`}>BBW</span>
                         <span className={`${colors.textSecondary} font-medium tabular-nums`}>{hoveredCandle.bbw.toFixed(3)}</span>
                       </div>
@@ -974,15 +972,16 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               if (isEmaShortHovered || isEmaLongHovered) {
                 return (
                   <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
+                    {dateLabel}
                     <span className={`${colors.textSecondary} text-[10px] font-semibold mb-0.5`}>EMA</span>
                     {hoveredCandle.ema_short && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between gap-4">
                         <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">Short</span>
                         <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema_short.toFixed(2)}</span>
                       </div>
                     )}
                     {hoveredCandle.ema_long && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between gap-4">
                         <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">Long</span>
                         <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
                       </div>
@@ -992,11 +991,14 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               }
 
               return (
-                <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex items-center gap-2.5`}>
-                  <span className={`${colors.textSecondary} font-medium`}>O <span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.open.toFixed(2)}</span></span>
-                  <span className={`${colors.textSecondary} font-medium`}>H <span className="text-emerald-400 font-bold tabular-nums">{hoveredCandle.high.toFixed(2)}</span></span>
-                  <span className={`${colors.textSecondary} font-medium`}>L <span className="text-rose-400 font-bold tabular-nums">{hoveredCandle.low.toFixed(2)}</span></span>
-                  <span className={`${colors.textSecondary} font-medium`}>C <span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.close.toFixed(2)}</span></span>
+                <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-1`}>
+                  {dateLabel}
+                  <div className="flex items-center gap-2.5">
+                    <span className={`${colors.textSecondary} font-medium`}>O <span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.open.toFixed(2)}</span></span>
+                    <span className={`${colors.textSecondary} font-medium`}>H <span className="text-emerald-400 font-bold tabular-nums">{hoveredCandle.high.toFixed(2)}</span></span>
+                    <span className={`${colors.textSecondary} font-medium`}>L <span className="text-rose-400 font-bold tabular-nums">{hoveredCandle.low.toFixed(2)}</span></span>
+                    <span className={`${colors.textSecondary} font-medium`}>C <span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.close.toFixed(2)}</span></span>
+                  </div>
                 </div>
               );
             })()}
@@ -2037,6 +2039,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const isGreen = candle.close >= candle.open;
               return (
                 <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-2 py-1 rounded-md flex items-center gap-2 pointer-events-none border ${darkMode ? 'border-slate-700/60' : 'border-stone-200'}`}>
+                  <span className={`${colors.textSecondary} font-mono text-[10px]`}>{formatChartTime(candle.timestamp)}</span>
                   <span className={`${colors.textSecondary} font-semibold text-[10px]`}>Vol</span>
                   <span className={`font-bold tabular-nums ${isGreen ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {candle.volume.toLocaleString(undefined, { maximumFractionDigits: 3 })}
@@ -2197,6 +2200,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               if (!hasMacd) return null;
               return (
                 <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-2 py-1 rounded-md flex items-center gap-2 pointer-events-none border ${darkMode ? 'border-slate-700/60' : 'border-stone-200'}`}>
+                  <span className={`${colors.textSecondary} font-mono text-[10px]`}>{formatChartTime(candle.timestamp)}</span>
                   <span className={`${colors.textSecondary} font-semibold text-[10px]`}>MACD</span>
                   {macdVal !== undefined && (
                     <span className="text-cyan-400 font-bold tabular-nums">{macdVal.toFixed(2)}</span>
@@ -2314,6 +2318,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               if (!candle || candle.adx === undefined) return null;
               return (
                 <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-2 py-1 rounded-md flex items-center gap-2 pointer-events-none border ${darkMode ? 'border-slate-700/60' : 'border-stone-200'}`}>
+                  <span className={`${colors.textSecondary} font-mono text-[10px]`}>{formatChartTime(candle.timestamp)}</span>
                   <span className={`${colors.textSecondary} font-semibold text-[10px]`}>ADX</span>
                   <span className={`font-bold tabular-nums ${
                     candle.adx >= 25 ? 'text-emerald-400' :
