@@ -142,32 +142,32 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.bars_ok} />
-                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-amber-400' : 'text-stone-500'}`}>봉수</span>
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.bars_ok ? 'text-amber-400' : 'text-stone-500'}`}>봉수</span>
                   <BProgressBar current={vreg.bars_held} target={vreg.bars_min} />
-                  <span className={`text-[8px] tabular-nums min-w-[28px] text-right ${vreg.bars_ok ? 'text-amber-400' : 'text-stone-500'}`}>
+                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.bars_ok ? 'text-amber-400' : 'text-stone-500'}`}>
                     {vreg.bars_held}/{vreg.bars_min}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.pnl_ok} />
-                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>PnL</span>
-                  <BProgressBar current={vreg.pnl_current} target={strategyParams?.vreg_min_pnl ?? vreg.pnl_min} />
-                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>PnL</span>
+                  <BProgressBar current={vreg.pnl_current} target={strategyParams?.vreg_min_pnl ?? 0.7} />
+                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>
                     {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.vol_spike} />
-                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>거래량 스파이크</span>
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>거래량</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
-                      <BProgressBar current={vreg.vol_current_ratio} target={strategyParams?.vreg_vol_mult ?? vreg.vol_mult} />
-                      <span className={`text-[8px] tabular-nums min-w-[48px] text-right ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{strategyParams?.vreg_vol_mult ?? vreg.vol_mult}
+                      <BProgressBar current={vreg.vol_current_ratio} target={strategyParams?.vreg_vol_mult ?? 3.0} />
+                      <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>
+                        {vreg.vol_current_ratio.toFixed(1)}/{strategyParams?.vreg_vol_mult ?? 3.0}
                       </span>
                     </>
                   ) : (
-                    <span className="text-[8px] text-stone-500 ml-auto">{strategyParams?.vreg_vol_mult ?? vreg.vol_mult}</span>
+                    <span className="text-[8px] text-stone-500 w-[36px] text-right flex-shrink-0">{strategyParams?.vreg_vol_mult ?? 3.0}</span>
                   )}
                 </div>
               </div>
@@ -428,23 +428,13 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   if (isLongSide) {
                     met = ema.long_met ?? (ema.price < ema.bd);
                     const dist = ema.long_distance_pct;
-                    if (dist != null) {
-                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
-                      value = met ? '진입 가능' : `bd까지 ${dist.toFixed(2)}%`;
-                    } else {
-                      pct = met ? 100 : 0;
-                      value = met ? '진입 가능' : '-';
-                    }
+                    pct = met ? 100 : (dist != null ? Math.min(100, Math.max(0, (1 - dist / 5) * 100)) : 0);
+                    value = met ? '진입 가능' : (dist != null ? `bd까지 ${dist.toFixed(2)}%` : `bd 미달`);
                   } else {
                     met = ema.short_met ?? (ema.price > ema.bu);
                     const dist = ema.short_distance_pct;
-                    if (dist != null) {
-                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
-                      value = met ? '진입 가능' : `bu까지 ${dist.toFixed(2)}%`;
-                    } else {
-                      pct = met ? 100 : 0;
-                      value = met ? '진입 가능' : '-';
-                    }
+                    pct = met ? 100 : (dist != null ? Math.min(100, Math.max(0, (1 - dist / 5) * 100)) : 0);
+                    value = met ? '진입 가능' : (dist != null ? `bu까지 ${dist.toFixed(2)}%` : `bu 미달`);
                   }
                   rows.push({ label: 'EMA', pct, met, value });
                 }
@@ -456,13 +446,13 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                     const longPct = range.long_pct ?? range.position_pct;
                     const longMax = range.long_max ?? 80;
                     met = longPct <= longMax;
-                    pct = Math.min(100, (longPct / longMax) * 100);
+                    pct = Math.min(100, longPct);
                     value = `${longPct.toFixed(1)}%`;
                   } else {
                     const shortPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
                     const shortMin = range.short_min ?? 20;
                     met = shortPct >= shortMin;
-                    pct = Math.min(100, (shortPct / 100) * 100);
+                    pct = Math.min(100, shortPct);
                     value = `${shortPct.toFixed(1)}%`;
                   }
                   rows.push({ label: 'Range', pct, met, value });
