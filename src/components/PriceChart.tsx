@@ -1570,7 +1570,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.4))"
                     />
                   )}
-                  {/* MAE 0.5% threshold line */}
+                  {/* -0.5% from entry price threshold line */}
                   {(() => {
                     const ep = data.holding.buyPrice;
                     if (!ep) return null;
@@ -1581,10 +1581,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         y1={priceToY(maePrice)}
                         x2="100%"
                         y2={priceToY(maePrice)}
-                        stroke="#f87171"
-                        strokeWidth="0.8"
-                        strokeDasharray="3 3"
-                        opacity="0.55"
+                        stroke="#fca5a5"
+                        strokeWidth="1.2"
+                        strokeDasharray="5 4"
+                        opacity="0.75"
                       />
                     );
                   })()}
