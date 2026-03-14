@@ -97,6 +97,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const [isMaximized, setIsMaximized] = useState(false);
   const [hoveredCandleIndex, setHoveredCandleIndex] = useState<number | null>(null);
   const [crosshairPosition, setCrosshairPosition] = useState<{ x: number; y: number } | null>(null);
+  const [hoveredIndicator, setHoveredIndicator] = useState<'bb' | 'vreg' | null>(null);
   const [showTradeMarkers, setShowTradeMarkers] = useState(true);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1024,6 +1025,21 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 }
               });
 
+              const HOVER_THRESHOLD = 14;
+              const mouseY = crosshairPosition?.y ?? null;
+
+              const isBBHovered = (() => {
+                if (mouseY === null || hoveredCandleIndex === null) return false;
+                const candle = visibleCandles[hoveredCandleIndex];
+                if (!candle) return false;
+                const ys = [
+                  candle.bb_upper !== undefined ? priceToY(candle.bb_upper) : null,
+                  candle.bb_mid !== undefined ? priceToY(candle.bb_mid) : null,
+                  candle.bb_lower !== undefined ? priceToY(candle.bb_lower) : null,
+                ].filter((v): v is number => v !== null);
+                return ys.some(y => Math.abs(mouseY - y) < HOVER_THRESHOLD);
+              })();
+
               return (
                 <>
                   {bbUpperPoints.length > 1 && (
@@ -1031,25 +1047,34 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       <polyline
                         points={bbUpperPoints.join(' ')}
                         fill="none"
-                        stroke={darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)'}
-                        strokeWidth="1"
+                        stroke={darkMode
+                          ? isBBHovered ? 'rgba(230,230,230,0.92)' : 'rgba(195,195,195,0.65)'
+                          : isBBHovered ? 'rgba(30,30,30,0.88)' : 'rgba(75,75,75,0.62)'}
+                        strokeWidth={isBBHovered ? '1.6' : '1'}
                         strokeDasharray="4 4"
+                        style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }}
                       />
                       {bbMiddlePoints.length > 1 && (
                         <polyline
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
-                          stroke={darkMode ? 'rgba(175,175,175,0.45)' : 'rgba(95,95,95,0.44)'}
-                          strokeWidth="0.8"
+                          stroke={darkMode
+                            ? isBBHovered ? 'rgba(210,210,210,0.75)' : 'rgba(175,175,175,0.45)'
+                            : isBBHovered ? 'rgba(50,50,50,0.72)' : 'rgba(95,95,95,0.44)'}
+                          strokeWidth={isBBHovered ? '1.3' : '0.8'}
                           strokeDasharray="3 3"
+                          style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }}
                         />
                       )}
                       <polyline
                         points={bbLowerPoints.join(' ')}
                         fill="none"
-                        stroke={darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)'}
-                        strokeWidth="1"
+                        stroke={darkMode
+                          ? isBBHovered ? 'rgba(230,230,230,0.92)' : 'rgba(195,195,195,0.65)'
+                          : isBBHovered ? 'rgba(30,30,30,0.88)' : 'rgba(75,75,75,0.62)'}
+                        strokeWidth={isBBHovered ? '1.6' : '1'}
                         strokeDasharray="4 4"
+                        style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }}
                       />
                     </>
                   )}
@@ -1116,18 +1141,39 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       return lastVregVal;
                     })();
 
+                    const isVregHovered = (() => {
+                      if (mouseY === null || hoveredCandleIndex === null) return false;
+                      if (!vregSeries || vregSeries.length === 0) return false;
+                      const src = selectedCandles;
+                      if (!src || src.length === 0) return false;
+                      const offset = src.length - vregSeries.length;
+                      const globalIdx = visibleStartIndex + hoveredCandleIndex;
+                      const seriesIdx = globalIdx - offset;
+                      if (seriesIdx < 0 || seriesIdx >= vregSeries.length) return false;
+                      const val = vregSeries[seriesIdx];
+                      if (val === null || val === undefined) return false;
+                      return Math.abs(mouseY - priceToY(val)) < HOVER_THRESHOLD;
+                    })();
+
                     return (
                       <>
                         {vregPoints.length >= 2 && (
                           <polyline points={vregPoints.join(' ')} fill="none"
-                            stroke={vregColor} strokeWidth="0.8" opacity="0.85" />
+                            stroke={vregColor}
+                            strokeWidth={isVregHovered ? '2' : '0.8'}
+                            opacity={isVregHovered ? '1' : '0.85'}
+                            style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
+                          />
                         )}
                         {lastVisibleVreg !== null && (
                           <line
                             x1="0" y1={priceToY(lastVisibleVreg)}
                             x2="100%" y2={priceToY(lastVisibleVreg)}
-                            stroke={vregColor} strokeWidth="0.6" opacity="0.5"
+                            stroke={vregColor}
+                            strokeWidth={isVregHovered ? '1.2' : '0.6'}
+                            opacity={isVregHovered ? '0.75' : '0.5'}
                             strokeDasharray="4,4"
+                            style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
                           />
                         )}
                       </>
