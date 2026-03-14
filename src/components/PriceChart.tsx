@@ -793,7 +793,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   <span className={colors.textSecondary}>bu</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#ff3cac', boxShadow: '0 0 4px rgba(255,60,172,0.8)' }}></div>
+                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: darkMode ? '#ffffff' : '#06b6d4' }}></div>
                   <span className={colors.textSecondary}>VREG</span>
                 </div>
               </>
@@ -1124,8 +1124,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         )}
                         {vregPoints.length > 1 && (
                           <polyline points={vregPoints.join(' ')} fill="none"
-                            stroke="#ff3cac" strokeWidth="2.5" opacity="1"
-                            filter="drop-shadow(0 0 4px rgba(255,60,172,0.7))" />
+                            stroke={darkMode ? '#ffffff' : '#06b6d4'} strokeWidth="2" opacity="0.95" />
                         )}
                       </>
                     );
