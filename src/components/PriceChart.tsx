@@ -781,18 +781,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
                 <div className="flex items-center gap-1">
-                  <svg width="12" height="6" style={{ display: 'block' }}>
-                    <line x1="0" y1="3" x2="12" y2="3" stroke="#ef4444" strokeWidth="1.2" strokeDasharray="4 2" />
-                  </svg>
-                  <span className={colors.textSecondary}>bd</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <svg width="12" height="6" style={{ display: 'block' }}>
-                    <line x1="0" y1="3" x2="12" y2="3" stroke="#22c55e" strokeWidth="1.2" strokeDasharray="4 2" />
-                  </svg>
-                  <span className={colors.textSecondary}>bu</span>
-                </div>
-                <div className="flex items-center gap-1">
                   <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: darkMode ? '#e2e8f0' : '#0d9488' }}></div>
                   <span className={colors.textSecondary}>VREG</span>
                 </div>
@@ -1086,14 +1074,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* v10.1 Overlays: bd/bu, VREG */}
+                  {/* v10.1 Overlays: VREG */}
                   {showTradeMarkers && (() => {
                     if (!v10Strategy) return null;
-                    const ind = v10Strategy.indicators;
-                    const bd = ind?.['5m']?.bd;
-                    const bu = ind?.['5m']?.bu;
                     const vregSeries = v10Strategy.vregSeries || (v10Strategy as any).vreg_series;
-                    const chartW = visibleCandles.length * (candleWidth + candleGap);
 
                     const vregPoints: string[] = [];
                     if (vregSeries && vregSeries.length > 0) {
@@ -1112,21 +1096,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       }
                     }
 
+                    if (vregPoints.length < 2) return null;
+
                     return (
-                      <>
-                        {bd !== undefined && bd > minPrice && bd < maxPrice && (
-                          <line x1="0" y1={priceToY(bd)} x2={chartW} y2={priceToY(bd)}
-                            stroke="#ef4444" strokeWidth="1" strokeDasharray="5 3" opacity="0.75" />
-                        )}
-                        {bu !== undefined && bu > minPrice && bu < maxPrice && (
-                          <line x1="0" y1={priceToY(bu)} x2={chartW} y2={priceToY(bu)}
-                            stroke="#22c55e" strokeWidth="1" strokeDasharray="5 3" opacity="0.75" />
-                        )}
-                        {vregPoints.length > 1 && (
-                          <polyline points={vregPoints.join(' ')} fill="none"
-                            stroke={darkMode ? '#e2e8f0' : '#0d9488'} strokeWidth="1.5" opacity="0.95" />
-                        )}
-                      </>
+                      <polyline points={vregPoints.join(' ')} fill="none"
+                        stroke={darkMode ? '#e2e8f0' : '#0d9488'} strokeWidth="1.5" opacity="0.95" />
                     );
                   })()}
 
