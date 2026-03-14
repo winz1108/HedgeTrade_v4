@@ -72,6 +72,8 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
   const cut = exitConditions?.CUT;
   const hasData = !!(vreg || ema || cut);
 
+  if (!inPosition) return null;
+
   return (
     <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
       <div className="flex items-center justify-between mb-1.5">

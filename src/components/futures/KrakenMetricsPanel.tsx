@@ -47,6 +47,8 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition }: ExitCon
 
   const hasData = !!(vreg || ema || cut);
 
+  if (!inPosition) return null;
+
   return (
     <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
       <div className="flex items-center justify-between mb-1.5">
