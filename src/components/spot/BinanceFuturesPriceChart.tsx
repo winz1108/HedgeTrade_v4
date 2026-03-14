@@ -4,9 +4,10 @@ import { DashboardData, TradeEvent, BFDashboardData } from '../../types/dashboar
 
 interface Props {
   data: BFDashboardData;
+  onTimeframeChange?: (timeframe: string) => void;
 }
 
-export function BinanceFuturesPriceChart({ data }: Props) {
+export function BinanceFuturesPriceChart({ data, onTimeframeChange }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
     const getCandles = (timeframe: string): any[] => {
       const candles: any[] = data.priceHistories?.[timeframe] || [];
@@ -90,7 +91,7 @@ export function BinanceFuturesPriceChart({ data }: Props) {
     <PriceChart
       data={transformedData}
       onTradeHover={(_trade: TradeEvent | null) => {}}
-      onTimeframeChange={(_timeframe: string) => {}}
+      onTimeframeChange={(timeframe: string) => onTimeframeChange?.(timeframe)}
       darkMode={false}
       v10Strategy={data.strategyStatus || null}
     />

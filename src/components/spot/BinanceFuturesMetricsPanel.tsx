@@ -9,11 +9,6 @@ interface Props {
   currentTime: number;
 }
 
-const V10_ENTRY_CONDITIONS: { key: string; label: string }[] = [
-  { key: '1h_ema_bu', label: '1h EMA bu' },
-  { key: '1h_ema_bd', label: '1h EMA bd' },
-  { key: '1h_adx_20', label: '1h ADX >= 15' },
-];
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
   const diffMs = currentTime - entryTime;
@@ -186,92 +181,41 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
         <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Entry Conditions</h3>
-            {ss && (
-              <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded ${
-                ss.allBuyMet ? 'bg-emerald-50 text-emerald-600' : 'bg-stone-100 text-slate-400'
-              }`}>
-                {ss.buyConditionsMet ?? 0}/{ss.buyConditionsTotal ?? V10_ENTRY_CONDITIONS.length}
-              </span>
-            )}
           </div>
 
-          {ss?.buyConditions ? (
-            <div className="space-y-2">
-              <div className="space-y-0.5">
-                {V10_ENTRY_CONDITIONS.map(({ key, label }) => {
-                  const met = ss.buyConditions?.[key];
-                  return (
-                    <div key={key} className={`flex items-center justify-between py-[3px] px-2 rounded transition-colors ${met ? 'bg-emerald-50 border border-emerald-200' : ''}`}>
-                      <div className="flex items-center gap-1.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${met ? 'bg-emerald-500' : 'bg-stone-300'}`} />
-                        <span className={`text-[9px] ${met ? 'text-emerald-700' : 'text-slate-400'}`}>{label}</span>
-                      </div>
-                      {key === '1h_adx_20' && ss.indicators?.['1h']?.adx !== undefined && (
-                        <span className={`text-[9px] tabular-nums ${met ? 'text-emerald-600' : 'text-slate-400'}`}>{ss.indicators['1h'].adx.toFixed(1)}</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
-                  <div className="text-[8px] text-cyan-600 font-semibold tracking-wide mb-1">LONG</div>
-                  {entryConditionsLong ? (
-                    Object.entries(entryConditionsLong).map(([key, met]) => (
-                      <div key={`l-${key}`} className={`flex items-center gap-1.5 py-[2px] px-1 rounded transition-colors ${met ? 'bg-cyan-50' : ''}`}>
-                        <div className={`w-1 h-1 rounded-full ${met ? 'bg-cyan-500' : 'bg-stone-300'}`} />
-                        <span className={`text-[8px] ${met ? 'text-cyan-700' : 'text-slate-400'}`}>{key}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="flex items-center gap-1.5 py-[2px]">
-                      <span className="text-[8px] text-slate-400">bu touch</span>
-                      {ss.indicators?.['5m']?.bu !== undefined && (
-                        <span className="text-[8px] text-slate-500 ml-auto tabular-nums">${ss.indicators['5m'].bu.toFixed(0)}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
-                  <div className="text-[8px] text-orange-600 font-semibold tracking-wide mb-1">SHORT</div>
-                  {entryConditionsShort ? (
-                    Object.entries(entryConditionsShort).map(([key, met]) => (
-                      <div key={`s-${key}`} className={`flex items-center gap-1.5 py-[2px] px-1 rounded transition-colors ${met ? 'bg-orange-50' : ''}`}>
-                        <div className={`w-1 h-1 rounded-full ${met ? 'bg-orange-500' : 'bg-stone-300'}`} />
-                        <span className={`text-[8px] ${met ? 'text-orange-700' : 'text-slate-400'}`}>{key}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="flex items-center gap-1.5 py-[2px]">
-                      <span className="text-[8px] text-slate-400">bd touch</span>
-                      {ss.indicators?.['5m']?.bd !== undefined && (
-                        <span className="text-[8px] text-slate-500 ml-auto tabular-nums">${ss.indicators['5m'].bd.toFixed(0)}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : entryConditionsLong && entryConditionsShort ? (
+          {(entryConditionsLong || entryConditionsShort) ? (
             <div className="grid grid-cols-2 gap-1.5">
               <div className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
                 <div className="text-[8px] text-cyan-600 font-semibold tracking-wide mb-1">LONG</div>
-                {Object.entries(entryConditionsLong).map(([key, met]) => (
-                  <div key={`l-${key}`} className={`flex items-center gap-1.5 py-[2px] px-1 rounded transition-colors ${met ? 'bg-cyan-50' : ''}`}>
-                    <div className={`w-1 h-1 rounded-full ${met ? 'bg-cyan-500' : 'bg-stone-300'}`} />
-                    <span className={`text-[8px] ${met ? 'text-cyan-700' : 'text-slate-400'}`}>{key}</span>
-                  </div>
-                ))}
+                {entryConditionsLong ? (
+                  Object.entries(entryConditionsLong).map(([key, met]) => {
+                    const isActive = met === true;
+                    return (
+                      <div key={`l-${key}`} className={`flex items-center gap-1.5 py-[3px] px-1 rounded transition-all ${isActive ? 'bg-cyan-100 border border-cyan-300' : 'bg-stone-100 border border-transparent'}`}>
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all ${isActive ? 'bg-cyan-500 shadow-[0_0_4px_rgba(6,182,212,0.8)]' : 'bg-stone-300'}`} />
+                        <span className={`text-[8px] font-medium ${isActive ? 'text-cyan-700' : 'text-stone-400'}`}>{key}</span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-[8px] text-slate-400 py-1">-</div>
+                )}
               </div>
               <div className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
                 <div className="text-[8px] text-orange-600 font-semibold tracking-wide mb-1">SHORT</div>
-                {Object.entries(entryConditionsShort).map(([key, met]) => (
-                  <div key={`s-${key}`} className={`flex items-center gap-1.5 py-[2px] px-1 rounded transition-colors ${met ? 'bg-orange-50' : ''}`}>
-                    <div className={`w-1 h-1 rounded-full ${met ? 'bg-orange-500' : 'bg-stone-300'}`} />
-                    <span className={`text-[8px] ${met ? 'text-orange-700' : 'text-slate-400'}`}>{key}</span>
-                  </div>
-                ))}
+                {entryConditionsShort ? (
+                  Object.entries(entryConditionsShort).map(([key, met]) => {
+                    const isActive = met === true;
+                    return (
+                      <div key={`s-${key}`} className={`flex items-center gap-1.5 py-[3px] px-1 rounded transition-all ${isActive ? 'bg-orange-100 border border-orange-300' : 'bg-stone-100 border border-transparent'}`}>
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all ${isActive ? 'bg-orange-500 shadow-[0_0_4px_rgba(249,115,22,0.8)]' : 'bg-stone-300'}`} />
+                        <span className={`text-[8px] font-medium ${isActive ? 'text-orange-700' : 'text-stone-400'}`}>{key}</span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-[8px] text-slate-400 py-1">-</div>
+                )}
               </div>
             </div>
           ) : (

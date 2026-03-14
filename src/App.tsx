@@ -12,6 +12,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('5m');
 
   const loadData = async () => {
     try {
@@ -138,15 +139,63 @@ function App() {
       });
     };
 
+    const handleRealtimeCandle = (candleData: any) => {
+      if (!candleData) return;
+      if (candleData.timeframe !== selectedTimeframe) return;
+
+      const openTime: number = typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime);
+
+      setData(prev => {
+        if (!prev) return prev;
+        const updated = { ...prev };
+        if (prev.priceHistories) {
+          const updatedHistories = { ...prev.priceHistories };
+          const tf = candleData.timeframe as string;
+          const candles = updatedHistories[tf];
+          if (candles && candles.length > 0) {
+            const updatedCandles = [...candles];
+            const lastCandle = updatedCandles[updatedCandles.length - 1];
+            const candleTimeSec = Math.floor(openTime / 1000);
+            const lastTimeSec = lastCandle.time ?? Math.floor((lastCandle.timestamp || 0) / 1000);
+
+            if (candleTimeSec === lastTimeSec || openTime === (lastCandle.timestamp || 0)) {
+              updatedCandles[updatedCandles.length - 1] = {
+                ...lastCandle,
+                open: candleData.open,
+                high: candleData.high,
+                low: candleData.low,
+                close: candleData.close,
+              };
+            } else if (candleData.isFinal) {
+              updatedCandles.push({
+                timestamp: openTime,
+                time: candleTimeSec,
+                open: candleData.open,
+                high: candleData.high,
+                low: candleData.low,
+                close: candleData.close,
+                volume: candleData.volume || 0,
+              });
+            }
+            updatedHistories[tf] = updatedCandles;
+            updated.priceHistories = updatedHistories;
+          }
+        }
+        return updated;
+      });
+    };
+
+    websocketService.on('realtime_candle_update', handleRealtimeCandle);
     websocketService.on('bf_live_status', handleLiveStatus);
     websocketService.on('bf_price_tick', handlePriceTick);
 
     return () => {
       clearInterval(interval);
+      websocketService.off('realtime_candle_update', handleRealtimeCandle);
       websocketService.off('bf_live_status', handleLiveStatus);
       websocketService.off('bf_price_tick', handlePriceTick);
     };
-  }, [updateLiveCandle]);
+  }, [updateLiveCandle, selectedTimeframe]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
@@ -245,7 +294,7 @@ function App() {
             <BinanceFuturesMetricsPanel data={data} position="left" currentTime={currentTime} />
           </div>
           <div className="w-full min-w-0 order-1 lg:order-2">
-            <BinanceFuturesPriceChart data={data} />
+            <BinanceFuturesPriceChart data={data} onTimeframeChange={setSelectedTimeframe} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2">
             <div className="w-full flex-shrink-0">

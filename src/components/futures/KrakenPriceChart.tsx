@@ -4,9 +4,10 @@ import { KrakenDashboardData, DashboardData, TradeEvent } from '../../types/dash
 
 interface Props {
   data: KrakenDashboardData;
+  onTimeframeChange?: (timeframe: string) => void;
 }
 
-export function KrakenPriceChart({ data }: Props) {
+export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
     const getCandles = (timeframe: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'): any[] => {
       let candles: any[] = [];
@@ -188,7 +189,7 @@ export function KrakenPriceChart({ data }: Props) {
     <PriceChart
       data={transformedData}
       onTradeHover={(trade: TradeEvent | null) => {}}
-      onTimeframeChange={(timeframe: string) => {}}
+      onTimeframeChange={(timeframe: string) => onTimeframeChange?.(timeframe)}
       darkMode={true}
       v10Strategy={data.strategyStatus || null}
     />

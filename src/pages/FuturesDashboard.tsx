@@ -11,6 +11,7 @@ function FuturesDashboard() {
   const [data, setData] = useState<KrakenDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('5m');
 
   const loadData = async () => {
     try {
@@ -100,28 +101,125 @@ function FuturesDashboard() {
         updateLiveCandle(statusData.current_price);
       }
 
-      // Update PP reversal price if available
-      if (statusData.pp_reversal_price !== undefined) {
-        setData(prevData => {
-          if (!prevData) return prevData;
-          return {
-            ...prevData,
-            strategyA: {
-              ...prevData.strategyA,
-              pp_reversal_price: statusData.pp_reversal_price,
-            },
-          };
-        });
-      }
+      setData(prevData => {
+        if (!prevData) return prevData;
+        const updated = { ...prevData };
+
+        if (statusData.pp_reversal_price !== undefined) {
+          updated.strategyA = { ...updated.strategyA, pp_reversal_price: statusData.pp_reversal_price };
+        }
+        return updated;
+      });
     };
 
+    const handleKrakenPriceUpdate = (priceData: any) => {
+      if (!priceData) return;
+
+      setData(prevData => {
+        if (!prevData) return prevData;
+        const updated = { ...prevData };
+
+        if (priceData.price) {
+          updated.currentPrice = priceData.price;
+        }
+
+        if (priceData.vreg_series || priceData.vreg_line || priceData.indicators || priceData.exit_prices) {
+          const prevStatus = updated.strategyStatus || {} as any;
+          updated.strategyStatus = {
+            ...prevStatus,
+            inPosition: priceData.in_position ?? prevStatus.inPosition,
+            positionSide: priceData.position_side ?? prevStatus.positionSide,
+            entryPrice: priceData.entry_price ?? prevStatus.entryPrice,
+            vregLine: priceData.vreg_line ?? prevStatus.vregLine,
+            vregSeries: priceData.vreg_series ?? prevStatus.vregSeries,
+            vreg_series: priceData.vreg_series ?? prevStatus.vreg_series,
+            indicators: priceData.indicators
+              ? {
+                  ...prevStatus.indicators,
+                  ...priceData.indicators,
+                }
+              : prevStatus.indicators,
+            exitPrices: priceData.exit_prices
+              ? {
+                  ...prevStatus.exitPrices,
+                  ema_exit: priceData.exit_prices.ema_exit,
+                }
+              : prevStatus.exitPrices,
+          } as any;
+        }
+
+        if (priceData.exit_prices && priceData.in_position) {
+          updated.strategyA = {
+            ...updated.strategyA,
+            exit_prices: priceData.exit_prices,
+            floor_price: priceData.exit_prices.floor_price,
+            sl_price: priceData.exit_prices.sl_price,
+          };
+        }
+
+        return updated;
+      });
+    };
+
+    const handleKrakenCandleUpdate = (candleData: any) => {
+      if (!candleData) return;
+      if (candleData.timeframe !== selectedTimeframe) return;
+
+      const openTime: number = typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime);
+
+      setData(prevData => {
+        if (!prevData) return prevData;
+        const updatedData = { ...prevData };
+
+        if (prevData.priceHistories) {
+          const updatedHistories = { ...prevData.priceHistories };
+          const tf = candleData.timeframe as '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
+          const candles = updatedHistories[tf];
+          if (candles && candles.length > 0) {
+            const updatedCandles = [...candles];
+            const lastCandle = updatedCandles[updatedCandles.length - 1];
+            const candleTimeSec = Math.floor(openTime / 1000);
+            const lastTimeSec = lastCandle.time ?? Math.floor((lastCandle.timestamp || 0) / 1000);
+
+            if (candleTimeSec === lastTimeSec || openTime === (lastCandle.timestamp || 0)) {
+              updatedCandles[updatedCandles.length - 1] = {
+                ...lastCandle,
+                open: candleData.open,
+                high: candleData.high,
+                low: candleData.low,
+                close: candleData.close,
+              };
+            } else if (candleData.isFinal) {
+              updatedCandles.push({
+                timestamp: openTime,
+                time: candleTimeSec,
+                open: candleData.open,
+                high: candleData.high,
+                low: candleData.low,
+                close: candleData.close,
+                volume: candleData.volume || 0,
+              } as any);
+            }
+            updatedHistories[tf] = updatedCandles;
+            updatedData.priceHistories = updatedHistories;
+          }
+        }
+
+        return updatedData;
+      });
+    };
+
+    websocketService.on('kraken_candle_update', handleKrakenCandleUpdate);
+    websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
     return () => {
       clearInterval(interval);
+      websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
+      websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);
     };
-  }, [updateLiveCandle]);
+  }, [updateLiveCandle, selectedTimeframe]);
 
   useEffect(() => {
     if (data?.currentPrice) {
@@ -217,7 +315,7 @@ function FuturesDashboard() {
             <KrakenMetricsPanel data={data} position="left" />
           </div>
           <div className="w-full min-w-0 order-1 lg:order-2">
-            <KrakenPriceChart data={data} />
+            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2">
             <div className="w-full flex-shrink-0">

@@ -764,10 +764,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <span className={colors.textSecondary}>{(timeframe === '1h' || timeframe === '15m') ? 'EMA 8' : 'EMA 13'}</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 border-t border-dashed" style={{ borderColor: colors.bb }}></div>
+              <div className="w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(148,163,184,0.7)' : 'rgba(100,116,139,0.7)' }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
-            {v10Strategy && !v10Strategy.inPosition && (
+            {v10Strategy && (
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
                 <div className="flex items-center gap-1">
@@ -782,21 +782,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   </svg>
                   <span className={colors.textSecondary}>bu</span>
                 </div>
-              </>
-            )}
-            {v10Strategy && (
-              <>
-                <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#f97316' }}></div>
-                  <span className={colors.textSecondary}>1h E8</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#a855f7' }}></div>
-                  <span className={colors.textSecondary}>1h E13</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#eab308' }}></div>
+                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#e879f9' }}></div>
                   <span className={colors.textSecondary}>VREG</span>
                 </div>
               </>
@@ -1097,8 +1084,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* v10.1 Overlays: bd/bu, 1h EMA8/EMA13, VREG */}
-                  {(() => {
+                  {/* v10.1 Overlays: bd/bu, VREG */}
+                  {showTradeMarkers && (() => {
                     if (!v10Strategy) return null;
                     const isHolding = v10Strategy.inPosition || data.holding.isHolding;
                     const ind = v10Strategy.indicators;
@@ -1149,17 +1136,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                           <line x1="0" y1={priceToY(bu)} x2={chartW} y2={priceToY(bu)}
                             stroke="#22c55e" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.8" />
                         )}
-                        {ema8_1h !== undefined && ema8_1h > minPrice && ema8_1h < maxPrice && (
-                          <line x1="0" y1={priceToY(ema8_1h)} x2={chartW} y2={priceToY(ema8_1h)}
-                            stroke="#f97316" strokeWidth="1.5" opacity="0.7" />
-                        )}
-                        {ema13_1h !== undefined && ema13_1h > minPrice && ema13_1h < maxPrice && (
-                          <line x1="0" y1={priceToY(ema13_1h)} x2={chartW} y2={priceToY(ema13_1h)}
-                            stroke="#a855f7" strokeWidth="1.5" opacity="0.7" />
-                        )}
                         {vregPoints.length > 1 && (
                           <polyline points={vregPoints.join(' ')} fill="none"
-                            stroke="#eab308" strokeWidth="1.8" opacity="0.9" />
+                            stroke="#e879f9" strokeWidth="2" opacity="0.95" />
                         )}
                       </>
                     );
@@ -1579,13 +1558,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               </svg>
             )}
 
-            {data.holding.isHolding && data.holding.buyPrice && (() => {
+            {showTradeMarkers && data.holding.isHolding && data.holding.buyPrice && (() => {
               const isLong = data.holding.positionSide === 'LONG';
-              const entryColor = isLong ? '#06b6d4' : '#f97316'; // cyan for LONG, orange for SHORT
+              const entryColor = isLong ? '#06b6d4' : '#f97316';
               const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(249, 115, 22, 0.5)';
-              const breakevenPrice = isLong
-                ? data.holding.buyPrice * 1.001  // +0.1% for LONG
-                : data.holding.buyPrice * 0.999; // -0.1% for SHORT
 
               return (
                 <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
@@ -1600,18 +1576,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     strokeDasharray="4 2"
                     opacity="0.75"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
-                  />
-                  {/* Breakeven line (0.1% fee coverage) */}
-                  <line
-                    x1="0"
-                    y1={priceToY(breakevenPrice)}
-                    x2="100%"
-                    y2={priceToY(breakevenPrice)}
-                    stroke={darkMode ? '#ffffff' : '#475569'}
-                    strokeWidth="1.5"
-                    strokeDasharray="4 2"
-                    opacity={darkMode ? 0.6 : 0.55}
-                    filter={darkMode ? 'drop-shadow(0 0 3px rgba(255, 255, 255, 0.4))' : 'none'}
                   />
                   {/* PP Reversal Price line */}
                   {data.holding.ppReversalPrice && (
