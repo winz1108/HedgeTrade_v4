@@ -777,15 +777,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <div className="w-2.5 sm:w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(148,163,184,0.7)' : 'rgba(100,116,139,0.7)' }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
-            {v10Strategy && timeframe !== '1m' && (
-              <>
-                <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: darkMode ? '#e2e8f0' : '#0d9488' }}></div>
-                  <span className={colors.textSecondary}>VREG</span>
-                </div>
-              </>
-            )}
             {data.holding.isHolding && (
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
