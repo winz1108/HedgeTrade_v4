@@ -466,11 +466,11 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   if (isLongSide) {
                     rawPct = range.long_pct ?? range.position_pct ?? 0;
                     met = rawPct <= 80;
-                    value = rawPct > 80 ? `${rawPct.toFixed(1)}% 진입불가` : `${rawPct.toFixed(1)}%`;
+                    value = `${rawPct.toFixed(1)}%`;
                   } else {
                     rawPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
                     met = rawPct <= 80;
-                    value = rawPct > 80 ? `${rawPct.toFixed(1)}% 진입불가` : `${rawPct.toFixed(1)}%`;
+                    value = `${rawPct.toFixed(1)}%`;
                   }
                   rows.push({ label: 'Range', pct: Math.min(100, rawPct), met, value, isRange: true, rangePct: rawPct, isShortRange: !isLongSide });
                 }
@@ -484,23 +484,19 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                       {rows.map(row => (
                         <div key={row.label} className="flex flex-col gap-0.5">
                           <div className="flex items-center justify-between">
-                            <span className={`text-[8px] ${row.met ? textActive : row.isRange && (row.isShortRange ? (row.rangePct ?? 0) < 20 : (row.rangePct ?? 0) > 80) ? 'text-slate-400' : 'text-slate-500'}`}>{row.label}</span>
-                            <span className={`text-[8px] tabular-nums ${row.met ? textActive : row.isRange && (row.isShortRange ? (row.rangePct ?? 0) < 20 : (row.rangePct ?? 0) > 80) ? 'text-slate-400' : 'text-slate-500'}`}>{row.value}</span>
+                            <span className={`text-[8px] ${row.met ? textActive : row.isRange && !row.met ? 'text-red-400' : 'text-slate-500'}`}>{row.label}</span>
+                            <span className={`text-[8px] tabular-nums ${row.met ? textActive : row.isRange && !row.met ? 'text-red-400' : 'text-slate-500'}`}>{row.value}</span>
                           </div>
                           {row.isRange ? (
                             <div className="relative bg-slate-700 rounded-full h-1 overflow-hidden">
-                              {row.isShortRange
-                                ? <div className="absolute left-0 top-0 h-1 bg-slate-500/80" style={{ width: '20%' }} />
-                                : <div className="absolute right-0 top-0 h-1 bg-slate-500/80" style={{ width: '20%' }} />
-                              }
                               {row.isShortRange ? (
                                 <div
-                                  className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${barActive}`}
+                                  className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${row.met ? barActive : 'bg-red-600'}`}
                                   style={{ width: `${row.pct}%` }}
                                 />
                               ) : (
                                 <div
-                                  className={`h-1 rounded-full transition-all duration-300 relative z-10 ${barActive}`}
+                                  className={`h-1 rounded-full transition-all duration-300 relative z-10 ${row.met ? barActive : 'bg-red-600'}`}
                                   style={{ width: `${row.pct}%` }}
                                 />
                               )}
