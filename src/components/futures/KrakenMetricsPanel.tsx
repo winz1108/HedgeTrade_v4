@@ -227,19 +227,38 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.mae_ok} />
-                  <span className={`text-[8px] ${cut.mae_ok ? 'text-slate-300' : 'text-slate-600'} w-[36px]`}>MAE</span>
-                  <ProgressBar current={Math.abs(cut.mae_current)} target={Math.abs(cut.mae_threshold)} />
-                  <span className={`text-[8px] tabular-nums min-w-[36px] text-right ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
-                    {cut.mae_current.toFixed(2)}%
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
+                  <ProgressBar current={Math.abs(cut.mae_current ?? 0)} target={Math.abs(cut.mae_threshold ?? 1)} />
+                  <span className={`text-[8px] tabular-nums w-[52px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
+                    {(cut.mae_current ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.pnl_ok} />
-                  <span className={`text-[8px] ${cut.pnl_ok ? 'text-rose-300' : 'text-slate-600'}`}>PnL &lt; 0</span>
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${cut.pnl_ok ? 'text-rose-300' : 'text-slate-600'}`}>PnL</span>
+                  {vreg?.pnl_current != null ? (
+                    <>
+                      <ProgressBar
+                        current={Math.abs(vreg.pnl_current)}
+                        target={2}
+                        color={vreg.pnl_current < 0 ? 'bg-rose-500' : 'bg-slate-500'}
+                      />
+                      <span className={`text-[8px] tabular-nums w-[52px] text-right flex-shrink-0 ${cut.pnl_ok ? 'text-rose-400' : 'text-slate-500'}`}>
+                        {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
+                      </span>
+                    </>
+                  ) : (
+                    <span className={`text-[8px] ml-1 ${cut.pnl_ok ? 'text-rose-300' : 'text-slate-600'}`}>&lt; 0</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.ema_reversed} />
-                  <span className={`text-[8px] ${cut.ema_reversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
+                  <span className={`text-[8px] flex-1 ${cut.ema_reversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
+                  {ema?.band_distance_pct != null && (
+                    <span className={`text-[8px] tabular-nums ${ema.band_distance_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {ema.band_distance_pct >= 0 ? '+' : ''}{ema.band_distance_pct.toFixed(2)}%
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -449,20 +468,12 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   rows.push({ label: 'ADX', pct: Math.min(100, (adx.current / adx.threshold) * 100), met, value: `${adx.current.toFixed(1)}/${adx.threshold}` });
                 }
 
-                if (entryDetails.EMA) {
+                if (entryDetails.EMA && isLongSide) {
                   const ema = entryDetails.EMA!;
-                  let pct: number; let met: boolean; let value: string;
-                  if (isLongSide) {
-                    met = ema.long_met;
-                    const dist = ema.long_distance_pct;
-                    pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
-                    value = met ? '진입 가능' : `bd까지 ${dist.toFixed(2)}%`;
-                  } else {
-                    met = ema.short_met;
-                    const dist = ema.short_distance_pct;
-                    pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
-                    value = met ? '진입 가능' : `bu까지 ${dist.toFixed(2)}%`;
-                  }
+                  const met = ema.long_met ?? false;
+                  const dist = ema.long_distance_pct ?? 0;
+                  const pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
+                  const value = met ? '진입 가능' : `bd까지 ${dist.toFixed(2)}%`;
                   rows.push({ label: 'EMA', pct, met, value });
                 }
 
@@ -470,13 +481,13 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   const range = entryDetails.Range!;
                   let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
-                    const longPct = range.long_pct;
+                    const longPct = range.long_pct ?? range.position_pct ?? 0;
                     const longMax = range.long_max ?? 80;
                     met = longPct <= longMax;
                     pct = Math.min(100, (longPct / longMax) * 100);
                     value = `${longPct.toFixed(1)}%`;
                   } else {
-                    const shortPct = range.short_pct;
+                    const shortPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
                     const shortMin = range.short_min ?? 20;
                     met = shortPct >= shortMin;
                     pct = Math.min(100, (shortPct / 100) * 100);
