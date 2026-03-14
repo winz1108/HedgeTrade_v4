@@ -111,6 +111,30 @@ export interface ExitConditions {
   CUT?: ExitConditionCUT;
 }
 
+export interface EntryDetailADX {
+  current: number;
+  threshold: number;
+}
+
+export interface EntryDetailEMA {
+  price: number;
+  bd: number;
+  bu: number;
+}
+
+export interface EntryDetailRange {
+  position_pct: number;
+  long_max: number;
+  short_min: number;
+}
+
+export interface EntryDetails {
+  ADX?: EntryDetailADX;
+  EMA?: EntryDetailEMA;
+  Range?: EntryDetailRange;
+  [key: string]: any;
+}
+
 export interface V10StrategyStatus {
   strategyVersion?: string;
   inPosition: boolean;
@@ -140,6 +164,7 @@ export interface V10StrategyStatus {
     cut_threshold_mae?: number;
   };
   exitConditions?: ExitConditions;
+  entryDetails?: EntryDetails;
   vregLine?: number;
   vreg_series?: (number | null)[];
   vregSeries?: (number | null)[];
@@ -480,6 +505,7 @@ export interface KrakenStrategyA {
   };
   entry_conditions_long?: Record<string, boolean>;
   entry_conditions_short?: Record<string, boolean>;
+  entry_details?: EntryDetails;
 }
 
 export interface KrakenSellConditions {
@@ -681,6 +707,10 @@ export interface BFDashboardData {
     version: string;
     entryConditionsLong: Record<string, boolean>;
     entryConditionsShort: Record<string, boolean>;
+    entry_conditions_long?: Record<string, boolean>;
+    entry_conditions_short?: Record<string, boolean>;
+    entryDetails?: EntryDetails;
+    entry_details?: EntryDetails;
     indicators: Record<string, any>;
     pp_reversal_price: number | null;
   };

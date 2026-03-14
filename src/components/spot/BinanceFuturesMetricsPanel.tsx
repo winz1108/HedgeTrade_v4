@@ -117,27 +117,27 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: 
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.bars_ok} />
-                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-amber-300' : 'text-stone-500'}`}>봉수</span>
+                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-amber-400' : 'text-stone-500'}`}>봉수</span>
                   <BProgressBar current={vreg.bars_held} target={vreg.bars_min} />
-                  <span className={`text-[8px] tabular-nums min-w-[28px] text-right ${vreg.bars_ok ? 'text-amber-300' : 'text-stone-500'}`}>
+                  <span className={`text-[8px] tabular-nums min-w-[28px] text-right ${vreg.bars_ok ? 'text-amber-400' : 'text-stone-500'}`}>
                     {vreg.bars_held}/{vreg.bars_min}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.pnl_ok} />
-                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-amber-300' : 'text-stone-500'}`}>PnL</span>
+                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>PnL</span>
                   <BProgressBar current={vreg.pnl_current} target={vreg.pnl_min} />
-                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-400' : 'text-stone-500'}`}>
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>
                     {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.vol_spike} />
-                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-amber-300' : 'text-stone-500'}`}>거래량 스파이크</span>
+                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>거래량 스파이크</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
                       <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult} />
-                      <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-amber-300' : 'text-stone-500'}`}>
+                      <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>
                         {vreg.vol_current_ratio.toFixed(1)}/{vreg.vol_mult}
                       </span>
                     </>
@@ -255,6 +255,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
     const ss = data.strategyStatus;
     const entryConditionsLong = data.strategy?.entryConditionsLong || data.strategy?.entry_conditions_long;
     const entryConditionsShort = data.strategy?.entryConditionsShort || data.strategy?.entry_conditions_short;
+    const entryDetails = data.strategyStatus?.entryDetails || data.strategy?.entryDetails || data.strategy?.entry_details;
 
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {
@@ -380,6 +381,82 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
             <h3 className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Entry Conditions</h3>
           </div>
 
+          {entryDetails && (
+            <div className="mb-2 flex flex-col gap-0.5">
+              {entryDetails.ADX && (() => {
+                const adx = entryDetails.ADX!;
+                const pct = Math.min(100, (adx.current / adx.threshold) * 100);
+                const met = adx.current >= adx.threshold;
+                return (
+                  <div className="flex items-center gap-1.5">
+                    <BConditionDot met={met} />
+                    <span className={`text-[8px] w-8 ${met ? 'text-cyan-600' : 'text-stone-400'}`}>ADX</span>
+                    <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
+                      <div className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-stone-400'}`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${met ? 'text-cyan-600' : 'text-stone-400'}`}>
+                      {adx.current.toFixed(1)}/{adx.threshold}
+                    </span>
+                  </div>
+                );
+              })()}
+              {entryDetails.EMA && (() => {
+                const ema = entryDetails.EMA!;
+                const side = positionSide || 'LONG';
+                let pct: number;
+                let met: boolean;
+                if (side === 'LONG') {
+                  met = ema.price < ema.bd;
+                  pct = ema.bu > ema.bd
+                    ? Math.min(100, Math.max(0, ((ema.bu - ema.price) / (ema.bu - ema.bd)) * 100))
+                    : met ? 100 : 0;
+                } else {
+                  met = ema.price > ema.bu;
+                  pct = ema.bu > ema.bd
+                    ? Math.min(100, Math.max(0, ((ema.price - ema.bd) / (ema.bu - ema.bd)) * 100))
+                    : met ? 100 : 0;
+                }
+                return (
+                  <div className="flex items-center gap-1.5">
+                    <BConditionDot met={met} />
+                    <span className={`text-[8px] w-8 ${met ? 'text-cyan-600' : 'text-stone-400'}`}>EMA</span>
+                    <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
+                      <div className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-stone-400'}`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${met ? 'text-cyan-600' : 'text-stone-400'}`}>
+                      {pct.toFixed(0)}%
+                    </span>
+                  </div>
+                );
+              })()}
+              {entryDetails.Range && (() => {
+                const range = entryDetails.Range!;
+                const side = positionSide || 'LONG';
+                let pct: number;
+                let met: boolean;
+                if (side === 'LONG') {
+                  met = range.position_pct <= range.long_max;
+                  pct = Math.min(100, (range.position_pct / range.long_max) * 100);
+                } else {
+                  met = range.position_pct >= range.short_min;
+                  pct = Math.min(100, ((100 - range.position_pct) / (100 - range.short_min)) * 100);
+                }
+                return (
+                  <div className="flex items-center gap-1.5">
+                    <BConditionDot met={met} />
+                    <span className={`text-[8px] w-8 ${met ? 'text-cyan-600' : 'text-stone-400'}`}>Range</span>
+                    <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
+                      <div className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-stone-400'}`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${met ? 'text-cyan-600' : 'text-stone-400'}`}>
+                      {range.position_pct.toFixed(1)}%
+                    </span>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
           {(entryConditionsLong || entryConditionsShort) ? (
             <div className="grid grid-cols-2 gap-1.5">
               <div className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
@@ -416,9 +493,11 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-8 text-slate-400 text-[10px]">
-              Waiting...
-            </div>
+            !entryDetails && (
+              <div className="flex items-center justify-center h-8 text-slate-400 text-[10px]">
+                Waiting...
+              </div>
+            )
           )}
         </div>
 
