@@ -240,7 +240,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   <BConditionDot met={cut.mae_ok} />
                   <span className={`text-[8px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
                   <BProgressBar current={Math.abs(cut.mae_current ?? 0)} target={Math.abs(cut.mae_threshold ?? 1)} />
-                  <span className={`text-[8px] tabular-nums w-[52px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-slate-400'}`}>
+                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-slate-400'}`}>
                     {(cut.mae_current ?? 0).toFixed(2)}%
                   </span>
                 </div>

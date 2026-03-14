@@ -229,7 +229,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                   <ConditionDot met={cut.mae_ok} />
                   <span className={`text-[8px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
                   <ProgressBar current={Math.abs(cut.mae_current ?? 0)} target={Math.abs(cut.mae_threshold ?? 1)} />
-                  <span className={`text-[8px] tabular-nums w-[52px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
+                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
                     {(cut.mae_current ?? 0).toFixed(2)}%
                   </span>
                 </div>
