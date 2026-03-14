@@ -195,37 +195,50 @@ export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
   const v10Strategy = useMemo(() => {
     const base = data.strategyStatus;
     const krakenInd = data.indicators;
+    const rawData = data as any;
+
+    const extractBdBu = (src: any): { bd?: number; bu?: number } => {
+      if (!src) return {};
+      return {
+        bd: src.bd ?? src['5m_bd'] ?? src.band_down ?? src.lower_band ?? undefined,
+        bu: src.bu ?? src['5m_bu'] ?? src.band_up ?? src.upper_band ?? undefined,
+      };
+    };
 
     const bdbu5m: Record<string, number | undefined> = {};
-    if (krakenInd?.['5m']) {
-      const ind5m = krakenInd['5m'] as any;
-      if (ind5m.bd !== undefined) bdbu5m.bd = ind5m.bd;
-      if (ind5m.bu !== undefined) bdbu5m.bu = ind5m.bu;
-    }
-    if (data.strategyA) {
-      const sa = data.strategyA as any;
-      if (sa.bd !== undefined && bdbu5m.bd === undefined) bdbu5m.bd = sa.bd;
-      if (sa.bu !== undefined && bdbu5m.bu === undefined) bdbu5m.bu = sa.bu;
-      if (sa['5m_bd'] !== undefined && bdbu5m.bd === undefined) bdbu5m.bd = sa['5m_bd'];
-      if (sa['5m_bu'] !== undefined && bdbu5m.bu === undefined) bdbu5m.bu = sa['5m_bu'];
+
+    const sources = [
+      krakenInd?.['5m'],
+      base?.indicators?.['5m'],
+      rawData.strategyStatus?.indicators?.['5m'],
+      data.strategyA,
+      rawData['5m'],
+      rawData.indicators_5m,
+    ];
+
+    for (const src of sources) {
+      if (!src) continue;
+      const { bd, bu } = extractBdBu(src);
+      if (bd !== undefined && bdbu5m.bd === undefined) bdbu5m.bd = bd;
+      if (bu !== undefined && bdbu5m.bu === undefined) bdbu5m.bu = bu;
+      if (bdbu5m.bd !== undefined && bdbu5m.bu !== undefined) break;
     }
 
     const merged: any = base
       ? { ...base }
       : { inPosition: data.position?.in_position ?? false };
 
-    if (Object.keys(bdbu5m).length > 0) {
-      merged.indicators = {
-        ...merged.indicators,
-        '5m': {
-          ...(merged.indicators?.['5m'] ?? {}),
-          ...bdbu5m,
-        },
-      };
-    }
+    merged.indicators = {
+      ...merged.indicators,
+      '5m': {
+        ...(merged.indicators?.['5m'] ?? {}),
+        ...(bdbu5m.bd !== undefined ? { bd: bdbu5m.bd } : {}),
+        ...(bdbu5m.bu !== undefined ? { bu: bdbu5m.bu } : {}),
+      },
+    };
 
     return merged;
-  }, [data.strategyStatus, data.indicators, data.strategyA, data.position?.in_position]);
+  }, [data.strategyStatus, data.indicators, data.strategyA, data.position?.in_position, data]);
 
   return (
     <PriceChart

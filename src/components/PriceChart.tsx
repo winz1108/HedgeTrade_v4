@@ -764,36 +764,36 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className={`hidden sm:flex items-center gap-2 text-[10px] ${colors.panelBg} px-2 py-1 rounded`}>
+          <div className={`flex items-center gap-1.5 text-[9px] sm:text-[10px] sm:gap-2 ${colors.panelBg} px-1.5 py-1 sm:px-2 rounded flex-wrap`}>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
+              <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
               <span className={colors.textSecondary}>{(timeframe === '1h' || timeframe === '15m') ? 'EMA 3' : 'EMA 5'}</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
+              <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
               <span className={colors.textSecondary}>{(timeframe === '1h' || timeframe === '15m') ? 'EMA 8' : 'EMA 13'}</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(148,163,184,0.7)' : 'rgba(100,116,139,0.7)' }}></div>
+              <div className="w-2.5 sm:w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(148,163,184,0.7)' : 'rgba(100,116,139,0.7)' }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
             {v10Strategy && (
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
                 <div className="flex items-center gap-1">
-                  <svg width="14" height="6" style={{ display: 'block' }}>
-                    <line x1="0" y1="3" x2="14" y2="3" stroke="#ef4444" strokeWidth="1.2" strokeDasharray="5 3" />
+                  <svg width="12" height="6" style={{ display: 'block' }}>
+                    <line x1="0" y1="3" x2="12" y2="3" stroke="#ef4444" strokeWidth="1.2" strokeDasharray="4 2" />
                   </svg>
                   <span className={colors.textSecondary}>bd</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <svg width="14" height="6" style={{ display: 'block' }}>
-                    <line x1="0" y1="3" x2="14" y2="3" stroke="#22c55e" strokeWidth="1.2" strokeDasharray="5 3" />
+                  <svg width="12" height="6" style={{ display: 'block' }}>
+                    <line x1="0" y1="3" x2="12" y2="3" stroke="#22c55e" strokeWidth="1.2" strokeDasharray="4 2" />
                   </svg>
                   <span className={colors.textSecondary}>bu</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: darkMode ? '#ffffff' : '#10b981' }}></div>
+                  <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: darkMode ? '#e2e8f0' : '#0d9488' }}></div>
                   <span className={colors.textSecondary}>VREG</span>
                 </div>
               </>
@@ -802,8 +802,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
                 <div className="flex items-center gap-1">
-                  <svg width="14" height="6" style={{ display: 'block' }}>
-                    <line x1="0" y1="3" x2="14" y2="3" stroke={data.holding.positionSide === 'SHORT' ? '#f97316' : '#06b6d4'} strokeWidth="1.5" strokeDasharray="4 2" />
+                  <svg width="12" height="6" style={{ display: 'block' }}>
+                    <line x1="0" y1="3" x2="12" y2="3" stroke={data.holding.positionSide === 'SHORT' ? '#f97316' : '#06b6d4'} strokeWidth="1.5" strokeDasharray="4 2" />
                   </svg>
                   <span className={colors.textSecondary}>Entry</span>
                 </div>
@@ -1124,7 +1124,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         )}
                         {vregPoints.length > 1 && (
                           <polyline points={vregPoints.join(' ')} fill="none"
-                            stroke={darkMode ? '#ffffff' : '#10b981'} strokeWidth="1.5" opacity="0.95" />
+                            stroke={darkMode ? '#e2e8f0' : '#0d9488'} strokeWidth="1.5" opacity="0.95" />
                         )}
                       </>
                     );

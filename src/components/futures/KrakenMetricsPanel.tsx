@@ -232,7 +232,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           )}
         </div>
 
-        {hasPosition && data.sellConditions && (
+        {data.sellConditions && (
           <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
             <div className="text-[9px] text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Exit Conditions</div>
             <div className="flex flex-col gap-1">

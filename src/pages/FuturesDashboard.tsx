@@ -31,6 +31,8 @@ function FuturesDashboard() {
         const newLast = newArr[newArr.length - 1];
         const prevTs = getTs(prevLast);
         const newTs = getTs(newLast);
+        const newLastIsFinal = newLast.is_final !== false;
+
         if (prevTs > newTs) {
           merged[tf] = prevArr;
         } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
@@ -42,12 +44,17 @@ function FuturesDashboard() {
             low: Math.min(newLast.low, prevLast.low),
           };
           merged[tf] = preserved;
+        } else if (!newLastIsFinal) {
+          const preserved = [...newArr];
+          preserved[preserved.length - 1] = {
+            ...newLast,
+            close: prevLast.close,
+            high: Math.max(newLast.high, prevLast.high),
+            low: Math.min(newLast.low, prevLast.low),
+          };
+          merged[tf] = preserved;
         } else {
-          const result = [...newArr];
-          if (prevTs > newTs) {
-            result.push(prevLast);
-          }
-          merged[tf] = result;
+          merged[tf] = newArr;
         }
       });
       return merged;
