@@ -41,9 +41,6 @@ function App() {
           const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
           preserved[preserved.length - 1] = {
             ...newLast,
-            close: prevLast.close,
-            high: Math.max(newLast.high, prevLast.high),
-            low: Math.min(newLast.low, prevLast.low),
             ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
           };
           merged[tf] = preserved;
@@ -52,9 +49,6 @@ function App() {
           const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
           preserved[preserved.length - 1] = {
             ...newLast,
-            close: prevLast.close,
-            high: Math.max(newLast.high, prevLast.high),
-            low: Math.min(newLast.low, prevLast.low),
             ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
           };
           merged[tf] = preserved;
