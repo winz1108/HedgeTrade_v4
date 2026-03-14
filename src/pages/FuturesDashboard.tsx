@@ -179,30 +179,38 @@ function FuturesDashboard() {
           updated.currentPrice = priceData.price;
         }
 
-        if (priceData.vreg_series || priceData.vreg_line || priceData.indicators || priceData.exit_prices) {
-          const prevStatus = updated.strategyStatus || {} as any;
-          updated.strategyStatus = {
-            ...prevStatus,
-            inPosition: priceData.in_position ?? prevStatus.inPosition,
-            positionSide: priceData.position_side ?? prevStatus.positionSide,
-            entryPrice: priceData.entry_price ?? prevStatus.entryPrice,
-            vregLine: priceData.vreg_line ?? prevStatus.vregLine,
-            vregSeries: priceData.vreg_series ?? prevStatus.vregSeries,
-            vreg_series: priceData.vreg_series ?? prevStatus.vreg_series,
-            indicators: priceData.indicators
-              ? {
-                  ...prevStatus.indicators,
-                  ...priceData.indicators,
-                }
-              : prevStatus.indicators,
-            exitPrices: priceData.exit_prices
-              ? {
-                  ...prevStatus.exitPrices,
-                  ema_exit: priceData.exit_prices.ema_exit,
-                }
-              : prevStatus.exitPrices,
+        if (priceData.portfolioValue !== undefined) {
+          updated.balance = {
+            ...updated.balance,
+            portfolioValue: priceData.portfolioValue,
           } as any;
         }
+
+        if (priceData.currentPnl !== undefined || priceData.mfe !== undefined || priceData.mae !== undefined) {
+          updated.strategyA = {
+            ...updated.strategyA,
+            ...(priceData.currentPnl !== undefined ? { current_pnl: priceData.currentPnl } : {}),
+            ...(priceData.mfe !== undefined ? { mfe: priceData.mfe } : {}),
+            ...(priceData.mae !== undefined ? { mae: priceData.mae } : {}),
+          };
+        }
+
+        const prevStatus = updated.strategyStatus || {} as any;
+        const statusUpdate: any = { ...prevStatus };
+        let statusChanged = false;
+
+        if (priceData.in_position !== undefined) { statusUpdate.inPosition = priceData.in_position; statusChanged = true; }
+        if (priceData.position_side !== undefined) { statusUpdate.positionSide = priceData.position_side; statusChanged = true; }
+        if (priceData.entry_price !== undefined) { statusUpdate.entryPrice = priceData.entry_price; statusChanged = true; }
+        if (priceData.vreg_line !== undefined) { statusUpdate.vregLine = priceData.vreg_line; statusChanged = true; }
+        if (priceData.vreg_series !== undefined) { statusUpdate.vregSeries = priceData.vreg_series; statusUpdate.vreg_series = priceData.vreg_series; statusChanged = true; }
+        if (priceData.indicators) { statusUpdate.indicators = { ...prevStatus.indicators, ...priceData.indicators }; statusChanged = true; }
+        if (priceData.exit_prices) {
+          statusUpdate.exitPrices = { ...prevStatus.exitPrices, ema_exit: priceData.exit_prices.ema_exit };
+          statusChanged = true;
+        }
+
+        if (statusChanged) updated.strategyStatus = statusUpdate;
 
         if (priceData.exit_prices && priceData.in_position) {
           updated.strategyA = {

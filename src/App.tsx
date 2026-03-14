@@ -192,9 +192,21 @@ function App() {
             updated.account = { ...updated.account, totalAsset: usdtQty };
           }
         }
+        if (priceData.portfolioValue !== undefined) {
+          updated.account = { ...updated.account, totalAsset: priceData.portfolioValue };
+        }
         if (priceData.pp_reversal_price !== undefined) {
           updated.position = { ...updated.position, ppReversalPrice: priceData.pp_reversal_price };
         }
+        const positionUpdate: any = { ...updated.position };
+        let positionChanged = false;
+        if (priceData.currentPnl !== undefined) { positionUpdate.currentPnl = priceData.currentPnl; positionChanged = true; }
+        if (priceData.mfe !== undefined) { positionUpdate.mfe = priceData.mfe; positionChanged = true; }
+        if (priceData.mae !== undefined) { positionUpdate.mae = priceData.mae; positionChanged = true; }
+        if (priceData.in_position !== undefined) { positionUpdate.inPosition = priceData.in_position; positionChanged = true; }
+        if (priceData.position_side !== undefined) { positionUpdate.side = priceData.position_side; positionChanged = true; }
+        if (priceData.entry_price !== undefined) { positionUpdate.entryPrice = priceData.entry_price; positionChanged = true; }
+        if (positionChanged) updated.position = positionUpdate;
         return updated;
       });
     };
