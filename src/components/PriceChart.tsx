@@ -1092,7 +1092,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
                     return (
                       <polyline points={vregPoints.join(' ')} fill="none"
-                        stroke={darkMode ? '#ffffff' : '#b45309'} strokeWidth="1.5" opacity="0.95" />
+                        stroke={darkMode ? '#ffffff' : '#b45309'} strokeWidth="0.8" opacity="0.85" />
                     );
                   })()}
 
@@ -1570,6 +1570,24 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.4))"
                     />
                   )}
+                  {/* MAE 0.5% threshold line */}
+                  {(() => {
+                    const ep = data.holding.buyPrice;
+                    if (!ep) return null;
+                    const maePrice = isLong ? ep * (1 - 0.005) : ep * (1 + 0.005);
+                    return (
+                      <line
+                        x1="0"
+                        y1={priceToY(maePrice)}
+                        x2="100%"
+                        y2={priceToY(maePrice)}
+                        stroke="#f87171"
+                        strokeWidth="0.8"
+                        strokeDasharray="3 3"
+                        opacity="0.55"
+                      />
+                    );
+                  })()}
                 </svg>
               );
             })()}

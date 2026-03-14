@@ -381,123 +381,72 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
             <h3 className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Entry Conditions</h3>
           </div>
 
-          {entryDetails && (
-            <div className="mb-2 flex flex-col gap-0.5">
-              {entryDetails.ADX && (() => {
-                const adx = entryDetails.ADX!;
-                const pct = Math.min(100, (adx.current / adx.threshold) * 100);
-                const met = adx.current >= adx.threshold;
-                return (
-                  <div className="flex items-center gap-1.5">
-                    <BConditionDot met={met} />
-                    <span className={`text-[8px] w-8 ${met ? 'text-cyan-600' : 'text-stone-400'}`}>ADX</span>
-                    <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
-                      <div className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-stone-400'}`} style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${met ? 'text-cyan-600' : 'text-stone-400'}`}>
-                      {adx.current.toFixed(1)}/{adx.threshold}
-                    </span>
-                  </div>
-                );
-              })()}
-              {entryDetails.EMA && (() => {
-                const ema = entryDetails.EMA!;
-                const side = positionSide || 'LONG';
-                let pct: number;
-                let met: boolean;
-                if (side === 'LONG') {
-                  met = ema.price < ema.bd;
-                  pct = ema.bu > ema.bd
-                    ? Math.min(100, Math.max(0, ((ema.bu - ema.price) / (ema.bu - ema.bd)) * 100))
-                    : met ? 100 : 0;
-                } else {
-                  met = ema.price > ema.bu;
-                  pct = ema.bu > ema.bd
-                    ? Math.min(100, Math.max(0, ((ema.price - ema.bd) / (ema.bu - ema.bd)) * 100))
-                    : met ? 100 : 0;
-                }
-                return (
-                  <div className="flex items-center gap-1.5">
-                    <BConditionDot met={met} />
-                    <span className={`text-[8px] w-8 ${met ? 'text-cyan-600' : 'text-stone-400'}`}>EMA</span>
-                    <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
-                      <div className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-stone-400'}`} style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${met ? 'text-cyan-600' : 'text-stone-400'}`}>
-                      {pct.toFixed(0)}%
-                    </span>
-                  </div>
-                );
-              })()}
-              {entryDetails.Range && (() => {
-                const range = entryDetails.Range!;
-                const side = positionSide || 'LONG';
-                let pct: number;
-                let met: boolean;
-                if (side === 'LONG') {
-                  met = range.position_pct <= range.long_max;
-                  pct = Math.min(100, (range.position_pct / range.long_max) * 100);
-                } else {
-                  met = range.position_pct >= range.short_min;
-                  pct = Math.min(100, ((100 - range.position_pct) / (100 - range.short_min)) * 100);
-                }
-                return (
-                  <div className="flex items-center gap-1.5">
-                    <BConditionDot met={met} />
-                    <span className={`text-[8px] w-8 ${met ? 'text-cyan-600' : 'text-stone-400'}`}>Range</span>
-                    <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
-                      <div className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-stone-400'}`} style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className={`text-[8px] tabular-nums min-w-[52px] text-right ${met ? 'text-cyan-600' : 'text-stone-400'}`}>
-                      {range.position_pct.toFixed(1)}%
-                    </span>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-
-          {(entryConditionsLong || entryConditionsShort) ? (
+          {entryDetails ? (
             <div className="grid grid-cols-2 gap-1.5">
-              <div className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
-                <div className="text-[8px] text-cyan-600 font-semibold tracking-wide mb-1">LONG</div>
-                {entryConditionsLong ? (
-                  Object.entries(entryConditionsLong).map(([key, met]) => {
-                    const isActive = met === true;
-                    return (
-                      <div key={`l-${key}`} className={`flex items-center gap-1.5 py-[3px] px-1 rounded transition-all ${isActive ? 'bg-cyan-100 border border-cyan-300' : 'bg-stone-100 border border-transparent'}`}>
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all ${isActive ? 'bg-cyan-500 shadow-[0_0_4px_rgba(6,182,212,0.8)]' : 'bg-stone-300'}`} />
-                        <span className={`text-[8px] font-medium ${isActive ? 'text-cyan-700' : 'text-stone-400'}`}>{key}</span>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-[8px] text-slate-400 py-1">-</div>
-                )}
-              </div>
-              <div className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
-                <div className="text-[8px] text-orange-600 font-semibold tracking-wide mb-1">SHORT</div>
-                {entryConditionsShort ? (
-                  Object.entries(entryConditionsShort).map(([key, met]) => {
-                    const isActive = met === true;
-                    return (
-                      <div key={`s-${key}`} className={`flex items-center gap-1.5 py-[3px] px-1 rounded transition-all ${isActive ? 'bg-orange-100 border border-orange-300' : 'bg-stone-100 border border-transparent'}`}>
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all ${isActive ? 'bg-orange-500 shadow-[0_0_4px_rgba(249,115,22,0.8)]' : 'bg-stone-300'}`} />
-                        <span className={`text-[8px] font-medium ${isActive ? 'text-orange-700' : 'text-stone-400'}`}>{key}</span>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-[8px] text-slate-400 py-1">-</div>
-                )}
-              </div>
+              {(['LONG', 'SHORT'] as const).map(side => {
+                const isLongSide = side === 'LONG';
+                const accentColor = isLongSide ? 'text-cyan-600' : 'text-orange-600';
+                const barActive = isLongSide ? 'bg-cyan-500' : 'bg-orange-500';
+                const textActive = isLongSide ? 'text-cyan-700' : 'text-orange-700';
+
+                const rows: { label: string; pct: number; met: boolean; value: string }[] = [];
+
+                if (entryDetails.ADX) {
+                  const adx = entryDetails.ADX!;
+                  const met = adx.current >= adx.threshold;
+                  rows.push({ label: 'ADX', pct: Math.min(100, (adx.current / adx.threshold) * 100), met, value: `${adx.current.toFixed(1)}/${adx.threshold}` });
+                }
+
+                if (entryDetails.EMA) {
+                  const ema = entryDetails.EMA!;
+                  let pct: number; let met: boolean;
+                  if (isLongSide) {
+                    met = ema.price < ema.bd;
+                    pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.bu - ema.price) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                  } else {
+                    met = ema.price > ema.bu;
+                    pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.price - ema.bd) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
+                  }
+                  rows.push({ label: 'EMA', pct, met, value: `${pct.toFixed(0)}%` });
+                }
+
+                if (entryDetails.Range) {
+                  const range = entryDetails.Range!;
+                  let pct: number; let met: boolean;
+                  if (isLongSide) {
+                    met = range.position_pct <= range.long_max;
+                    pct = Math.min(100, (range.position_pct / range.long_max) * 100);
+                  } else {
+                    met = range.position_pct >= range.short_min;
+                    pct = Math.min(100, ((100 - range.position_pct) / (100 - range.short_min)) * 100);
+                  }
+                  rows.push({ label: 'Range', pct, met, value: `${range.position_pct.toFixed(1)}%` });
+                }
+
+                return (
+                  <div key={side} className="rounded-md bg-stone-50 border border-stone-200 p-1.5">
+                    <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${accentColor}`}>{side}</div>
+                    <div className="flex flex-col gap-1">
+                      {rows.map(row => (
+                        <div key={row.label} className="flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[8px] ${row.met ? textActive : 'text-stone-400'}`}>{row.label}</span>
+                            <span className={`text-[8px] tabular-nums ${row.met ? textActive : 'text-stone-400'}`}>{row.value}</span>
+                          </div>
+                          <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
+                            <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-stone-300'}`} style={{ width: `${row.pct}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
-            !entryDetails && (
-              <div className="flex items-center justify-center h-8 text-slate-400 text-[10px]">
-                Waiting...
-              </div>
-            )
+            <div className="flex items-center justify-center h-8 text-slate-400 text-[10px]">
+              Waiting...
+            </div>
           )}
         </div>
 
