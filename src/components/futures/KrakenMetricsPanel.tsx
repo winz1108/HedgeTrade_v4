@@ -437,24 +437,6 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           exitPrices={ss?.exitPrices}
           inPosition={!!hasPosition}
         />
-
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
-          <div className="text-[9px] text-slate-400 uppercase tracking-wide font-semibold mb-1.5">Extremes</div>
-          <div className="grid grid-cols-2 gap-1.5">
-            <div className="flex justify-between items-center bg-slate-700/40 rounded-md px-2 py-1">
-              <span className="text-[9px] text-slate-400">MFE</span>
-              <span className="text-[10px] font-bold text-emerald-400 tabular-nums">
-                {ss?.mfe != null ? `+${ss.mfe.toFixed(2)}%` : data.strategyA?.mfe != null ? `+${data.strategyA.mfe.toFixed(2)}%` : hasPosition ? '-' : '--'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center bg-slate-700/40 rounded-md px-2 py-1">
-              <span className="text-[9px] text-slate-400">MAE</span>
-              <span className="text-[10px] font-bold text-rose-400 tabular-nums">
-                {ss?.mae != null ? `${ss.mae.toFixed(2)}%` : data.strategyA?.mae != null ? `${data.strategyA.mae.toFixed(2)}%` : hasPosition ? '-' : '--'}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
     );
   }

@@ -1,7 +1,7 @@
-import { DollarSign, Activity, Target, History } from 'lucide-react';
+import { DollarSign, Activity, Target, History, ShieldAlert } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
-import type { BFDashboardData, V10StrategyStatus } from '../../types/dashboard';
+import type { BFDashboardData, V10StrategyStatus, ExitConditions } from '../../types/dashboard';
 
 interface Props {
   data: BFDashboardData;
@@ -38,6 +38,194 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
   }
   return { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-300' };
 };
+
+interface BinanceExitConditionsPanelProps {
+  exitConditions?: ExitConditions;
+  exitPrices?: { ema_exit?: number; vreg_exit?: number; cut_threshold_mae?: number };
+  inPosition: boolean;
+}
+
+function BConditionDot({ met }: { met: boolean }) {
+  return (
+    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
+      met ? 'bg-cyan-500 shadow-[0_0_4px_rgba(6,182,212,0.7)]' : 'bg-stone-300'
+    }`} />
+  );
+}
+
+function BProgressBar({ current, target }: { current: number; target: number }) {
+  const pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
+  const met = current >= target;
+  return (
+    <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
+      <div
+        className={`h-1 rounded-full transition-all duration-300 ${met ? 'bg-cyan-500' : 'bg-stone-400'}`}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition }: BinanceExitConditionsPanelProps) {
+  const vreg = exitConditions?.VREG;
+  const ema = exitConditions?.EMA;
+  const cut = exitConditions?.CUT;
+  const hasData = !!(vreg || ema || cut);
+
+  return (
+    <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="text-[9px] text-slate-500 uppercase tracking-wide font-semibold">Exit Conditions</div>
+        <ShieldAlert className="w-3 h-3 text-slate-400" />
+      </div>
+
+      {!hasData ? (
+        <div className="flex flex-col gap-1">
+          {(['VREG', 'EMA', 'CUT'] as const).map(name => (
+            <div key={name} className="flex items-center justify-between bg-stone-50 border border-stone-200 rounded px-2 py-1.5">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-300 flex-shrink-0" />
+                <span className="text-[9px] text-stone-400 font-semibold">{name}</span>
+                <span className="text-[8px] text-stone-300">{name === 'CUT' ? '손절' : '익절'}</span>
+              </div>
+              <span className="text-[8px] text-stone-300">--</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          {vreg && (
+            <div className={`rounded-md border p-1.5 transition-all ${
+              vreg.armed
+                ? 'bg-cyan-50 border-cyan-300'
+                : 'bg-stone-50 border-stone-200'
+            }`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    vreg.armed ? 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]' : 'bg-stone-300'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${vreg.armed ? 'text-cyan-700' : 'text-slate-500'}`}>VREG</span>
+                  <span className="text-[7px] text-stone-400">익절</span>
+                </div>
+                {exitPrices?.vreg_exit != null && (
+                  <span className={`text-[9px] font-bold tabular-nums ${vreg.armed ? 'text-cyan-700' : 'text-slate-400'}`}>
+                    ${exitPrices.vreg_exit.toFixed(1)}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <BConditionDot met={vreg.bars_ok} />
+                  <span className={`text-[8px] ${vreg.bars_ok ? 'text-slate-600' : 'text-stone-400'}`}>봉수</span>
+                  <BProgressBar current={vreg.bars_held} target={vreg.bars_min} />
+                  <span className="text-[8px] text-slate-400 tabular-nums min-w-[28px] text-right">
+                    {vreg.bars_held}/{vreg.bars_min}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <BConditionDot met={vreg.pnl_ok} />
+                  <span className={`text-[8px] ${vreg.pnl_ok ? 'text-slate-600' : 'text-stone-400'}`}>PnL</span>
+                  <BProgressBar current={vreg.pnl_current} target={vreg.pnl_min} />
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${vreg.pnl_ok ? 'text-emerald-600' : 'text-slate-400'}`}>
+                    {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <BConditionDot met={vreg.vol_spike} />
+                  <span className={`text-[8px] ${vreg.vol_spike ? 'text-slate-600' : 'text-stone-400'}`}>거래량 스파이크</span>
+                  <span className="text-[8px] text-stone-300 ml-auto">{vreg.vol_mult}x</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {ema && (
+            <div className={`rounded-md border p-1.5 transition-all ${
+              ema.armed
+                ? 'bg-emerald-50 border-emerald-300'
+                : 'bg-stone-50 border-stone-200'
+            }`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    ema.armed ? 'bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]' : 'bg-stone-300'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${ema.armed ? 'text-emerald-700' : 'text-slate-500'}`}>EMA</span>
+                  <span className="text-[7px] text-stone-400">익절</span>
+                </div>
+                {exitPrices?.ema_exit != null && (
+                  <span className={`text-[9px] font-bold tabular-nums ${ema.armed ? 'text-emerald-700' : 'text-slate-400'}`}>
+                    ${exitPrices.ema_exit.toFixed(1)}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <BConditionDot met={ema.mfe_ok} />
+                  <span className={`text-[8px] ${ema.mfe_ok ? 'text-slate-600' : 'text-stone-400'}`}>MFE</span>
+                  <BProgressBar current={ema.mfe_current} target={ema.mfe_gate} />
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${ema.mfe_ok ? 'text-emerald-600' : 'text-slate-400'}`}>
+                    {ema.mfe_current >= 0 ? '+' : ''}{ema.mfe_current.toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <BConditionDot met={ema.pnl_ok} />
+                  <span className={`text-[8px] ${ema.pnl_ok ? 'text-slate-600' : 'text-stone-400'}`}>PnL</span>
+                  <BProgressBar current={ema.pnl_current} target={ema.pnl_gate} />
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${ema.pnl_ok ? 'text-emerald-600' : 'text-slate-400'}`}>
+                    {ema.pnl_current >= 0 ? '+' : ''}{ema.pnl_current.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {cut && (
+            <div className={`rounded-md border p-1.5 transition-all ${
+              cut.armed
+                ? 'bg-rose-50 border-rose-300'
+                : 'bg-stone-50 border-stone-200'
+            }`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    cut.armed ? 'bg-rose-500 shadow-[0_0_5px_rgba(244,63,94,0.8)]' : 'bg-stone-300'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${cut.armed ? 'text-rose-700' : 'text-slate-500'}`}>CUT</span>
+                  <span className="text-[7px] text-stone-400">손절</span>
+                </div>
+                {exitPrices?.cut_threshold_mae != null && (
+                  <span className={`text-[9px] font-bold tabular-nums ${cut.armed ? 'text-rose-700' : 'text-slate-400'}`}>
+                    MAE {exitPrices.cut_threshold_mae.toFixed(1)}%
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <BConditionDot met={cut.mae_ok} />
+                  <span className={`text-[8px] ${cut.mae_ok ? 'text-slate-600' : 'text-stone-400'}`}>MAE</span>
+                  <BProgressBar current={Math.abs(cut.mae_current)} target={Math.abs(cut.mae_threshold)} />
+                  <span className={`text-[8px] tabular-nums min-w-[42px] text-right ${cut.mae_ok ? 'text-rose-600' : 'text-slate-400'}`}>
+                    {cut.mae_current.toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <BConditionDot met={cut.pnl_ok} />
+                  <span className={`text-[8px] ${cut.pnl_ok ? 'text-rose-700' : 'text-stone-400'}`}>PnL &lt; 0</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <BConditionDot met={cut.ema_reversed} />
+                  <span className={`text-[8px] ${cut.ema_reversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Props) {
   const formatCurrency = (value: number) => {
@@ -225,25 +413,11 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           )}
         </div>
 
-        {hasPosition && (
-          <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
-            <div className="text-[9px] text-slate-500 uppercase tracking-wide font-semibold mb-1.5">Extremes</div>
-            <div className="grid grid-cols-2 gap-1.5">
-              <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded-md px-2 py-1">
-                <span className="text-[9px] text-slate-500">MFE</span>
-                <span className="text-[10px] font-bold text-emerald-600 tabular-nums">
-                  {ss?.mfe != null ? `+${ss.mfe.toFixed(2)}%` : data.position.mfe != null ? `+${data.position.mfe.toFixed(2)}%` : '-'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded-md px-2 py-1">
-                <span className="text-[9px] text-slate-500">MAE</span>
-                <span className="text-[10px] font-bold text-rose-600 tabular-nums">
-                  {ss?.mae != null ? `${ss.mae.toFixed(2)}%` : data.position.mae != null ? `${data.position.mae.toFixed(2)}%` : '-'}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+        <BinanceExitConditionsPanel
+          exitConditions={ss?.exitConditions}
+          exitPrices={ss?.exitPrices}
+          inPosition={!!hasPosition}
+        />
       </div>
     );
   }
