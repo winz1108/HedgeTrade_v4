@@ -95,13 +95,30 @@ export function BinanceFuturesPriceChart({ data, onTimeframeChange }: Props) {
     );
   }
 
+  const v10Strategy = useMemo(() => {
+    const base = data.strategyStatus;
+    const stratInd = data.strategy?.indicators;
+
+    if (!base && !stratInd) return null;
+
+    const merged = base ? { ...base } : { inPosition: data.position?.inPosition ?? false } as any;
+
+    if (stratInd && (!merged.indicators || Object.keys(merged.indicators).length === 0)) {
+      merged.indicators = stratInd;
+    } else if (stratInd && merged.indicators) {
+      merged.indicators = { ...stratInd, ...merged.indicators };
+    }
+
+    return merged;
+  }, [data.strategyStatus, data.strategy?.indicators, data.position?.inPosition]);
+
   return (
     <PriceChart
       data={transformedData}
       onTradeHover={(_trade: TradeEvent | null) => {}}
       onTimeframeChange={(timeframe: string) => onTimeframeChange?.(timeframe)}
       darkMode={false}
-      v10Strategy={data.strategyStatus || null}
+      v10Strategy={v10Strategy}
     />
   );
 }

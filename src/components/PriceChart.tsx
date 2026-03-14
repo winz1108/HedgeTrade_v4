@@ -793,7 +793,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   <span className={colors.textSecondary}>bu</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#e879f9' }}></div>
+                  <div className="w-3 h-0.5 rounded" style={{ backgroundColor: '#ff3cac', boxShadow: '0 0 4px rgba(255,60,172,0.8)' }}></div>
                   <span className={colors.textSecondary}>VREG</span>
                 </div>
               </>
@@ -807,14 +807,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   </svg>
                   <span className={colors.textSecondary}>Entry</span>
                 </div>
-                {(data.holding.exitSlPrice ?? data.holding.slPrice) && (
-                  <div className="flex items-center gap-1">
-                    <svg width="14" height="6" style={{ display: 'block' }}>
-                      <line x1="0" y1="3" x2="14" y2="3" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="5 3" />
-                    </svg>
-                    <span className={colors.textSecondary}>SL</span>
-                  </div>
-                )}
               </>
             )}
           </div>
@@ -1051,24 +1043,24 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       <polyline
                         points={bbUpperPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(120, 120, 120, 0.8)"
-                        strokeWidth="2"
+                        stroke="rgba(120, 120, 120, 0.55)"
+                        strokeWidth="1"
                         strokeDasharray="4 4"
                       />
                       {bbMiddlePoints.length > 1 && (
                         <polyline
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
-                          stroke="rgba(140, 140, 140, 0.6)"
-                          strokeWidth="1.5"
+                          stroke="rgba(140, 140, 140, 0.4)"
+                          strokeWidth="0.8"
                           strokeDasharray="3 3"
                         />
                       )}
                       <polyline
                         points={bbLowerPoints.join(' ')}
                         fill="none"
-                        stroke="rgba(120, 120, 120, 0.8)"
-                        strokeWidth="2"
+                        stroke="rgba(120, 120, 120, 0.55)"
+                        strokeWidth="1"
                         strokeDasharray="4 4"
                       />
                     </>
@@ -1079,8 +1071,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       points={emaShortPoints.join(' ')}
                       fill="none"
                       stroke={colors.emaShort}
-                      strokeWidth="1.5"
-                      opacity="0.9"
+                      strokeWidth="1"
+                      opacity="0.8"
                     />
                   )}
 
@@ -1089,42 +1081,26 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       points={emaLongPoints.join(' ')}
                       fill="none"
                       stroke={colors.emaLong}
-                      strokeWidth="1.5"
-                      opacity="0.9"
+                      strokeWidth="1"
+                      opacity="0.8"
                     />
                   )}
 
                   {/* v10.1 Overlays: bd/bu, VREG */}
                   {showTradeMarkers && (() => {
                     if (!v10Strategy) return null;
-                    const isHolding = v10Strategy.inPosition || data.holding.isHolding;
                     const ind = v10Strategy.indicators;
                     const bd = ind?.['5m']?.bd;
                     const bu = ind?.['5m']?.bu;
-                    const ema8_1h = ind?.['1h']?.ema8;
-                    const ema13_1h = ind?.['1h']?.ema13;
-                    const vregSeries = v10Strategy.vregSeries || v10Strategy.vreg_series;
-                    console.log('[v10 overlay]', {
-                      isHolding, bd, bu, ema8_1h, ema13_1h,
-                      vregLen: vregSeries?.length,
-                      vregSample: vregSeries?.slice(-3),
-                      minPrice, maxPrice, timeframe,
-                      indKeys: ind ? Object.keys(ind) : 'none',
-                      ind5m: ind?.['5m'] ? Object.keys(ind['5m']) : 'none',
-                      ind1h: ind?.['1h'] ? Object.keys(ind['1h']) : 'none',
-                      bdInRange: bd !== undefined ? (bd > minPrice && bd < maxPrice) : 'n/a',
-                      buInRange: bu !== undefined ? (bu > minPrice && bu < maxPrice) : 'n/a',
-                      ema8InRange: ema8_1h !== undefined ? (ema8_1h > minPrice && ema8_1h < maxPrice) : 'n/a',
-                      ema13InRange: ema13_1h !== undefined ? (ema13_1h > minPrice && ema13_1h < maxPrice) : 'n/a',
-                    });
+                    const vregSeries = v10Strategy.vregSeries || (v10Strategy as any).vreg_series;
                     const chartW = visibleCandles.length * (candleWidth + candleGap);
 
                     const vregPoints: string[] = [];
                     if (vregSeries && vregSeries.length > 0) {
-                      const src = timeframe === '5m' ? candlesByTimeframe['5m'] : null;
-                      if (src) {
+                      const src = candlesByTimeframe['5m'];
+                      if (src && src.length > 0) {
                         const offset = src.length - vregSeries.length;
-                        vregSeries.forEach((val, i) => {
+                        vregSeries.forEach((val: number | null, i: number) => {
                           if (val === null || val === undefined) return;
                           const globalIdx = offset + i;
                           const localIdx = globalIdx - visibleStartIndex;
@@ -1138,17 +1114,18 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
                     return (
                       <>
-                        {!isHolding && bd !== undefined && bd > minPrice && bd < maxPrice && (
+                        {bd !== undefined && bd > minPrice && bd < maxPrice && (
                           <line x1="0" y1={priceToY(bd)} x2={chartW} y2={priceToY(bd)}
-                            stroke="#ef4444" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.8" />
+                            stroke="#ef4444" strokeWidth="1" strokeDasharray="5 3" opacity="0.75" />
                         )}
-                        {!isHolding && bu !== undefined && bu > minPrice && bu < maxPrice && (
+                        {bu !== undefined && bu > minPrice && bu < maxPrice && (
                           <line x1="0" y1={priceToY(bu)} x2={chartW} y2={priceToY(bu)}
-                            stroke="#22c55e" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.8" />
+                            stroke="#22c55e" strokeWidth="1" strokeDasharray="5 3" opacity="0.75" />
                         )}
                         {vregPoints.length > 1 && (
                           <polyline points={vregPoints.join(' ')} fill="none"
-                            stroke="#e879f9" strokeWidth="2" opacity="0.95" />
+                            stroke="#ff3cac" strokeWidth="2.5" opacity="1"
+                            filter="drop-shadow(0 0 4px rgba(255,60,172,0.7))" />
                         )}
                       </>
                     );
@@ -1587,8 +1564,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     opacity="0.75"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
                   />
-                  {/* PP Reversal Price line */}
-                  {data.holding.ppReversalPrice && (
+                  {/* PP Reversal Price line — Binance only */}
+                  {!darkMode && data.holding.ppReversalPrice && (
                     <line
                       x1="0"
                       y1={priceToY(data.holding.ppReversalPrice)}
@@ -1600,32 +1577,32 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       opacity="0.45"
                     />
                   )}
-                  {/* SL Price line - exit_prices.sl_price 우선, fallback slPrice */}
-                  {(data.holding.exitSlPrice ?? data.holding.slPrice) && (
+                  {/* SL Price line — Binance only */}
+                  {!darkMode && (data.holding.exitSlPrice ?? data.holding.slPrice) && (
                     <line
                       x1="0"
                       y1={priceToY((data.holding.exitSlPrice ?? data.holding.slPrice)!)}
                       x2="100%"
                       y2={priceToY((data.holding.exitSlPrice ?? data.holding.slPrice)!)}
                       stroke="#ef4444"
-                      strokeWidth="1.5"
+                      strokeWidth="1.2"
                       strokeDasharray="5 3"
                       opacity="0.75"
                       filter="drop-shadow(0 0 3px rgba(239, 68, 68, 0.5))"
                     />
                   )}
-                  {/* PP Floor Price line - exit_prices.floor_price 우선, fallback floorPrice */}
-                  {(data.holding.exitFloorPrice ?? data.holding.floorPrice) != null && (
+                  {/* Floor Price line — Binance only */}
+                  {!darkMode && (data.holding.exitFloorPrice ?? data.holding.floorPrice) != null && (
                     <line
                       x1="0"
                       y1={priceToY((data.holding.exitFloorPrice ?? data.holding.floorPrice)!)}
                       x2="100%"
                       y2={priceToY((data.holding.exitFloorPrice ?? data.holding.floorPrice)!)}
                       stroke="#fbbf24"
-                      strokeWidth="1.5"
+                      strokeWidth="1.2"
                       strokeDasharray="6 3"
-                      opacity="0.85"
-                      filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.5))"
+                      opacity="0.8"
+                      filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.4))"
                     />
                   )}
                 </svg>
