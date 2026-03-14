@@ -425,25 +425,21 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   const ema = entryDetails.EMA!;
                   let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
-                    met = ema.price < ema.bd;
-                    const distPct = ema.long_distance_pct != null
-                      ? ema.long_distance_pct
-                      : ema.bu > ema.bd ? ((ema.bd - ema.price) / ema.bd) * 100 : null;
-                    if (distPct != null) {
-                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(distPct) / 5) * 100));
-                      value = met ? '진입 가능' : `bd -${Math.abs(distPct).toFixed(2)}%`;
+                    met = ema.long_met ?? (ema.price < ema.bd);
+                    const dist = ema.long_distance_pct;
+                    if (dist != null) {
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
+                      value = met ? '진입 가능' : `bd까지 ${dist.toFixed(2)}%`;
                     } else {
                       pct = met ? 100 : 0;
                       value = met ? '진입 가능' : '-';
                     }
                   } else {
-                    met = ema.price > ema.bu;
-                    const distPct = ema.short_distance_pct != null
-                      ? ema.short_distance_pct
-                      : ema.bu > 0 ? ((ema.price - ema.bu) / ema.bu) * 100 : null;
-                    if (distPct != null) {
-                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(distPct) / 5) * 100));
-                      value = met ? '진입 가능' : `bu +${Math.abs(distPct).toFixed(2)}%`;
+                    met = ema.short_met ?? (ema.price > ema.bu);
+                    const dist = ema.short_distance_pct;
+                    if (dist != null) {
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
+                      value = met ? '진입 가능' : `bu까지 ${dist.toFixed(2)}%`;
                     } else {
                       pct = met ? 100 : 0;
                       value = met ? '진입 가능' : '-';
@@ -464,8 +460,8 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   } else {
                     const shortPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
                     const shortMin = range.short_min ?? 20;
-                    met = shortPct >= (100 - shortMin);
-                    pct = Math.min(100, (shortPct / (100 - shortMin)) * 100);
+                    met = shortPct >= shortMin;
+                    pct = Math.min(100, (shortPct / 100) * 100);
                     value = `${shortPct.toFixed(1)}%`;
                   }
                   rows.push({ label: 'Range', pct, met, value });
@@ -482,7 +478,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                             <span className={`text-[8px] tabular-nums ${row.met ? textActive : 'text-stone-400'}`}>{row.value}</span>
                           </div>
                           <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
-                            <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-slate-400'}`} style={{ width: `${row.pct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-stone-300'}`} style={{ width: `${row.pct}%` }} />
                           </div>
                         </div>
                       ))}

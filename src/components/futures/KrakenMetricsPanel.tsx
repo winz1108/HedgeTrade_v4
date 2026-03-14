@@ -440,24 +440,24 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   const ema = entryDetails.EMA!;
                   let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
-                    met = ema.price < ema.bd;
-                    if (ema.long_distance_pct != null) {
-                      const dist = ema.long_distance_pct;
-                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(dist) / 5) * 100));
-                      value = met ? '진입 가능' : `bd까지 ${Math.abs(dist).toFixed(2)}%`;
+                    met = ema.long_met ?? (ema.price < ema.bd);
+                    const dist = ema.long_distance_pct;
+                    if (dist != null) {
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
+                      value = met ? '진입 가능' : `bd까지 ${dist.toFixed(2)}%`;
                     } else {
-                      pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.bu - ema.price) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
-                      value = `${pct.toFixed(0)}%`;
+                      pct = met ? 100 : 0;
+                      value = met ? '진입 가능' : '-';
                     }
                   } else {
-                    met = ema.price > ema.bu;
-                    if (ema.short_distance_pct != null) {
-                      const dist = ema.short_distance_pct;
-                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - Math.abs(dist) / 5) * 100));
-                      value = met ? '진입 가능' : `bu까지 ${Math.abs(dist).toFixed(2)}%`;
+                    met = ema.short_met ?? (ema.price > ema.bu);
+                    const dist = ema.short_distance_pct;
+                    if (dist != null) {
+                      pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
+                      value = met ? '진입 가능' : `bu까지 ${dist.toFixed(2)}%`;
                     } else {
-                      pct = ema.bu > ema.bd ? Math.min(100, Math.max(0, ((ema.price - ema.bd) / (ema.bu - ema.bd)) * 100)) : met ? 100 : 0;
-                      value = `${pct.toFixed(0)}%`;
+                      pct = met ? 100 : 0;
+                      value = met ? '진입 가능' : '-';
                     }
                   }
                   rows.push({ label: 'EMA', pct, met, value });
@@ -475,8 +475,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   } else {
                     const shortPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
                     const shortMin = range.short_min ?? 20;
-                    met = shortPct >= (100 - shortMin);
-                    pct = Math.min(100, (shortPct / (100 - shortMin)) * 100);
+                    met = shortPct >= shortMin;
+                    pct = Math.min(100, (shortPct / 100) * 100);
                     value = `${shortPct.toFixed(1)}%`;
                   }
                   rows.push({ label: 'Range', pct, met, value });
@@ -493,7 +493,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                             <span className={`text-[8px] tabular-nums ${row.met ? textActive : 'text-slate-500'}`}>{row.value}</span>
                           </div>
                           <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
-                            <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-slate-500'}`} style={{ width: `${row.pct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-slate-600/60'}`} style={{ width: `${row.pct}%` }} />
                           </div>
                         </div>
                       ))}

@@ -123,6 +123,8 @@ export interface EntryDetailEMA {
   price: number;
   bd: number;
   bu: number;
+  long_met?: boolean;
+  short_met?: boolean;
   long_distance_pct?: number;
   short_distance_pct?: number;
 }
