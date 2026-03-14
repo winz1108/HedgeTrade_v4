@@ -1068,16 +1068,18 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   {/* v10.1 Overlays: VREG */}
                   {showTradeMarkers && (() => {
                     if (!v10Strategy) return null;
-                    if (timeframe === '1m') return null;
                     const vregSeries = v10Strategy.vregSeries || (v10Strategy as any).vreg_series;
+                    const vregColor = darkMode ? '#ffffff' : '#b45309';
 
                     const vregPoints: string[] = [];
+                    let lastVregVal: number | null = null;
                     if (vregSeries && vregSeries.length > 0) {
-                      const src = candlesByTimeframe['5m'];
+                      const src = selectedCandles;
                       if (src && src.length > 0) {
                         const offset = src.length - vregSeries.length;
                         vregSeries.forEach((val: number | null, i: number) => {
                           if (val === null || val === undefined) return;
+                          lastVregVal = val;
                           const globalIdx = offset + i;
                           const localIdx = globalIdx - visibleStartIndex;
                           if (localIdx < 0 || localIdx >= visibleCandles.length) return;
@@ -1088,11 +1090,38 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       }
                     }
 
-                    if (vregPoints.length < 2) return null;
+                    const lastVisibleVreg = (() => {
+                      if (!vregSeries || vregSeries.length === 0) return null;
+                      const src = selectedCandles;
+                      if (!src || src.length === 0) return null;
+                      const offset = src.length - vregSeries.length;
+                      for (let i = vregSeries.length - 1; i >= 0; i--) {
+                        const val = vregSeries[i];
+                        if (val === null || val === undefined) continue;
+                        const globalIdx = offset + i;
+                        const localIdx = globalIdx - visibleStartIndex;
+                        if (localIdx >= 0 && localIdx < visibleCandles.length) {
+                          return val as number;
+                        }
+                      }
+                      return lastVregVal;
+                    })();
 
                     return (
-                      <polyline points={vregPoints.join(' ')} fill="none"
-                        stroke={darkMode ? '#ffffff' : '#b45309'} strokeWidth="0.8" opacity="0.85" />
+                      <>
+                        {vregPoints.length >= 2 && (
+                          <polyline points={vregPoints.join(' ')} fill="none"
+                            stroke={vregColor} strokeWidth="0.8" opacity="0.85" />
+                        )}
+                        {lastVisibleVreg !== null && (
+                          <line
+                            x1="0" y1={priceToY(lastVisibleVreg)}
+                            x2="100%" y2={priceToY(lastVisibleVreg)}
+                            stroke={vregColor} strokeWidth="0.6" opacity="0.5"
+                            strokeDasharray="4,4"
+                          />
+                        )}
+                      </>
                     );
                   })()}
 
