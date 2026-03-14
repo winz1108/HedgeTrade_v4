@@ -933,6 +933,20 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return Math.abs(mouseY - priceToY(candle.ema_long)) < HOVER_THRESHOLD;
               })();
 
+              const vregSeries = v10Strategy?.vregSeries || (v10Strategy as any)?.vreg_series;
+              const hoveredVregValue = (() => {
+                if (mouseY === null || ci === null || !vregSeries || vregSeries.length === 0) return null;
+                const src = selectedCandles;
+                if (!src || src.length === 0) return null;
+                const offset = src.length - vregSeries.length;
+                const globalIdx = visibleStartIndex + ci;
+                const seriesIdx = globalIdx - offset;
+                if (seriesIdx < 0 || seriesIdx >= vregSeries.length) return null;
+                const val = vregSeries[seriesIdx];
+                if (val === null || val === undefined) return null;
+                return Math.abs(mouseY - priceToY(val)) < HOVER_THRESHOLD ? (val as number) : null;
+              })();
+
               const dateLabel = (
                 <div className={`flex items-center gap-2 pb-1 mb-0.5 border-b ${darkMode ? 'border-slate-600/40' : 'border-stone-200/60'}`}>
                   <span className={`${colors.textSecondary} font-mono text-[10px]`}>{formatChartTime(hoveredCandle.timestamp)}</span>
@@ -986,6 +1000,18 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
                       </div>
                     )}
+                  </div>
+                );
+              }
+
+              if (hoveredVregValue !== null) {
+                return (
+                  <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg flex flex-col gap-0.5`}>
+                    {dateLabel}
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-[10px] font-semibold" style={{ color: '#4ade80' }}>VREG</span>
+                      <span className="font-bold tabular-nums" style={{ color: '#4ade80' }}>{hoveredVregValue.toFixed(2)}</span>
+                    </div>
                   </div>
                 );
               }
