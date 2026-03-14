@@ -182,7 +182,7 @@ function App() {
       updateLiveCandle(priceData.price);
       setData(prev => {
         if (!prev) return prev;
-        const updated = { ...prev, currentPrice: priceData.price };
+        const updated = { ...prev, currentPrice: Number(priceData.price) };
         if (priceData.timestamp) updated.serverTime = priceData.timestamp;
         if (priceData.ws_healthy !== undefined) updated.wsHealthy = priceData.ws_healthy;
         if (priceData.currencies) {
@@ -301,7 +301,8 @@ function App() {
 
   useEffect(() => {
     if (data?.currentPrice) {
-      document.title = `BF $${data.currentPrice.toFixed(2)}`;
+      const price = Number(data.currentPrice);
+      document.title = `Binance - $${isNaN(price) ? data.currentPrice : price.toFixed(2)}`;
     }
   }, [data?.currentPrice]);
 

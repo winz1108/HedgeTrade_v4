@@ -175,8 +175,8 @@ function FuturesDashboard() {
         if (!prevData) return prevData;
         const updated = { ...prevData };
 
-        if (priceData.price) {
-          updated.currentPrice = priceData.price;
+        if (priceData.price != null) {
+          updated.currentPrice = Number(priceData.price);
         }
 
         if (priceData.portfolioValue !== undefined) {
@@ -312,7 +312,8 @@ function FuturesDashboard() {
 
   useEffect(() => {
     if (data?.currentPrice) {
-      document.title = `Kraken Futures - $${data.currentPrice.toFixed(2)}`;
+      const price = Number(data.currentPrice);
+      document.title = `Kraken - $${isNaN(price) ? data.currentPrice : price.toFixed(2)}`;
     }
   }, [data?.currentPrice]);
 
