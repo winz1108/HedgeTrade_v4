@@ -453,15 +453,15 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   const ema = entryDetails.EMA!;
                   let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
-                    met = ema.long_met ?? (ema.price < ema.bd);
+                    met = ema.long_met;
                     const dist = ema.long_distance_pct;
-                    pct = met ? 100 : (dist != null ? Math.min(100, Math.max(0, (1 - dist / 5) * 100)) : 0);
-                    value = met ? '진입 가능' : (dist != null ? `bd까지 ${dist.toFixed(2)}%` : `bd 미달`);
+                    pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
+                    value = met ? '진입 가능' : `bd까지 ${dist.toFixed(2)}%`;
                   } else {
-                    met = ema.short_met ?? (ema.price > ema.bu);
+                    met = ema.short_met;
                     const dist = ema.short_distance_pct;
-                    pct = met ? 100 : (dist != null ? Math.min(100, Math.max(0, (1 - dist / 5) * 100)) : 0);
-                    value = met ? '진입 가능' : (dist != null ? `bu까지 ${dist.toFixed(2)}%` : `bu 미달`);
+                    pct = met ? 100 : Math.min(100, Math.max(0, (1 - dist / 5) * 100));
+                    value = met ? '진입 가능' : `bu까지 ${dist.toFixed(2)}%`;
                   }
                   rows.push({ label: 'EMA', pct, met, value });
                 }
@@ -470,16 +470,16 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   const range = entryDetails.Range!;
                   let pct: number; let met: boolean; let value: string;
                   if (isLongSide) {
-                    const longPct = range.long_pct ?? range.position_pct;
+                    const longPct = range.long_pct;
                     const longMax = range.long_max ?? 80;
                     met = longPct <= longMax;
-                    pct = Math.min(100, (longPct / 100) * 100);
+                    pct = Math.min(100, (longPct / longMax) * 100);
                     value = `${longPct.toFixed(1)}%`;
                   } else {
-                    const shortPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
+                    const shortPct = range.short_pct;
                     const shortMin = range.short_min ?? 20;
                     met = shortPct >= shortMin;
-                    pct = Math.min(100, shortPct);
+                    pct = Math.min(100, (shortPct / 100) * 100);
                     value = `${shortPct.toFixed(1)}%`;
                   }
                   rows.push({ label: 'Range', pct, met, value });
