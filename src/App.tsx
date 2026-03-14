@@ -14,12 +14,54 @@ function App() {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('5m');
 
+  const liveCandles = useCallback(
+    (
+      prevHistories: Record<string, any[]> | undefined,
+      newHistories: Record<string, any[]> | undefined
+    ): Record<string, any[]> | undefined => {
+      if (!prevHistories || !newHistories) return newHistories;
+      const merged: Record<string, any[]> = {};
+      const tfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
+      tfs.forEach(tf => {
+        const newArr = newHistories[tf];
+        const prevArr = prevHistories[tf];
+        if (!newArr) { merged[tf] = prevArr || []; return; }
+        if (!prevArr || prevArr.length === 0) { merged[tf] = newArr; return; }
+        const prevLast = prevArr[prevArr.length - 1];
+        const newLast = newArr[newArr.length - 1];
+        const prevTs = prevLast.open_time_ms ?? prevLast.timestamp ?? (prevLast.time ? prevLast.time * 1000 : 0);
+        const newTs = newLast.open_time_ms ?? newLast.timestamp ?? (newLast.time ? newLast.time * 1000 : 0);
+        if (prevTs === newTs) {
+          const preserved = [...newArr];
+          preserved[preserved.length - 1] = {
+            ...newLast,
+            close: prevLast.close,
+            high: Math.max(newLast.high, prevLast.high),
+            low: Math.min(newLast.low, prevLast.low),
+          };
+          merged[tf] = preserved;
+        } else {
+          merged[tf] = newArr;
+        }
+      });
+      return merged;
+    },
+    []
+  );
+
   const loadData = async () => {
     try {
       setError(null);
       const resp = await fetchBinanceFuturesDashboard();
       if (resp?.data) {
-        setData(resp.data);
+        setData(prev => {
+          const incoming = resp.data;
+          if (!prev) return incoming;
+          return {
+            ...incoming,
+            priceHistories: liveCandles(prev.priceHistories, incoming.priceHistories),
+          };
+        });
       } else {
         throw new Error('No data in API response');
       }
@@ -143,7 +185,10 @@ function App() {
       if (!candleData) return;
       if (candleData.timeframe !== selectedTimeframe) return;
 
-      const openTime: number = typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime);
+      const openTimeMs: number =
+        candleData.open_time_ms ??
+        (typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime || '0'));
+      const isFinal: boolean = candleData.is_final ?? candleData.isFinal ?? false;
 
       setData(prev => {
         if (!prev) return prev;
@@ -155,21 +200,24 @@ function App() {
           if (candles && candles.length > 0) {
             const updatedCandles = [...candles];
             const lastCandle = updatedCandles[updatedCandles.length - 1];
-            const candleTimeSec = Math.floor(openTime / 1000);
-            const lastTimeSec = lastCandle.time ?? Math.floor((lastCandle.timestamp || 0) / 1000);
+            const lastTs: number =
+              lastCandle.open_time_ms ??
+              lastCandle.timestamp ??
+              (lastCandle.time ? lastCandle.time * 1000 : 0);
 
-            if (candleTimeSec === lastTimeSec || openTime === (lastCandle.timestamp || 0)) {
+            if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
                 ...lastCandle,
                 open: candleData.open,
-                high: candleData.high,
-                low: candleData.low,
+                high: Math.max(lastCandle.high, candleData.high),
+                low: Math.min(lastCandle.low, candleData.low),
                 close: candleData.close,
               };
-            } else if (candleData.isFinal) {
+            } else if (isFinal || openTimeMs > lastTs) {
               updatedCandles.push({
-                timestamp: openTime,
-                time: candleTimeSec,
+                open_time_ms: openTimeMs,
+                timestamp: openTimeMs,
+                time: Math.floor(openTimeMs / 1000),
                 open: candleData.open,
                 high: candleData.high,
                 low: candleData.low,

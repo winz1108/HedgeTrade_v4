@@ -13,20 +13,58 @@ function FuturesDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('5m');
 
+  const mergePreservingLive = useCallback(
+    (
+      prevHistories: Record<string, any[]> | undefined,
+      newHistories: Record<string, any[]> | undefined
+    ): Record<string, any[]> | undefined => {
+      if (!prevHistories || !newHistories) return newHistories;
+      const merged: Record<string, any[]> = {};
+      const tfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
+      tfs.forEach(tf => {
+        const newArr = newHistories[tf];
+        const prevArr = prevHistories[tf];
+        if (!newArr) { merged[tf] = prevArr || []; return; }
+        if (!prevArr || prevArr.length === 0) { merged[tf] = newArr; return; }
+        const prevLast = prevArr[prevArr.length - 1];
+        const newLast = newArr[newArr.length - 1];
+        const prevTs = prevLast.open_time_ms ?? prevLast.timestamp ?? (prevLast.time ? prevLast.time * 1000 : 0);
+        const newTs = newLast.open_time_ms ?? newLast.timestamp ?? (newLast.time ? newLast.time * 1000 : 0);
+        if (prevTs === newTs || Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
+          const preserved = [...newArr];
+          preserved[preserved.length - 1] = {
+            ...newLast,
+            close: prevLast.close,
+            high: Math.max(newLast.high, prevLast.high),
+            low: Math.min(newLast.low, prevLast.low),
+          };
+          merged[tf] = preserved;
+        } else {
+          merged[tf] = newArr;
+        }
+      });
+      return merged;
+    },
+    []
+  );
+
   const loadData = async () => {
     try {
       setError(null);
       const krakenData = await fetchKrakenDashboard();
 
-
-      // 백엔드에서 priceHistories로 모든 타임프레임을 전달하므로
-      // 추가 API 호출은 필요없음 (하위호환성 유지)
       if (!krakenData.priceHistory1m || krakenData.priceHistory1m.length === 0) {
         const chart1m = await fetchKrakenChartData('1m', 1000);
         krakenData.priceHistory1m = chart1m.candles;
       }
 
-      setData(krakenData);
+      setData(prev => {
+        if (!prev) return krakenData;
+        return {
+          ...krakenData,
+          priceHistories: mergePreservingLive(prev.priceHistories, krakenData.priceHistories),
+        };
+      });
       setLoading(false);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to fetch Kraken data');
@@ -165,7 +203,10 @@ function FuturesDashboard() {
       if (!candleData) return;
       if (candleData.timeframe !== selectedTimeframe) return;
 
-      const openTime: number = typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime);
+      const openTimeMs: number =
+        candleData.open_time_ms ??
+        (typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime || '0'));
+      const isFinal: boolean = candleData.is_final ?? candleData.isFinal ?? false;
 
       setData(prevData => {
         if (!prevData) return prevData;
@@ -178,21 +219,24 @@ function FuturesDashboard() {
           if (candles && candles.length > 0) {
             const updatedCandles = [...candles];
             const lastCandle = updatedCandles[updatedCandles.length - 1];
-            const candleTimeSec = Math.floor(openTime / 1000);
-            const lastTimeSec = lastCandle.time ?? Math.floor((lastCandle.timestamp || 0) / 1000);
+            const lastTs: number =
+              lastCandle.open_time_ms ??
+              lastCandle.timestamp ??
+              (lastCandle.time ? lastCandle.time * 1000 : 0);
 
-            if (candleTimeSec === lastTimeSec || openTime === (lastCandle.timestamp || 0)) {
+            if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
                 ...lastCandle,
                 open: candleData.open,
-                high: candleData.high,
-                low: candleData.low,
+                high: Math.max(lastCandle.high, candleData.high),
+                low: Math.min(lastCandle.low, candleData.low),
                 close: candleData.close,
               };
-            } else if (candleData.isFinal) {
+            } else if (isFinal || openTimeMs > lastTs) {
               updatedCandles.push({
-                timestamp: openTime,
-                time: candleTimeSec,
+                open_time_ms: openTimeMs,
+                timestamp: openTimeMs,
+                time: Math.floor(openTimeMs / 1000),
                 open: candleData.open,
                 high: candleData.high,
                 low: candleData.low,
