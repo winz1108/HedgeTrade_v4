@@ -469,8 +469,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                     value = rawPct > 80 ? `${rawPct.toFixed(1)}% 진입불가` : `${rawPct.toFixed(1)}%`;
                   } else {
                     rawPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
-                    met = rawPct >= 20;
-                    value = rawPct < 20 ? `${rawPct.toFixed(1)}% 진입불가` : `${rawPct.toFixed(1)}%`;
+                    met = rawPct <= 80;
+                    value = rawPct > 80 ? `${rawPct.toFixed(1)}% 진입불가` : `${rawPct.toFixed(1)}%`;
                   }
                   rows.push({ label: 'Range', pct: Math.min(100, rawPct), met, value, isRange: true, rangePct: rawPct, isShortRange: !isLongSide });
                 }
