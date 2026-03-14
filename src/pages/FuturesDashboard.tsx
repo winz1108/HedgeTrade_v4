@@ -249,6 +249,13 @@ function FuturesDashboard() {
           statusUpdate.exitPrices = { ...prevStatus.exitPrices, ema_exit: priceData.exit_prices.ema_exit };
           statusChanged = true;
         }
+        if (priceData.entry_details?.EMA) {
+          statusUpdate.entryDetails = {
+            ...prevStatus.entryDetails,
+            EMA: { ...(prevStatus.entryDetails?.EMA ?? {}), ...priceData.entry_details.EMA },
+          };
+          statusChanged = true;
+        }
 
         if (statusChanged) updated.strategyStatus = statusUpdate;
 

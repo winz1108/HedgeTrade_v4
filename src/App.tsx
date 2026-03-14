@@ -239,6 +239,16 @@ function App() {
         if (priceData.position_side !== undefined) { positionUpdate.side = priceData.position_side; positionChanged = true; }
         if (priceData.entry_price !== undefined) { positionUpdate.entryPrice = priceData.entry_price; positionChanged = true; }
         if (positionChanged) updated.position = positionUpdate;
+        if (priceData.entry_details?.EMA) {
+          const prevStatus = updated.strategyStatus || {} as any;
+          updated.strategyStatus = {
+            ...prevStatus,
+            entryDetails: {
+              ...prevStatus.entryDetails,
+              EMA: { ...(prevStatus.entryDetails?.EMA ?? {}), ...priceData.entry_details.EMA },
+            },
+          };
+        }
         if (prev.priceHistories) {
           const updatedHistories = { ...prev.priceHistories };
           ['1m', '5m', '15m', '30m', '1h', '4h', '1d'].forEach(tf => {
