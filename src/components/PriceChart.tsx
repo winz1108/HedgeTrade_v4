@@ -1110,8 +1110,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* v10.1 Overlays: VREG */}
-                  {showTradeMarkers && (() => {
+                  {/* v10.1 Overlays: VREG - 5분봉에서만 표시 */}
+                  {showTradeMarkers && timeframe === '5m' && (() => {
                     if (!v10Strategy) return null;
                     const vregSeries = v10Strategy.vregSeries || (v10Strategy as any).vreg_series;
                     const vregColor = darkMode ? '#ffffff' : '#b45309';

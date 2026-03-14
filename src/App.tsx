@@ -284,22 +284,7 @@ function App() {
 
             const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
             if (isFinal) {
-              const targetIdx = updatedCandles.findIndex(c => {
-                const ts = c.open_time_ms ?? c.timestamp ?? (c.time ? c.time * 1000 : 0);
-                return ts === openTimeMs || Math.floor(ts / 1000) === Math.floor(openTimeMs / 1000);
-              });
-              if (targetIdx !== -1) {
-                updatedCandles[targetIdx] = {
-                  ...updatedCandles[targetIdx],
-                  open: candleData.open,
-                  high: candleData.high,
-                  low: candleData.low,
-                  close: candleData.close,
-                  volume: candleData.volume ?? updatedCandles[targetIdx].volume,
-                  is_final: true,
-                  ...(wsIndicators ? { indicators: { ...updatedCandles[targetIdx].indicators, ...wsIndicators } } : {}),
-                };
-              }
+              // 완성된 봉은 웹소켓으로 업데이트하지 않음 - REST API를 신뢰
             } else if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
                 ...lastCandle,
