@@ -468,14 +468,18 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                           </div>
                           {row.isRange ? (
                             <div className="relative bg-stone-200 rounded-full h-1 overflow-hidden">
-                              {row.isShortRange
-                                ? <div className="absolute left-0 top-0 h-1 bg-rose-300/50" style={{ width: '20%' }} />
-                                : <div className="absolute right-0 top-0 h-1 bg-rose-300/50" style={{ width: '20%' }} />
-                              }
-                              <div
-                                className={`h-1 rounded-full transition-all duration-300 relative z-10 ${row.isShortRange ? (row.rangePct ?? 0) < 20 : (row.rangePct ?? 0) > 80 ? 'bg-rose-400/80' : barActive}`}
-                                style={{ width: `${row.pct}%` }}
-                              />
+                              <div className="absolute right-0 top-0 h-1 bg-stone-400/70" style={{ width: '20%' }} />
+                              {row.isShortRange ? (
+                                <div
+                                  className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${(row.rangePct ?? 0) < 20 ? 'bg-rose-400/80' : barActive}`}
+                                  style={{ width: `${row.pct}%` }}
+                                />
+                              ) : (
+                                <div
+                                  className={`h-1 rounded-full transition-all duration-300 relative z-10 ${(row.rangePct ?? 0) > 80 ? 'bg-rose-400/80' : barActive}`}
+                                  style={{ width: `${row.pct}%` }}
+                                />
+                              )}
                             </div>
                           ) : (
                             <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
