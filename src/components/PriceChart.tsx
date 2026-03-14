@@ -530,9 +530,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const predictionStartIndex = visibleCandles.findIndex(c => c.isPrediction);
 
   const latestCandle = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1] : null;
+  const trueLatestCandle = selectedCandles.length > 0 ? selectedCandles[selectedCandles.length - 1] : latestCandle;
+  const displayPrice = (data.currentPrice != null && data.currentPrice > 0) ? data.currentPrice : (trueLatestCandle?.close ?? latestCandle?.close);
   const firstCandle = visibleCandles.length > 0 ? visibleCandles[0] : null;
-  const priceChange = latestCandle && firstCandle ? latestCandle.close - firstCandle.open : 0;
-  const priceChangePercent = latestCandle && firstCandle && firstCandle.open ? (priceChange / firstCandle.open) * 100 : 0;
+  const priceChange = displayPrice != null && firstCandle ? displayPrice - firstCandle.open : 0;
+  const priceChangePercent = displayPrice != null && firstCandle && firstCandle.open ? (priceChange / firstCandle.open) * 100 : 0;
 
   const renderTooltip = () => {
     if (!tooltipPosition) return null;
@@ -751,10 +753,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <h2 className={`text-sm sm:text-base font-bold ${colors.textPrimary}`}>BTC/USDC</h2>
-            {latestCandle && (
+            {displayPrice != null && (
               <>
                 <div className={`text-base sm:text-lg font-bold ${colors.textPrimary}`}>
-                  ${latestCandle.close.toFixed(2)}
+                  ${displayPrice.toFixed(2)}
                 </div>
                 <div className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {priceChange >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
@@ -2196,19 +2198,19 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           })}
 
           {/* Current Price Box */}
-          {latestCandle && (
+          {displayPrice != null && (
             <div
               className={`absolute left-0 right-0 flex items-center justify-center`}
-              style={{ top: `${priceToY(latestCandle.close) - 10}px` }}
+              style={{ top: `${priceToY(displayPrice) - 10}px` }}
             >
               <div
                 className={`px-1.5 py-0.5 rounded text-white text-[11px] font-bold ${
-                  latestCandle.close >= latestCandle.open
+                  trueLatestCandle && displayPrice >= trueLatestCandle.open
                     ? 'bg-[#0ecb81]'
                     : 'bg-[#f6465d]'
                 }`}
               >
-                {latestCandle.close.toFixed(2)}
+                {displayPrice.toFixed(2)}
               </div>
             </div>
           )}
