@@ -463,20 +463,20 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                       {rows.map(row => (
                         <div key={row.label} className="flex flex-col gap-0.5">
                           <div className="flex items-center justify-between">
-                            <span className={`text-[8px] ${row.met ? textActive : row.isRange && (row.isShortRange ? (row.rangePct ?? 0) < 20 : (row.rangePct ?? 0) > 80) ? 'text-rose-500' : 'text-stone-400'}`}>{row.label}</span>
-                            <span className={`text-[8px] tabular-nums ${row.met ? textActive : row.isRange && (row.isShortRange ? (row.rangePct ?? 0) < 20 : (row.rangePct ?? 0) > 80) ? 'text-rose-500' : 'text-stone-400'}`}>{row.value}</span>
+                            <span className={`text-[8px] ${row.met ? textActive : row.isRange && (row.isShortRange ? (row.rangePct ?? 0) < 20 : (row.rangePct ?? 0) > 80) ? 'text-stone-500' : 'text-stone-400'}`}>{row.label}</span>
+                            <span className={`text-[8px] tabular-nums ${row.met ? textActive : row.isRange && (row.isShortRange ? (row.rangePct ?? 0) < 20 : (row.rangePct ?? 0) > 80) ? 'text-stone-500' : 'text-stone-400'}`}>{row.value}</span>
                           </div>
                           {row.isRange ? (
                             <div className="relative bg-stone-200 rounded-full h-1 overflow-hidden">
                               <div className="absolute right-0 top-0 h-1 bg-stone-400/70" style={{ width: '20%' }} />
                               {row.isShortRange ? (
                                 <div
-                                  className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${(row.rangePct ?? 0) < 20 ? 'bg-rose-400/80' : barActive}`}
+                                  className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${(row.rangePct ?? 0) < 20 ? 'bg-stone-400' : barActive}`}
                                   style={{ width: `${row.pct}%` }}
                                 />
                               ) : (
                                 <div
-                                  className={`h-1 rounded-full transition-all duration-300 relative z-10 ${(row.rangePct ?? 0) > 80 ? 'bg-rose-400/80' : barActive}`}
+                                  className={`h-1 rounded-full transition-all duration-300 relative z-10 ${(row.rangePct ?? 0) > 80 ? 'bg-stone-400' : barActive}`}
                                   style={{ width: `${row.pct}%` }}
                                 />
                               )}
