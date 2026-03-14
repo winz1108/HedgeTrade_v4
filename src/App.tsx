@@ -32,28 +32,50 @@ function App() {
         const newLast = newArr[newArr.length - 1];
         const prevTs = getTs(prevLast);
         const newTs = getTs(newLast);
-        const newLastIsFinal = newLast.is_final !== false;
 
         if (prevTs > newTs) {
           merged[tf] = prevArr;
-        } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
+          return;
+        }
+
+        const sameLastCandle = Math.floor(prevTs / 1000) === Math.floor(newTs / 1000);
+
+        if (sameLastCandle) {
           const preserved = [...newArr];
           const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
           preserved[preserved.length - 1] = {
             ...newLast,
-            ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
-          };
-          merged[tf] = preserved;
-        } else if (!newLastIsFinal) {
-          const preserved = [...newArr];
-          const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
-          preserved[preserved.length - 1] = {
-            ...newLast,
+            close: prevLast.close,
+            high: Math.max(newLast.high, prevLast.high),
+            low: Math.min(newLast.low, prevLast.low),
             ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
           };
           merged[tf] = preserved;
         } else {
-          merged[tf] = newArr;
+          const prevLastTs = getTs(prevLast);
+          const liveIsCompleted = prevLast.is_final === true;
+          const preserved = [...newArr];
+          const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
+
+          if (!liveIsCompleted) {
+            preserved[preserved.length - 1] = {
+              ...newLast,
+              close: prevLast.close,
+              high: Math.max(newLast.high, prevLast.high),
+              low: Math.min(newLast.low, prevLast.low),
+              ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
+            };
+          }
+
+          const prevLastInNew = newArr.findIndex((c: any) => Math.floor(getTs(c) / 1000) === Math.floor(prevLastTs / 1000));
+          if (prevLastInNew !== -1 && prevLastInNew !== newArr.length - 1) {
+            preserved[prevLastInNew] = {
+              ...preserved[prevLastInNew],
+              ...(liveIndicators ? { indicators: { ...preserved[prevLastInNew].indicators, ...liveIndicators } } : {}),
+            };
+          }
+
+          merged[tf] = preserved;
         }
       });
       return merged;

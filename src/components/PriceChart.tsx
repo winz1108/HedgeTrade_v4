@@ -1025,19 +1025,31 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 }
               });
 
-              const HOVER_THRESHOLD = 14;
+              const HOVER_THRESHOLD = 6;
               const mouseY = crosshairPosition?.y ?? null;
 
-              const isBBHovered = (() => {
+              const isBBUpperHovered = (() => {
                 if (mouseY === null || hoveredCandleIndex === null) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
                 if (!candle) return false;
-                const ys = [
-                  candle.bb_upper !== undefined ? priceToY(candle.bb_upper) : null,
-                  candle.bb_mid !== undefined ? priceToY(candle.bb_mid) : null,
-                  candle.bb_lower !== undefined ? priceToY(candle.bb_lower) : null,
-                ].filter((v): v is number => v !== null);
-                return ys.some(y => Math.abs(mouseY - y) < HOVER_THRESHOLD);
+                const upperY = candle.bb_upper !== undefined ? priceToY(candle.bb_upper) : null;
+                const lowerY = candle.bb_lower !== undefined ? priceToY(candle.bb_lower) : null;
+                return (upperY !== null && Math.abs(mouseY - upperY) < HOVER_THRESHOLD) ||
+                       (lowerY !== null && Math.abs(mouseY - lowerY) < HOVER_THRESHOLD);
+              })();
+
+              const isEmaShortHovered = (() => {
+                if (mouseY === null || hoveredCandleIndex === null) return false;
+                const candle = visibleCandles[hoveredCandleIndex];
+                if (!candle || candle.ema_short === undefined) return false;
+                return Math.abs(mouseY - priceToY(candle.ema_short)) < HOVER_THRESHOLD;
+              })();
+
+              const isEmaLongHovered = (() => {
+                if (mouseY === null || hoveredCandleIndex === null) return false;
+                const candle = visibleCandles[hoveredCandleIndex];
+                if (!candle || candle.ema_long === undefined) return false;
+                return Math.abs(mouseY - priceToY(candle.ema_long)) < HOVER_THRESHOLD;
               })();
 
               return (
@@ -1048,9 +1060,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         points={bbUpperPoints.join(' ')}
                         fill="none"
                         stroke={darkMode
-                          ? isBBHovered ? 'rgba(230,230,230,0.92)' : 'rgba(195,195,195,0.65)'
-                          : isBBHovered ? 'rgba(30,30,30,0.88)' : 'rgba(75,75,75,0.62)'}
-                        strokeWidth={isBBHovered ? '1.6' : '1'}
+                          ? isBBUpperHovered ? 'rgba(230,230,230,0.92)' : 'rgba(195,195,195,0.65)'
+                          : isBBUpperHovered ? 'rgba(30,30,30,0.88)' : 'rgba(75,75,75,0.62)'}
+                        strokeWidth={isBBUpperHovered ? '1.6' : '1'}
                         strokeDasharray="4 4"
                         style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }}
                       />
@@ -1058,21 +1070,18 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         <polyline
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
-                          stroke={darkMode
-                            ? isBBHovered ? 'rgba(210,210,210,0.75)' : 'rgba(175,175,175,0.45)'
-                            : isBBHovered ? 'rgba(50,50,50,0.72)' : 'rgba(95,95,95,0.44)'}
-                          strokeWidth={isBBHovered ? '1.3' : '0.8'}
+                          stroke={darkMode ? 'rgba(175,175,175,0.45)' : 'rgba(95,95,95,0.44)'}
+                          strokeWidth="0.8"
                           strokeDasharray="3 3"
-                          style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }}
                         />
                       )}
                       <polyline
                         points={bbLowerPoints.join(' ')}
                         fill="none"
                         stroke={darkMode
-                          ? isBBHovered ? 'rgba(230,230,230,0.92)' : 'rgba(195,195,195,0.65)'
-                          : isBBHovered ? 'rgba(30,30,30,0.88)' : 'rgba(75,75,75,0.62)'}
-                        strokeWidth={isBBHovered ? '1.6' : '1'}
+                          ? isBBUpperHovered ? 'rgba(230,230,230,0.92)' : 'rgba(195,195,195,0.65)'
+                          : isBBUpperHovered ? 'rgba(30,30,30,0.88)' : 'rgba(75,75,75,0.62)'}
+                        strokeWidth={isBBUpperHovered ? '1.6' : '1'}
                         strokeDasharray="4 4"
                         style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }}
                       />
@@ -1084,8 +1093,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       points={emaShortPoints.join(' ')}
                       fill="none"
                       stroke={colors.emaShort}
-                      strokeWidth="1"
-                      opacity="0.8"
+                      strokeWidth={isEmaShortHovered ? '2' : '1'}
+                      opacity={isEmaShortHovered ? '1' : '0.8'}
+                      style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
                     />
                   )}
 
@@ -1094,8 +1104,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       points={emaLongPoints.join(' ')}
                       fill="none"
                       stroke={colors.emaLong}
-                      strokeWidth="1"
-                      opacity="0.8"
+                      strokeWidth={isEmaLongHovered ? '2' : '1'}
+                      opacity={isEmaLongHovered ? '1' : '0.8'}
+                      style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
                     />
                   )}
 
