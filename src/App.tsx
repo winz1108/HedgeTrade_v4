@@ -183,7 +183,6 @@ function App() {
 
     const handleRealtimeCandle = (candleData: any) => {
       if (!candleData) return;
-      if (candleData.timeframe !== selectedTimeframe) return;
 
       const openTimeMs: number =
         candleData.open_time_ms ??
@@ -208,19 +207,25 @@ function App() {
             if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
                 ...lastCandle,
-                open: candleData.open,
                 high: Math.max(lastCandle.high, candleData.high),
                 low: Math.min(lastCandle.low, candleData.low),
                 close: candleData.close,
+                volume: candleData.volume ?? lastCandle.volume,
               };
-            } else if (isFinal || openTimeMs > lastTs) {
+            } else if (openTimeMs > lastTs) {
+              if (isFinal) {
+                updatedCandles[updatedCandles.length - 1] = {
+                  ...lastCandle,
+                  close: candleData.open,
+                };
+              }
               updatedCandles.push({
                 open_time_ms: openTimeMs,
                 timestamp: openTimeMs,
                 time: Math.floor(openTimeMs / 1000),
-                open: candleData.open,
-                high: candleData.high,
-                low: candleData.low,
+                open: lastCandle.close,
+                high: Math.max(lastCandle.close, candleData.high),
+                low: Math.min(lastCandle.close, candleData.low),
                 close: candleData.close,
                 volume: candleData.volume || 0,
               });
