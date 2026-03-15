@@ -489,6 +489,10 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                           </div>
                           {row.isRange ? (
                             <div className="relative bg-slate-700 rounded-full h-1 overflow-hidden">
+                              {row.isShortRange
+                                ? <div className="absolute left-0 top-0 h-1 bg-slate-500/80" style={{ width: '20%' }} />
+                                : <div className="absolute right-0 top-0 h-1 bg-slate-500/80" style={{ width: '20%' }} />
+                              }
                               {row.isShortRange ? (
                                 <div
                                   className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${row.met ? barActive : 'bg-red-600'}`}
