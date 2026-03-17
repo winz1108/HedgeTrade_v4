@@ -151,6 +151,7 @@ export interface V10StrategyStatus {
     vreg_vol_mult?: number;
     vreg_min_pnl?: number;
     vreg_reg_n?: number;
+    mgmt_tf?: string;
     [key: string]: any;
   };
   positionSide?: 'LONG' | 'SHORT' | null;
@@ -185,6 +186,7 @@ export interface V10StrategyStatus {
   vregSeries?: (number | null)[];
   indicators?: {
     '5m'?: { bd?: number; bu?: number; [key: string]: any };
+    '15m'?: { ema8?: number; ema13?: number; bd?: number; bu?: number; [key: string]: any };
     '1h'?: { ema8?: number; ema13?: number; adx?: number; [key: string]: any };
     [key: string]: any;
   };

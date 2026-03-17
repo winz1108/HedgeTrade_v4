@@ -200,28 +200,40 @@ export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
     const extractBdBu = (src: any): { bd?: number; bu?: number } => {
       if (!src) return {};
       return {
-        bd: src.bd ?? src['5m_bd'] ?? src.band_down ?? src.lower_band ?? undefined,
-        bu: src.bu ?? src['5m_bu'] ?? src.band_up ?? src.upper_band ?? undefined,
+        bd: src.bd ?? src['15m_bd'] ?? src['5m_bd'] ?? src.band_down ?? src.lower_band ?? undefined,
+        bu: src.bu ?? src['15m_bu'] ?? src['5m_bu'] ?? src.band_up ?? src.upper_band ?? undefined,
       };
     };
 
-    const bdbu5m: Record<string, number | undefined> = {};
+    const bdbu15m: Record<string, number | undefined> = {};
 
-    const sources = [
-      krakenInd?.['5m'],
-      base?.indicators?.['5m'],
-      rawData.strategyStatus?.indicators?.['5m'],
-      data.strategyA,
-      rawData['5m'],
-      rawData.indicators_5m,
+    const sources15m = [
+      krakenInd?.['15m'],
+      base?.indicators?.['15m'],
+      rawData.strategyStatus?.indicators?.['15m'],
     ];
 
-    for (const src of sources) {
+    for (const src of sources15m) {
       if (!src) continue;
       const { bd, bu } = extractBdBu(src);
-      if (bd !== undefined && bdbu5m.bd === undefined) bdbu5m.bd = bd;
-      if (bu !== undefined && bdbu5m.bu === undefined) bdbu5m.bu = bu;
-      if (bdbu5m.bd !== undefined && bdbu5m.bu !== undefined) break;
+      if (bd !== undefined && bdbu15m.bd === undefined) bdbu15m.bd = bd;
+      if (bu !== undefined && bdbu15m.bu === undefined) bdbu15m.bu = bu;
+      if (bdbu15m.bd !== undefined && bdbu15m.bu !== undefined) break;
+    }
+
+    if (bdbu15m.bd === undefined || bdbu15m.bu === undefined) {
+      const fallbackSources = [
+        krakenInd?.['5m'],
+        base?.indicators?.['5m'],
+        data.strategyA,
+      ];
+      for (const src of fallbackSources) {
+        if (!src) continue;
+        const { bd, bu } = extractBdBu(src);
+        if (bd !== undefined && bdbu15m.bd === undefined) bdbu15m.bd = bd;
+        if (bu !== undefined && bdbu15m.bu === undefined) bdbu15m.bu = bu;
+        if (bdbu15m.bd !== undefined && bdbu15m.bu !== undefined) break;
+      }
     }
 
     const merged: any = base
@@ -230,10 +242,13 @@ export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
 
     merged.indicators = {
       ...merged.indicators,
+      '15m': {
+        ...(merged.indicators?.['15m'] ?? {}),
+        ...(bdbu15m.bd !== undefined ? { bd: bdbu15m.bd } : {}),
+        ...(bdbu15m.bu !== undefined ? { bu: bdbu15m.bu } : {}),
+      },
       '5m': {
         ...(merged.indicators?.['5m'] ?? {}),
-        ...(bdbu5m.bd !== undefined ? { bd: bdbu5m.bd } : {}),
-        ...(bdbu5m.bu !== undefined ? { bu: bdbu5m.bu } : {}),
       },
     };
 

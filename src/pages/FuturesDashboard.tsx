@@ -11,7 +11,7 @@ function FuturesDashboard() {
   const [data, setData] = useState<KrakenDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('5m');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
 
   const mergePreservingLive = useCallback(
     (

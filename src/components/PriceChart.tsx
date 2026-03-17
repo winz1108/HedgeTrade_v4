@@ -89,7 +89,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const [scrollOffset, setScrollOffset] = useState(0);
   const [resetScroll, setResetScroll] = useState(0);
   const [candleWidth, setCandleWidth] = useState(4);
-  const [timeframe, setTimeframe] = useState<Timeframe>('5m');
+  const [timeframe, setTimeframe] = useState<Timeframe>('15m');
   const [volumeHeight, setVolumeHeight] = useState(60);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number; trade: TradeEvent; hasPairedSell: boolean; pairedTrade?: TradeEvent } | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -775,11 +775,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           <div className={`flex items-center gap-1.5 text-[9px] sm:text-[10px] sm:gap-2 ${colors.panelBg} px-1.5 py-1 sm:px-2 rounded flex-wrap`}>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
-              <span className={colors.textSecondary}>{(timeframe === '1h' || timeframe === '15m') ? 'EMA 3' : 'EMA 5'}</span>
+              <span className={colors.textSecondary}>EMA 8</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
-              <span className={colors.textSecondary}>{(timeframe === '1h' || timeframe === '15m') ? 'EMA 8' : 'EMA 13'}</span>
+              <span className={colors.textSecondary}>EMA 13</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
@@ -990,13 +990,13 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         <span className={`${colors.textSecondary} text-[10px] font-semibold`}>EMA</span>
                         {hoveredCandle.ema_short && (
                           <>
-                            <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">Short</span>
+                            <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">8</span>
                             <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema_short.toFixed(2)}</span>
                           </>
                         )}
                         {hoveredCandle.ema_long && (
                           <>
-                            <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">Long</span>
+                            <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">13</span>
                             <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
                           </>
                         )}
@@ -1171,8 +1171,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* v10.1 Overlays: VREG - 5분봉에서만 표시 */}
-                  {showTradeMarkers && timeframe === '5m' && (() => {
+                  {/* v10.2 Overlays: VREG - 15분봉에서만 표시 */}
+                  {showTradeMarkers && timeframe === '15m' && (() => {
                     if (!v10Strategy) return null;
                     const vregSeries = v10Strategy.vregSeries || (v10Strategy as any).vreg_series;
                     const vregColor = darkMode ? '#ffffff' : '#b45309';
