@@ -449,9 +449,18 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                 const barActive = isLongSide ? 'bg-cyan-500' : 'bg-orange-500';
                 const textActive = isLongSide ? 'text-cyan-700' : 'text-orange-700';
 
-                const rows: { label: string; pct: number; met: boolean; value: string; isRange?: boolean; rangePct?: number; isShortRange?: boolean }[] = [];
+                const rows: { label: string; pct: number; met: boolean; value: string; isRange?: boolean; rangePct?: number; isShortRange?: boolean; isBdBu?: boolean; bdBu?: { bd: number; bu: number; price: number } }[] = [];
 
                 const emaEntry = entryDetails.EMA ?? entryDetails.ema ?? entryDetails['5m_ema'];
+                if (emaEntry && emaEntry.bd != null && emaEntry.bu != null) {
+                  const bd = emaEntry.bd;
+                  const bu = emaEntry.bu;
+                  const price = emaEntry.price;
+                  const range = bu - bd;
+                  const positionPct = range > 0 ? Math.max(0, Math.min(100, ((price - bd) / range) * 100)) : 50;
+                  rows.push({ label: 'BD/BU', pct: positionPct, met: true, value: '', isBdBu: true, bdBu: { bd, bu, price } });
+                }
+
                 if (emaEntry) {
                   if (isLongSide) {
                     const met = emaEntry.long_met ?? false;
@@ -463,9 +472,6 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                     const dist = emaEntry.short_distance_pct ?? 0;
                     const value = met ? '진입 가능' : `${dist.toFixed(2)}% 남음`;
                     rows.push({ label: 'EMA', pct: met ? 100 : 0, met, value });
-                  }
-                  if (emaEntry.bd != null) {
-                    rows.push({ label: 'BD', pct: 0, met: true, value: emaEntry.bd.toFixed(2) });
                   }
                 }
 
@@ -484,7 +490,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   rows.push({ label: 'Range', pct: Math.min(100, rawPct), met, value, isRange: true, rangePct: rawPct, isShortRange: !isLongSide });
                 }
 
-                const allMet = rows.length > 0 && rows.every(r => r.met);
+                const allMet = rows.filter(r => !r.isBdBu).length > 0 && rows.filter(r => !r.isBdBu).every(r => r.met);
                 const panelActiveBg = isLongSide ? 'bg-cyan-50 border-cyan-300' : 'bg-orange-50 border-orange-300';
 
                 return (
@@ -493,32 +499,49 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                     <div className="flex flex-col gap-1">
                       {rows.map(row => (
                         <div key={row.label} className="flex flex-col gap-0.5">
-                          <div className="flex items-center justify-between">
-                            <span className={`text-[8px] ${row.met ? textActive : row.isRange && !row.met ? 'text-red-500' : 'text-stone-400'}`}>{row.label}</span>
-                            <span className={`text-[8px] tabular-nums ${row.met ? textActive : row.isRange && !row.met ? 'text-red-500' : 'text-stone-400'}`}>{row.value}</span>
-                          </div>
-                          {row.isRange ? (
-                            <div className="relative bg-stone-200 rounded-full h-1 overflow-hidden">
-                              {row.isShortRange
-                                ? <div className="absolute left-0 top-0 h-1 bg-stone-400/80" style={{ width: '10%' }} />
-                                : <div className="absolute right-0 top-0 h-1 bg-stone-400/80" style={{ width: '10%' }} />
-                              }
-                              {row.isShortRange ? (
+                          {row.isBdBu && row.bdBu ? (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <span className="text-[8px] tabular-nums text-stone-400">{row.bdBu.bd.toFixed(2)}</span>
+                                <span className="text-[8px] tabular-nums text-stone-400">{row.bdBu.bu.toFixed(2)}</span>
+                              </div>
+                              <div className="relative bg-stone-200 rounded-full h-1.5 overflow-hidden">
                                 <div
-                                  className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${row.met ? barActive : 'bg-red-600'}`}
+                                  className={`absolute top-0 left-0 h-1.5 rounded-l-full transition-all duration-300 ${barActive}`}
                                   style={{ width: `${row.pct}%` }}
                                 />
-                              ) : (
-                                <div
-                                  className={`h-1 rounded-full transition-all duration-300 relative z-10 ${row.met ? barActive : 'bg-red-600'}`}
-                                  style={{ width: `${row.pct}%` }}
-                                />
-                              )}
-                            </div>
+                              </div>
+                            </>
                           ) : (
-                            <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
-                              <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-stone-300'}`} style={{ width: `${row.pct}%` }} />
-                            </div>
+                            <>
+                              <div className="flex items-center justify-between">
+                                <span className={`text-[8px] ${row.met ? textActive : row.isRange && !row.met ? 'text-red-500' : 'text-stone-400'}`}>{row.label}</span>
+                                <span className={`text-[8px] tabular-nums ${row.met ? textActive : row.isRange && !row.met ? 'text-red-500' : 'text-stone-400'}`}>{row.value}</span>
+                              </div>
+                              {row.isRange ? (
+                                <div className="relative bg-stone-200 rounded-full h-1 overflow-hidden">
+                                  {row.isShortRange
+                                    ? <div className="absolute left-0 top-0 h-1 bg-stone-400/80" style={{ width: '10%' }} />
+                                    : <div className="absolute right-0 top-0 h-1 bg-stone-400/80" style={{ width: '10%' }} />
+                                  }
+                                  {row.isShortRange ? (
+                                    <div
+                                      className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${row.met ? barActive : 'bg-red-600'}`}
+                                      style={{ width: `${row.pct}%` }}
+                                    />
+                                  ) : (
+                                    <div
+                                      className={`h-1 rounded-full transition-all duration-300 relative z-10 ${row.met ? barActive : 'bg-red-600'}`}
+                                      style={{ width: `${row.pct}%` }}
+                                    />
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
+                                  <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-stone-300'}`} style={{ width: `${row.pct}%` }} />
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       ))}
