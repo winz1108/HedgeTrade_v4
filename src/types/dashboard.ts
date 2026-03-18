@@ -58,7 +58,6 @@ export interface HoldingInfo {
   buyTime?: number;
   currentProfit?: number;
   tpPrice?: number;
-  slPrice?: number;
   initialTakeProfitProb?: number;
   v5MoeTakeProfitProb?: number;
   latestPrediction?: {
@@ -66,11 +65,6 @@ export interface HoldingInfo {
     stopLossProb: number;
   };
   positionSide?: 'LONG' | 'SHORT';
-  ppReversalPrice?: number | null;
-  floorPrice?: number | null;
-  currentSlPct?: number;
-  exitFloorPrice?: number | null;
-  exitSlPrice?: number | null;
 }
 
 export interface ExitConditionVREG {

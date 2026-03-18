@@ -121,14 +121,12 @@ const convertApiResponseToDashboardData = (
         buyTime: account.holding.entryTime,
         currentProfit: account.holding.unrealizedPnlPct,
         tpPrice: account.holding.tpPrice,
-        slPrice: account.holding.slPrice,
         initialTakeProfitProb: account.holding.initialTakeProfitProb,
         v5MoeTakeProfitProb: apiResponse.currentPrediction.v5MoeTakeProfitProb,
         latestPrediction: {
           takeProfitProb: apiResponse.currentPrediction.takeProfitProb,
           stopLossProb: apiResponse.currentPrediction.stopLossProb,
         },
-        ppReversalPrice: (apiResponse as any).pp_reversal_price ?? null,
       },
       prediction: apiResponse.prediction || {
         market_mood: undefined,
@@ -261,7 +259,6 @@ const convertApiResponseToDashboardData = (
       buyTime: (apiResponse as any).holding?.buyTime,
       currentProfit: (apiResponse as any).holding?.currentProfit,
       tpPrice: (apiResponse as any).holding?.tpPrice,
-      slPrice: (apiResponse as any).holding?.slPrice,
       initialTakeProfitProb: (apiResponse as any).holding?.initialTakeProfitProb,
       v5MoeTakeProfitProb: apiResponse.currentPrediction?.v5MoeTakeProfitProb,
       latestPrediction: {
@@ -588,10 +585,6 @@ export const fetchBinanceFuturesDashboard = async (): Promise<any> => {
         entryTime: p.entryTime ?? p.entry_time,
         currentPnl: p.currentPnl ?? p.current_pnl,
         side: p.side ?? p.position_side,
-        ppReversalPrice: p.ppReversalPrice ?? p.pp_reversal_price,
-        floorPrice: p.floorPrice ?? p.floor_price,
-        slPrice: p.slPrice ?? p.sl_price,
-        currentSlPct: p.currentSlPct ?? p.current_sl_pct,
       };
     }
 

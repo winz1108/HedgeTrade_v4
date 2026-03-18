@@ -65,12 +65,6 @@ export function BinanceFuturesPriceChart({ data, onTimeframeChange }: Props) {
         buyTime: data.position.entryTime || data.position.entry_time || undefined,
         currentProfit: data.position.currentPnl ?? data.position.current_pnl,
         positionSide: data.position.side || data.position.position_side || undefined,
-        ppReversalPrice: data.strategy?.pp_reversal_price || data.position.ppReversalPrice || data.position.pp_reversal_price || undefined,
-        floorPrice: data.position.floorPrice ?? data.position.floor_price ?? null,
-        slPrice: data.position.slPrice ?? data.position.sl_price ?? undefined,
-        currentSlPct: data.position.currentSlPct ?? data.position.current_sl_pct ?? undefined,
-        exitFloorPrice: data.position.exit_prices?.floor_price ?? data.position.floorPrice ?? data.position.floor_price ?? null,
-        exitSlPrice: data.position.exit_prices?.sl_price ?? data.position.slPrice ?? data.position.sl_price ?? undefined,
       },
       metrics: {
         portfolioReturn: 0,

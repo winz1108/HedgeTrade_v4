@@ -199,7 +199,6 @@ function App() {
           };
         }
         if (statusData.pp_reversal_price !== undefined) {
-          updated.position = { ...updated.position, ppReversalPrice: statusData.pp_reversal_price };
           updated.strategy = { ...updated.strategy, pp_reversal_price: statusData.pp_reversal_price };
         }
         if (statusData.peak_price !== undefined) {
@@ -226,9 +225,6 @@ function App() {
         }
         if (priceData.portfolioValue !== undefined) {
           updated.account = { ...updated.account, totalAsset: priceData.portfolioValue };
-        }
-        if (priceData.pp_reversal_price !== undefined) {
-          updated.position = { ...updated.position, ppReversalPrice: priceData.pp_reversal_price };
         }
         const positionUpdate: any = { ...updated.position };
         let positionChanged = false;

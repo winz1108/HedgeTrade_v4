@@ -132,12 +132,6 @@ export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
         buyTime: data.strategyA.entry_time,
         currentProfit: data.strategyA.current_pnl,
         positionSide: data.position.position_side,
-        ppReversalPrice: data.strategyA.pp_reversal_price,
-        floorPrice: data.strategyA.floor_price ?? null,
-        slPrice: data.strategyA.sl_price ?? undefined,
-        currentSlPct: data.strategyA.current_sl_pct ?? undefined,
-        exitFloorPrice: data.strategyA.exit_prices?.floor_price ?? data.strategyA.floor_price ?? null,
-        exitSlPrice: data.strategyA.exit_prices?.sl_price ?? data.strategyA.sl_price ?? undefined,
       },
       metrics: {
         portfolioReturn: 0,

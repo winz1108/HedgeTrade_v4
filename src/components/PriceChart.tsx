@@ -1196,23 +1196,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       }
                     }
 
-                    const lastVisibleVreg = (() => {
-                      if (!vregSeries || vregSeries.length === 0) return null;
-                      const src = selectedCandles;
-                      if (!src || src.length === 0) return null;
-                      const offset = src.length - vregSeries.length;
-                      for (let i = vregSeries.length - 1; i >= 0; i--) {
-                        const val = vregSeries[i];
-                        if (val === null || val === undefined) continue;
-                        const globalIdx = offset + i;
-                        const localIdx = globalIdx - visibleStartIndex;
-                        if (localIdx >= 0 && localIdx < visibleCandles.length) {
-                          return val as number;
-                        }
-                      }
-                      return lastVregVal;
-                    })();
-
                     const isVregHovered = (() => {
                       if (mouseY === null || hoveredCandleIndex === null) return false;
                       if (!vregSeries || vregSeries.length === 0) return false;
@@ -1234,17 +1217,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                             stroke={vregColor}
                             strokeWidth={isVregHovered ? '2' : '0.8'}
                             opacity={isVregHovered ? '1' : '0.85'}
-                            style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
-                          />
-                        )}
-                        {lastVisibleVreg !== null && (
-                          <line
-                            x1="0" y1={priceToY(lastVisibleVreg)}
-                            x2="100%" y2={priceToY(lastVisibleVreg)}
-                            stroke={vregColor}
-                            strokeWidth={isVregHovered ? '1.2' : '0.6'}
-                            opacity={isVregHovered ? '0.75' : '0.5'}
-                            strokeDasharray="4,4"
                             style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
                           />
                         )}
@@ -1685,47 +1657,30 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     opacity="0.75"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
                   />
-                  {/* PP Reversal Price line — Binance only */}
-                  {!darkMode && data.holding.ppReversalPrice && (
-                    <line
-                      x1="0"
-                      y1={priceToY(data.holding.ppReversalPrice)}
-                      x2="100%"
-                      y2={priceToY(data.holding.ppReversalPrice)}
-                      stroke="#64748b"
-                      strokeWidth="1"
-                      strokeDasharray="6 4"
-                      opacity="0.45"
-                    />
-                  )}
-                  {/* SL Price line — Binance only */}
-                  {!darkMode && (data.holding.exitSlPrice ?? data.holding.slPrice) && (
-                    <line
-                      x1="0"
-                      y1={priceToY((data.holding.exitSlPrice ?? data.holding.slPrice)!)}
-                      x2="100%"
-                      y2={priceToY((data.holding.exitSlPrice ?? data.holding.slPrice)!)}
-                      stroke="#ef4444"
-                      strokeWidth="1.2"
-                      strokeDasharray="5 3"
-                      opacity="0.75"
-                      filter="drop-shadow(0 0 3px rgba(239, 68, 68, 0.5))"
-                    />
-                  )}
-                  {/* Floor Price line — Binance only */}
-                  {!darkMode && (data.holding.exitFloorPrice ?? data.holding.floorPrice) != null && (
-                    <line
-                      x1="0"
-                      y1={priceToY((data.holding.exitFloorPrice ?? data.holding.floorPrice)!)}
-                      x2="100%"
-                      y2={priceToY((data.holding.exitFloorPrice ?? data.holding.floorPrice)!)}
-                      stroke="#fbbf24"
-                      strokeWidth="1.2"
-                      strokeDasharray="6 3"
-                      opacity="0.8"
-                      filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.4))"
-                    />
-                  )}
+                  {(() => {
+                    if (!v10Strategy) return null;
+                    const vregSeries = v10Strategy.vregSeries || (v10Strategy as any).vreg_series;
+                    if (!vregSeries || vregSeries.length === 0) return null;
+                    let lastVal: number | null = null;
+                    for (let i = vregSeries.length - 1; i >= 0; i--) {
+                      if (vregSeries[i] !== null && vregSeries[i] !== undefined) {
+                        lastVal = vregSeries[i] as number;
+                        break;
+                      }
+                    }
+                    if (lastVal === null) return null;
+                    const vregColor = darkMode ? '#ffffff' : '#b45309';
+                    return (
+                      <line
+                        x1="0" y1={priceToY(lastVal)}
+                        x2="100%" y2={priceToY(lastVal)}
+                        stroke={vregColor}
+                        strokeWidth="0.8"
+                        opacity="0.6"
+                        strokeDasharray="4,4"
+                      />
+                    );
+                  })()}
                   {(() => {
                     const ep = data.holding.buyPrice;
                     if (!ep) return null;
