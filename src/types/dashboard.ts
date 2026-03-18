@@ -84,6 +84,7 @@ export interface ExitConditionVREG {
   vol_spike: boolean;
   vol_mult: number;
   vol_current_ratio?: number;
+  vol_threshold?: number;
   line_distance_pct?: number;
 }
 
