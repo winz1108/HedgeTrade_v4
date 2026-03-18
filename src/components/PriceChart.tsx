@@ -1726,11 +1726,15 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.4))"
                     />
                   )}
-                  {/* -0.5% from entry price threshold line */}
                   {(() => {
                     const ep = data.holding.buyPrice;
                     if (!ep) return null;
-                    const maePrice = isLong ? ep * (1 - 0.005) : ep * (1 + 0.005);
+                    const maePct = Math.abs(
+                      v10Strategy?.exitConditions?.CUT?.mae_threshold
+                      ?? v10Strategy?.exitPrices?.cut_threshold_mae
+                      ?? 0.5
+                    ) / 100;
+                    const maePrice = isLong ? ep * (1 - maePct) : ep * (1 + maePct);
                     return (
                       <line
                         x1="0"
