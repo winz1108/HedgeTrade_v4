@@ -473,12 +473,6 @@ export function KrakenMetricsPanel({ data, position }: Props) {
 
                 const rows: { label: string; pct: number; met: boolean; value: string; isRange?: boolean; rangePct?: number; isShortRange?: boolean }[] = [];
 
-                if (entryDetails.ADX) {
-                  const adx = entryDetails.ADX!;
-                  const met = adx.current >= adx.threshold;
-                  rows.push({ label: 'ADX', pct: Math.min(100, (adx.current / adx.threshold) * 100), met, value: `${adx.current.toFixed(1)}/${adx.threshold}` });
-                }
-
                 const emaEntry = entryDetails.EMA ?? entryDetails.ema ?? entryDetails['5m_ema'];
                 if (emaEntry) {
                   if (isLongSide) {
@@ -492,6 +486,9 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                     const value = met ? '진입 가능' : `${dist.toFixed(2)}% 남음`;
                     rows.push({ label: 'EMA', pct: met ? 100 : 0, met, value });
                   }
+                  if (emaEntry.bd != null) {
+                    rows.push({ label: 'BD', pct: 0, met: true, value: emaEntry.bd.toFixed(2) });
+                  }
                 }
 
                 if (entryDetails.Range) {
@@ -499,11 +496,11 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   let rawPct: number; let met: boolean; let value: string;
                   if (isLongSide) {
                     rawPct = range.long_pct ?? range.position_pct ?? 0;
-                    met = rawPct <= 80;
+                    met = rawPct <= 90;
                     value = `${rawPct.toFixed(1)}%`;
                   } else {
                     rawPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
-                    met = rawPct <= 80;
+                    met = rawPct <= 90;
                     value = `${rawPct.toFixed(1)}%`;
                   }
                   rows.push({ label: 'Range', pct: Math.min(100, rawPct), met, value, isRange: true, rangePct: rawPct, isShortRange: !isLongSide });
@@ -524,8 +521,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                           {row.isRange ? (
                             <div className="relative bg-slate-700 rounded-full h-1 overflow-hidden">
                               {row.isShortRange
-                                ? <div className="absolute left-0 top-0 h-1 bg-slate-500/80" style={{ width: '20%' }} />
-                                : <div className="absolute right-0 top-0 h-1 bg-slate-500/80" style={{ width: '20%' }} />
+                                ? <div className="absolute left-0 top-0 h-1 bg-slate-500/80" style={{ width: '10%' }} />
+                                : <div className="absolute right-0 top-0 h-1 bg-slate-500/80" style={{ width: '10%' }} />
                               }
                               {row.isShortRange ? (
                                 <div
