@@ -105,6 +105,7 @@ export interface ExitConditionCUT {
   mae_ok: boolean;
   mae_current: number;
   mae_threshold: number;
+  consecutive_cuts: number;
   pnl_ok: boolean;
   ema_reversed: boolean;
 }
@@ -153,6 +154,8 @@ export interface V10StrategyStatus {
     vreg_min_pnl?: number;
     vreg_reg_n?: number;
     mgmt_tf?: string;
+    cut_prog_steps?: number[];
+    cut_mae?: number;
     [key: string]: any;
   };
   positionSide?: 'LONG' | 'SHORT' | null;

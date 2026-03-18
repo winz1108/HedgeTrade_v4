@@ -211,13 +211,47 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                   }`} />
                   <span className={`text-[9px] font-bold ${cut.armed ? 'text-rose-300' : 'text-slate-400'}`}>CUT</span>
                   <span className="text-[7px] text-slate-500">손절</span>
+                  {(cut.consecutive_cuts ?? 0) > 0 && (
+                    <span className="text-[7px] font-bold text-rose-400 bg-rose-500/20 px-1 rounded">
+                      x{cut.consecutive_cuts}
+                    </span>
+                  )}
                 </div>
-                {exitPrices?.cut_threshold_mae != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${cut.armed ? 'text-rose-300' : 'text-slate-500'}`}>
-                    MAE {exitPrices.cut_threshold_mae.toFixed(1)}%
-                  </span>
-                )}
+                <span className={`text-[9px] font-bold tabular-nums ${cut.armed ? 'text-rose-300' : 'text-slate-500'}`}>
+                  MAE {(cut.mae_threshold ?? exitPrices?.cut_threshold_mae ?? 0).toFixed(1)}%
+                </span>
               </div>
+              {(() => {
+                const steps = strategyParams?.cut_prog_steps;
+                if (steps && steps.length > 1) {
+                  const currentIdx = cut.consecutive_cuts ?? 0;
+                  return (
+                    <div className="flex items-center gap-0.5 mb-1">
+                      {steps.map((step, i) => {
+                        const isActive = i === Math.min(currentIdx, steps.length - 1);
+                        const isPast = i < currentIdx;
+                        return (
+                          <div key={i} className="flex items-center gap-0.5">
+                            <div className={`text-[7px] tabular-nums px-1 py-px rounded transition-all ${
+                              isActive
+                                ? 'bg-rose-500/40 text-rose-300 font-bold ring-1 ring-rose-400/50'
+                                : isPast
+                                  ? 'bg-rose-500/15 text-rose-400/60'
+                                  : 'bg-slate-700/40 text-slate-600'
+                            }`}>
+                              {step.toFixed(1)}
+                            </div>
+                            {i < steps.length - 1 && (
+                              <div className={`w-1.5 h-px ${isPast ? 'bg-rose-500/40' : 'bg-slate-700'}`} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.mae_ok} />
