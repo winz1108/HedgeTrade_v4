@@ -127,7 +127,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={vreg.pnl_ok} />
                   <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>PnL</span>
-                  <ProgressBar current={vreg.pnl_current} target={strategyParams?.vreg_min_pnl ?? 0.7} />
+                  <ProgressBar current={vreg.pnl_current} target={vreg.pnl_min ?? strategyParams?.vreg_min_pnl ?? 0.3} />
                   <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
                     {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
                   </span>
@@ -137,15 +137,15 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                   <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'}`}>거래량</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
-                      <ProgressBar current={vreg.vol_current_ratio} target={strategyParams?.vreg_vol_mult ?? 1.0} />
+                      <ProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult ?? strategyParams?.vreg_vol_mult ?? 1.0} />
                       <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{(strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}
+                        {vreg.vol_current_ratio.toFixed(1)}/{(vreg.vol_mult ?? strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}
                       </span>
                     </>
                   ) : (
                     <>
                       <div className="flex-1 bg-slate-700 rounded-full h-1" />
-                      <span className="text-[8px] text-slate-600 w-[36px] text-right flex-shrink-0">{(strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}</span>
+                      <span className="text-[8px] text-slate-600 w-[36px] text-right flex-shrink-0">{(vreg.vol_mult ?? strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}</span>
                     </>
                   )}
                 </div>

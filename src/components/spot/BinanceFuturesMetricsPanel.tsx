@@ -151,7 +151,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={vreg.pnl_ok} />
                   <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>PnL</span>
-                  <BProgressBar current={vreg.pnl_current} target={strategyParams?.vreg_min_pnl ?? 0.7} />
+                  <BProgressBar current={vreg.pnl_current} target={vreg.pnl_min ?? strategyParams?.vreg_min_pnl ?? 0.3} />
                   <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.pnl_ok ? 'text-emerald-600' : 'text-stone-500'}`}>
                     {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
                   </span>
@@ -161,13 +161,13 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>거래량</span>
                   {vreg.vol_current_ratio != null ? (
                     <>
-                      <BProgressBar current={vreg.vol_current_ratio} target={strategyParams?.vreg_vol_mult ?? 1.0} />
+                      <BProgressBar current={vreg.vol_current_ratio} target={vreg.vol_mult ?? strategyParams?.vreg_vol_mult ?? 1.0} />
                       <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.vol_spike ? 'text-amber-400' : 'text-stone-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{(strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}
+                        {vreg.vol_current_ratio.toFixed(1)}/{(vreg.vol_mult ?? strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}
                       </span>
                     </>
                   ) : (
-                    <span className="text-[8px] text-stone-500 w-[36px] text-right flex-shrink-0">{(strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}</span>
+                    <span className="text-[8px] text-stone-500 w-[36px] text-right flex-shrink-0">{(vreg.vol_mult ?? strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}</span>
                   )}
                 </div>
               </div>
