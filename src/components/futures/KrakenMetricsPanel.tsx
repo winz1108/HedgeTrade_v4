@@ -478,20 +478,21 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   const progressPct = Math.max(0, Math.min(100, (1 - distPct / maxDist) * 100));
 
                   const accentColor = isLongSide
-                    ? (isCloser ? 'text-cyan-400' : 'text-cyan-400/40')
-                    : (isCloser ? 'text-orange-400' : 'text-orange-400/40');
+                    ? (met ? 'text-cyan-300' : isCloser ? 'text-cyan-400' : 'text-slate-500')
+                    : (met ? 'text-orange-300' : isCloser ? 'text-orange-400' : 'text-slate-500');
                   const barActive = isLongSide ? 'bg-cyan-400' : 'bg-orange-400';
-                  const barCloser = isLongSide ? 'bg-cyan-400/60' : 'bg-orange-400/60';
+                  const barInactive = 'bg-slate-400';
                   const barDim = 'bg-slate-600/30';
                   const textActive = isLongSide ? 'text-cyan-300' : 'text-orange-300';
-                  const textDim = 'text-slate-600';
-                  const textDefault = isCloser ? 'text-slate-400' : textDim;
+                  const textInactive = 'text-slate-300';
+                  const textDim = 'text-slate-500';
+                  const textDefault = isCloser ? textInactive : textDim;
                   const panelActiveBg = isLongSide ? 'bg-cyan-500/15 border-cyan-500/40' : 'bg-orange-500/15 border-orange-500/40';
                   const panelDim = 'bg-slate-800/30 border-transparent';
 
                   return (
                     <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${
-                      met ? panelActiveBg : isCloser ? 'bg-slate-700/40 border-transparent' : panelDim
+                      met ? panelActiveBg : isCloser ? 'bg-slate-700/50 border-slate-600/40' : panelDim
                     }`}>
                       <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${accentColor}`}>{side}</div>
                       <div className="flex flex-col gap-0.5">
@@ -510,9 +511,9 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                         </div>
                         <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
                           {isLongSide ? (
-                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? barCloser : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? barInactive : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           ) : (
-                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? barCloser : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? barInactive : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           )}
                         </div>
                       </div>

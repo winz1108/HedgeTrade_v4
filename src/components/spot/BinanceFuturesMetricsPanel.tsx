@@ -457,20 +457,21 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   const progressPct = Math.max(0, Math.min(100, (1 - distPct / maxDist) * 100));
 
                   const accentColor = isLongSide
-                    ? (isCloser ? 'text-cyan-600' : 'text-cyan-400/60')
-                    : (isCloser ? 'text-orange-600' : 'text-orange-400/60');
+                    ? (met ? 'text-cyan-700' : isCloser ? 'text-cyan-600' : 'text-stone-400')
+                    : (met ? 'text-orange-700' : isCloser ? 'text-orange-600' : 'text-stone-400');
                   const barActive = isLongSide ? 'bg-cyan-500' : 'bg-orange-500';
-                  const barCloser = isLongSide ? 'bg-cyan-500/60' : 'bg-orange-500/60';
-                  const barDim = 'bg-stone-300/50';
+                  const barInactive = 'bg-stone-400';
+                  const barDim = 'bg-stone-300/40';
                   const textActive = isLongSide ? 'text-cyan-700' : 'text-orange-700';
-                  const textDim = 'text-stone-300';
-                  const textDefault = isCloser ? 'text-stone-500' : textDim;
+                  const textInactive = 'text-stone-500';
+                  const textDim = 'text-stone-400';
+                  const textDefault = isCloser ? textInactive : textDim;
                   const panelActiveBg = isLongSide ? 'bg-cyan-50 border-cyan-300' : 'bg-orange-50 border-orange-300';
-                  const panelDim = 'bg-stone-50/60 border-stone-200/60';
+                  const panelDim = 'bg-stone-50/50 border-stone-200/50';
 
                   return (
                     <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${
-                      met ? panelActiveBg : isCloser ? 'bg-stone-50 border-stone-200' : panelDim
+                      met ? panelActiveBg : isCloser ? 'bg-white border-stone-200' : panelDim
                     }`}>
                       <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${accentColor}`}>{side}</div>
                       <div className="flex flex-col gap-0.5">
@@ -489,9 +490,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                         </div>
                         <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
                           {isLongSide ? (
-                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? barCloser : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? barInactive : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           ) : (
-                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? barCloser : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? barInactive : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           )}
                         </div>
                       </div>
