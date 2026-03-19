@@ -133,10 +133,24 @@ export interface EntryDetailRange {
   short_pct?: number;
 }
 
+export interface EntryDetailVWAP {
+  price: number;
+  vwap: number;
+  upper: number;
+  lower: number;
+  std: number;
+  sigma: number;
+  long_met: boolean;
+  short_met: boolean;
+  long_distance_pct: number;
+  short_distance_pct: number;
+}
+
 export interface EntryDetails {
   ADX?: EntryDetailADX;
   EMA?: EntryDetailEMA;
   Range?: EntryDetailRange;
+  VWAP?: EntryDetailVWAP;
   [key: string]: any;
 }
 
@@ -150,6 +164,10 @@ export interface V10StrategyStatus {
     mgmt_tf?: string;
     cut_prog_steps?: number[];
     cut_mae?: number;
+    entry_tf?: string;
+    entry_mode?: string;
+    vwap_period?: number;
+    vwap_sigma?: number;
     [key: string]: any;
   };
   positionSide?: 'LONG' | 'SHORT' | null;

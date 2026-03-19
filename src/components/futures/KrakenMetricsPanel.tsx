@@ -462,7 +462,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
             <h3 className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Entry Conditions</h3>
           </div>
 
-          {entryDetails ? (
+          {entryDetails?.VWAP ? (
             <div className="grid grid-cols-2 gap-1.5">
               {(['LONG', 'SHORT'] as const).map(side => {
                 const isLongSide = side === 'LONG';
@@ -471,88 +471,37 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 const textActive = isLongSide ? 'text-cyan-300' : 'text-orange-300';
                 const panelActiveBg = isLongSide ? 'bg-cyan-500/15 border-cyan-500/40' : 'bg-orange-500/15 border-orange-500/40';
 
-                const emaEntry = entryDetails.EMA ?? entryDetails.ema ?? entryDetails['5m_ema'];
-
-                let emaMet = false;
-                let emaDist = 0;
-                let emaBd = 0;
-                if (emaEntry) {
-                  if (isLongSide) {
-                    emaMet = emaEntry.long_met ?? false;
-                    emaDist = emaEntry.long_distance_pct ?? 0;
-                  } else {
-                    emaMet = emaEntry.short_met ?? false;
-                    emaDist = emaEntry.short_distance_pct ?? 0;
-                  }
-                  emaBd = emaEntry.bd ?? 0;
-                }
-
-                let rangePct = 0; let rangeMet = false; let rangeValue = ''; let hasRange = false;
-                if (entryDetails.Range) {
-                  hasRange = true;
-                  const range = entryDetails.Range!;
-                  if (isLongSide) {
-                    rangePct = range.long_pct ?? range.position_pct ?? 0;
-                    rangeMet = rangePct <= 90;
-                    rangeValue = `${rangePct.toFixed(1)}%`;
-                  } else {
-                    rangePct = range.short_pct ?? (100 - (range.position_pct ?? 0));
-                    rangeMet = rangePct <= 90;
-                    rangeValue = `${rangePct.toFixed(1)}%`;
-                  }
-                }
-
-                const allMet = (emaEntry ? emaMet : true) && (hasRange ? rangeMet : true) && (emaEntry || hasRange);
+                const vwap = entryDetails.VWAP!;
+                const met = isLongSide ? vwap.long_met : vwap.short_met;
+                const distPct = isLongSide ? vwap.long_distance_pct : vwap.short_distance_pct;
+                const targetPrice = isLongSide ? vwap.lower : vwap.upper;
+                const maxDist = 3;
+                const progressPct = Math.max(0, Math.min(100, (1 - distPct / maxDist) * 100));
 
                 return (
-                  <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${allMet ? panelActiveBg : 'bg-slate-700/40 border-transparent'}`}>
+                  <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${met ? panelActiveBg : 'bg-slate-700/40 border-transparent'}`}>
                     <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${accentColor}`}>{side}</div>
-                    <div className="flex flex-col gap-1">
-                      {emaEntry && (
-                        <div className="flex flex-col gap-0.5">
-                          <div className="flex items-center justify-between">
-                            {isLongSide ? (
-                              <>
-                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-500'}`}>{emaMet ? '진입 가능' : `${emaDist.toFixed(2)}%`}</span>
-                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-400'}`}>{emaBd.toFixed(2)}</span>
-                              </>
-                            ) : (
-                              <>
-                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-400'}`}>{emaBd.toFixed(2)}</span>
-                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-500'}`}>{emaMet ? '진입 가능' : `${emaDist.toFixed(2)}%`}</span>
-                              </>
-                            )}
-                          </div>
-                          <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
-                            <div className={`h-1 rounded-full transition-all duration-300 ${emaMet ? barActive : 'bg-slate-600/60'}`} style={{ width: emaMet ? '100%' : '0%' }} />
-                          </div>
-                        </div>
-                      )}
-                      {hasRange && (
-                        <div className="flex flex-col gap-0.5">
-                          <div className="flex items-center justify-between">
-                            <span className={`text-[8px] ${rangeMet ? textActive : 'text-red-400'}`}>Range</span>
-                            <span className={`text-[8px] tabular-nums ${rangeMet ? textActive : 'text-red-400'}`}>{rangeValue}</span>
-                          </div>
-                          <div className="relative bg-slate-700 rounded-full h-1 overflow-hidden">
-                            {!isLongSide
-                              ? <div className="absolute left-0 top-0 h-1 bg-slate-500/80" style={{ width: '10%' }} />
-                              : <div className="absolute right-0 top-0 h-1 bg-slate-500/80" style={{ width: '10%' }} />
-                            }
-                            {!isLongSide ? (
-                              <div
-                                className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${rangeMet ? barActive : 'bg-red-600'}`}
-                                style={{ width: `${Math.min(100, rangePct)}%` }}
-                              />
-                            ) : (
-                              <div
-                                className={`h-1 rounded-full transition-all duration-300 relative z-10 ${rangeMet ? barActive : 'bg-red-600'}`}
-                                style={{ width: `${Math.min(100, rangePct)}%` }}
-                              />
-                            )}
-                          </div>
-                        </div>
-                      )}
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center justify-between">
+                        {isLongSide ? (
+                          <>
+                            <span className={`text-[8px] tabular-nums ${met ? textActive : 'text-slate-500'}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
+                            <span className={`text-[8px] tabular-nums ${met ? textActive : 'text-slate-500'}`}>{targetPrice.toFixed(1)}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className={`text-[8px] tabular-nums ${met ? textActive : 'text-slate-500'}`}>{targetPrice.toFixed(1)}</span>
+                            <span className={`text-[8px] tabular-nums ${met ? textActive : 'text-slate-500'}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
+                        {isLongSide ? (
+                          <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : 'bg-slate-500'}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                        ) : (
+                          <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : 'bg-slate-500'}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
