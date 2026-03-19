@@ -456,43 +456,44 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   const maxDist = 3;
                   const progressPct = Math.max(0, Math.min(100, (1 - distPct / maxDist) * 100));
 
-                  const accentColor = isLongSide
-                    ? (met ? 'text-cyan-700' : isCloser ? 'text-cyan-600' : 'text-stone-400')
-                    : (met ? 'text-orange-700' : isCloser ? 'text-orange-600' : 'text-stone-400');
-                  const barActive = isLongSide ? 'bg-cyan-500' : 'bg-orange-500';
-                  const barInactive = 'bg-stone-400';
-                  const barDim = 'bg-stone-300/40';
-                  const textActive = isLongSide ? 'text-cyan-700' : 'text-orange-700';
-                  const textInactive = 'text-stone-500';
-                  const textDim = 'text-stone-400';
-                  const textDefault = isCloser ? textInactive : textDim;
-                  const panelActiveBg = isLongSide ? 'bg-cyan-50 border-cyan-300' : 'bg-orange-50 border-orange-300';
-                  const panelDim = 'bg-stone-50/50 border-stone-200/50';
+                  const barColor = isLongSide ? 'bg-cyan-500' : 'bg-orange-500';
+                  const barDim = 'bg-stone-400';
+                  const barFaint = 'bg-stone-300/40';
+                  const textColor = isLongSide ? 'text-cyan-700' : 'text-orange-700';
+                  const textDim = 'text-stone-500';
+                  const textFaint = 'text-stone-400';
+                  const labelColor = isLongSide
+                    ? (met || isCloser ? 'text-cyan-600' : textFaint)
+                    : (met || isCloser ? 'text-orange-600' : textFaint);
+                  const valueColor = met || isCloser ? textColor : textDim;
+                  const panelBg = isLongSide
+                    ? (met || isCloser ? 'bg-cyan-50 border-cyan-300' : 'bg-stone-50/50 border-stone-200/50')
+                    : (met || isCloser ? 'bg-orange-50 border-orange-300' : 'bg-stone-50/50 border-stone-200/50');
+                  const bar = met ? barColor : isCloser ? barColor : barDim;
+                  const barBg = met || isCloser ? barColor : barFaint;
 
                   return (
-                    <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${
-                      met ? panelActiveBg : isCloser ? 'bg-white border-stone-200' : panelDim
-                    }`}>
-                      <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${accentColor}`}>{side}</div>
+                    <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${panelBg}`}>
+                      <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${labelColor}`}>{side}</div>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center justify-between">
                           {isLongSide ? (
                             <>
-                              <span className={`text-[8px] tabular-nums ${met ? textActive : textDefault}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
-                              <span className={`text-[8px] tabular-nums ${met ? textActive : textDefault}`}>{targetPrice.toFixed(1)}</span>
+                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
+                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{targetPrice.toFixed(1)}</span>
                             </>
                           ) : (
                             <>
-                              <span className={`text-[8px] tabular-nums ${met ? textActive : textDefault}`}>{targetPrice.toFixed(1)}</span>
-                              <span className={`text-[8px] tabular-nums ${met ? textActive : textDefault}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
+                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{targetPrice.toFixed(1)}</span>
+                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
                             </>
                           )}
                         </div>
                         <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
                           {isLongSide ? (
-                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? barInactive : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ${barBg}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           ) : (
-                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? barInactive : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${barBg}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           )}
                         </div>
                       </div>
