@@ -471,101 +471,88 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 const textActive = isLongSide ? 'text-cyan-300' : 'text-orange-300';
                 const panelActiveBg = isLongSide ? 'bg-cyan-500/15 border-cyan-500/40' : 'bg-orange-500/15 border-orange-500/40';
 
-                const rows: { label: string; pct: number; met: boolean; value: string; isRange?: boolean; rangePct?: number; isShortRange?: boolean; isBdBu?: boolean; bdBu?: { bd: number; bu: number; price: number } }[] = [];
-
                 const emaEntry = entryDetails.EMA ?? entryDetails.ema ?? entryDetails['5m_ema'];
-                if (emaEntry && emaEntry.bd != null && emaEntry.bu != null) {
-                  const bd = emaEntry.bd;
-                  const bu = emaEntry.bu;
-                  const price = emaEntry.price;
-                  const range = bu - bd;
-                  const positionPct = range > 0 ? Math.max(0, Math.min(100, ((price - bd) / range) * 100)) : 50;
-                  rows.push({ label: 'BD/BU', pct: positionPct, met: true, value: '', isBdBu: true, bdBu: { bd, bu, price } });
-                }
 
+                let emaMet = false;
+                let emaDist = 0;
+                let emaBd = 0;
                 if (emaEntry) {
                   if (isLongSide) {
-                    const met = emaEntry.long_met ?? false;
-                    const dist = emaEntry.long_distance_pct ?? 0;
-                    const value = met ? '진입 가능' : `${dist.toFixed(2)}% 남음`;
-                    rows.push({ label: 'EMA', pct: met ? 100 : 0, met, value });
+                    emaMet = emaEntry.long_met ?? false;
+                    emaDist = emaEntry.long_distance_pct ?? 0;
                   } else {
-                    const met = emaEntry.short_met ?? false;
-                    const dist = emaEntry.short_distance_pct ?? 0;
-                    const value = met ? '진입 가능' : `${dist.toFixed(2)}% 남음`;
-                    rows.push({ label: 'EMA', pct: met ? 100 : 0, met, value });
+                    emaMet = emaEntry.short_met ?? false;
+                    emaDist = emaEntry.short_distance_pct ?? 0;
                   }
+                  emaBd = emaEntry.bd ?? 0;
                 }
 
+                let rangePct = 0; let rangeMet = false; let rangeValue = ''; let hasRange = false;
                 if (entryDetails.Range) {
+                  hasRange = true;
                   const range = entryDetails.Range!;
-                  let rawPct: number; let met: boolean; let value: string;
                   if (isLongSide) {
-                    rawPct = range.long_pct ?? range.position_pct ?? 0;
-                    met = rawPct <= 90;
-                    value = `${rawPct.toFixed(1)}%`;
+                    rangePct = range.long_pct ?? range.position_pct ?? 0;
+                    rangeMet = rangePct <= 90;
+                    rangeValue = `${rangePct.toFixed(1)}%`;
                   } else {
-                    rawPct = range.short_pct ?? (100 - (range.position_pct ?? 0));
-                    met = rawPct <= 90;
-                    value = `${rawPct.toFixed(1)}%`;
+                    rangePct = range.short_pct ?? (100 - (range.position_pct ?? 0));
+                    rangeMet = rangePct <= 90;
+                    rangeValue = `${rangePct.toFixed(1)}%`;
                   }
-                  rows.push({ label: 'Range', pct: Math.min(100, rawPct), met, value, isRange: true, rangePct: rawPct, isShortRange: !isLongSide });
                 }
 
-                const allMet = rows.filter(r => !r.isBdBu).length > 0 && rows.filter(r => !r.isBdBu).every(r => r.met);
+                const allMet = (emaEntry ? emaMet : true) && (hasRange ? rangeMet : true) && (emaEntry || hasRange);
 
                 return (
                   <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${allMet ? panelActiveBg : 'bg-slate-700/40 border-transparent'}`}>
                     <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${accentColor}`}>{side}</div>
                     <div className="flex flex-col gap-1">
-                      {rows.map(row => (
-                        <div key={row.label} className="flex flex-col gap-0.5">
-                          {row.isBdBu && row.bdBu ? (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <span className="text-[8px] tabular-nums text-slate-400">{row.bdBu.bd.toFixed(2)}</span>
-                                <span className="text-[8px] tabular-nums text-slate-400">{row.bdBu.bu.toFixed(2)}</span>
-                              </div>
-                              <div className="relative bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                                <div
-                                  className={`absolute top-0 left-0 h-1.5 rounded-l-full transition-all duration-300 ${barActive}`}
-                                  style={{ width: `${row.pct}%` }}
-                                />
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <span className={`text-[8px] ${row.met ? textActive : row.isRange && !row.met ? 'text-red-400' : 'text-slate-500'}`}>{row.label}</span>
-                                <span className={`text-[8px] tabular-nums ${row.met ? textActive : row.isRange && !row.met ? 'text-red-400' : 'text-slate-500'}`}>{row.value}</span>
-                              </div>
-                              {row.isRange ? (
-                                <div className="relative bg-slate-700 rounded-full h-1 overflow-hidden">
-                                  {row.isShortRange
-                                    ? <div className="absolute left-0 top-0 h-1 bg-slate-500/80" style={{ width: '10%' }} />
-                                    : <div className="absolute right-0 top-0 h-1 bg-slate-500/80" style={{ width: '10%' }} />
-                                  }
-                                  {row.isShortRange ? (
-                                    <div
-                                      className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${row.met ? barActive : 'bg-red-600'}`}
-                                      style={{ width: `${row.pct}%` }}
-                                    />
-                                  ) : (
-                                    <div
-                                      className={`h-1 rounded-full transition-all duration-300 relative z-10 ${row.met ? barActive : 'bg-red-600'}`}
-                                      style={{ width: `${row.pct}%` }}
-                                    />
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
-                                  <div className={`h-1 rounded-full transition-all duration-300 ${row.met ? barActive : 'bg-slate-600/60'}`} style={{ width: `${row.pct}%` }} />
-                                </div>
-                              )}
-                            </>
-                          )}
+                      {emaEntry && (
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between">
+                            {isLongSide ? (
+                              <>
+                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-500'}`}>{emaMet ? '진입 가능' : `${emaDist.toFixed(2)}%`}</span>
+                                <span className="text-[8px] tabular-nums text-slate-400">{emaBd.toFixed(2)}</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-[8px] tabular-nums text-slate-400">{emaBd.toFixed(2)}</span>
+                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-500'}`}>{emaMet ? '진입 가능' : `${emaDist.toFixed(2)}%`}</span>
+                              </>
+                            )}
+                          </div>
+                          <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
+                            <div className={`h-1 rounded-full transition-all duration-300 ${emaMet ? barActive : 'bg-slate-600/60'}`} style={{ width: emaMet ? '100%' : '0%' }} />
+                          </div>
                         </div>
-                      ))}
+                      )}
+                      {hasRange && (
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[8px] ${rangeMet ? textActive : 'text-red-400'}`}>Range</span>
+                            <span className={`text-[8px] tabular-nums ${rangeMet ? textActive : 'text-red-400'}`}>{rangeValue}</span>
+                          </div>
+                          <div className="relative bg-slate-700 rounded-full h-1 overflow-hidden">
+                            {!isLongSide
+                              ? <div className="absolute left-0 top-0 h-1 bg-slate-500/80" style={{ width: '10%' }} />
+                              : <div className="absolute right-0 top-0 h-1 bg-slate-500/80" style={{ width: '10%' }} />
+                            }
+                            {!isLongSide ? (
+                              <div
+                                className={`h-1 rounded-full transition-all duration-300 absolute right-0 top-0 z-10 ${rangeMet ? barActive : 'bg-red-600'}`}
+                                style={{ width: `${Math.min(100, rangePct)}%` }}
+                              />
+                            ) : (
+                              <div
+                                className={`h-1 rounded-full transition-all duration-300 relative z-10 ${rangeMet ? barActive : 'bg-red-600'}`}
+                                style={{ width: `${Math.min(100, rangePct)}%` }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
