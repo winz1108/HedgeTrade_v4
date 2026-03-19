@@ -462,52 +462,65 @@ export function KrakenMetricsPanel({ data, position }: Props) {
             <h3 className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Entry Conditions</h3>
           </div>
 
-          {entryDetails?.VWAP ? (
-            <div className="grid grid-cols-2 gap-1.5">
-              {(['LONG', 'SHORT'] as const).map(side => {
-                const isLongSide = side === 'LONG';
-                const accentColor = isLongSide ? 'text-cyan-400' : 'text-orange-400';
-                const barActive = isLongSide ? 'bg-cyan-400' : 'bg-orange-400';
-                const textActive = isLongSide ? 'text-cyan-300' : 'text-orange-300';
-                const panelActiveBg = isLongSide ? 'bg-cyan-500/15 border-cyan-500/40' : 'bg-orange-500/15 border-orange-500/40';
+          {entryDetails?.VWAP ? (() => {
+            const vwap = entryDetails.VWAP!;
+            const closerSide = vwap.long_distance_pct <= vwap.short_distance_pct ? 'LONG' : 'SHORT';
 
-                const vwap = entryDetails.VWAP!;
-                const met = isLongSide ? vwap.long_met : vwap.short_met;
-                const distPct = isLongSide ? vwap.long_distance_pct : vwap.short_distance_pct;
-                const targetPrice = isLongSide ? vwap.lower : vwap.upper;
-                const maxDist = 3;
-                const progressPct = Math.max(0, Math.min(100, (1 - distPct / maxDist) * 100));
+            return (
+              <div className="grid grid-cols-2 gap-1.5">
+                {(['LONG', 'SHORT'] as const).map(side => {
+                  const isLongSide = side === 'LONG';
+                  const isCloser = side === closerSide;
+                  const met = isLongSide ? vwap.long_met : vwap.short_met;
+                  const distPct = isLongSide ? vwap.long_distance_pct : vwap.short_distance_pct;
+                  const targetPrice = isLongSide ? vwap.lower : vwap.upper;
+                  const maxDist = 3;
+                  const progressPct = Math.max(0, Math.min(100, (1 - distPct / maxDist) * 100));
 
-                return (
-                  <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${met ? panelActiveBg : 'bg-slate-700/40 border-transparent'}`}>
-                    <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${accentColor}`}>{side}</div>
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center justify-between">
-                        {isLongSide ? (
-                          <>
-                            <span className={`text-[8px] tabular-nums ${met ? textActive : 'text-slate-500'}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
-                            <span className={`text-[8px] tabular-nums ${met ? textActive : 'text-slate-500'}`}>{targetPrice.toFixed(1)}</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className={`text-[8px] tabular-nums ${met ? textActive : 'text-slate-500'}`}>{targetPrice.toFixed(1)}</span>
-                            <span className={`text-[8px] tabular-nums ${met ? textActive : 'text-slate-500'}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
-                          </>
-                        )}
-                      </div>
-                      <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
-                        {isLongSide ? (
-                          <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : 'bg-slate-500'}`} style={{ width: `${met ? 100 : progressPct}%` }} />
-                        ) : (
-                          <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : 'bg-slate-500'}`} style={{ width: `${met ? 100 : progressPct}%` }} />
-                        )}
+                  const accentColor = isLongSide
+                    ? (isCloser ? 'text-cyan-400' : 'text-cyan-400/40')
+                    : (isCloser ? 'text-orange-400' : 'text-orange-400/40');
+                  const barActive = isLongSide ? 'bg-cyan-400' : 'bg-orange-400';
+                  const barDim = 'bg-slate-600/40';
+                  const textActive = isLongSide ? 'text-cyan-300' : 'text-orange-300';
+                  const textDim = 'text-slate-600';
+                  const textDefault = isCloser ? 'text-slate-400' : textDim;
+                  const panelActiveBg = isLongSide ? 'bg-cyan-500/15 border-cyan-500/40' : 'bg-orange-500/15 border-orange-500/40';
+                  const panelDim = 'bg-slate-800/30 border-transparent';
+
+                  return (
+                    <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${
+                      met ? panelActiveBg : isCloser ? 'bg-slate-700/40 border-transparent' : panelDim
+                    }`}>
+                      <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${accentColor}`}>{side}</div>
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center justify-between">
+                          {isLongSide ? (
+                            <>
+                              <span className={`text-[8px] tabular-nums ${met ? textActive : textDefault}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
+                              <span className={`text-[8px] tabular-nums ${met ? textActive : textDefault}`}>{targetPrice.toFixed(1)}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className={`text-[8px] tabular-nums ${met ? textActive : textDefault}`}>{targetPrice.toFixed(1)}</span>
+                              <span className={`text-[8px] tabular-nums ${met ? textActive : textDefault}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
+                          {isLongSide ? (
+                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? 'bg-slate-500' : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                          ) : (
+                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? 'bg-slate-500' : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
+                  );
+                })}
+              </div>
+            );
+          })() : (
             <div className="flex items-center justify-center h-8 text-slate-500 text-[10px]">
               Waiting...
             </div>
