@@ -460,7 +460,8 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                     ? (isCloser ? 'text-cyan-600' : 'text-cyan-400/60')
                     : (isCloser ? 'text-orange-600' : 'text-orange-400/60');
                   const barActive = isLongSide ? 'bg-cyan-500' : 'bg-orange-500';
-                  const barDim = 'bg-stone-300';
+                  const barCloser = isLongSide ? 'bg-cyan-500/60' : 'bg-orange-500/60';
+                  const barDim = 'bg-stone-300/50';
                   const textActive = isLongSide ? 'text-cyan-700' : 'text-orange-700';
                   const textDim = 'text-stone-300';
                   const textDefault = isCloser ? 'text-stone-500' : textDim;
@@ -488,9 +489,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                         </div>
                         <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
                           {isLongSide ? (
-                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? 'bg-stone-400' : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? barCloser : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           ) : (
-                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? 'bg-stone-400' : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? barCloser : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           )}
                         </div>
                       </div>

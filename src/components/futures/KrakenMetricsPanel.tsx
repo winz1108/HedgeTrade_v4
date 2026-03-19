@@ -481,7 +481,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                     ? (isCloser ? 'text-cyan-400' : 'text-cyan-400/40')
                     : (isCloser ? 'text-orange-400' : 'text-orange-400/40');
                   const barActive = isLongSide ? 'bg-cyan-400' : 'bg-orange-400';
-                  const barDim = 'bg-slate-600/40';
+                  const barCloser = isLongSide ? 'bg-cyan-400/60' : 'bg-orange-400/60';
+                  const barDim = 'bg-slate-600/30';
                   const textActive = isLongSide ? 'text-cyan-300' : 'text-orange-300';
                   const textDim = 'text-slate-600';
                   const textDefault = isCloser ? 'text-slate-400' : textDim;
@@ -509,9 +510,9 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                         </div>
                         <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
                           {isLongSide ? (
-                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? 'bg-slate-500' : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ${met ? barActive : isCloser ? barCloser : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           ) : (
-                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? 'bg-slate-500' : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${met ? barActive : isCloser ? barCloser : barDim}`} style={{ width: `${met ? 100 : progressPct}%` }} />
                           )}
                         </div>
                       </div>
