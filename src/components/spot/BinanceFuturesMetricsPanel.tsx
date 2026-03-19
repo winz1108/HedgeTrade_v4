@@ -493,11 +493,11 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                             {isLongSide ? (
                               <>
                                 <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-stone-400'}`}>{emaMet ? '진입 가능' : `${emaDist.toFixed(2)}%`}</span>
-                                <span className="text-[8px] tabular-nums text-stone-400">{emaBd.toFixed(2)}</span>
+                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-stone-400'}`}>{emaBd.toFixed(2)}</span>
                               </>
                             ) : (
                               <>
-                                <span className="text-[8px] tabular-nums text-stone-400">{emaBd.toFixed(2)}</span>
+                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-stone-400'}`}>{emaBd.toFixed(2)}</span>
                                 <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-stone-400'}`}>{emaMet ? '진입 가능' : `${emaDist.toFixed(2)}%`}</span>
                               </>
                             )}

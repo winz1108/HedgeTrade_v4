@@ -514,11 +514,11 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                             {isLongSide ? (
                               <>
                                 <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-500'}`}>{emaMet ? '진입 가능' : `${emaDist.toFixed(2)}%`}</span>
-                                <span className="text-[8px] tabular-nums text-slate-400">{emaBd.toFixed(2)}</span>
+                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-400'}`}>{emaBd.toFixed(2)}</span>
                               </>
                             ) : (
                               <>
-                                <span className="text-[8px] tabular-nums text-slate-400">{emaBd.toFixed(2)}</span>
+                                <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-400'}`}>{emaBd.toFixed(2)}</span>
                                 <span className={`text-[8px] tabular-nums ${emaMet ? textActive : 'text-slate-500'}`}>{emaMet ? '진입 가능' : `${emaDist.toFixed(2)}%`}</span>
                               </>
                             )}
