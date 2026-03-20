@@ -27,7 +27,7 @@ function ProgressBar({ current, target, reverse = false, color }: { current: num
   let pct: number;
   pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
   const met = reverse ? current <= target : current >= target;
-  const barColor = color ?? (met ? 'bg-cyan-400' : 'bg-slate-500');
+  const barColor = color ?? (met ? 'bg-cyan-400' : 'bg-slate-300');
   return (
     <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
       <div
