@@ -10,9 +10,9 @@ interface Props {
 
 interface ExitConditionsPanelProps {
   exitConditions?: ExitConditions;
-  exitPrices?: { ema_exit?: number; vreg_exit?: number; cut_threshold_mae?: number; ride_trail_price?: number };
+  exitPrices?: { vwap_target?: number; cut_threshold_mae?: number; ride_trail_price?: number; [key: string]: any };
   inPosition: boolean;
-  strategyParams?: { vreg_vol_mult?: number; vreg_min_pnl?: number; ride_consec_n?: number; [key: string]: any };
+  strategyParams?: { ride_consec_n?: number; [key: string]: any };
   entryMode?: 'SW' | 'RIDE';
 }
 
@@ -64,14 +64,12 @@ function DistanceBar({ distance_pct, label }: { distance_pct: number; label: str
 }
 
 function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode }: ExitConditionsPanelProps) {
-  const vreg = exitConditions?.VREG;
-  const ema = exitConditions?.EMA;
+  const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
-  const vwapTp = exitConditions?.VWAP_TP;
   const rTrail = exitConditions?.R_TRAIL;
   const isRide = entryMode === 'RIDE';
 
-  const hasData = !!(vreg || ema || cut || vwapTp || rTrail);
+  const hasData = !!(vwap || cut || rTrail);
 
   if (!inPosition) return null;
 
@@ -91,7 +89,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
 
       {!hasData ? (
         <div className="flex flex-col gap-1">
-          {(isRide ? ['R_TRAIL', 'R_CUT'] : ['VREG', 'EMA', 'CUT'] as const).map(name => (
+          {(isRide ? ['R_TRAIL', 'CUT'] : ['VWAP', 'CUT'] as const).map(name => (
             <div key={name} className="flex items-center justify-between bg-slate-700/20 border border-slate-700/50 rounded px-2 py-1.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-700 flex-shrink-0" />
@@ -168,7 +166,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                     cut.armed ? 'bg-rose-400 shadow-[0_0_5px_rgba(248,113,113,0.9)]' : 'bg-slate-600'
                   }`} />
-                  <span className={`text-[9px] font-bold ${cut.armed ? 'text-rose-300' : 'text-slate-400'}`}>R_CUT</span>
+                  <span className={`text-[9px] font-bold ${cut.armed ? 'text-rose-300' : 'text-slate-400'}`}>CUT</span>
                   <span className="text-[7px] text-slate-500">손절</span>
                 </div>
                 <span className={`text-[9px] font-bold tabular-nums ${cut.armed ? 'text-rose-300' : 'text-slate-500'}`}>
@@ -194,139 +192,36 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
-          {vreg && (
+          {vwap && (
             <div className={`rounded-md border p-1.5 transition-all ${
-              vreg.armed
-                ? 'bg-cyan-900/30 border-cyan-600/50'
-                : 'bg-slate-700/20 border-slate-700/50'
-            }`}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    vreg.armed
-                      ? 'bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.9)]'
-                      : 'bg-slate-600'
-                  }`} />
-                  <span className={`text-[9px] font-bold ${vreg.armed ? 'text-cyan-300' : 'text-slate-400'}`}>VREG</span>
-                  <span className="text-[7px] text-slate-500">익절</span>
-                </div>
-                {exitPrices?.vreg_exit != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${vreg.armed ? 'text-cyan-300' : 'text-slate-500'}`}>
-                    ${exitPrices.vreg_exit.toFixed(1)}
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1.5">
-                  <ConditionDot met={vreg.bars_ok} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.bars_ok ? 'text-cyan-300' : 'text-slate-500'}`}>봉수</span>
-                  <ProgressBar current={vreg.bars_held} target={vreg.bars_min} />
-                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.bars_ok ? 'text-cyan-300' : 'text-slate-500'}`}>
-                    {vreg.bars_held}/{vreg.bars_min}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <ConditionDot met={vreg.pnl_ok} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>PnL</span>
-                  <ProgressBar current={vreg.pnl_current} target={vreg.pnl_min ?? strategyParams?.vreg_min_pnl ?? 0.3} />
-                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
-                    {vreg.pnl_current >= 0 ? '+' : ''}{vreg.pnl_current.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <ConditionDot met={vreg.vol_spike} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'}`}>거래량</span>
-                  {vreg.vol_current_ratio != null ? (
-                    <>
-                      <ProgressBar current={vreg.vol_current_ratio} target={vreg.vol_threshold ?? strategyParams?.vreg_vol_mult ?? 1.0} />
-                      <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${vreg.vol_spike ? 'text-cyan-300' : 'text-slate-500'}`}>
-                        {vreg.vol_current_ratio.toFixed(1)}/{(vreg.vol_threshold ?? strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex-1 bg-slate-700 rounded-full h-1" />
-                      <span className="text-[8px] text-slate-600 w-[36px] text-right flex-shrink-0">{(vreg.vol_threshold ?? strategyParams?.vreg_vol_mult ?? 1.0).toFixed(1)}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {vwapTp && (
-            <div className={`rounded-md border p-1.5 transition-all ${
-              vwapTp.armed
+              vwap.armed
                 ? 'bg-teal-900/30 border-teal-600/50'
                 : 'bg-slate-700/20 border-slate-700/50'
             }`}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    vwapTp.armed ? 'bg-teal-400 shadow-[0_0_5px_rgba(45,212,191,0.9)]' : 'bg-slate-600'
+                    vwap.armed ? 'bg-teal-400 shadow-[0_0_5px_rgba(45,212,191,0.9)]' : 'bg-slate-600'
                   }`} />
-                  <span className={`text-[9px] font-bold ${vwapTp.armed ? 'text-teal-300' : 'text-slate-400'}`}>VWAP_TP</span>
+                  <span className={`text-[9px] font-bold ${vwap.armed ? 'text-teal-300' : 'text-slate-400'}`}>VWAP</span>
                   <span className="text-[7px] text-slate-500">익절</span>
                 </div>
-                {vwapTp.vwap_target != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${vwapTp.armed ? 'text-teal-300' : 'text-slate-500'}`}>
-                    ${vwapTp.vwap_target.toFixed(1)}
+                {(exitPrices?.vwap_target ?? vwap.vwap_target) != null && (
+                  <span className={`text-[9px] font-bold tabular-nums ${vwap.armed ? 'text-teal-300' : 'text-slate-500'}`}>
+                    ${(exitPrices?.vwap_target ?? vwap.vwap_target!).toFixed(1)}
                   </span>
                 )}
               </div>
-              {vwapTp.distance_pct != null && (
+              {vwap.distance_to_vwap != null && (
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={vwapTp.met ?? false} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vwapTp.met ? 'text-teal-300' : 'text-slate-500'}`}>거리</span>
-                  <ProgressBar current={Math.max(0, 2 - Math.abs(vwapTp.distance_pct))} target={2} color={vwapTp.met ? 'bg-teal-400' : undefined} />
-                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${vwapTp.met ? 'text-teal-300' : 'text-slate-500'}`}>
-                    {vwapTp.distance_pct >= 0 ? '+' : ''}{vwapTp.distance_pct.toFixed(2)}%
+                  <ConditionDot met={vwap.distance_to_vwap <= 0} />
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vwap.distance_to_vwap <= 0 ? 'text-teal-300' : 'text-slate-500'}`}>거리</span>
+                  <ProgressBar current={Math.max(0, 2 - Math.abs(vwap.distance_to_vwap))} target={2} color={vwap.distance_to_vwap <= 0 ? 'bg-teal-400' : undefined} />
+                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${vwap.distance_to_vwap <= 0 ? 'text-teal-300' : 'text-slate-500'}`}>
+                    {vwap.distance_to_vwap >= 0 ? '+' : ''}{vwap.distance_to_vwap.toFixed(2)}%
                   </span>
                 </div>
               )}
-            </div>
-          )}
-
-          {ema && (
-            <div className={`rounded-md border p-1.5 transition-all ${
-              ema.armed
-                ? 'bg-emerald-900/30 border-emerald-600/50'
-                : 'bg-slate-700/20 border-slate-700/50'
-            }`}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    ema.armed
-                      ? 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.9)]'
-                      : 'bg-slate-600'
-                  }`} />
-                  <span className={`text-[9px] font-bold ${ema.armed ? 'text-emerald-300' : 'text-slate-400'}`}>EMA</span>
-                  <span className="text-[7px] text-slate-500">익절</span>
-                </div>
-                {exitPrices?.ema_exit != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${ema.armed ? 'text-emerald-300' : 'text-slate-500'}`}>
-                    ${exitPrices.ema_exit.toFixed(1)}
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1.5">
-                  <ConditionDot met={ema.mfe_ok} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${ema.mfe_ok ? 'text-slate-300' : 'text-slate-600'}`}>MFE</span>
-                  <ProgressBar current={ema.mfe_current} target={ema.mfe_gate} />
-                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${ema.mfe_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
-                    {ema.mfe_current >= 0 ? '+' : ''}{ema.mfe_current.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <ConditionDot met={ema.pnl_ok} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${ema.pnl_ok ? 'text-slate-300' : 'text-slate-600'}`}>PnL</span>
-                  <ProgressBar current={ema.pnl_current} target={ema.pnl_gate} />
-                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${ema.pnl_ok ? 'text-emerald-400' : 'text-slate-500'}`}>
-                    {ema.pnl_current >= 0 ? '+' : ''}{ema.pnl_current.toFixed(2)}%
-                  </span>
-                </div>
-              </div>
             </div>
           )}
 
@@ -398,11 +293,6 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.ema_reversed} />
                   <span className={`text-[8px] flex-1 ${cut.ema_reversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
-                  {ema?.band_distance_pct != null && (
-                    <span className={`text-[8px] tabular-nums ${ema.band_distance_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {ema.band_distance_pct >= 0 ? '+' : ''}{ema.band_distance_pct.toFixed(2)}%
-                    </span>
-                  )}
                 </div>
               </div>
             </div>

@@ -67,33 +67,6 @@ export interface HoldingInfo {
   positionSide?: 'LONG' | 'SHORT';
 }
 
-export interface ExitConditionVREG {
-  armed: boolean;
-  bars_ok: boolean;
-  bars_held: number;
-  bars_min: number;
-  pnl_ok: boolean;
-  pnl_current: number;
-  pnl_min: number;
-  vol_spike: boolean;
-  vol_mult: number;
-  vol_current_ratio?: number;
-  vol_threshold?: number;
-  line_distance_pct?: number;
-}
-
-export interface ExitConditionEMA {
-  armed: boolean;
-  mfe_ok: boolean;
-  mfe_current: number;
-  mfe_gate: number;
-  pnl_ok: boolean;
-  pnl_current: number;
-  pnl_gate: number;
-  price_past_band?: boolean;
-  band_distance_pct?: number;
-}
-
 export interface ExitConditionCUT {
   armed: boolean;
   mae_ok: boolean;
@@ -104,11 +77,11 @@ export interface ExitConditionCUT {
   ema_reversed: boolean;
 }
 
-export interface ExitConditionVWAP_TP {
+export interface ExitConditionVWAP {
   armed: boolean;
   vwap_target?: number;
-  distance_pct?: number;
-  met?: boolean;
+  entry_vwap?: number;
+  distance_to_vwap?: number;
 }
 
 export interface ExitConditionR_TRAIL {
@@ -121,11 +94,15 @@ export interface ExitConditionR_TRAIL {
   current_pnl: number;
 }
 
+export interface VwapBandSeries {
+  vwap: (number | null)[];
+  upper: (number | null)[];
+  lower: (number | null)[];
+}
+
 export interface ExitConditions {
-  VREG?: ExitConditionVREG;
-  EMA?: ExitConditionEMA;
   CUT?: ExitConditionCUT;
-  VWAP_TP?: ExitConditionVWAP_TP;
+  VWAP?: ExitConditionVWAP;
   R_TRAIL?: ExitConditionR_TRAIL;
 }
 
@@ -220,16 +197,17 @@ export interface V10StrategyStatus {
     [key: string]: boolean | undefined;
   };
   exitPrices?: {
-    ema_exit?: number;
-    vreg_exit?: number;
+    vwap_target?: number;
     cut_threshold_mae?: number;
     ride_trail_price?: number;
   };
   exitConditions?: ExitConditions;
   entryDetails?: EntryDetails;
-  vregLine?: number;
-  vreg_series?: (number | null)[];
-  vregSeries?: (number | null)[];
+  vwapBandSeries?: VwapBandSeries;
+  vwap?: number;
+  vwap_upper?: number;
+  vwap_lower?: number;
+  entry_vwap?: number;
   indicators?: {
     '5m'?: { bd?: number; bu?: number; [key: string]: any };
     '15m'?: { ema8?: number; ema13?: number; bd?: number; bu?: number; [key: string]: any };

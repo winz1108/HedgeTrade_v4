@@ -245,6 +245,13 @@ function App() {
             },
           };
         }
+        if (priceData.vwap_band_series) {
+          const prevStatus = updated.strategyStatus || {} as any;
+          updated.strategyStatus = {
+            ...prevStatus,
+            vwapBandSeries: priceData.vwap_band_series,
+          };
+        }
         if (prev.priceHistories) {
           const updatedHistories = { ...prev.priceHistories };
           ['1m', '5m', '15m', '30m', '1h', '4h', '1d'].forEach(tf => {

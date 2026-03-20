@@ -95,7 +95,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const [isMaximized, setIsMaximized] = useState(false);
   const [hoveredCandleIndex, setHoveredCandleIndex] = useState<number | null>(null);
   const [crosshairPosition, setCrosshairPosition] = useState<{ x: number; y: number } | null>(null);
-  const [hoveredIndicator, setHoveredIndicator] = useState<'bb' | 'vreg' | null>(null);
+  const [hoveredIndicator, setHoveredIndicator] = useState<'bb' | null>(null);
   const [showTradeMarkers, setShowTradeMarkers] = useState(true);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -604,12 +604,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   }
                 </span>
               </div>
-              {v10Strategy?.exitPrices?.ema_exit && (
-                <div className="flex justify-between gap-6">
-                  <span className={colors.textSecondary}>EMA 청산</span>
-                  <span className={`text-blue-400 font-semibold`}>${v10Strategy.exitPrices.ema_exit.toFixed(2)}</span>
-                </div>
-              )}
             </div>
           </>
         ) : pairedTrade ? (
@@ -931,21 +925,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return Math.abs(mouseY - priceToY(candle.ema_long)) < HOVER_THRESHOLD;
               })();
 
-              const vregSeries = v10Strategy?.vregSeries || (v10Strategy as any)?.vreg_series;
-              const hoveredVregValue = (() => {
-                if (mouseY === null || ci === null || !vregSeries || vregSeries.length === 0) return null;
-                const src = selectedCandles;
-                if (!src || src.length === 0) return null;
-                const offset = src.length - vregSeries.length;
-                const globalIdx = visibleStartIndex + ci;
-                const seriesIdx = globalIdx - offset;
-                if (seriesIdx < 0 || seriesIdx >= vregSeries.length) return null;
-                const val = vregSeries[seriesIdx];
-                if (val === null || val === undefined) return null;
-                return Math.abs(mouseY - priceToY(val)) < HOVER_THRESHOLD ? (val as number) : null;
-              })();
-
-              const anyIndicatorHovered = isBBHovered || isEmaShortHovered || isEmaLongHovered || hoveredVregValue !== null;
+              const anyIndicatorHovered = isBBHovered || isEmaShortHovered || isEmaLongHovered;
 
               return (
                 <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg`}>
@@ -960,12 +940,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         <span className={`${colors.textSecondary} text-[10px]`}>H</span><span className="text-emerald-400 font-bold tabular-nums">{hoveredCandle.high.toFixed(2)}</span>
                         <span className={`${colors.textSecondary} text-[10px]`}>L</span><span className="text-rose-400 font-bold tabular-nums">{hoveredCandle.low.toFixed(2)}</span>
                         <span className={`${colors.textSecondary} text-[10px]`}>C</span><span className={`${colors.textPrimary} font-bold tabular-nums`}>{hoveredCandle.close.toFixed(2)}</span>
-                      </>
-                    )}
-                    {hoveredVregValue !== null && (
-                      <>
-                        <span className="text-[10px] font-semibold" style={{ color: '#4ade80' }}>VREG</span>
-                        <span className="font-bold tabular-nums" style={{ color: '#4ade80' }}>{hoveredVregValue.toFixed(2)}</span>
                       </>
                     )}
                     {isBBHovered && hoveredCandle.bb_upper && (
@@ -1029,7 +1003,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             })()}
           </svg>
 
-          {/* Indicators (EMA, BB, VREG) - zIndex 4 (above candles) */}
+          {/* Indicators (EMA, BB, VWAP) - zIndex 4 (above candles) */}
           <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 4 }}>
             <defs>
               <linearGradient id="predictionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -1171,102 +1145,75 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* VWAP Range Band */}
-                  {v10Strategy?.entryDetails?.VWAP && (() => {
-                    const vwap = v10Strategy.entryDetails!.VWAP!;
-                    const upperPrice = vwap.upper;
-                    const lowerPrice = vwap.lower;
-                    if (!upperPrice || !lowerPrice) return null;
-                    if (upperPrice < minPrice || lowerPrice > maxPrice) return null;
-
-                    const upperY = priceToY(upperPrice);
-                    const lowerY = priceToY(lowerPrice);
-                    const vwapY = vwap.vwap ? priceToY(vwap.vwap) : null;
-                    const chartW = visibleCandles.length * (candleWidth + candleGap);
-
-                    return (
-                      <>
-                        <rect
-                          x="0" y={upperY}
-                          width={chartW} height={Math.max(0, lowerY - upperY)}
-                          fill={darkMode ? 'rgba(45,212,191,0.06)' : 'rgba(20,184,166,0.06)'}
-                        />
-                        <line x1="0" y1={upperY} x2={chartW} y2={upperY}
-                          stroke={darkMode ? 'rgba(45,212,191,0.4)' : 'rgba(20,184,166,0.35)'}
-                          strokeWidth="1" strokeDasharray="6 3"
-                        />
-                        <line x1="0" y1={lowerY} x2={chartW} y2={lowerY}
-                          stroke={darkMode ? 'rgba(45,212,191,0.4)' : 'rgba(20,184,166,0.35)'}
-                          strokeWidth="1" strokeDasharray="6 3"
-                        />
-                        {vwapY !== null && (
-                          <line x1="0" y1={vwapY} x2={chartW} y2={vwapY}
-                            stroke={darkMode ? 'rgba(45,212,191,0.2)' : 'rgba(20,184,166,0.18)'}
-                            strokeWidth="0.8" strokeDasharray="3 3"
-                          />
-                        )}
-                        <text x={chartW - 4} y={upperY - 3}
-                          textAnchor="end" fontSize="8"
-                          fill={darkMode ? 'rgba(45,212,191,0.6)' : 'rgba(20,184,166,0.7)'}
-                          fontFamily="monospace"
-                        >VWAP U</text>
-                        <text x={chartW - 4} y={lowerY + 10}
-                          textAnchor="end" fontSize="8"
-                          fill={darkMode ? 'rgba(45,212,191,0.6)' : 'rgba(20,184,166,0.7)'}
-                          fontFamily="monospace"
-                        >VWAP L</text>
-                      </>
-                    );
-                  })()}
-
-                  {/* v10.2 Overlays: VREG - 15분봉에서만 표시 */}
-                  {showTradeMarkers && timeframe === '15m' && (() => {
+                  {/* VWAP Band Series - 15m only, always visible */}
+                  {timeframe === '15m' && (() => {
                     if (!v10Strategy) return null;
-                    const vregSeries = v10Strategy.vregSeries || (v10Strategy as any).vreg_series;
-                    const vregColor = darkMode ? '#ffffff' : '#b45309';
+                    const bandSeries = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
+                    if (!bandSeries) return null;
 
-                    const vregPoints: string[] = [];
-                    let lastVregVal: number | null = null;
-                    if (vregSeries && vregSeries.length > 0) {
-                      const src = selectedCandles;
-                      if (src && src.length > 0) {
-                        const offset = src.length - vregSeries.length;
-                        vregSeries.forEach((val: number | null, i: number) => {
-                          if (val === null || val === undefined) return;
-                          lastVregVal = val;
-                          const globalIdx = offset + i;
-                          const localIdx = globalIdx - visibleStartIndex;
-                          if (localIdx < 0 || localIdx >= visibleCandles.length) return;
-                          const x = localIdx * (candleWidth + candleGap) + candleWidth / 2;
-                          const y = priceToY(val);
-                          vregPoints.push(`${x},${y}`);
-                        });
+                    const vwapArr = bandSeries.vwap;
+                    const upperArr = bandSeries.upper;
+                    const lowerArr = bandSeries.lower;
+                    if (!vwapArr || !upperArr || !lowerArr) return null;
+
+                    const src = selectedCandles;
+                    if (!src || src.length === 0) return null;
+                    const seriesLen = vwapArr.length;
+                    if (seriesLen === 0) return null;
+                    const offset = src.length - seriesLen;
+
+                    const upperPoints: string[] = [];
+                    const lowerPoints: string[] = [];
+                    const vwapPoints: string[] = [];
+                    const fillUpperPoints: string[] = [];
+                    const fillLowerPoints: string[] = [];
+
+                    for (let i = 0; i < seriesLen; i++) {
+                      const globalIdx = offset + i;
+                      const localIdx = globalIdx - visibleStartIndex;
+                      if (localIdx < 0 || localIdx >= visibleCandles.length) continue;
+                      const x = localIdx * (candleWidth + candleGap) + candleWidth / 2;
+
+                      if (upperArr[i] != null) {
+                        const y = priceToY(upperArr[i]!);
+                        upperPoints.push(`${x},${y}`);
+                        fillUpperPoints.push(`${x},${y}`);
+                      }
+                      if (lowerArr[i] != null) {
+                        const y = priceToY(lowerArr[i]!);
+                        lowerPoints.push(`${x},${y}`);
+                        fillLowerPoints.push(`${x},${y}`);
+                      }
+                      if (vwapArr[i] != null) {
+                        vwapPoints.push(`${x},${priceToY(vwapArr[i]!)}`);
                       }
                     }
 
-                    const isVregHovered = (() => {
-                      if (mouseY === null || hoveredCandleIndex === null) return false;
-                      if (!vregSeries || vregSeries.length === 0) return false;
-                      const src = selectedCandles;
-                      if (!src || src.length === 0) return false;
-                      const offset = src.length - vregSeries.length;
-                      const globalIdx = visibleStartIndex + hoveredCandleIndex;
-                      const seriesIdx = globalIdx - offset;
-                      if (seriesIdx < 0 || seriesIdx >= vregSeries.length) return false;
-                      const val = vregSeries[seriesIdx];
-                      if (val === null || val === undefined) return false;
-                      return Math.abs(mouseY - priceToY(val)) < HOVER_THRESHOLD;
-                    })();
+                    const fillColor = darkMode ? 'rgba(45,212,191,0.06)' : 'rgba(20,184,166,0.05)';
+                    const upperColor = darkMode ? 'rgba(248,113,113,0.55)' : 'rgba(220,38,38,0.4)';
+                    const lowerColor = darkMode ? 'rgba(96,165,250,0.55)' : 'rgba(37,99,235,0.4)';
+                    const vwapColor = darkMode ? 'rgba(45,212,191,0.7)' : 'rgba(20,184,166,0.55)';
+
+                    const fillPoints = fillUpperPoints.length > 1 && fillLowerPoints.length > 1
+                      ? [...fillUpperPoints, ...fillLowerPoints.slice().reverse()].join(' ')
+                      : null;
 
                     return (
                       <>
-                        {vregPoints.length >= 2 && (
-                          <polyline points={vregPoints.join(' ')} fill="none"
-                            stroke={vregColor}
-                            strokeWidth={isVregHovered ? '2' : '0.8'}
-                            opacity={isVregHovered ? '1' : '0.85'}
-                            style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
-                          />
+                        {fillPoints && (
+                          <polygon points={fillPoints} fill={fillColor} stroke="none" />
+                        )}
+                        {upperPoints.length >= 2 && (
+                          <polyline points={upperPoints.join(' ')} fill="none"
+                            stroke={upperColor} strokeWidth="1" strokeDasharray="5 3" />
+                        )}
+                        {lowerPoints.length >= 2 && (
+                          <polyline points={lowerPoints.join(' ')} fill="none"
+                            stroke={lowerColor} strokeWidth="1" strokeDasharray="5 3" />
+                        )}
+                        {vwapPoints.length >= 2 && (
+                          <polyline points={vwapPoints.join(' ')} fill="none"
+                            stroke={vwapColor} strokeWidth="1.2" />
                         )}
                       </>
                     );
@@ -1705,30 +1652,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     opacity="0.75"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
                   />
-                  {(() => {
-                    if (!v10Strategy) return null;
-                    const vregSeries = v10Strategy.vregSeries || (v10Strategy as any).vreg_series;
-                    if (!vregSeries || vregSeries.length === 0) return null;
-                    let lastVal: number | null = null;
-                    for (let i = vregSeries.length - 1; i >= 0; i--) {
-                      if (vregSeries[i] !== null && vregSeries[i] !== undefined) {
-                        lastVal = vregSeries[i] as number;
-                        break;
-                      }
-                    }
-                    if (lastVal === null) return null;
-                    const vregColor = darkMode ? '#ffffff' : '#b45309';
-                    return (
-                      <line
-                        x1="0" y1={priceToY(lastVal)}
-                        x2="100%" y2={priceToY(lastVal)}
-                        stroke={vregColor}
-                        strokeWidth="0.8"
-                        opacity="0.6"
-                        strokeDasharray="4,4"
-                      />
-                    );
-                  })()}
                   {(() => {
                     const ep = data.holding.buyPrice;
                     if (!ep) return null;

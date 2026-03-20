@@ -242,18 +242,10 @@ function FuturesDashboard() {
         if (priceData.in_position !== undefined) { statusUpdate.inPosition = priceData.in_position; statusChanged = true; }
         if (priceData.position_side !== undefined) { statusUpdate.positionSide = priceData.position_side; statusChanged = true; }
         if (priceData.entry_price !== undefined) { statusUpdate.entryPrice = priceData.entry_price; statusChanged = true; }
-        if (priceData.vreg_line !== undefined) { statusUpdate.vregLine = priceData.vreg_line; statusChanged = true; }
-        if (priceData.vreg_series !== undefined) { statusUpdate.vregSeries = priceData.vreg_series; statusUpdate.vreg_series = priceData.vreg_series; statusChanged = true; }
+        if (priceData.vwap_band_series !== undefined) { statusUpdate.vwapBandSeries = priceData.vwap_band_series; statusChanged = true; }
         if (priceData.indicators) { statusUpdate.indicators = { ...prevStatus.indicators, ...priceData.indicators }; statusChanged = true; }
         if (priceData.exit_prices) {
-          statusUpdate.exitPrices = { ...prevStatus.exitPrices, ema_exit: priceData.exit_prices.ema_exit };
-          statusChanged = true;
-        }
-        if (priceData.entry_details?.EMA) {
-          statusUpdate.entryDetails = {
-            ...prevStatus.entryDetails,
-            EMA: { ...(prevStatus.entryDetails?.EMA ?? {}), ...priceData.entry_details.EMA },
-          };
+          statusUpdate.exitPrices = { ...prevStatus.exitPrices, ...priceData.exit_prices };
           statusChanged = true;
         }
 
