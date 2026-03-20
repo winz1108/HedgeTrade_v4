@@ -230,9 +230,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
             <div className={`rounded-md border p-1.5 transition-all ${
               swTrail.targetReached
                 ? 'bg-amber-900/30 border-amber-500/50'
-                : swTrail.armed
-                  ? 'bg-slate-700/20 border-amber-600/40'
-                  : 'bg-slate-700/20 border-slate-700/50'
+                : 'bg-slate-700/20 border-slate-700/50'
             }`}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">

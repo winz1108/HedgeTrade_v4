@@ -261,9 +261,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
             <div className={`rounded-md border p-1.5 transition-all ${
               swTrail.targetReached
                 ? 'bg-amber-50 border-amber-300'
-                : swTrail.armed
-                  ? 'bg-stone-50 border-amber-300/60'
-                  : 'bg-stone-50 border-stone-200'
+                : 'bg-stone-50 border-stone-200'
             }`}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
