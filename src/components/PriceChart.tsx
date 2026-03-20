@@ -1757,16 +1757,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     opacity="0.8"
                     filter={`drop-shadow(0 0 2px ${goldGlow})`}
                   />
-                  <text
-                    x="4"
-                    y={priceToY(vwapTarget) - 3}
-                    fill={goldColor}
-                    fontSize="8"
-                    fontWeight="bold"
-                    opacity="0.9"
-                  >
-                    VWAP {vwapTarget.toFixed(1)}
-                  </text>
                 </svg>
               );
             })()}

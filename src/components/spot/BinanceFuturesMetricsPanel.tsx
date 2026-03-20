@@ -68,6 +68,30 @@ function BProgressBar({ current, target }: { current: number; target: number }) 
   );
 }
 
+function BVwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: number }) {
+  const maeAbs = Math.abs(maePct);
+  const totalRange = maeAbs + Math.max(0, distToVwap);
+  const pct = totalRange > 0 ? Math.min(100, (maeAbs / totalRange) * 100) : 0;
+  const reached = distToVwap <= 0;
+  return (
+    <div className="flex items-center gap-1.5">
+      <BConditionDot met={reached} />
+      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-400'}`}>
+        {maePct.toFixed(1)}%
+      </span>
+      <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden relative">
+        <div
+          className={`h-1 rounded-full transition-all duration-300 ${reached ? 'bg-teal-500' : 'bg-amber-400'}`}
+          style={{ width: `${reached ? 100 : pct}%` }}
+        />
+      </div>
+      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-500'}`}>
+        {distToVwap >= 0 ? '+' : ''}{distToVwap.toFixed(2)}%
+      </span>
+    </div>
+  );
+}
+
 function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode }: BinanceExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
@@ -217,14 +241,10 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                 )}
               </div>
               {vwap.distance_to_vwap != null && (
-                <div className="flex items-center gap-1.5">
-                  <BConditionDot met={vwap.distance_to_vwap <= 0} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vwap.distance_to_vwap <= 0 ? 'text-teal-600' : 'text-stone-500'}`}>거리</span>
-                  <BProgressBar current={Math.max(0, 2 - Math.abs(vwap.distance_to_vwap))} target={2} />
-                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${vwap.distance_to_vwap <= 0 ? 'text-teal-600' : 'text-stone-500'}`}>
-                    {vwap.distance_to_vwap >= 0 ? '+' : ''}{vwap.distance_to_vwap.toFixed(2)}%
-                  </span>
-                </div>
+                <BVwapRangeBar
+                  maePct={cut?.mae_current ?? 0}
+                  distToVwap={vwap.distance_to_vwap}
+                />
               )}
             </div>
           )}

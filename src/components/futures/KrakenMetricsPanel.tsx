@@ -39,6 +39,30 @@ function ProgressBar({ current, target, reverse = false, color }: { current: num
   );
 }
 
+function VwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: number }) {
+  const maeAbs = Math.abs(maePct);
+  const totalRange = maeAbs + Math.max(0, distToVwap);
+  const pct = totalRange > 0 ? Math.min(100, (maeAbs / totalRange) * 100) : 0;
+  const reached = distToVwap <= 0;
+  return (
+    <div className="flex items-center gap-1.5">
+      <ConditionDot met={reached} />
+      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-300' : 'text-slate-500'}`}>
+        {maePct.toFixed(1)}%
+      </span>
+      <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
+        <div
+          className={`h-1 rounded-full transition-all duration-300 ${reached ? 'bg-teal-400' : 'bg-amber-400'}`}
+          style={{ width: `${reached ? 100 : pct}%` }}
+        />
+      </div>
+      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-300' : 'text-slate-500'}`}>
+        {distToVwap >= 0 ? '+' : ''}{distToVwap.toFixed(2)}%
+      </span>
+    </div>
+  );
+}
+
 function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode }: ExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
@@ -189,14 +213,10 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                 )}
               </div>
               {vwap.distance_to_vwap != null && (
-                <div className="flex items-center gap-1.5">
-                  <ConditionDot met={vwap.distance_to_vwap <= 0} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${vwap.distance_to_vwap <= 0 ? 'text-teal-300' : 'text-slate-500'}`}>거리</span>
-                  <ProgressBar current={Math.max(0, 2 - Math.abs(vwap.distance_to_vwap))} target={2} color={vwap.distance_to_vwap <= 0 ? 'bg-teal-400' : undefined} />
-                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${vwap.distance_to_vwap <= 0 ? 'text-teal-300' : 'text-slate-500'}`}>
-                    {vwap.distance_to_vwap >= 0 ? '+' : ''}{vwap.distance_to_vwap.toFixed(2)}%
-                  </span>
-                </div>
+                <VwapRangeBar
+                  maePct={cut?.mae_current ?? 0}
+                  distToVwap={vwap.distance_to_vwap}
+                />
               )}
             </div>
           )}
