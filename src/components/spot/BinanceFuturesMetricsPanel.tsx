@@ -458,7 +458,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
 
                   const barColor = isLongSide ? 'bg-cyan-500' : 'bg-orange-500';
                   const barDim = 'bg-slate-400';
-                  const barFaint = 'bg-slate-400/50';
+                  const barFaint = 'bg-slate-400';
                   const textColor = isLongSide ? 'text-cyan-700' : 'text-orange-700';
                   const textDim = 'text-stone-500';
                   const textFaint = 'text-stone-400';
