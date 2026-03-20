@@ -1,7 +1,7 @@
 import { DollarSign, Activity, Target, History, ShieldAlert, TrendingUp } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
-import type { BFDashboardData, V10StrategyStatus, ExitConditions, ExitConditionSW_TRAIL } from '../../types/dashboard';
+import type { BFDashboardData, V10StrategyStatus, ExitConditions, ExitConditionTRAIL } from '../../types/dashboard';
 
 interface Props {
   data: BFDashboardData;
@@ -44,9 +44,9 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
 
 interface BinanceExitConditionsPanelProps {
   exitConditions?: ExitConditions;
-  exitPrices?: { vwap_target?: number; cut_threshold_mae?: number; ride_trail_price?: number; [key: string]: any };
+  exitPrices?: { vwapTarget?: number; cutThresholdMae?: number; rideTrailPrice?: number; [key: string]: any };
   inPosition: boolean;
-  strategyParams?: { ride_consec_n?: number; [key: string]: any };
+  strategyParams?: { rideConsecN?: number; [key: string]: any };
   entryMode?: 'SW' | 'RIDE';
   currentPnl?: number;
 }
@@ -101,8 +101,8 @@ function BVwapRangeBar({ maePct, distToVwap, currentPnl }: { maePct: number; dis
 function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl }: BinanceExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
-  const rTrail = exitConditions?.R_TRAIL;
-  const swTrail = exitConditions?.SW_TRAIL;
+  const rTrail = exitConditions?.RTRAIL;
+  const swTrail = exitConditions?.TRAIL;
   const isRide = entryMode === 'RIDE';
   const hasData = !!(vwap || cut || rTrail || swTrail);
 
@@ -138,51 +138,51 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
         <div className="flex flex-col gap-1.5">
           {rTrail && (
             <div className={`rounded-md border p-1.5 transition-all ${
-              rTrail.target_reached
+              rTrail.targetReached
                 ? 'bg-blue-50 border-blue-300'
                 : 'bg-stone-50 border-stone-200'
             }`}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    rTrail.target_reached
+                    rTrail.targetReached
                       ? 'bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.8)]'
                       : rTrail.armed ? 'bg-cyan-500' : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[10px] font-bold ${rTrail.target_reached ? 'text-blue-700' : rTrail.armed ? 'text-cyan-700' : 'text-slate-500'}`}>RTRAIL</span>
+                  <span className={`text-[10px] font-bold ${rTrail.targetReached ? 'text-blue-700' : rTrail.armed ? 'text-cyan-700' : 'text-slate-500'}`}>RTRAIL</span>
                   <span className="text-[8px] text-stone-400">추세탑승</span>
                 </div>
-                {rTrail.target_reached && exitPrices?.ride_trail_price != null && (
+                {rTrail.targetReached && exitPrices?.rideTrailPrice != null && (
                   <span className="text-[10px] font-bold tabular-nums text-blue-700">
-                    ${exitPrices.ride_trail_price.toFixed(1)}
+                    ${exitPrices.rideTrailPrice.toFixed(1)}
                   </span>
                 )}
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={rTrail.target_reached} />
-                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${rTrail.target_reached ? 'text-blue-600' : 'text-stone-500'}`}>MFE</span>
-                  <BProgressBar current={rTrail.ride_mfe_pct} target={rTrail.ride_target} />
-                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.target_reached ? 'text-blue-600' : 'text-stone-500'}`}>
-                    +{rTrail.ride_mfe_pct.toFixed(2)}%
+                  <BConditionDot met={rTrail.targetReached} />
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${rTrail.targetReached ? 'text-blue-600' : 'text-stone-500'}`}>MFE</span>
+                  <BProgressBar current={rTrail.mfePct} target={rTrail.trailTarget} />
+                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.targetReached ? 'text-blue-600' : 'text-stone-500'}`}>
+                    +{rTrail.mfePct.toFixed(2)}%
                   </span>
                 </div>
-                {rTrail.target_reached ? (
+                {rTrail.targetReached ? (
                   <div className="flex items-center gap-1.5 bg-blue-50 rounded px-1 py-0.5">
                     <TrendingUp className="w-2.5 h-2.5 text-blue-500" />
                     <span className="text-[9px] text-blue-700 font-semibold">트레일링</span>
                     <span className="text-[9px] tabular-nums text-blue-800 font-bold">
-                      스톱 {rTrail.trail_stop >= 0 ? '+' : ''}{rTrail.trail_stop.toFixed(2)}%
+                      스톱 {rTrail.trailStop >= 0 ? '+' : ''}{rTrail.trailStop.toFixed(2)}%
                     </span>
                     <span className="text-[9px] text-stone-400">|</span>
                     <span className="text-[9px] tabular-nums text-slate-700">
-                      현재 {rTrail.current_pnl >= 0 ? '+' : ''}{rTrail.current_pnl.toFixed(2)}%
+                      현재 {rTrail.currentPnl >= 0 ? '+' : ''}{rTrail.currentPnl.toFixed(2)}%
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
                     <span className="text-[9px] text-stone-500 flex-1">
-                      목표 +{rTrail.ride_target.toFixed(1)}% | 트레일 {rTrail.ride_trail_pct.toFixed(1)}%
+                      목표 +{rTrail.trailTarget.toFixed(1)}% | 트레일 {rTrail.trailPct.toFixed(1)}%
                     </span>
                   </div>
                 )}
@@ -205,21 +205,21 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   <span className="text-[8px] text-stone-400">손절</span>
                 </div>
                 <span className={`text-[10px] font-bold tabular-nums ${cut.armed ? 'text-rose-700' : 'text-slate-400'}`}>
-                  MAE {(cut.mae_threshold ?? exitPrices?.cut_threshold_mae ?? 0).toFixed(1)}%
+                  MAE {(cut.maeThreshold ?? exitPrices?.cutThresholdMae ?? 0).toFixed(1)}%
                 </span>
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.mae_ok} />
-                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
-                  <BProgressBar current={Math.abs(cut.mae_current ?? 0)} target={Math.abs(cut.mae_threshold ?? 1)} />
-                  <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-slate-400'}`}>
-                    {(cut.mae_current ?? 0).toFixed(2)}%
+                  <BConditionDot met={cut.maeOk} />
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
+                  <BProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} />
+                  <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-slate-400'}`}>
+                    {(cut.maeCurrent ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.ema_reversed} />
-                  <span className={`text-[9px] flex-1 ${cut.ema_reversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
+                  <BConditionDot met={cut.emaReversed} />
+                  <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
                 </div>
               </div>
             </div>
@@ -241,16 +241,16 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   <span className={`text-[10px] font-bold ${vwap.armed ? 'text-teal-700' : 'text-slate-500'}`}>VWAP</span>
                   <span className="text-[8px] text-stone-400">익절</span>
                 </div>
-                {(exitPrices?.vwap_target ?? vwap.vwap_target) != null && (
+                {(exitPrices?.vwapTarget ?? vwap.vwapTarget) != null && (
                   <span className={`text-[10px] font-bold tabular-nums ${vwap.armed ? 'text-teal-700' : 'text-slate-400'}`}>
-                    ${(exitPrices?.vwap_target ?? vwap.vwap_target!).toFixed(1)}
+                    ${(exitPrices?.vwapTarget ?? vwap.vwapTarget!).toFixed(1)}
                   </span>
                 )}
               </div>
-              {vwap.distance_to_vwap != null && (
+              {vwap.distanceToVwap != null && (
                 <BVwapRangeBar
                   maePct={cut?.mae_current ?? 0}
-                  distToVwap={vwap.distance_to_vwap}
+                  distToVwap={vwap.distanceToVwap}
                   currentPnl={currentPnl}
                 />
               )}
@@ -259,7 +259,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
 
           {swTrail && (
             <div className={`rounded-md border p-1.5 transition-all ${
-              swTrail.target_reached
+              swTrail.targetReached
                 ? 'bg-amber-50 border-amber-300'
                 : swTrail.armed
                   ? 'bg-stone-50 border-amber-300/60'
@@ -268,44 +268,44 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    swTrail.target_reached
+                    swTrail.targetReached
                       ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.8)]'
                       : swTrail.armed ? 'bg-amber-400/60' : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[10px] font-bold ${swTrail.target_reached ? 'text-amber-700' : swTrail.armed ? 'text-amber-600' : 'text-slate-500'}`}>TRAIL</span>
+                  <span className={`text-[10px] font-bold ${swTrail.targetReached ? 'text-amber-700' : swTrail.armed ? 'text-amber-600' : 'text-slate-500'}`}>TRAIL</span>
                   <span className="text-[8px] text-stone-400">조기익절</span>
                 </div>
-                {swTrail.target_reached && exitPrices?.sw_trail_price != null && (
+                {swTrail.targetReached && exitPrices?.trailPrice != null && (
                   <span className="text-[10px] font-bold tabular-nums text-amber-700">
-                    ${exitPrices.sw_trail_price.toFixed(1)}
+                    ${exitPrices.trailPrice.toFixed(1)}
                   </span>
                 )}
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={swTrail.target_reached} />
-                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${swTrail.target_reached ? 'text-amber-600' : 'text-stone-500'}`}>MFE</span>
-                  <BProgressBar current={swTrail.sw_mfe_pct} target={swTrail.sw_trail_target} />
-                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.target_reached ? 'text-amber-600' : 'text-stone-500'}`}>
-                    +{swTrail.sw_mfe_pct.toFixed(2)}%
+                  <BConditionDot met={swTrail.targetReached} />
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${swTrail.targetReached ? 'text-amber-600' : 'text-stone-500'}`}>MFE</span>
+                  <BProgressBar current={swTrail.mfePct} target={swTrail.trailTarget} />
+                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.targetReached ? 'text-amber-600' : 'text-stone-500'}`}>
+                    +{swTrail.mfePct.toFixed(2)}%
                   </span>
                 </div>
-                {swTrail.target_reached ? (
+                {swTrail.targetReached ? (
                   <div className="flex items-center gap-1.5 bg-amber-50 rounded px-1 py-0.5">
                     <TrendingUp className="w-2.5 h-2.5 text-amber-500" />
                     <span className="text-[9px] text-amber-700 font-semibold">트레일링</span>
                     <span className="text-[9px] tabular-nums text-amber-800 font-bold">
-                      스톱 {swTrail.trail_stop >= 0 ? '+' : ''}{swTrail.trail_stop.toFixed(2)}%
+                      스톱 {swTrail.trailStop >= 0 ? '+' : ''}{swTrail.trailStop.toFixed(2)}%
                     </span>
                     <span className="text-[9px] text-stone-400">|</span>
                     <span className="text-[9px] tabular-nums text-slate-700">
-                      현재 {swTrail.current_pnl >= 0 ? '+' : ''}{swTrail.current_pnl.toFixed(2)}%
+                      현재 {swTrail.currentPnl >= 0 ? '+' : ''}{swTrail.currentPnl.toFixed(2)}%
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
                     <span className="text-[9px] text-stone-500 flex-1">
-                      목표 +{swTrail.sw_trail_target.toFixed(1)}% | 트레일 {swTrail.sw_trail_pct.toFixed(1)}%
+                      목표 +{swTrail.trailTarget.toFixed(1)}% | 트레일 {swTrail.trailPct.toFixed(1)}%
                     </span>
                   </div>
                 )}
@@ -326,20 +326,20 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   }`} />
                   <span className={`text-[10px] font-bold ${cut.armed ? 'text-rose-700' : 'text-slate-500'}`}>CUT</span>
                   <span className="text-[8px] text-stone-400">손절</span>
-                  {(cut.consecutive_cuts ?? 0) > 0 && (
+                  {(cut.consecutiveCuts ?? 0) > 0 && (
                     <span className="text-[8px] font-bold text-rose-600 bg-rose-100 px-1 rounded">
-                      x{cut.consecutive_cuts}
+                      x{cut.consecutiveCuts}
                     </span>
                   )}
                 </div>
                 <span className={`text-[10px] font-bold tabular-nums ${cut.armed ? 'text-rose-700' : 'text-slate-400'}`}>
-                  MAE {(cut.mae_threshold ?? exitPrices?.cut_threshold_mae ?? 0).toFixed(1)}%
+                  MAE {(cut.maeThreshold ?? exitPrices?.cutThresholdMae ?? 0).toFixed(1)}%
                 </span>
               </div>
               {(() => {
                 const steps = strategyParams?.cut_prog_steps;
                 if (steps && steps.length > 1) {
-                  const currentIdx = cut.consecutive_cuts ?? 0;
+                  const currentIdx = cut.consecutiveCuts ?? 0;
                   return (
                     <div className="flex items-center gap-0.5 mb-1">
                       {steps.map((step: number, i: number) => {
@@ -369,16 +369,16 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               })()}
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.mae_ok} />
-                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
-                  <BProgressBar current={Math.abs(cut.mae_current ?? 0)} target={Math.abs(cut.mae_threshold ?? 1)} />
-                  <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-slate-400'}`}>
-                    {(cut.mae_current ?? 0).toFixed(2)}%
+                  <BConditionDot met={cut.maeOk} />
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
+                  <BProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} />
+                  <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-slate-400'}`}>
+                    {(cut.maeCurrent ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.ema_reversed} />
-                  <span className={`text-[9px] flex-1 ${cut.ema_reversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
+                  <BConditionDot met={cut.emaReversed} />
+                  <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
                 </div>
               </div>
             </div>

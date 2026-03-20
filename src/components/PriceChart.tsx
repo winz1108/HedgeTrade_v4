@@ -1716,8 +1716,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     const ep = data.holding.buyPrice;
                     if (!ep) return null;
                     const maePct = Math.abs(
-                      v10Strategy?.exitConditions?.CUT?.mae_threshold
-                      ?? v10Strategy?.exitPrices?.cut_threshold_mae
+                      v10Strategy?.exitConditions?.CUT?.maeThreshold
+                      ?? v10Strategy?.exitPrices?.cutThresholdMae
                       ?? 0.5
                     ) / 100;
                     const maePrice = isLong ? ep * (1 - maePct) : ep * (1 + maePct);
@@ -1739,8 +1739,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             })()}
 
             {showTradeMarkers && data.holding.isHolding && (() => {
-              const vwapTarget = v10Strategy?.exitPrices?.vwap_target
-                ?? v10Strategy?.exitConditions?.VWAP?.vwap_target;
+              const vwapTarget = v10Strategy?.exitPrices?.vwapTarget
+                ?? v10Strategy?.exitConditions?.VWAP?.vwapTarget;
               if (!vwapTarget) return null;
               const goldColor = '#d4a017';
               const goldGlow = 'rgba(212, 160, 23, 0.4)';

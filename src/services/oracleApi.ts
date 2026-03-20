@@ -441,12 +441,12 @@ const normalizeStrategyStatus = (raw: any): any => {
     entryDetails: raw.entryDetails ?? raw.entry_details,
     holdHours: raw.holdHours ?? raw.hold_hours,
     updatedAt: raw.updatedAt ?? raw.updated_at,
-    entry_mode: raw.entry_mode,
-    consec_cut_count: raw.consec_cut_count,
-    consec_cut_dir: raw.consec_cut_dir,
-    ride_mfe_pct: raw.ride_mfe_pct,
+    entryMode: raw.entryMode ?? raw.entry_mode,
+    consecCutCount: raw.consecCutCount ?? raw.consec_cut_count,
+    consecCutDir: raw.consecCutDir ?? raw.consec_cut_dir,
+    rideMfePct: raw.rideMfePct ?? raw.ride_mfe_pct,
     strategy_version: raw.strategy_version ?? raw.strategyVersion,
-    strategy_params: raw.strategy_params,
+    strategyParams: raw.strategyParams ?? raw.strategy_params,
   };
 };
 
@@ -592,7 +592,7 @@ export const fetchBinanceFuturesDashboard = async (): Promise<any> => {
         entryTime: p.entryTime ?? p.entry_time,
         currentPnl: p.currentPnl ?? p.current_pnl,
         side: p.side ?? p.position_side,
-        entry_mode: p.entry_mode,
+        entry_mode: p.entry_mode ?? p.entryMode,
       };
     }
 

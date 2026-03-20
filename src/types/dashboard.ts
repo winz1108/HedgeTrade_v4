@@ -69,29 +69,29 @@ export interface HoldingInfo {
 
 export interface ExitConditionCUT {
   armed: boolean;
-  mae_ok: boolean;
-  mae_current: number;
-  mae_threshold: number;
-  consecutive_cuts: number;
-  pnl_ok: boolean;
-  ema_reversed: boolean;
+  maeOk: boolean;
+  maeCurrent: number;
+  maeThreshold: number;
+  consecutiveCuts: number;
+  pnlOk: boolean;
+  emaReversed: boolean;
 }
 
 export interface ExitConditionVWAP {
   armed: boolean;
-  vwap_target?: number;
-  entry_vwap?: number;
-  distance_to_vwap?: number;
+  vwapTarget?: number;
+  entryVwap?: number;
+  distanceToVwap?: number;
 }
 
-export interface ExitConditionR_TRAIL {
+export interface ExitConditionRTRAIL {
   armed: boolean;
-  ride_mfe_pct: number;
-  ride_target: number;
-  ride_trail_pct: number;
-  target_reached: boolean;
-  trail_stop: number;
-  current_pnl: number;
+  mfePct: number;
+  trailTarget: number;
+  trailPct: number;
+  targetReached: boolean;
+  trailStop: number;
+  currentPnl: number;
 }
 
 export interface VwapBandSeries {
@@ -101,21 +101,21 @@ export interface VwapBandSeries {
   lower: (number | null)[];
 }
 
-export interface ExitConditionSW_TRAIL {
+export interface ExitConditionTRAIL {
   armed: boolean;
-  sw_mfe_pct: number;
-  sw_trail_target: number;
-  sw_trail_pct: number;
-  target_reached: boolean;
-  trail_stop: number;
-  current_pnl: number;
+  mfePct: number;
+  trailTarget: number;
+  trailPct: number;
+  targetReached: boolean;
+  trailStop: number;
+  currentPnl: number;
 }
 
 export interface ExitConditions {
   CUT?: ExitConditionCUT;
   VWAP?: ExitConditionVWAP;
-  R_TRAIL?: ExitConditionR_TRAIL;
-  SW_TRAIL?: ExitConditionSW_TRAIL;
+  RTRAIL?: ExitConditionRTRAIL;
+  TRAIL?: ExitConditionTRAIL;
 }
 
 export interface EntryDetailADX {
@@ -166,29 +166,29 @@ export interface V10StrategyStatus {
   strategyVersion?: string;
   strategy_version?: string;
   inPosition: boolean;
-  entry_mode?: 'SW' | 'RIDE';
-  consec_cut_count?: number;
-  consec_cut_dir?: number;
-  ride_mfe_pct?: number;
-  strategy_params?: {
-    vreg_vol_mult?: number;
-    vreg_min_pnl?: number;
-    vreg_reg_n?: number;
-    mgmt_tf?: string;
-    cut_prog_steps?: number[];
-    cut_mae?: number;
-    entry_tf?: string;
-    entry_mode?: string;
-    vwap_period?: number;
-    vwap_sigma?: number;
-    ride_enabled?: boolean;
-    ride_consec_n?: number;
-    ride_cut?: number;
-    ride_target?: number;
-    ride_trail_pct?: number;
-    sw_trail_enabled?: boolean;
-    sw_trail_target?: number;
-    sw_trail_pct?: number;
+  entryMode?: 'SW' | 'RIDE';
+  consecCutCount?: number;
+  consecCutDir?: number;
+  rideMfePct?: number;
+  strategyParams?: {
+    vregVolMult?: number;
+    vregMinPnl?: number;
+    vregRegN?: number;
+    mgmtTf?: string;
+    cutProgSteps?: number[];
+    cutMae?: number;
+    entryTf?: string;
+    entryMode?: string;
+    vwapPeriod?: number;
+    vwapSigma?: number;
+    rideEnabled?: boolean;
+    rideConsecN?: number;
+    rideCut?: number;
+    rideTarget?: number;
+    rideTrailPct?: number;
+    swTrailEnabled?: boolean;
+    swTrailTarget?: number;
+    swTrailPct?: number;
     [key: string]: any;
   };
   positionSide?: 'LONG' | 'SHORT' | null;
@@ -212,10 +212,10 @@ export interface V10StrategyStatus {
     [key: string]: boolean | undefined;
   };
   exitPrices?: {
-    vwap_target?: number;
-    cut_threshold_mae?: number;
-    ride_trail_price?: number;
-    sw_trail_price?: number;
+    vwapTarget?: number;
+    cutThresholdMae?: number;
+    rideTrailPrice?: number;
+    trailPrice?: number;
   };
   exitConditions?: ExitConditions;
   entryDetails?: EntryDetails;

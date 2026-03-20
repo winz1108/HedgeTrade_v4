@@ -410,7 +410,7 @@ function App() {
                     }`}>
                       {data.position.side} POSITION
                     </span>
-                    {(data.strategyStatus?.entry_mode || data.position.entry_mode) === 'RIDE' && (
+                    {(data.strategyStatus?.entryMode || data.position.entry_mode) === 'RIDE' && (
                       <span className="px-1.5 py-0.5 text-[9px] font-bold bg-blue-100 text-blue-700 border border-blue-300 rounded tracking-wider">
                         RIDE
                       </span>

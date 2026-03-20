@@ -415,7 +415,7 @@ function FuturesDashboard() {
                     }`}>
                       {data.position.position_side} POSITION
                     </span>
-                    {(data.strategyStatus?.entry_mode || data.strategyA?.entry_mode) === 'RIDE' && (
+                    {(data.strategyStatus?.entryMode || data.strategyA?.entry_mode) === 'RIDE' && (
                       <span className="px-1.5 py-0.5 text-[9px] font-bold bg-blue-500/30 text-blue-300 border border-blue-400/40 rounded tracking-wider">
                         RIDE
                       </span>
