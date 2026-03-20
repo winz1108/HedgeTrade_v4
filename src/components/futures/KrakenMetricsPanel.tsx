@@ -52,7 +52,7 @@ function VwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: numb
       </span>
       <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
         <div
-          className={`h-1 rounded-full transition-all duration-300 ${reached ? 'bg-teal-400' : 'bg-amber-400'}`}
+          className="h-1 rounded-full transition-all duration-300 bg-teal-400"
           style={{ width: `${reached ? 100 : pct}%` }}
         />
       </div>

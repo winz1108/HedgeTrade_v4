@@ -81,7 +81,7 @@ function BVwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: num
       </span>
       <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden relative">
         <div
-          className={`h-1 rounded-full transition-all duration-300 ${reached ? 'bg-teal-500' : 'bg-amber-400'}`}
+          className="h-1 rounded-full transition-all duration-300 bg-teal-500"
           style={{ width: `${reached ? 100 : pct}%` }}
         />
       </div>
