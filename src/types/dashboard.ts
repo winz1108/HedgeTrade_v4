@@ -95,6 +95,7 @@ export interface ExitConditionR_TRAIL {
 }
 
 export interface VwapBandSeries {
+  timestamps: number[];
   vwap: (number | null)[];
   upper: (number | null)[];
   lower: (number | null)[];

@@ -1145,22 +1145,21 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* VWAP Band Series - 15m only, always visible */}
+                  {/* VWAP Band Series - 15m only, always visible, timestamp-matched */}
                   {timeframe === '15m' && (() => {
                     if (!v10Strategy) return null;
                     const bandSeries = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
                     if (!bandSeries) return null;
 
-                    const vwapArr = bandSeries.vwap;
-                    const upperArr = bandSeries.upper;
-                    const lowerArr = bandSeries.lower;
-                    if (!vwapArr || !upperArr || !lowerArr) return null;
+                    const { timestamps, vwap: vwapArr, upper: upperArr, lower: lowerArr } = bandSeries;
+                    if (!timestamps || !vwapArr || !upperArr || !lowerArr) return null;
+                    if (timestamps.length === 0) return null;
 
-                    const src = selectedCandles;
-                    if (!src || src.length === 0) return null;
-                    const seriesLen = vwapArr.length;
-                    if (seriesLen === 0) return null;
-                    const offset = src.length - seriesLen;
+                    const tsToLocalIdx = new Map<number, number>();
+                    visibleCandles.forEach((c, idx) => {
+                      const ts = normalizeTimestamp(c.timestamp);
+                      tsToLocalIdx.set(ts, idx);
+                    });
 
                     const upperPoints: string[] = [];
                     const lowerPoints: string[] = [];
@@ -1168,10 +1167,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     const fillUpperPoints: string[] = [];
                     const fillLowerPoints: string[] = [];
 
-                    for (let i = 0; i < seriesLen; i++) {
-                      const globalIdx = offset + i;
-                      const localIdx = globalIdx - visibleStartIndex;
-                      if (localIdx < 0 || localIdx >= visibleCandles.length) continue;
+                    for (let i = 0; i < timestamps.length; i++) {
+                      const localIdx = tsToLocalIdx.get(timestamps[i]);
+                      if (localIdx === undefined) continue;
                       const x = localIdx * (candleWidth + candleGap) + candleWidth / 2;
 
                       if (upperArr[i] != null) {
@@ -1189,10 +1187,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       }
                     }
 
-                    const fillColor = darkMode ? 'rgba(45,212,191,0.06)' : 'rgba(20,184,166,0.05)';
-                    const upperColor = darkMode ? 'rgba(248,113,113,0.55)' : 'rgba(220,38,38,0.4)';
-                    const lowerColor = darkMode ? 'rgba(96,165,250,0.55)' : 'rgba(37,99,235,0.4)';
-                    const vwapColor = darkMode ? 'rgba(45,212,191,0.7)' : 'rgba(20,184,166,0.55)';
+                    const fillColor = darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(146,100,52,0.05)';
+                    const lineColor = darkMode ? 'rgba(255,255,255,0.35)' : 'rgba(146,100,52,0.4)';
+                    const centerColor = darkMode ? 'rgba(255,255,255,0.5)' : 'rgba(146,100,52,0.55)';
 
                     const fillPoints = fillUpperPoints.length > 1 && fillLowerPoints.length > 1
                       ? [...fillUpperPoints, ...fillLowerPoints.slice().reverse()].join(' ')
@@ -1205,15 +1202,15 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         )}
                         {upperPoints.length >= 2 && (
                           <polyline points={upperPoints.join(' ')} fill="none"
-                            stroke={upperColor} strokeWidth="1" strokeDasharray="5 3" />
+                            stroke={lineColor} strokeWidth="0.8" strokeDasharray="5 3" />
                         )}
                         {lowerPoints.length >= 2 && (
                           <polyline points={lowerPoints.join(' ')} fill="none"
-                            stroke={lowerColor} strokeWidth="1" strokeDasharray="5 3" />
+                            stroke={lineColor} strokeWidth="0.8" strokeDasharray="5 3" />
                         )}
                         {vwapPoints.length >= 2 && (
                           <polyline points={vwapPoints.join(' ')} fill="none"
-                            stroke={vwapColor} strokeWidth="1.2" />
+                            stroke={centerColor} strokeWidth="1" />
                         )}
                       </>
                     );
