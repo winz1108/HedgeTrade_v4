@@ -925,7 +925,28 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return Math.abs(mouseY - priceToY(candle.ema_long)) < HOVER_THRESHOLD;
               })();
 
-              const anyIndicatorHovered = isBBHovered || isEmaShortHovered || isEmaLongHovered;
+              const vwapHoverData = (() => {
+                if (mouseY === null || !candle || timeframe !== '15m' || !v10Strategy) return null;
+                const bs = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
+                if (!bs?.timestamps) return null;
+                const candleTs = normalizeTimestamp(candle.timestamp);
+                const idx = bs.timestamps.indexOf(candleTs);
+                if (idx === -1) return null;
+                const vwap = bs.vwap?.[idx] ?? null;
+                const upper = bs.upper?.[idx] ?? null;
+                const lower = bs.lower?.[idx] ?? null;
+                if (vwap === null && upper === null && lower === null) return null;
+                const vwapY = vwap !== null ? priceToY(vwap) : null;
+                const upperY = upper !== null ? priceToY(upper) : null;
+                const lowerY = lower !== null ? priceToY(lower) : null;
+                const isHovered = (upperY !== null && Math.abs(mouseY - upperY) < HOVER_THRESHOLD) ||
+                                  (lowerY !== null && Math.abs(mouseY - lowerY) < HOVER_THRESHOLD) ||
+                                  (vwapY !== null && Math.abs(mouseY - vwapY) < HOVER_THRESHOLD);
+                return isHovered ? { vwap, upper, lower } : null;
+              })();
+              const isVWAPHovered = vwapHoverData !== null;
+
+              const anyIndicatorHovered = isBBHovered || isEmaShortHovered || isEmaLongHovered || isVWAPHovered;
 
               return (
                 <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg`}>
@@ -974,6 +995,17 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                             <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
                           </>
                         )}
+                      </>
+                    )}
+                    {isVWAPHovered && vwapHoverData && (
+                      <>
+                        <span className={`text-[10px] font-semibold ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>VWAP</span>
+                        <span className={`${colors.textSecondary} text-[10px]`}>상단</span>
+                        <span className={`${darkMode ? 'text-amber-300' : 'text-amber-800'} font-bold tabular-nums`}>{vwapHoverData.upper?.toFixed(2) ?? '-'}</span>
+                        <span className={`${colors.textSecondary} text-[10px]`}>중앙</span>
+                        <span className={`${darkMode ? 'text-amber-200' : 'text-amber-700'} font-bold tabular-nums`}>{vwapHoverData.vwap?.toFixed(2) ?? '-'}</span>
+                        <span className={`${colors.textSecondary} text-[10px]`}>하단</span>
+                        <span className={`${darkMode ? 'text-amber-300' : 'text-amber-800'} font-bold tabular-nums`}>{vwapHoverData.lower?.toFixed(2) ?? '-'}</span>
                       </>
                     )}
                   </div>
@@ -1087,6 +1119,26 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return Math.abs(mouseY - priceToY(candle.ema_long)) < HOVER_THRESHOLD;
               })();
 
+              const isVWAPBandHovered = (() => {
+                if (mouseY === null || hoveredCandleIndex === null || timeframe !== '15m' || !v10Strategy) return false;
+                const bs = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
+                if (!bs?.timestamps) return false;
+                const candle = visibleCandles[hoveredCandleIndex];
+                if (!candle) return false;
+                const candleTs = normalizeTimestamp(candle.timestamp);
+                const idx = bs.timestamps.indexOf(candleTs);
+                if (idx === -1) return false;
+                const vwap = bs.vwap?.[idx] ?? null;
+                const upper = bs.upper?.[idx] ?? null;
+                const lower = bs.lower?.[idx] ?? null;
+                const vwapY = vwap !== null ? priceToY(vwap) : null;
+                const upperY = upper !== null ? priceToY(upper) : null;
+                const lowerY = lower !== null ? priceToY(lower) : null;
+                return (upperY !== null && Math.abs(mouseY - upperY) < HOVER_THRESHOLD) ||
+                       (lowerY !== null && Math.abs(mouseY - lowerY) < HOVER_THRESHOLD) ||
+                       (vwapY !== null && Math.abs(mouseY - vwapY) < HOVER_THRESHOLD);
+              })();
+
               return (
                 <>
                   {bbUpperPoints.length > 1 && (
@@ -1187,9 +1239,16 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       }
                     }
 
-                    const fillColor = darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(146,100,52,0.05)';
-                    const lineColor = darkMode ? 'rgba(255,255,255,0.35)' : 'rgba(146,100,52,0.4)';
-                    const centerColor = darkMode ? 'rgba(255,255,255,0.5)' : 'rgba(146,100,52,0.55)';
+                    const hov = isVWAPBandHovered;
+                    const fillColor = darkMode
+                      ? hov ? 'rgba(217,170,100,0.08)' : 'rgba(217,170,100,0.04)'
+                      : hov ? 'rgba(146,100,52,0.08)' : 'rgba(146,100,52,0.04)';
+                    const lineColor = darkMode
+                      ? hov ? 'rgba(230,190,120,0.75)' : 'rgba(200,160,90,0.35)'
+                      : hov ? 'rgba(120,80,30,0.7)' : 'rgba(146,100,52,0.4)';
+                    const centerColor = darkMode
+                      ? hov ? 'rgba(240,200,130,0.85)' : 'rgba(210,170,100,0.5)'
+                      : hov ? 'rgba(110,70,20,0.8)' : 'rgba(146,100,52,0.55)';
 
                     const fillPoints = fillUpperPoints.length > 1 && fillLowerPoints.length > 1
                       ? [...fillUpperPoints, ...fillLowerPoints.slice().reverse()].join(' ')
@@ -1198,19 +1257,23 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     return (
                       <>
                         {fillPoints && (
-                          <polygon points={fillPoints} fill={fillColor} stroke="none" />
+                          <polygon points={fillPoints} fill={fillColor} stroke="none"
+                            style={{ transition: 'fill 0.15s' }} />
                         )}
                         {upperPoints.length >= 2 && (
                           <polyline points={upperPoints.join(' ')} fill="none"
-                            stroke={lineColor} strokeWidth="0.8" strokeDasharray="5 3" />
+                            stroke={lineColor} strokeWidth={hov ? '1.4' : '0.8'} strokeDasharray="5 3"
+                            style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }} />
                         )}
                         {lowerPoints.length >= 2 && (
                           <polyline points={lowerPoints.join(' ')} fill="none"
-                            stroke={lineColor} strokeWidth="0.8" strokeDasharray="5 3" />
+                            stroke={lineColor} strokeWidth={hov ? '1.4' : '0.8'} strokeDasharray="5 3"
+                            style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }} />
                         )}
                         {vwapPoints.length >= 2 && (
                           <polyline points={vwapPoints.join(' ')} fill="none"
-                            stroke={centerColor} strokeWidth="1" />
+                            stroke={centerColor} strokeWidth={hov ? '1.5' : '1'}
+                            style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }} />
                         )}
                       </>
                     );
