@@ -29,7 +29,9 @@ const getExitReasonLabel = (reason?: string): string => {
   if (reason === 'EARLY') return 'Early Exit';
   if (reason === 'VANISH') return 'Vanish';
   if (reason === 'TIMEOUT') return 'Timeout';
-  if (reason === 'EXIT_SW_TRAIL') return 'SW Trail';
+  if (reason === 'EXIT_SW_TRAIL') return 'TRAIL';
+  if (reason === 'EXIT_R_TRAIL') return 'RTRAIL';
+  if (reason === 'EXIT_R_CUT') return 'RCUT';
   return reason;
 };
 
@@ -122,7 +124,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
 
       {!hasData ? (
         <div className="flex flex-col gap-1">
-          {(isRide ? ['R_TRAIL', 'CUT'] : ['VWAP', 'SW_TRAIL', 'CUT']).map(name => (
+          {(isRide ? ['RTRAIL', 'CUT'] : ['VWAP', 'TRAIL', 'CUT']).map(name => (
             <div key={name} className="flex items-center justify-between bg-stone-50 border border-stone-200 rounded px-2 py-1.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-300 flex-shrink-0" />
@@ -147,7 +149,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                       ? 'bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.8)]'
                       : rTrail.armed ? 'bg-cyan-500' : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[9px] font-bold ${rTrail.target_reached ? 'text-blue-700' : rTrail.armed ? 'text-cyan-700' : 'text-slate-500'}`}>R_TRAIL</span>
+                  <span className={`text-[9px] font-bold ${rTrail.target_reached ? 'text-blue-700' : rTrail.armed ? 'text-cyan-700' : 'text-slate-500'}`}>RTRAIL</span>
                   <span className="text-[7px] text-stone-400">추세탑승</span>
                 </div>
                 {rTrail.target_reached && exitPrices?.ride_trail_price != null && (
@@ -270,7 +272,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                       ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.8)]'
                       : swTrail.armed ? 'bg-amber-400/60' : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[9px] font-bold ${swTrail.target_reached ? 'text-amber-700' : swTrail.armed ? 'text-amber-600' : 'text-slate-500'}`}>SW_TRAIL</span>
+                  <span className={`text-[9px] font-bold ${swTrail.target_reached ? 'text-amber-700' : swTrail.armed ? 'text-amber-600' : 'text-slate-500'}`}>TRAIL</span>
                   <span className="text-[7px] text-stone-400">조기익절</span>
                 </div>
                 {swTrail.target_reached && exitPrices?.sw_trail_price != null && (

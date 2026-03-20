@@ -93,7 +93,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
 
       {!hasData ? (
         <div className="flex flex-col gap-1">
-          {(isRide ? ['R_TRAIL', 'CUT'] : ['VWAP', 'SW_TRAIL', 'CUT']).map(name => (
+          {(isRide ? ['RTRAIL', 'CUT'] : ['VWAP', 'TRAIL', 'CUT']).map(name => (
             <div key={name} className="flex items-center justify-between bg-slate-700/20 border border-slate-700/50 rounded px-2 py-1.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-700 flex-shrink-0" />
@@ -118,7 +118,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                       ? 'bg-blue-400 shadow-[0_0_5px_rgba(96,165,250,0.9)]'
                       : rTrail.armed ? 'bg-cyan-400' : 'bg-slate-600'
                   }`} />
-                  <span className={`text-[9px] font-bold ${rTrail.target_reached ? 'text-blue-300' : rTrail.armed ? 'text-cyan-300' : 'text-slate-400'}`}>R_TRAIL</span>
+                  <span className={`text-[9px] font-bold ${rTrail.target_reached ? 'text-blue-300' : rTrail.armed ? 'text-cyan-300' : 'text-slate-400'}`}>RTRAIL</span>
                   <span className="text-[7px] text-slate-500">추세탑승</span>
                 </div>
                 {rTrail.target_reached && exitPrices?.ride_trail_price != null && (
@@ -241,7 +241,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                       ? 'bg-amber-400 shadow-[0_0_5px_rgba(251,191,36,0.9)]'
                       : swTrail.armed ? 'bg-amber-500/60' : 'bg-slate-600'
                   }`} />
-                  <span className={`text-[9px] font-bold ${swTrail.target_reached ? 'text-amber-300' : swTrail.armed ? 'text-amber-400' : 'text-slate-400'}`}>SW_TRAIL</span>
+                  <span className={`text-[9px] font-bold ${swTrail.target_reached ? 'text-amber-300' : swTrail.armed ? 'text-amber-400' : 'text-slate-400'}`}>TRAIL</span>
                   <span className="text-[7px] text-slate-500">조기익절</span>
                 </div>
                 {swTrail.target_reached && exitPrices?.sw_trail_price != null && (
@@ -381,7 +381,9 @@ const getExitReasonLabel = (reason?: string): string => {
   if (reason.startsWith('PP_STOP')) return 'PP';
   if (reason === 'VANISH') return 'Vanish';
   if (reason === 'TIMEOUT') return 'Timeout';
-  if (reason === 'EXIT_SW_TRAIL') return 'SW Trail';
+  if (reason === 'EXIT_SW_TRAIL') return 'TRAIL';
+  if (reason === 'EXIT_R_TRAIL') return 'RTRAIL';
+  if (reason === 'EXIT_R_CUT') return 'RCUT';
   return reason;
 };
 
