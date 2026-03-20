@@ -488,7 +488,9 @@ export function KrakenMetricsPanel({ data, position }: Props) {
 
           {entryDetails?.VWAP ? (() => {
             const vwap = entryDetails.VWAP!;
-            const closerSide = vwap.long_distance_pct <= vwap.short_distance_pct ? 'LONG' : 'SHORT';
+            const longDist = vwap.long_distance_pct;
+            const shortDist = vwap.short_distance_pct;
+            const closerSide = longDist >= shortDist ? 'LONG' : 'SHORT';
 
             return (
               <div className="grid grid-cols-2 gap-1.5">
@@ -496,48 +498,56 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   const isLongSide = side === 'LONG';
                   const isCloser = side === closerSide;
                   const met = isLongSide ? vwap.long_met : vwap.short_met;
-                  const distPct = isLongSide ? vwap.long_distance_pct : vwap.short_distance_pct;
+                  const rawDist = isLongSide ? longDist : shortDist;
                   const targetPrice = isLongSide ? vwap.lower : vwap.upper;
-                  const maxDist = 3;
-                  const progressPct = Math.max(0, Math.min(100, (1 - distPct / maxDist) * 100));
+                  const maxRange = 1.0;
+                  const progressPct = met || rawDist >= 0
+                    ? 100
+                    : Math.max(0, Math.min(100, (1 - Math.abs(rawDist) / maxRange) * 100));
 
-                  const barColor = isLongSide ? 'bg-cyan-400' : 'bg-orange-400';
-                  const barDim = 'bg-slate-300';
-                  const barFaint = 'bg-slate-600/30';
-                  const textColor = isLongSide ? 'text-cyan-300' : 'text-orange-300';
-                  const textDim = 'text-slate-400';
-                  const textFaint = 'text-slate-500';
-                  const labelColor = isLongSide
-                    ? (met || isCloser ? 'text-cyan-400' : textFaint)
-                    : (met || isCloser ? 'text-orange-400' : textFaint);
-                  const valueColor = met || isCloser ? textColor : textDim;
-                  const panelBg = isLongSide
-                    ? (met || isCloser ? 'bg-cyan-500/15 border-cyan-500/40' : 'bg-slate-800/30 border-transparent')
-                    : (met || isCloser ? 'bg-orange-500/15 border-orange-500/40' : 'bg-slate-800/30 border-transparent');
-                  const barBg = met || isCloser ? barColor : barDim;
+                  const isNear = progressPct >= 70;
+
+                  const panelBg = met
+                    ? (isLongSide ? 'bg-cyan-500/20 border-cyan-400/60' : 'bg-orange-500/20 border-orange-400/60')
+                    : isCloser && isNear
+                      ? (isLongSide ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-orange-500/10 border-orange-500/30')
+                      : 'bg-slate-800/30 border-slate-700/50';
+                  const labelColor = met
+                    ? (isLongSide ? 'text-cyan-300 font-bold' : 'text-orange-300 font-bold')
+                    : isCloser ? (isLongSide ? 'text-cyan-400' : 'text-orange-400') : 'text-slate-500';
+
+                  const distLabel = met
+                    ? (rawDist > 0 ? `+${rawDist.toFixed(3)}%` : '0.000%')
+                    : `${rawDist.toFixed(3)}%`;
+                  const distColor = met
+                    ? (isLongSide ? 'text-cyan-300' : 'text-orange-300')
+                    : isNear ? (isLongSide ? 'text-cyan-400' : 'text-orange-400') : 'text-slate-400';
+
+                  const barTrack = 'bg-slate-700/60';
+                  const barFill = met
+                    ? (isLongSide ? 'bg-cyan-400' : 'bg-orange-400')
+                    : isNear
+                      ? (isLongSide ? 'bg-cyan-400/70' : 'bg-orange-400/70')
+                      : 'bg-slate-500/50';
 
                   return (
                     <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${panelBg}`}>
-                      <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${labelColor}`}>{side}</div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-[8px] font-semibold tracking-wide ${labelColor}`}>{side}</span>
+                        {met && <span className="text-[7px] font-bold text-emerald-400 tracking-wider animate-pulse">MET</span>}
+                      </div>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center justify-between">
-                          {isLongSide ? (
-                            <>
-                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
-                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{targetPrice.toFixed(1)}</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{targetPrice.toFixed(1)}</span>
-                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
-                            </>
-                          )}
+                          <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                          <span className="text-[8px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
                         </div>
-                        <div className="bg-slate-700 rounded-full h-1 overflow-hidden">
+                        <div className={`${barTrack} rounded-full h-[3px] overflow-hidden`}>
                           {isLongSide ? (
-                            <div className={`h-1 rounded-full transition-all duration-300 ${barBg}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-full rounded-full transition-all duration-500 ease-out ${barFill} ${met ? 'shadow-[0_0_4px_rgba(34,211,238,0.4)]' : ''}`}
+                              style={{ width: `${progressPct}%` }} />
                           ) : (
-                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${barBg}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-full rounded-full transition-all duration-500 ease-out ml-auto ${barFill} ${met ? 'shadow-[0_0_4px_rgba(251,146,60,0.4)]' : ''}`}
+                              style={{ width: `${progressPct}%` }} />
                           )}
                         </div>
                       </div>

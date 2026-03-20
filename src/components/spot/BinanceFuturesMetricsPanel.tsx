@@ -474,7 +474,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
 
           {entryDetails?.VWAP ? (() => {
             const vwap = entryDetails.VWAP!;
-            const closerSide = vwap.long_distance_pct <= vwap.short_distance_pct ? 'LONG' : 'SHORT';
+            const longDist = vwap.long_distance_pct;
+            const shortDist = vwap.short_distance_pct;
+            const closerSide = longDist >= shortDist ? 'LONG' : 'SHORT';
 
             return (
               <div className="grid grid-cols-2 gap-1.5">
@@ -482,49 +484,56 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   const isLongSide = side === 'LONG';
                   const isCloser = side === closerSide;
                   const met = isLongSide ? vwap.long_met : vwap.short_met;
-                  const distPct = isLongSide ? vwap.long_distance_pct : vwap.short_distance_pct;
+                  const rawDist = isLongSide ? longDist : shortDist;
                   const targetPrice = isLongSide ? vwap.lower : vwap.upper;
-                  const maxDist = 3;
-                  const progressPct = Math.max(0, Math.min(100, (1 - distPct / maxDist) * 100));
+                  const maxRange = 1.0;
+                  const progressPct = met || rawDist >= 0
+                    ? 100
+                    : Math.max(0, Math.min(100, (1 - Math.abs(rawDist) / maxRange) * 100));
 
-                  const barColor = isLongSide ? 'bg-cyan-500' : 'bg-orange-500';
-                  const barDim = 'bg-slate-400';
-                  const barFaint = 'bg-slate-400';
-                  const textColor = isLongSide ? 'text-cyan-700' : 'text-orange-700';
-                  const textDim = 'text-stone-500';
-                  const textFaint = 'text-stone-400';
-                  const labelColor = isLongSide
-                    ? (met || isCloser ? 'text-cyan-600' : textFaint)
-                    : (met || isCloser ? 'text-orange-600' : textFaint);
-                  const valueColor = met || isCloser ? textColor : textDim;
-                  const panelBg = isLongSide
-                    ? (met || isCloser ? 'bg-cyan-50 border-cyan-300' : 'bg-stone-50/50 border-stone-200/50')
-                    : (met || isCloser ? 'bg-orange-50 border-orange-300' : 'bg-stone-50/50 border-stone-200/50');
-                  const bar = met ? barColor : isCloser ? barColor : barDim;
-                  const barBg = met || isCloser ? barColor : barFaint;
+                  const isNear = progressPct >= 70;
+
+                  const panelBg = met
+                    ? (isLongSide ? 'bg-cyan-50 border-cyan-400' : 'bg-orange-50 border-orange-400')
+                    : isCloser && isNear
+                      ? (isLongSide ? 'bg-cyan-50/60 border-cyan-300' : 'bg-orange-50/60 border-orange-300')
+                      : 'bg-stone-50/50 border-stone-200/50';
+                  const labelColor = met
+                    ? (isLongSide ? 'text-cyan-600 font-bold' : 'text-orange-600 font-bold')
+                    : isCloser ? (isLongSide ? 'text-cyan-600' : 'text-orange-600') : 'text-stone-400';
+
+                  const distLabel = met
+                    ? (rawDist > 0 ? `+${rawDist.toFixed(3)}%` : '0.000%')
+                    : `${rawDist.toFixed(3)}%`;
+                  const distColor = met
+                    ? (isLongSide ? 'text-cyan-700' : 'text-orange-700')
+                    : isNear ? (isLongSide ? 'text-cyan-600' : 'text-orange-600') : 'text-stone-500';
+
+                  const barTrack = 'bg-stone-200/80';
+                  const barFill = met
+                    ? (isLongSide ? 'bg-cyan-500' : 'bg-orange-500')
+                    : isNear
+                      ? (isLongSide ? 'bg-cyan-400/70' : 'bg-orange-400/70')
+                      : 'bg-stone-300/60';
 
                   return (
                     <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${panelBg}`}>
-                      <div className={`text-[8px] font-semibold tracking-wide mb-1.5 ${labelColor}`}>{side}</div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-[8px] font-semibold tracking-wide ${labelColor}`}>{side}</span>
+                        {met && <span className="text-[7px] font-bold text-emerald-600 tracking-wider animate-pulse">MET</span>}
+                      </div>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center justify-between">
-                          {isLongSide ? (
-                            <>
-                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
-                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{targetPrice.toFixed(1)}</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{targetPrice.toFixed(1)}</span>
-                              <span className={`text-[8px] tabular-nums ${valueColor}`}>{met ? '진입 가능' : `${distPct.toFixed(2)}%`}</span>
-                            </>
-                          )}
+                          <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                          <span className="text-[8px] tabular-nums text-stone-400">{targetPrice.toFixed(1)}</span>
                         </div>
-                        <div className="bg-stone-200 rounded-full h-1 overflow-hidden">
+                        <div className={`${barTrack} rounded-full h-[3px] overflow-hidden`}>
                           {isLongSide ? (
-                            <div className={`h-1 rounded-full transition-all duration-300 ${barBg}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-full rounded-full transition-all duration-500 ease-out ${barFill} ${met ? 'shadow-[0_0_4px_rgba(6,182,212,0.3)]' : ''}`}
+                              style={{ width: `${progressPct}%` }} />
                           ) : (
-                            <div className={`h-1 rounded-full transition-all duration-300 ml-auto ${barBg}`} style={{ width: `${met ? 100 : progressPct}%` }} />
+                            <div className={`h-full rounded-full transition-all duration-500 ease-out ml-auto ${barFill} ${met ? 'shadow-[0_0_4px_rgba(249,115,22,0.3)]' : ''}`}
+                              style={{ width: `${progressPct}%` }} />
                           )}
                         </div>
                       </div>
