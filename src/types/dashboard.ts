@@ -104,10 +104,29 @@ export interface ExitConditionCUT {
   ema_reversed: boolean;
 }
 
+export interface ExitConditionVWAP_TP {
+  armed: boolean;
+  vwap_target?: number;
+  distance_pct?: number;
+  met?: boolean;
+}
+
+export interface ExitConditionR_TRAIL {
+  armed: boolean;
+  ride_mfe_pct: number;
+  ride_target: number;
+  ride_trail_pct: number;
+  target_reached: boolean;
+  trail_stop: number;
+  current_pnl: number;
+}
+
 export interface ExitConditions {
   VREG?: ExitConditionVREG;
   EMA?: ExitConditionEMA;
   CUT?: ExitConditionCUT;
+  VWAP_TP?: ExitConditionVWAP_TP;
+  R_TRAIL?: ExitConditionR_TRAIL;
 }
 
 export interface EntryDetailADX {
@@ -156,7 +175,12 @@ export interface EntryDetails {
 
 export interface V10StrategyStatus {
   strategyVersion?: string;
+  strategy_version?: string;
   inPosition: boolean;
+  entry_mode?: 'SW' | 'RIDE';
+  consec_cut_count?: number;
+  consec_cut_dir?: number;
+  ride_mfe_pct?: number;
   strategy_params?: {
     vreg_vol_mult?: number;
     vreg_min_pnl?: number;
@@ -168,6 +192,11 @@ export interface V10StrategyStatus {
     entry_mode?: string;
     vwap_period?: number;
     vwap_sigma?: number;
+    ride_enabled?: boolean;
+    ride_consec_n?: number;
+    ride_cut?: number;
+    ride_target?: number;
+    ride_trail_pct?: number;
     [key: string]: any;
   };
   positionSide?: 'LONG' | 'SHORT' | null;
@@ -194,6 +223,7 @@ export interface V10StrategyStatus {
     ema_exit?: number;
     vreg_exit?: number;
     cut_threshold_mae?: number;
+    ride_trail_price?: number;
   };
   exitConditions?: ExitConditions;
   entryDetails?: EntryDetails;
@@ -497,6 +527,7 @@ export interface KrakenStrategyA {
   name: string;
   in_position: boolean;
   side?: 'LONG' | 'SHORT';
+  entry_mode?: 'SW' | 'RIDE';
   entry_price?: number;
   current_pnl?: number;
   mfe?: number;
@@ -573,6 +604,7 @@ export interface KrakenPosition {
   position_side?: 'LONG' | 'SHORT';
   inPosition?: boolean;
   side?: 'LONG' | 'SHORT';
+  entry_mode?: 'SW' | 'RIDE';
   entry_price?: number;
   entryPrice?: number;
   entry_quantity?: number;
@@ -729,6 +761,12 @@ export interface BFDashboardData {
     floorPrice?: number | null;
     currentSlPct?: number;
     slPrice?: number | null;
+    entry_mode?: 'SW' | 'RIDE';
+    in_position?: boolean;
+    position_side?: 'LONG' | 'SHORT';
+    entry_price?: number;
+    entry_time?: number;
+    current_pnl?: number;
     exit_prices?: {
       floor_price?: number | null;
       sl_price?: number | null;

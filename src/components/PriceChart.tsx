@@ -1171,6 +1171,54 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
+                  {/* VWAP Range Band */}
+                  {v10Strategy?.entryDetails?.VWAP && (() => {
+                    const vwap = v10Strategy.entryDetails!.VWAP!;
+                    const upperPrice = vwap.upper;
+                    const lowerPrice = vwap.lower;
+                    if (!upperPrice || !lowerPrice) return null;
+                    if (upperPrice < minPrice || lowerPrice > maxPrice) return null;
+
+                    const upperY = priceToY(upperPrice);
+                    const lowerY = priceToY(lowerPrice);
+                    const vwapY = vwap.vwap ? priceToY(vwap.vwap) : null;
+                    const chartW = visibleCandles.length * (candleWidth + candleGap);
+
+                    return (
+                      <>
+                        <rect
+                          x="0" y={upperY}
+                          width={chartW} height={Math.max(0, lowerY - upperY)}
+                          fill={darkMode ? 'rgba(45,212,191,0.06)' : 'rgba(20,184,166,0.06)'}
+                        />
+                        <line x1="0" y1={upperY} x2={chartW} y2={upperY}
+                          stroke={darkMode ? 'rgba(45,212,191,0.4)' : 'rgba(20,184,166,0.35)'}
+                          strokeWidth="1" strokeDasharray="6 3"
+                        />
+                        <line x1="0" y1={lowerY} x2={chartW} y2={lowerY}
+                          stroke={darkMode ? 'rgba(45,212,191,0.4)' : 'rgba(20,184,166,0.35)'}
+                          strokeWidth="1" strokeDasharray="6 3"
+                        />
+                        {vwapY !== null && (
+                          <line x1="0" y1={vwapY} x2={chartW} y2={vwapY}
+                            stroke={darkMode ? 'rgba(45,212,191,0.2)' : 'rgba(20,184,166,0.18)'}
+                            strokeWidth="0.8" strokeDasharray="3 3"
+                          />
+                        )}
+                        <text x={chartW - 4} y={upperY - 3}
+                          textAnchor="end" fontSize="8"
+                          fill={darkMode ? 'rgba(45,212,191,0.6)' : 'rgba(20,184,166,0.7)'}
+                          fontFamily="monospace"
+                        >VWAP U</text>
+                        <text x={chartW - 4} y={lowerY + 10}
+                          textAnchor="end" fontSize="8"
+                          fill={darkMode ? 'rgba(45,212,191,0.6)' : 'rgba(20,184,166,0.7)'}
+                          fontFamily="monospace"
+                        >VWAP L</text>
+                      </>
+                    );
+                  })()}
+
                   {/* v10.2 Overlays: VREG - 15분봉에서만 표시 */}
                   {showTradeMarkers && timeframe === '15m' && (() => {
                     if (!v10Strategy) return null;
