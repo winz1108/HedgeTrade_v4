@@ -39,30 +39,6 @@ function ProgressBar({ current, target, reverse = false, color }: { current: num
   );
 }
 
-function DistanceBar({ distance_pct, label }: { distance_pct: number; label: string }) {
-  const isSafe = distance_pct >= 0;
-  const absVal = Math.abs(distance_pct);
-  const maxRange = 2;
-  const pct = isSafe
-    ? Math.min(100, (absVal / maxRange) * 100)
-    : Math.min(100, (absVal / maxRange) * 100);
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSafe ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-      <span className={`text-[8px] ${isSafe ? 'text-slate-400' : 'text-slate-500'}`}>{label}</span>
-      <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
-        <div
-          className={`h-1 rounded-full transition-all duration-300 ${isSafe ? 'bg-emerald-400' : 'bg-rose-500'}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className={`text-[8px] tabular-nums min-w-[44px] text-right ${isSafe ? 'text-emerald-400' : 'text-rose-400'}`}>
-        {isSafe ? `+${distance_pct.toFixed(2)}%` : `${distance_pct.toFixed(2)}%`}
-      </span>
-    </div>
-  );
-}
-
 function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode }: ExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;

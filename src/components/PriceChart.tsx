@@ -1738,6 +1738,38 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               );
             })()}
 
+            {showTradeMarkers && data.holding.isHolding && (() => {
+              const vwapTarget = v10Strategy?.exitPrices?.vwap_target
+                ?? v10Strategy?.exitConditions?.VWAP?.vwap_target;
+              if (!vwapTarget) return null;
+              const goldColor = '#d4a017';
+              const goldGlow = 'rgba(212, 160, 23, 0.4)';
+              return (
+                <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
+                  <line
+                    x1="0"
+                    y1={priceToY(vwapTarget)}
+                    x2="100%"
+                    y2={priceToY(vwapTarget)}
+                    stroke={goldColor}
+                    strokeWidth="1.2"
+                    strokeDasharray="6 3"
+                    opacity="0.8"
+                    filter={`drop-shadow(0 0 2px ${goldGlow})`}
+                  />
+                  <text
+                    x="4"
+                    y={priceToY(vwapTarget) - 3}
+                    fill={goldColor}
+                    fontSize="8"
+                    fontWeight="bold"
+                    opacity="0.9"
+                  >
+                    VWAP {vwapTarget.toFixed(1)}
+                  </text>
+                </svg>
+              );
+            })()}
 
             <div className="absolute top-0 left-0 pointer-events-none" style={{ height: `${priceChartHeight}px`, width: `${visibleCandles.length * (candleWidth + candleGap)}px`, overflow: 'visible', zIndex: 5 }}>
             {(() => {
