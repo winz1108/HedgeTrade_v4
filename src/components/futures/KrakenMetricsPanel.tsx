@@ -478,7 +478,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   const progressPct = Math.max(0, Math.min(100, (1 - distPct / maxDist) * 100));
 
                   const barColor = isLongSide ? 'bg-cyan-400' : 'bg-orange-400';
-                  const barDim = 'bg-slate-400';
+                  const barDim = 'bg-slate-300';
                   const barFaint = 'bg-slate-600/30';
                   const textColor = isLongSide ? 'text-cyan-300' : 'text-orange-300';
                   const textDim = 'text-slate-400';
