@@ -45,6 +45,7 @@ interface BinanceExitConditionsPanelProps {
   inPosition: boolean;
   strategyParams?: { ride_consec_n?: number; [key: string]: any };
   entryMode?: 'SW' | 'RIDE';
+  currentPnl?: number;
 }
 
 function BConditionDot({ met }: { met: boolean }) {
@@ -68,11 +69,13 @@ function BProgressBar({ current, target }: { current: number; target: number }) 
   );
 }
 
-function BVwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: number }) {
+function BVwapRangeBar({ maePct, distToVwap, currentPnl }: { maePct: number; distToVwap: number; currentPnl?: number }) {
   const maeAbs = Math.abs(maePct);
   const totalRange = maeAbs + Math.max(0, distToVwap);
   const pct = totalRange > 0 ? Math.min(100, (maeAbs / totalRange) * 100) : 0;
   const reached = distToVwap <= 0;
+  const netPnl = (currentPnl ?? 0) - 0.1;
+  const barColor = netPnl >= 0 ? 'bg-teal-500' : 'bg-rose-400';
   return (
     <div className="flex items-center gap-1.5">
       <BConditionDot met={reached} />
@@ -81,7 +84,7 @@ function BVwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: num
       </span>
       <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden relative">
         <div
-          className="h-1 rounded-full transition-all duration-300 bg-teal-500"
+          className={`h-1 rounded-full transition-all duration-300 ${barColor}`}
           style={{ width: `${reached ? 100 : pct}%` }}
         />
       </div>
@@ -92,7 +95,7 @@ function BVwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: num
   );
 }
 
-function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode }: BinanceExitConditionsPanelProps) {
+function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl }: BinanceExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
   const rTrail = exitConditions?.R_TRAIL;
@@ -244,6 +247,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                 <BVwapRangeBar
                   maePct={cut?.mae_current ?? 0}
                   distToVwap={vwap.distance_to_vwap}
+                  currentPnl={currentPnl}
                 />
               )}
             </div>
@@ -573,6 +577,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           inPosition={!!hasPosition}
           strategyParams={ss?.strategy_params}
           entryMode={ss?.entry_mode || data.position?.entry_mode}
+          currentPnl={currentPnl}
         />
       </div>
     );

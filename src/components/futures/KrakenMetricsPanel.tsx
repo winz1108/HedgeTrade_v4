@@ -14,6 +14,7 @@ interface ExitConditionsPanelProps {
   inPosition: boolean;
   strategyParams?: { ride_consec_n?: number; [key: string]: any };
   entryMode?: 'SW' | 'RIDE';
+  currentPnl?: number;
 }
 
 function ConditionDot({ met }: { met: boolean }) {
@@ -39,11 +40,13 @@ function ProgressBar({ current, target, reverse = false, color }: { current: num
   );
 }
 
-function VwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: number }) {
+function VwapRangeBar({ maePct, distToVwap, currentPnl }: { maePct: number; distToVwap: number; currentPnl?: number }) {
   const maeAbs = Math.abs(maePct);
   const totalRange = maeAbs + Math.max(0, distToVwap);
   const pct = totalRange > 0 ? Math.min(100, (maeAbs / totalRange) * 100) : 0;
   const reached = distToVwap <= 0;
+  const netPnl = (currentPnl ?? 0) - 0.1;
+  const barColor = netPnl >= 0 ? 'bg-teal-400' : 'bg-rose-400';
   return (
     <div className="flex items-center gap-1.5">
       <ConditionDot met={reached} />
@@ -52,7 +55,7 @@ function VwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: numb
       </span>
       <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
         <div
-          className="h-1 rounded-full transition-all duration-300 bg-teal-400"
+          className={`h-1 rounded-full transition-all duration-300 ${barColor}`}
           style={{ width: `${reached ? 100 : pct}%` }}
         />
       </div>
@@ -63,7 +66,7 @@ function VwapRangeBar({ maePct, distToVwap }: { maePct: number; distToVwap: numb
   );
 }
 
-function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode }: ExitConditionsPanelProps) {
+function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl }: ExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
   const rTrail = exitConditions?.R_TRAIL;
@@ -216,6 +219,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                 <VwapRangeBar
                   maePct={cut?.mae_current ?? 0}
                   distToVwap={vwap.distance_to_vwap}
+                  currentPnl={currentPnl}
                 />
               )}
             </div>
@@ -585,6 +589,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           inPosition={!!hasPosition}
           strategyParams={ss?.strategy_params}
           entryMode={ss?.entry_mode || data.position?.entry_mode || data.strategyA?.entry_mode}
+          currentPnl={currentPnl}
         />
       </div>
     );
