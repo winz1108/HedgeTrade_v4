@@ -82,7 +82,7 @@ function BVwapRangeBar({ maePct, distToVwap, currentPnl }: { maePct: number; dis
   return (
     <div className="flex items-center gap-1.5">
       <BConditionDot met={reached} />
-      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-400'}`}>
+      <span className={`text-[8px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-400'}`}>
         {maePct.toFixed(1)}%
       </span>
       <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden relative">
@@ -91,7 +91,7 @@ function BVwapRangeBar({ maePct, distToVwap, currentPnl }: { maePct: number; dis
           style={{ width: `${reached ? 100 : pct}%` }}
         />
       </div>
-      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-500'}`}>
+      <span className={`text-[8px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-500'}`}>
         {distToVwap >= 0 ? '+' : ''}{distToVwap.toFixed(2)}%
       </span>
     </div>
@@ -112,7 +112,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
     <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5">
-          <div className="text-[9px] text-slate-500 uppercase tracking-wide font-semibold">Exit Conditions</div>
+          <div className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Exit Conditions</div>
           {isRide && (
             <span className="px-1 py-px text-[7px] font-bold bg-blue-100 text-blue-700 border border-blue-300 rounded">
               RIDE
@@ -128,9 +128,9 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
             <div key={name} className="flex items-center justify-between bg-stone-50 border border-stone-200 rounded px-2 py-1.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-300 flex-shrink-0" />
-                <span className="text-[9px] text-stone-400 font-semibold">{name}</span>
+                <span className="text-[10px] text-stone-400 font-semibold">{name}</span>
               </div>
-              <span className="text-[8px] text-stone-300">--</span>
+              <span className="text-[9px] text-stone-300">--</span>
             </div>
           ))}
         </div>
@@ -149,11 +149,11 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                       ? 'bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.8)]'
                       : rTrail.armed ? 'bg-cyan-500' : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[9px] font-bold ${rTrail.target_reached ? 'text-blue-700' : rTrail.armed ? 'text-cyan-700' : 'text-slate-500'}`}>RTRAIL</span>
-                  <span className="text-[7px] text-stone-400">추세탑승</span>
+                  <span className={`text-[10px] font-bold ${rTrail.target_reached ? 'text-blue-700' : rTrail.armed ? 'text-cyan-700' : 'text-slate-500'}`}>RTRAIL</span>
+                  <span className="text-[8px] text-stone-400">추세탑승</span>
                 </div>
                 {rTrail.target_reached && exitPrices?.ride_trail_price != null && (
-                  <span className="text-[9px] font-bold tabular-nums text-blue-700">
+                  <span className="text-[10px] font-bold tabular-nums text-blue-700">
                     ${exitPrices.ride_trail_price.toFixed(1)}
                   </span>
                 )}
@@ -161,27 +161,27 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={rTrail.target_reached} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${rTrail.target_reached ? 'text-blue-600' : 'text-stone-500'}`}>MFE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${rTrail.target_reached ? 'text-blue-600' : 'text-stone-500'}`}>MFE</span>
                   <BProgressBar current={rTrail.ride_mfe_pct} target={rTrail.ride_target} />
-                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.target_reached ? 'text-blue-600' : 'text-stone-500'}`}>
+                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.target_reached ? 'text-blue-600' : 'text-stone-500'}`}>
                     +{rTrail.ride_mfe_pct.toFixed(2)}%
                   </span>
                 </div>
                 {rTrail.target_reached ? (
                   <div className="flex items-center gap-1.5 bg-blue-50 rounded px-1 py-0.5">
                     <TrendingUp className="w-2.5 h-2.5 text-blue-500" />
-                    <span className="text-[8px] text-blue-700 font-semibold">트레일링</span>
-                    <span className="text-[8px] tabular-nums text-blue-800 font-bold">
+                    <span className="text-[9px] text-blue-700 font-semibold">트레일링</span>
+                    <span className="text-[9px] tabular-nums text-blue-800 font-bold">
                       스톱 {rTrail.trail_stop >= 0 ? '+' : ''}{rTrail.trail_stop.toFixed(2)}%
                     </span>
-                    <span className="text-[8px] text-stone-400">|</span>
-                    <span className="text-[8px] tabular-nums text-slate-700">
+                    <span className="text-[9px] text-stone-400">|</span>
+                    <span className="text-[9px] tabular-nums text-slate-700">
                       현재 {rTrail.current_pnl >= 0 ? '+' : ''}{rTrail.current_pnl.toFixed(2)}%
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[8px] text-stone-500 flex-1">
+                    <span className="text-[9px] text-stone-500 flex-1">
                       목표 +{rTrail.ride_target.toFixed(1)}% | 트레일 {rTrail.ride_trail_pct.toFixed(1)}%
                     </span>
                   </div>
@@ -201,25 +201,25 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                     cut.armed ? 'bg-rose-500 shadow-[0_0_5px_rgba(244,63,94,0.8)]' : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[9px] font-bold ${cut.armed ? 'text-rose-700' : 'text-slate-500'}`}>CUT</span>
-                  <span className="text-[7px] text-stone-400">손절</span>
+                  <span className={`text-[10px] font-bold ${cut.armed ? 'text-rose-700' : 'text-slate-500'}`}>CUT</span>
+                  <span className="text-[8px] text-stone-400">손절</span>
                 </div>
-                <span className={`text-[9px] font-bold tabular-nums ${cut.armed ? 'text-rose-700' : 'text-slate-400'}`}>
+                <span className={`text-[10px] font-bold tabular-nums ${cut.armed ? 'text-rose-700' : 'text-slate-400'}`}>
                   MAE {(cut.mae_threshold ?? exitPrices?.cut_threshold_mae ?? 0).toFixed(1)}%
                 </span>
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={cut.mae_ok} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
                   <BProgressBar current={Math.abs(cut.mae_current ?? 0)} target={Math.abs(cut.mae_threshold ?? 1)} />
-                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-slate-400'}`}>
+                  <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-slate-400'}`}>
                     {(cut.mae_current ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={cut.ema_reversed} />
-                  <span className={`text-[8px] flex-1 ${cut.ema_reversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
+                  <span className={`text-[9px] flex-1 ${cut.ema_reversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
                 </div>
               </div>
             </div>
@@ -238,11 +238,11 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                     vwap.armed ? 'bg-teal-500 shadow-[0_0_5px_rgba(20,184,166,0.8)]' : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[9px] font-bold ${vwap.armed ? 'text-teal-700' : 'text-slate-500'}`}>VWAP</span>
-                  <span className="text-[7px] text-stone-400">익절</span>
+                  <span className={`text-[10px] font-bold ${vwap.armed ? 'text-teal-700' : 'text-slate-500'}`}>VWAP</span>
+                  <span className="text-[8px] text-stone-400">익절</span>
                 </div>
                 {(exitPrices?.vwap_target ?? vwap.vwap_target) != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${vwap.armed ? 'text-teal-700' : 'text-slate-400'}`}>
+                  <span className={`text-[10px] font-bold tabular-nums ${vwap.armed ? 'text-teal-700' : 'text-slate-400'}`}>
                     ${(exitPrices?.vwap_target ?? vwap.vwap_target!).toFixed(1)}
                   </span>
                 )}
@@ -272,11 +272,11 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                       ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.8)]'
                       : swTrail.armed ? 'bg-amber-400/60' : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[9px] font-bold ${swTrail.target_reached ? 'text-amber-700' : swTrail.armed ? 'text-amber-600' : 'text-slate-500'}`}>TRAIL</span>
-                  <span className="text-[7px] text-stone-400">조기익절</span>
+                  <span className={`text-[10px] font-bold ${swTrail.target_reached ? 'text-amber-700' : swTrail.armed ? 'text-amber-600' : 'text-slate-500'}`}>TRAIL</span>
+                  <span className="text-[8px] text-stone-400">조기익절</span>
                 </div>
                 {swTrail.target_reached && exitPrices?.sw_trail_price != null && (
-                  <span className="text-[9px] font-bold tabular-nums text-amber-700">
+                  <span className="text-[10px] font-bold tabular-nums text-amber-700">
                     ${exitPrices.sw_trail_price.toFixed(1)}
                   </span>
                 )}
@@ -284,27 +284,27 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={swTrail.target_reached} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${swTrail.target_reached ? 'text-amber-600' : 'text-stone-500'}`}>MFE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${swTrail.target_reached ? 'text-amber-600' : 'text-stone-500'}`}>MFE</span>
                   <BProgressBar current={swTrail.sw_mfe_pct} target={swTrail.sw_trail_target} />
-                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.target_reached ? 'text-amber-600' : 'text-stone-500'}`}>
+                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.target_reached ? 'text-amber-600' : 'text-stone-500'}`}>
                     +{swTrail.sw_mfe_pct.toFixed(2)}%
                   </span>
                 </div>
                 {swTrail.target_reached ? (
                   <div className="flex items-center gap-1.5 bg-amber-50 rounded px-1 py-0.5">
                     <TrendingUp className="w-2.5 h-2.5 text-amber-500" />
-                    <span className="text-[8px] text-amber-700 font-semibold">트레일링</span>
-                    <span className="text-[8px] tabular-nums text-amber-800 font-bold">
+                    <span className="text-[9px] text-amber-700 font-semibold">트레일링</span>
+                    <span className="text-[9px] tabular-nums text-amber-800 font-bold">
                       스톱 {swTrail.trail_stop >= 0 ? '+' : ''}{swTrail.trail_stop.toFixed(2)}%
                     </span>
-                    <span className="text-[8px] text-stone-400">|</span>
-                    <span className="text-[8px] tabular-nums text-slate-700">
+                    <span className="text-[9px] text-stone-400">|</span>
+                    <span className="text-[9px] tabular-nums text-slate-700">
                       현재 {swTrail.current_pnl >= 0 ? '+' : ''}{swTrail.current_pnl.toFixed(2)}%
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[8px] text-stone-500 flex-1">
+                    <span className="text-[9px] text-stone-500 flex-1">
                       목표 +{swTrail.sw_trail_target.toFixed(1)}% | 트레일 {swTrail.sw_trail_pct.toFixed(1)}%
                     </span>
                   </div>
@@ -324,15 +324,15 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                     cut.armed ? 'bg-rose-500 shadow-[0_0_5px_rgba(244,63,94,0.8)]' : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[9px] font-bold ${cut.armed ? 'text-rose-700' : 'text-slate-500'}`}>CUT</span>
-                  <span className="text-[7px] text-stone-400">손절</span>
+                  <span className={`text-[10px] font-bold ${cut.armed ? 'text-rose-700' : 'text-slate-500'}`}>CUT</span>
+                  <span className="text-[8px] text-stone-400">손절</span>
                   {(cut.consecutive_cuts ?? 0) > 0 && (
-                    <span className="text-[7px] font-bold text-rose-600 bg-rose-100 px-1 rounded">
+                    <span className="text-[8px] font-bold text-rose-600 bg-rose-100 px-1 rounded">
                       x{cut.consecutive_cuts}
                     </span>
                   )}
                 </div>
-                <span className={`text-[9px] font-bold tabular-nums ${cut.armed ? 'text-rose-700' : 'text-slate-400'}`}>
+                <span className={`text-[10px] font-bold tabular-nums ${cut.armed ? 'text-rose-700' : 'text-slate-400'}`}>
                   MAE {(cut.mae_threshold ?? exitPrices?.cut_threshold_mae ?? 0).toFixed(1)}%
                 </span>
               </div>
@@ -347,7 +347,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                         const isPast = i < currentIdx;
                         return (
                           <div key={i} className="flex items-center gap-0.5">
-                            <div className={`text-[7px] tabular-nums px-1 py-px rounded transition-all ${
+                            <div className={`text-[8px] tabular-nums px-1 py-px rounded transition-all ${
                               isActive
                                 ? 'bg-rose-200 text-rose-700 font-bold ring-1 ring-rose-400/50'
                                 : isPast
@@ -370,15 +370,15 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={cut.mae_ok} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
                   <BProgressBar current={Math.abs(cut.mae_current ?? 0)} target={Math.abs(cut.mae_threshold ?? 1)} />
-                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-slate-400'}`}>
+                  <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-600' : 'text-slate-400'}`}>
                     {(cut.mae_current ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={cut.ema_reversed} />
-                  <span className={`text-[8px] flex-1 ${cut.ema_reversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
+                  <span className={`text-[9px] flex-1 ${cut.ema_reversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
                 </div>
               </div>
             </div>
@@ -581,20 +581,20 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                   return (
                     <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${panelBg}`}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-[8px] font-semibold tracking-wide ${labelColor}`}>{side}</span>
-                        {met && <span className="text-[7px] font-bold text-emerald-600 tracking-wider animate-pulse">MET</span>}
+                        <span className={`text-[9px] font-semibold tracking-wide ${labelColor}`}>{side}</span>
+                        {met && <span className="text-[8px] font-bold text-emerald-600 tracking-wider animate-pulse">MET</span>}
                       </div>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center justify-between">
                           {isLongSide ? (
                             <>
-                              <span className="text-[8px] tabular-nums text-stone-400">{targetPrice.toFixed(1)}</span>
-                              <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                              <span className="text-[9px] tabular-nums text-stone-400">{targetPrice.toFixed(1)}</span>
+                              <span className={`text-[9px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
                             </>
                           ) : (
                             <>
-                              <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
-                              <span className="text-[8px] tabular-nums text-stone-400">{targetPrice.toFixed(1)}</span>
+                              <span className={`text-[9px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                              <span className="text-[9px] tabular-nums text-stone-400">{targetPrice.toFixed(1)}</span>
                             </>
                           )}
                         </div>
@@ -614,18 +614,18 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
               </div>
             );
           })() : (
-            <div className="flex items-center justify-center h-8 text-slate-400 text-[10px]">
+            <div className="flex items-center justify-center h-8 text-slate-400 text-[11px]">
               Waiting...
             </div>
           )}
           {!hasPosition && (ss?.consec_cut_count ?? 0) >= 1 && (
             <div className="mt-1.5 flex items-center gap-1.5 bg-amber-50 border border-amber-300 rounded px-2 py-1">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-[8px] font-semibold text-amber-700">
+              <span className="text-[9px] font-semibold text-amber-700">
                 연속CUT {ss?.consec_cut_count}/{ss?.strategy_params?.ride_consec_n ?? 2}
               </span>
               {(ss?.consec_cut_count ?? 0) >= (ss?.strategy_params?.ride_consec_n ?? 2) - 1 && (
-                <span className="text-[7px] text-amber-800 bg-amber-200 px-1 rounded">RIDE 예고</span>
+                <span className="text-[8px] text-amber-800 bg-amber-200 px-1 rounded">RIDE 예고</span>
               )}
             </div>
           )}

@@ -81,7 +81,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
     <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5">
-          <div className="text-[9px] text-slate-400 uppercase tracking-wide font-semibold">Exit Conditions</div>
+          <div className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Exit Conditions</div>
           {isRide && (
             <span className="px-1 py-px text-[7px] font-bold bg-blue-500/30 text-blue-300 border border-blue-400/40 rounded">
               RIDE
@@ -97,9 +97,9 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
             <div key={name} className="flex items-center justify-between bg-slate-700/20 border border-slate-700/50 rounded px-2 py-1.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-700 flex-shrink-0" />
-                <span className="text-[9px] text-slate-600 font-semibold">{name}</span>
+                <span className="text-[10px] text-slate-600 font-semibold">{name}</span>
               </div>
-              <span className="text-[8px] text-slate-700">--</span>
+              <span className="text-[9px] text-slate-700">--</span>
             </div>
           ))}
         </div>
@@ -118,11 +118,11 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                       ? 'bg-blue-400 shadow-[0_0_5px_rgba(96,165,250,0.9)]'
                       : rTrail.armed ? 'bg-cyan-400' : 'bg-slate-600'
                   }`} />
-                  <span className={`text-[9px] font-bold ${rTrail.target_reached ? 'text-blue-300' : rTrail.armed ? 'text-cyan-300' : 'text-slate-400'}`}>RTRAIL</span>
-                  <span className="text-[7px] text-slate-500">추세탑승</span>
+                  <span className={`text-[10px] font-bold ${rTrail.target_reached ? 'text-blue-300' : rTrail.armed ? 'text-cyan-300' : 'text-slate-400'}`}>RTRAIL</span>
+                  <span className="text-[8px] text-slate-500">추세탑승</span>
                 </div>
                 {rTrail.target_reached && exitPrices?.ride_trail_price != null && (
-                  <span className="text-[9px] font-bold tabular-nums text-blue-300">
+                  <span className="text-[10px] font-bold tabular-nums text-blue-300">
                     ${exitPrices.ride_trail_price.toFixed(1)}
                   </span>
                 )}
@@ -130,27 +130,27 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={rTrail.target_reached} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${rTrail.target_reached ? 'text-blue-300' : 'text-slate-500'}`}>MFE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${rTrail.target_reached ? 'text-blue-300' : 'text-slate-500'}`}>MFE</span>
                   <ProgressBar current={rTrail.ride_mfe_pct} target={rTrail.ride_target} color={rTrail.target_reached ? 'bg-blue-400' : undefined} />
-                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.target_reached ? 'text-blue-300' : 'text-slate-500'}`}>
+                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.target_reached ? 'text-blue-300' : 'text-slate-500'}`}>
                     +{rTrail.ride_mfe_pct.toFixed(2)}%
                   </span>
                 </div>
                 {rTrail.target_reached ? (
                   <div className="flex items-center gap-1.5 bg-blue-500/10 rounded px-1 py-0.5">
                     <TrendingUp className="w-2.5 h-2.5 text-blue-400" />
-                    <span className="text-[8px] text-blue-300 font-semibold">트레일링</span>
-                    <span className="text-[8px] tabular-nums text-blue-200 font-bold">
+                    <span className="text-[9px] text-blue-300 font-semibold">트레일링</span>
+                    <span className="text-[9px] tabular-nums text-blue-200 font-bold">
                       스톱 {rTrail.trail_stop >= 0 ? '+' : ''}{rTrail.trail_stop.toFixed(2)}%
                     </span>
-                    <span className="text-[8px] text-slate-500">|</span>
-                    <span className="text-[8px] tabular-nums text-slate-300">
+                    <span className="text-[9px] text-slate-500">|</span>
+                    <span className="text-[9px] tabular-nums text-slate-300">
                       현재 {rTrail.current_pnl >= 0 ? '+' : ''}{rTrail.current_pnl.toFixed(2)}%
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[8px] text-slate-500 flex-1">
+                    <span className="text-[9px] text-slate-500 flex-1">
                       목표 +{rTrail.ride_target.toFixed(1)}% | 트레일 {rTrail.ride_trail_pct.toFixed(1)}%
                     </span>
                   </div>
@@ -170,25 +170,25 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                     cut.armed ? 'bg-rose-400 shadow-[0_0_5px_rgba(248,113,113,0.9)]' : 'bg-slate-600'
                   }`} />
-                  <span className={`text-[9px] font-bold ${cut.armed ? 'text-rose-300' : 'text-slate-400'}`}>CUT</span>
-                  <span className="text-[7px] text-slate-500">손절</span>
+                  <span className={`text-[10px] font-bold ${cut.armed ? 'text-rose-300' : 'text-slate-400'}`}>CUT</span>
+                  <span className="text-[8px] text-slate-500">손절</span>
                 </div>
-                <span className={`text-[9px] font-bold tabular-nums ${cut.armed ? 'text-rose-300' : 'text-slate-500'}`}>
+                <span className={`text-[10px] font-bold tabular-nums ${cut.armed ? 'text-rose-300' : 'text-slate-500'}`}>
                   MAE {(cut.mae_threshold ?? exitPrices?.cut_threshold_mae ?? 0).toFixed(1)}%
                 </span>
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.mae_ok} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
                   <ProgressBar current={Math.abs(cut.mae_current ?? 0)} target={Math.abs(cut.mae_threshold ?? 1)} />
-                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
+                  <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
                     {(cut.mae_current ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.ema_reversed} />
-                  <span className={`text-[8px] flex-1 ${cut.ema_reversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
+                  <span className={`text-[9px] flex-1 ${cut.ema_reversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
                 </div>
               </div>
             </div>
@@ -207,11 +207,11 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                     vwap.armed ? 'bg-teal-400 shadow-[0_0_5px_rgba(45,212,191,0.9)]' : 'bg-slate-600'
                   }`} />
-                  <span className={`text-[9px] font-bold ${vwap.armed ? 'text-teal-300' : 'text-slate-400'}`}>VWAP</span>
-                  <span className="text-[7px] text-slate-500">익절</span>
+                  <span className={`text-[10px] font-bold ${vwap.armed ? 'text-teal-300' : 'text-slate-400'}`}>VWAP</span>
+                  <span className="text-[8px] text-slate-500">익절</span>
                 </div>
                 {(exitPrices?.vwap_target ?? vwap.vwap_target) != null && (
-                  <span className={`text-[9px] font-bold tabular-nums ${vwap.armed ? 'text-teal-300' : 'text-slate-500'}`}>
+                  <span className={`text-[10px] font-bold tabular-nums ${vwap.armed ? 'text-teal-300' : 'text-slate-500'}`}>
                     ${(exitPrices?.vwap_target ?? vwap.vwap_target!).toFixed(1)}
                   </span>
                 )}
@@ -241,11 +241,11 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                       ? 'bg-amber-400 shadow-[0_0_5px_rgba(251,191,36,0.9)]'
                       : swTrail.armed ? 'bg-amber-500/60' : 'bg-slate-600'
                   }`} />
-                  <span className={`text-[9px] font-bold ${swTrail.target_reached ? 'text-amber-300' : swTrail.armed ? 'text-amber-400' : 'text-slate-400'}`}>TRAIL</span>
-                  <span className="text-[7px] text-slate-500">조기익절</span>
+                  <span className={`text-[10px] font-bold ${swTrail.target_reached ? 'text-amber-300' : swTrail.armed ? 'text-amber-400' : 'text-slate-400'}`}>TRAIL</span>
+                  <span className="text-[8px] text-slate-500">조기익절</span>
                 </div>
                 {swTrail.target_reached && exitPrices?.sw_trail_price != null && (
-                  <span className="text-[9px] font-bold tabular-nums text-amber-300">
+                  <span className="text-[10px] font-bold tabular-nums text-amber-300">
                     ${exitPrices.sw_trail_price.toFixed(1)}
                   </span>
                 )}
@@ -253,27 +253,27 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={swTrail.target_reached} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${swTrail.target_reached ? 'text-amber-300' : 'text-slate-500'}`}>MFE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${swTrail.target_reached ? 'text-amber-300' : 'text-slate-500'}`}>MFE</span>
                   <ProgressBar current={swTrail.sw_mfe_pct} target={swTrail.sw_trail_target} color={swTrail.target_reached ? 'bg-amber-400' : undefined} />
-                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.target_reached ? 'text-amber-300' : 'text-slate-500'}`}>
+                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.target_reached ? 'text-amber-300' : 'text-slate-500'}`}>
                     +{swTrail.sw_mfe_pct.toFixed(2)}%
                   </span>
                 </div>
                 {swTrail.target_reached ? (
                   <div className="flex items-center gap-1.5 bg-amber-500/10 rounded px-1 py-0.5">
                     <TrendingUp className="w-2.5 h-2.5 text-amber-400" />
-                    <span className="text-[8px] text-amber-300 font-semibold">트레일링</span>
-                    <span className="text-[8px] tabular-nums text-amber-200 font-bold">
+                    <span className="text-[9px] text-amber-300 font-semibold">트레일링</span>
+                    <span className="text-[9px] tabular-nums text-amber-200 font-bold">
                       스톱 {swTrail.trail_stop >= 0 ? '+' : ''}{swTrail.trail_stop.toFixed(2)}%
                     </span>
-                    <span className="text-[8px] text-slate-500">|</span>
-                    <span className="text-[8px] tabular-nums text-slate-300">
+                    <span className="text-[9px] text-slate-500">|</span>
+                    <span className="text-[9px] tabular-nums text-slate-300">
                       현재 {swTrail.current_pnl >= 0 ? '+' : ''}{swTrail.current_pnl.toFixed(2)}%
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[8px] text-slate-500 flex-1">
+                    <span className="text-[9px] text-slate-500 flex-1">
                       목표 +{swTrail.sw_trail_target.toFixed(1)}% | 트레일 {swTrail.sw_trail_pct.toFixed(1)}%
                     </span>
                   </div>
@@ -295,15 +295,15 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                       ? 'bg-rose-400 shadow-[0_0_5px_rgba(248,113,113,0.9)]'
                       : 'bg-slate-600'
                   }`} />
-                  <span className={`text-[9px] font-bold ${cut.armed ? 'text-rose-300' : 'text-slate-400'}`}>CUT</span>
-                  <span className="text-[7px] text-slate-500">손절</span>
+                  <span className={`text-[10px] font-bold ${cut.armed ? 'text-rose-300' : 'text-slate-400'}`}>CUT</span>
+                  <span className="text-[8px] text-slate-500">손절</span>
                   {(cut.consecutive_cuts ?? 0) > 0 && (
-                    <span className="text-[7px] font-bold text-rose-400 bg-rose-500/20 px-1 rounded">
+                    <span className="text-[8px] font-bold text-rose-400 bg-rose-500/20 px-1 rounded">
                       x{cut.consecutive_cuts}
                     </span>
                   )}
                 </div>
-                <span className={`text-[9px] font-bold tabular-nums ${cut.armed ? 'text-rose-300' : 'text-slate-500'}`}>
+                <span className={`text-[10px] font-bold tabular-nums ${cut.armed ? 'text-rose-300' : 'text-slate-500'}`}>
                   MAE {(cut.mae_threshold ?? exitPrices?.cut_threshold_mae ?? 0).toFixed(1)}%
                 </span>
               </div>
@@ -318,7 +318,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                         const isPast = i < currentIdx;
                         return (
                           <div key={i} className="flex items-center gap-0.5">
-                            <div className={`text-[7px] tabular-nums px-1 py-px rounded transition-all ${
+                            <div className={`text-[8px] tabular-nums px-1 py-px rounded transition-all ${
                               isActive
                                 ? 'bg-rose-500/40 text-rose-300 font-bold ring-1 ring-rose-400/50'
                                 : isPast
@@ -341,15 +341,15 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.mae_ok} />
-                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.mae_ok ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
                   <ProgressBar current={Math.abs(cut.mae_current ?? 0)} target={Math.abs(cut.mae_threshold ?? 1)} />
-                  <span className={`text-[8px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
+                  <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.mae_ok ? 'text-rose-400' : 'text-slate-500'}`}>
                     {(cut.mae_current ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.ema_reversed} />
-                  <span className={`text-[8px] flex-1 ${cut.ema_reversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
+                  <span className={`text-[9px] flex-1 ${cut.ema_reversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
                 </div>
               </div>
             </div>
@@ -593,20 +593,20 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   return (
                     <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${panelBg}`}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-[8px] font-semibold tracking-wide ${labelColor}`}>{side}</span>
-                        {met && <span className="text-[7px] font-bold text-emerald-400 tracking-wider animate-pulse">MET</span>}
+                        <span className={`text-[9px] font-semibold tracking-wide ${labelColor}`}>{side}</span>
+                        {met && <span className="text-[8px] font-bold text-emerald-400 tracking-wider animate-pulse">MET</span>}
                       </div>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center justify-between">
                           {isLongSide ? (
                             <>
-                              <span className="text-[8px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
-                              <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                              <span className="text-[9px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
+                              <span className={`text-[9px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
                             </>
                           ) : (
                             <>
-                              <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
-                              <span className="text-[8px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
+                              <span className={`text-[9px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                              <span className="text-[9px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
                             </>
                           )}
                         </div>
@@ -626,18 +626,18 @@ export function KrakenMetricsPanel({ data, position }: Props) {
               </div>
             );
           })() : (
-            <div className="flex items-center justify-center h-8 text-slate-500 text-[10px]">
+            <div className="flex items-center justify-center h-8 text-slate-500 text-[11px]">
               Waiting...
             </div>
           )}
           {!hasPosition && (ss?.consec_cut_count ?? 0) >= 1 && (
             <div className="mt-1.5 flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-[8px] font-semibold text-amber-300">
+              <span className="text-[9px] font-semibold text-amber-300">
                 연속CUT {ss?.consec_cut_count}/{ss?.strategy_params?.ride_consec_n ?? 2}
               </span>
               {(ss?.consec_cut_count ?? 0) >= (ss?.strategy_params?.ride_consec_n ?? 2) - 1 && (
-                <span className="text-[7px] text-amber-200 bg-amber-500/20 px-1 rounded">RIDE 예고</span>
+                <span className="text-[8px] text-amber-200 bg-amber-500/20 px-1 rounded">RIDE 예고</span>
               )}
             </div>
           )}
