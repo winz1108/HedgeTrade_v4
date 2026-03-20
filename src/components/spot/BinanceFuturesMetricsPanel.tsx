@@ -524,15 +524,24 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                       </div>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center justify-between">
-                          <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
-                          <span className="text-[8px] tabular-nums text-stone-400">{targetPrice.toFixed(1)}</span>
+                          {isLongSide ? (
+                            <>
+                              <span className="text-[8px] tabular-nums text-stone-400">{targetPrice.toFixed(1)}</span>
+                              <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                              <span className="text-[8px] tabular-nums text-stone-400">{targetPrice.toFixed(1)}</span>
+                            </>
+                          )}
                         </div>
                         <div className={`${barTrack} rounded-full h-[3px] overflow-hidden`}>
                           {isLongSide ? (
-                            <div className={`h-full rounded-full transition-all duration-500 ease-out ${barFill} ${met ? 'shadow-[0_0_4px_rgba(6,182,212,0.3)]' : ''}`}
+                            <div className={`h-full rounded-full transition-all duration-500 ease-out ml-auto ${barFill} ${met ? 'shadow-[0_0_4px_rgba(6,182,212,0.3)]' : ''}`}
                               style={{ width: `${progressPct}%` }} />
                           ) : (
-                            <div className={`h-full rounded-full transition-all duration-500 ease-out ml-auto ${barFill} ${met ? 'shadow-[0_0_4px_rgba(249,115,22,0.3)]' : ''}`}
+                            <div className={`h-full rounded-full transition-all duration-500 ease-out ${barFill} ${met ? 'shadow-[0_0_4px_rgba(249,115,22,0.3)]' : ''}`}
                               style={{ width: `${progressPct}%` }} />
                           )}
                         </div>

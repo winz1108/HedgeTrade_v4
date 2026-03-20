@@ -538,15 +538,24 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                       </div>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center justify-between">
-                          <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
-                          <span className="text-[8px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
+                          {isLongSide ? (
+                            <>
+                              <span className="text-[8px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
+                              <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className={`text-[8px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
+                              <span className="text-[8px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
+                            </>
+                          )}
                         </div>
                         <div className={`${barTrack} rounded-full h-[3px] overflow-hidden`}>
                           {isLongSide ? (
-                            <div className={`h-full rounded-full transition-all duration-500 ease-out ${barFill} ${met ? 'shadow-[0_0_4px_rgba(34,211,238,0.4)]' : ''}`}
+                            <div className={`h-full rounded-full transition-all duration-500 ease-out ml-auto ${barFill} ${met ? 'shadow-[0_0_4px_rgba(34,211,238,0.4)]' : ''}`}
                               style={{ width: `${progressPct}%` }} />
                           ) : (
-                            <div className={`h-full rounded-full transition-all duration-500 ease-out ml-auto ${barFill} ${met ? 'shadow-[0_0_4px_rgba(251,146,60,0.4)]' : ''}`}
+                            <div className={`h-full rounded-full transition-all duration-500 ease-out ${barFill} ${met ? 'shadow-[0_0_4px_rgba(251,146,60,0.4)]' : ''}`}
                               style={{ width: `${progressPct}%` }} />
                           )}
                         </div>
