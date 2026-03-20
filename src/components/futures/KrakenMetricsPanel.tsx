@@ -1,4 +1,4 @@
-import { KrakenDashboardData, V10StrategyStatus, ExitConditions } from '../../types/dashboard';
+import { KrakenDashboardData, V10StrategyStatus, ExitConditions, ExitConditionSW_TRAIL } from '../../types/dashboard';
 import { DollarSign, Activity, Target, History, ShieldAlert, TrendingUp } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
@@ -70,9 +70,10 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
   const rTrail = exitConditions?.R_TRAIL;
+  const swTrail = exitConditions?.SW_TRAIL;
   const isRide = entryMode === 'RIDE';
 
-  const hasData = !!(vwap || cut || rTrail);
+  const hasData = !!(vwap || cut || rTrail || swTrail);
 
   if (!inPosition) return null;
 
@@ -92,7 +93,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
 
       {!hasData ? (
         <div className="flex flex-col gap-1">
-          {(isRide ? ['R_TRAIL', 'CUT'] : ['VWAP', 'CUT'] as const).map(name => (
+          {(isRide ? ['R_TRAIL', 'CUT'] : ['VWAP', 'SW_TRAIL', 'CUT']).map(name => (
             <div key={name} className="flex items-center justify-between bg-slate-700/20 border border-slate-700/50 rounded px-2 py-1.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-700 flex-shrink-0" />
@@ -225,6 +226,62 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
             </div>
           )}
 
+          {swTrail && (
+            <div className={`rounded-md border p-1.5 transition-all ${
+              swTrail.target_reached
+                ? 'bg-amber-900/30 border-amber-500/50'
+                : swTrail.armed
+                  ? 'bg-slate-700/20 border-amber-600/40'
+                  : 'bg-slate-700/20 border-slate-700/50'
+            }`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    swTrail.target_reached
+                      ? 'bg-amber-400 shadow-[0_0_5px_rgba(251,191,36,0.9)]'
+                      : swTrail.armed ? 'bg-amber-500/60' : 'bg-slate-600'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${swTrail.target_reached ? 'text-amber-300' : swTrail.armed ? 'text-amber-400' : 'text-slate-400'}`}>SW_TRAIL</span>
+                  <span className="text-[7px] text-slate-500">조기익절</span>
+                </div>
+                {swTrail.target_reached && exitPrices?.sw_trail_price != null && (
+                  <span className="text-[9px] font-bold tabular-nums text-amber-300">
+                    ${exitPrices.sw_trail_price.toFixed(1)}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <ConditionDot met={swTrail.target_reached} />
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${swTrail.target_reached ? 'text-amber-300' : 'text-slate-500'}`}>MFE</span>
+                  <ProgressBar current={swTrail.sw_mfe_pct} target={swTrail.sw_trail_target} color={swTrail.target_reached ? 'bg-amber-400' : undefined} />
+                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.target_reached ? 'text-amber-300' : 'text-slate-500'}`}>
+                    +{swTrail.sw_mfe_pct.toFixed(2)}%
+                  </span>
+                </div>
+                {swTrail.target_reached ? (
+                  <div className="flex items-center gap-1.5 bg-amber-500/10 rounded px-1 py-0.5">
+                    <TrendingUp className="w-2.5 h-2.5 text-amber-400" />
+                    <span className="text-[8px] text-amber-300 font-semibold">트레일링</span>
+                    <span className="text-[8px] tabular-nums text-amber-200 font-bold">
+                      스톱 {swTrail.trail_stop >= 0 ? '+' : ''}{swTrail.trail_stop.toFixed(2)}%
+                    </span>
+                    <span className="text-[8px] text-slate-500">|</span>
+                    <span className="text-[8px] tabular-nums text-slate-300">
+                      현재 {swTrail.current_pnl >= 0 ? '+' : ''}{swTrail.current_pnl.toFixed(2)}%
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[8px] text-slate-500 flex-1">
+                      목표 +{swTrail.sw_trail_target.toFixed(1)}% | 트레일 {swTrail.sw_trail_pct.toFixed(1)}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {cut && (
             <div className={`rounded-md border p-1.5 transition-all ${
               cut.armed
@@ -324,6 +381,7 @@ const getExitReasonLabel = (reason?: string): string => {
   if (reason.startsWith('PP_STOP')) return 'PP';
   if (reason === 'VANISH') return 'Vanish';
   if (reason === 'TIMEOUT') return 'Timeout';
+  if (reason === 'EXIT_SW_TRAIL') return 'SW Trail';
   return reason;
 };
 

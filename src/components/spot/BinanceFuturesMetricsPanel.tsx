@@ -1,7 +1,7 @@
 import { DollarSign, Activity, Target, History, ShieldAlert, TrendingUp } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
-import type { BFDashboardData, V10StrategyStatus, ExitConditions } from '../../types/dashboard';
+import type { BFDashboardData, V10StrategyStatus, ExitConditions, ExitConditionSW_TRAIL } from '../../types/dashboard';
 
 interface Props {
   data: BFDashboardData;
@@ -29,6 +29,7 @@ const getExitReasonLabel = (reason?: string): string => {
   if (reason === 'EARLY') return 'Early Exit';
   if (reason === 'VANISH') return 'Vanish';
   if (reason === 'TIMEOUT') return 'Timeout';
+  if (reason === 'EXIT_SW_TRAIL') return 'SW Trail';
   return reason;
 };
 
@@ -99,8 +100,9 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
   const rTrail = exitConditions?.R_TRAIL;
+  const swTrail = exitConditions?.SW_TRAIL;
   const isRide = entryMode === 'RIDE';
-  const hasData = !!(vwap || cut || rTrail);
+  const hasData = !!(vwap || cut || rTrail || swTrail);
 
   if (!inPosition) return null;
 
@@ -120,7 +122,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
 
       {!hasData ? (
         <div className="flex flex-col gap-1">
-          {(isRide ? ['R_TRAIL', 'CUT'] : ['VWAP', 'CUT'] as const).map(name => (
+          {(isRide ? ['R_TRAIL', 'CUT'] : ['VWAP', 'SW_TRAIL', 'CUT']).map(name => (
             <div key={name} className="flex items-center justify-between bg-stone-50 border border-stone-200 rounded px-2 py-1.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-300 flex-shrink-0" />
@@ -250,6 +252,62 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   currentPnl={currentPnl}
                 />
               )}
+            </div>
+          )}
+
+          {swTrail && (
+            <div className={`rounded-md border p-1.5 transition-all ${
+              swTrail.target_reached
+                ? 'bg-amber-50 border-amber-300'
+                : swTrail.armed
+                  ? 'bg-stone-50 border-amber-300/60'
+                  : 'bg-stone-50 border-stone-200'
+            }`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    swTrail.target_reached
+                      ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.8)]'
+                      : swTrail.armed ? 'bg-amber-400/60' : 'bg-stone-300'
+                  }`} />
+                  <span className={`text-[9px] font-bold ${swTrail.target_reached ? 'text-amber-700' : swTrail.armed ? 'text-amber-600' : 'text-slate-500'}`}>SW_TRAIL</span>
+                  <span className="text-[7px] text-stone-400">조기익절</span>
+                </div>
+                {swTrail.target_reached && exitPrices?.sw_trail_price != null && (
+                  <span className="text-[9px] font-bold tabular-nums text-amber-700">
+                    ${exitPrices.sw_trail_price.toFixed(1)}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <BConditionDot met={swTrail.target_reached} />
+                  <span className={`text-[8px] w-[30px] flex-shrink-0 ${swTrail.target_reached ? 'text-amber-600' : 'text-stone-500'}`}>MFE</span>
+                  <BProgressBar current={swTrail.sw_mfe_pct} target={swTrail.sw_trail_target} />
+                  <span className={`text-[8px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.target_reached ? 'text-amber-600' : 'text-stone-500'}`}>
+                    +{swTrail.sw_mfe_pct.toFixed(2)}%
+                  </span>
+                </div>
+                {swTrail.target_reached ? (
+                  <div className="flex items-center gap-1.5 bg-amber-50 rounded px-1 py-0.5">
+                    <TrendingUp className="w-2.5 h-2.5 text-amber-500" />
+                    <span className="text-[8px] text-amber-700 font-semibold">트레일링</span>
+                    <span className="text-[8px] tabular-nums text-amber-800 font-bold">
+                      스톱 {swTrail.trail_stop >= 0 ? '+' : ''}{swTrail.trail_stop.toFixed(2)}%
+                    </span>
+                    <span className="text-[8px] text-stone-400">|</span>
+                    <span className="text-[8px] tabular-nums text-slate-700">
+                      현재 {swTrail.current_pnl >= 0 ? '+' : ''}{swTrail.current_pnl.toFixed(2)}%
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[8px] text-stone-500 flex-1">
+                      목표 +{swTrail.sw_trail_target.toFixed(1)}% | 트레일 {swTrail.sw_trail_pct.toFixed(1)}%
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

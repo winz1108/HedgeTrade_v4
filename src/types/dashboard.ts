@@ -101,10 +101,21 @@ export interface VwapBandSeries {
   lower: (number | null)[];
 }
 
+export interface ExitConditionSW_TRAIL {
+  armed: boolean;
+  sw_mfe_pct: number;
+  sw_trail_target: number;
+  sw_trail_pct: number;
+  target_reached: boolean;
+  trail_stop: number;
+  current_pnl: number;
+}
+
 export interface ExitConditions {
   CUT?: ExitConditionCUT;
   VWAP?: ExitConditionVWAP;
   R_TRAIL?: ExitConditionR_TRAIL;
+  SW_TRAIL?: ExitConditionSW_TRAIL;
 }
 
 export interface EntryDetailADX {
@@ -175,6 +186,9 @@ export interface V10StrategyStatus {
     ride_cut?: number;
     ride_target?: number;
     ride_trail_pct?: number;
+    sw_trail_enabled?: boolean;
+    sw_trail_target?: number;
+    sw_trail_pct?: number;
     [key: string]: any;
   };
   positionSide?: 'LONG' | 'SHORT' | null;
@@ -201,6 +215,7 @@ export interface V10StrategyStatus {
     vwap_target?: number;
     cut_threshold_mae?: number;
     ride_trail_price?: number;
+    sw_trail_price?: number;
   };
   exitConditions?: ExitConditions;
   entryDetails?: EntryDetails;
