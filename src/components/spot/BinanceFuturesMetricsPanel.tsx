@@ -66,9 +66,8 @@ function BConditionDot({ met }: { met: boolean }) {
 
 function BProgressBar({ current, target, color, positionSide }: { current: number; target: number; color?: string; positionSide?: 'LONG' | 'SHORT' | null }) {
   const pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
-  const met = current >= target;
   const sideColor = positionSide === 'SHORT' ? 'bg-orange-500' : 'bg-cyan-500';
-  const barColor = color ?? (met ? sideColor : 'bg-stone-300');
+  const barColor = color ?? sideColor;
   return (
     <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
       <div
@@ -88,25 +87,20 @@ function BVwapRangeBar({ maePct, entryPrice, currentPrice, vwapTarget, positionS
   const hi = Math.max(maePrice, vwapTarget);
   const range = hi - lo;
   const fillPct = range > 0 ? Math.min(100, Math.max(0, ((currentPrice - lo) / range) * 100)) : 0;
-  const isShortSide = positionSide === 'SHORT';
-  const sideColor = isShortSide ? 'bg-orange-500' : 'bg-cyan-500';
-  const barColor = reached ? sideColor : sideColor;
-  const textColor = isShortSide
-    ? (reached ? 'text-orange-600' : 'text-stone-400')
-    : (reached ? 'text-cyan-600' : 'text-stone-400');
+  const sideColor = isShort ? 'bg-orange-500' : 'bg-cyan-500';
   return (
     <div className="flex items-center gap-1.5">
       <BConditionDot met={reached} />
-      <span className={`text-[7px] flex-shrink-0 tabular-nums ${textColor}`}>
+      <span className={`text-[9px] w-[30px] flex-shrink-0 tabular-nums ${reached ? (isShort ? 'text-orange-600' : 'text-cyan-600') : 'text-stone-400'}`}>
         {maePrice.toFixed(0)}
       </span>
       <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
         <div
-          className={`h-1.5 rounded-full transition-all duration-300 ${barColor}`}
+          className={`h-1.5 rounded-full transition-all duration-300 ${sideColor}`}
           style={{ width: `${reached ? 100 : fillPct}%` }}
         />
       </div>
-      <span className={`text-[7px] flex-shrink-0 tabular-nums ${textColor}`}>
+      <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${reached ? (isShort ? 'text-orange-600' : 'text-cyan-600') : 'text-stone-400'}`}>
         {vwapTarget.toFixed(0)}
       </span>
     </div>
@@ -151,24 +145,31 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
         </div>
       ) : isRide ? (
         <div className="flex flex-col gap-1.5">
-          {rTrail && (
+          {rTrail && (() => {
+            const isShort = positionSide === 'SHORT';
+            const rActiveColor = isShort ? 'text-orange-600' : 'text-cyan-600';
+            const rActiveBg = isShort ? 'bg-orange-50 border-orange-300' : 'bg-cyan-50 border-cyan-300';
+            const rActiveDot = isShort
+              ? 'bg-orange-500 shadow-[0_0_5px_rgba(251,146,60,0.8)]'
+              : 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]';
+            return (
             <div className={`rounded-md border p-1.5 transition-all ${
               rTrail.targetReached
-                ? 'bg-blue-50 border-blue-300'
+                ? rActiveBg
                 : 'bg-stone-50 border-stone-200'
             }`}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                     rTrail.targetReached
-                      ? 'bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.8)]'
-                      : rTrail.armed ? 'bg-cyan-500' : 'bg-stone-300'
+                      ? rActiveDot
+                      : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[10px] font-bold ${rTrail.targetReached ? 'text-blue-700' : rTrail.armed ? 'text-cyan-700' : 'text-slate-500'}`}>RTRAIL</span>
+                  <span className={`text-[10px] font-bold ${rTrail.targetReached ? rActiveColor : 'text-slate-500'}`}>RTRAIL</span>
                   <span className="text-[8px] text-stone-400">추세탑승</span>
                 </div>
                 {rTrail.targetReached && exitPrices?.rideTrailPrice != null && (
-                  <span className="text-[10px] font-bold tabular-nums text-blue-700">
+                  <span className={`text-[10px] font-bold tabular-nums ${rActiveColor}`}>
                     ${exitPrices.rideTrailPrice.toFixed(1)}
                   </span>
                 )}
@@ -176,17 +177,17 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={rTrail.targetReached} />
-                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${rTrail.targetReached ? 'text-blue-600' : 'text-stone-500'}`}>MFE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${rTrail.targetReached ? rActiveColor : 'text-stone-500'}`}>MFE</span>
                   <BProgressBar current={rTrail.mfePct} target={rTrail.trailTarget} positionSide={positionSide} />
-                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.targetReached ? 'text-blue-600' : 'text-stone-500'}`}>
+                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.targetReached ? rActiveColor : 'text-stone-500'}`}>
                     +{rTrail.mfePct.toFixed(2)}%
                   </span>
                 </div>
                 {rTrail.targetReached ? (
-                  <div className="flex items-center gap-1.5 bg-blue-50 rounded px-1 py-0.5">
-                    <TrendingUp className="w-2.5 h-2.5 text-blue-500" />
-                    <span className="text-[9px] text-blue-700 font-semibold">트레일링</span>
-                    <span className="text-[9px] tabular-nums text-blue-800 font-bold">
+                  <div className={`flex items-center gap-1.5 ${isShort ? 'bg-orange-50' : 'bg-cyan-50'} rounded px-1 py-0.5`}>
+                    <TrendingUp className={`w-2.5 h-2.5 ${isShort ? 'text-orange-500' : 'text-cyan-500'}`} />
+                    <span className={`text-[9px] ${rActiveColor} font-semibold`}>트레일링</span>
+                    <span className={`text-[9px] tabular-nums ${isShort ? 'text-orange-800' : 'text-cyan-800'} font-bold`}>
                       스톱 {rTrail.trailStop >= 0 ? '+' : ''}{rTrail.trailStop.toFixed(2)}%
                     </span>
                     <span className="text-[9px] text-stone-400">|</span>
@@ -203,7 +204,8 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                 )}
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {cut && (
             <div className={`rounded-md border p-1.5 transition-all ${
@@ -247,22 +249,28 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
             const vwapReached = currentPrice != null && vwapTarget != null
               ? (positionSide === 'SHORT' ? currentPrice <= vwapTarget : currentPrice >= vwapTarget)
               : false;
+            const isShort = positionSide === 'SHORT';
+            const vwapActiveColor = isShort ? 'text-orange-600' : 'text-cyan-600';
+            const vwapActiveBg = isShort ? 'bg-orange-50 border-orange-300' : 'bg-cyan-50 border-cyan-300';
+            const vwapActiveDot = isShort
+              ? 'bg-orange-500 shadow-[0_0_5px_rgba(251,146,60,0.8)]'
+              : 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]';
             return (
               <div className={`rounded-md border p-1.5 transition-all ${
                 vwapReached
-                  ? 'bg-teal-50 border-teal-300'
+                  ? vwapActiveBg
                   : 'bg-stone-50 border-stone-200'
               }`}>
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5">
                     <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                      vwapReached ? 'bg-teal-500 shadow-[0_0_5px_rgba(20,184,166,0.8)]' : 'bg-stone-300'
+                      vwapReached ? vwapActiveDot : 'bg-stone-300'
                     }`} />
-                    <span className={`text-[10px] font-bold ${vwapReached ? 'text-teal-700' : 'text-slate-500'}`}>VWAP</span>
+                    <span className={`text-[10px] font-bold ${vwapReached ? vwapActiveColor : 'text-slate-500'}`}>VWAP</span>
                     <span className="text-[8px] text-stone-400">익절</span>
                   </div>
                   {vwapTarget != null && (
-                    <span className={`text-[10px] font-bold tabular-nums ${vwapReached ? 'text-teal-700' : 'text-slate-400'}`}>
+                    <span className={`text-[10px] font-bold tabular-nums ${vwapReached ? vwapActiveColor : 'text-slate-400'}`}>
                       ${vwapTarget.toFixed(1)}
                     </span>
                   )}
@@ -281,24 +289,31 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
             );
           })()}
 
-          {swTrail && (
+          {swTrail && (() => {
+            const isShort = positionSide === 'SHORT';
+            const trailActiveColor = isShort ? 'text-orange-600' : 'text-cyan-600';
+            const trailActiveBg = isShort ? 'bg-orange-50 border-orange-300' : 'bg-cyan-50 border-cyan-300';
+            const trailActiveDot = isShort
+              ? 'bg-orange-500 shadow-[0_0_5px_rgba(251,146,60,0.8)]'
+              : 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]';
+            return (
             <div className={`rounded-md border p-1.5 transition-all ${
               swTrail.targetReached
-                ? 'bg-amber-50 border-amber-300'
+                ? trailActiveBg
                 : 'bg-stone-50 border-stone-200'
             }`}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                     swTrail.targetReached
-                      ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.8)]'
-                      : swTrail.armed ? 'bg-amber-400/60' : 'bg-stone-300'
+                      ? trailActiveDot
+                      : 'bg-stone-300'
                   }`} />
-                  <span className={`text-[10px] font-bold ${swTrail.targetReached ? 'text-amber-700' : swTrail.armed ? 'text-amber-600' : 'text-slate-500'}`}>TRAIL</span>
+                  <span className={`text-[10px] font-bold ${swTrail.targetReached ? trailActiveColor : 'text-slate-500'}`}>TRAIL</span>
                   <span className="text-[8px] text-stone-400">조기익절</span>
                 </div>
                 {swTrail.targetReached && exitPrices?.trailPrice != null && (
-                  <span className="text-[10px] font-bold tabular-nums text-amber-700">
+                  <span className={`text-[10px] font-bold tabular-nums ${trailActiveColor}`}>
                     ${exitPrices.trailPrice.toFixed(1)}
                   </span>
                 )}
@@ -306,17 +321,17 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
                   <BConditionDot met={swTrail.targetReached} />
-                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${swTrail.targetReached ? 'text-amber-600' : 'text-stone-500'}`}>MFE</span>
+                  <span className={`text-[9px] w-[30px] flex-shrink-0 ${swTrail.targetReached ? trailActiveColor : 'text-stone-500'}`}>MFE</span>
                   <BProgressBar current={swTrail.mfePct} target={swTrail.trailTarget} positionSide={positionSide} />
-                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.targetReached ? 'text-amber-600' : 'text-stone-500'}`}>
+                  <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.targetReached ? trailActiveColor : 'text-stone-500'}`}>
                     +{swTrail.mfePct.toFixed(2)}%
                   </span>
                 </div>
                 {swTrail.targetReached ? (
-                  <div className="flex items-center gap-1.5 bg-amber-50 rounded px-1 py-0.5">
-                    <TrendingUp className="w-2.5 h-2.5 text-amber-500" />
-                    <span className="text-[9px] text-amber-700 font-semibold">트레일링</span>
-                    <span className="text-[9px] tabular-nums text-amber-800 font-bold">
+                  <div className={`flex items-center gap-1.5 ${isShort ? 'bg-orange-50' : 'bg-cyan-50'} rounded px-1 py-0.5`}>
+                    <TrendingUp className={`w-2.5 h-2.5 ${isShort ? 'text-orange-500' : 'text-cyan-500'}`} />
+                    <span className={`text-[9px] ${trailActiveColor} font-semibold`}>트레일링</span>
+                    <span className={`text-[9px] tabular-nums ${isShort ? 'text-orange-800' : 'text-cyan-800'} font-bold`}>
                       스톱 {swTrail.trailStop >= 0 ? '+' : ''}{swTrail.trailStop.toFixed(2)}%
                     </span>
                     <span className="text-[9px] text-stone-400">|</span>
@@ -333,7 +348,8 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                 )}
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {cut && (
             <div className={`rounded-md border p-1.5 transition-all ${
