@@ -22,11 +22,11 @@ interface ExitConditionsPanelProps {
   positionSide?: 'LONG' | 'SHORT' | null;
 }
 
-function ConditionDot({ met, positionSide }: { met: boolean; positionSide?: 'LONG' | 'SHORT' | null }) {
-  const isShort = positionSide === 'SHORT';
-  const activeColor = isShort
+function ConditionDot({ met, positionSide, color }: { met: boolean; positionSide?: 'LONG' | 'SHORT' | null; color?: string }) {
+  const defaultColor = positionSide === 'SHORT'
     ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.8)]'
     : 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]';
+  const activeColor = color ?? defaultColor;
   return (
     <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
       met ? activeColor : 'bg-slate-600'
@@ -199,15 +199,15 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={cut.maeOk} positionSide={positionSide} />
+                  <ConditionDot met={cut.maeOk} color="bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.8)]" />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
-                  <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
+                  <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} color="bg-rose-400" />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-400' : 'text-slate-500'}`}>
                     {(cut.maeCurrent ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={cut.emaReversed} positionSide={positionSide} />
+                  <ConditionDot met={cut.emaReversed} color="bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.8)]" />
                   <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
                 </div>
               </div>
@@ -381,15 +381,15 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               })()}
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={cut.maeOk} positionSide={positionSide} />
+                  <ConditionDot met={cut.maeOk} color="bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.8)]" />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
-                  <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
+                  <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} color="bg-rose-400" />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-400' : 'text-slate-500'}`}>
                     {(cut.maeCurrent ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={cut.emaReversed} positionSide={positionSide} />
+                  <ConditionDot met={cut.emaReversed} color="bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.8)]" />
                   <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
                 </div>
               </div>

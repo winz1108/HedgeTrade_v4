@@ -56,11 +56,11 @@ interface BinanceExitConditionsPanelProps {
   positionSide?: 'LONG' | 'SHORT' | null;
 }
 
-function BConditionDot({ met, positionSide }: { met: boolean; positionSide?: 'LONG' | 'SHORT' | null }) {
-  const isShort = positionSide === 'SHORT';
-  const activeColor = isShort
+function BConditionDot({ met, positionSide, color }: { met: boolean; positionSide?: 'LONG' | 'SHORT' | null; color?: string }) {
+  const defaultColor = positionSide === 'SHORT'
     ? 'bg-orange-500 shadow-[0_0_4px_rgba(251,146,60,0.7)]'
     : 'bg-cyan-500 shadow-[0_0_4px_rgba(6,182,212,0.7)]';
+  const activeColor = color ?? defaultColor;
   return (
     <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
       met ? activeColor : 'bg-stone-300'
@@ -231,15 +231,15 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.maeOk} positionSide={positionSide} />
+                  <BConditionDot met={cut.maeOk} color="bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.7)]" />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
-                  <BProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
+                  <BProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} color="bg-rose-400" />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-slate-400'}`}>
                     {(cut.maeCurrent ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.emaReversed} positionSide={positionSide} />
+                  <BConditionDot met={cut.emaReversed} color="bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.7)]" />
                   <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
                 </div>
               </div>
@@ -411,15 +411,15 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               })()}
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.maeOk} positionSide={positionSide} />
+                  <BConditionDot met={cut.maeOk} color="bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.7)]" />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
-                  <BProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
+                  <BProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} color="bg-rose-400" />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-slate-400'}`}>
                     {(cut.maeCurrent ?? 0).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.emaReversed} positionSide={positionSide} />
+                  <BConditionDot met={cut.emaReversed} color="bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.7)]" />
                   <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
                 </div>
               </div>
