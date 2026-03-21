@@ -636,7 +636,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                             </>
                           )}
                         </div>
-                        <div className={`${barTrack} rounded-full h-[3px] overflow-hidden`}>
+                        <div className={`${barTrack} rounded-full h-1.5 overflow-hidden`}>
                           {isLongSide ? (
                             <div className={`h-full rounded-full transition-all duration-500 ease-out ml-auto ${barFill} ${met ? 'shadow-[0_0_4px_rgba(6,182,212,0.3)]' : ''}`}
                               style={{ width: `${progressPct}%` }} />
