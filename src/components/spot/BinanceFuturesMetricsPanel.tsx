@@ -49,6 +49,9 @@ interface BinanceExitConditionsPanelProps {
   strategyParams?: { rideConsecN?: number; [key: string]: any };
   entryMode?: 'SW' | 'RIDE';
   currentPnl?: number;
+  mfePct?: number;
+  currentPrice?: number;
+  positionSide?: 'LONG' | 'SHORT' | null;
 }
 
 function BConditionDot({ met }: { met: boolean }) {
@@ -72,33 +75,41 @@ function BProgressBar({ current, target }: { current: number; target: number }) 
   );
 }
 
-function BVwapRangeBar({ maePct, distToVwap, currentPnl }: { maePct: number; distToVwap: number; currentPnl?: number }) {
-  const maeAbs = Math.abs(maePct);
-  const totalRange = maeAbs + Math.max(0, distToVwap);
-  const pct = totalRange > 0 ? Math.min(100, (maeAbs / totalRange) * 100) : 0;
-  const reached = distToVwap <= 0;
-  const netPnl = (currentPnl ?? 0) - 0.1;
-  const barColor = netPnl >= 0 ? 'bg-teal-500' : 'bg-rose-400';
+function BVwapRangeBar({ mfePct, distToVwap, currentPnl, reached }: { mfePct: number; distToVwap: number; currentPnl?: number; reached: boolean }) {
+  const mfeAbs = Math.abs(mfePct);
+  const vwapDist = Math.abs(distToVwap);
+  const totalRange = mfeAbs + vwapDist;
+  const currentPnlAbs = Math.abs(currentPnl ?? 0);
+  const fillPct = totalRange > 0 ? Math.min(100, Math.max(0, (currentPnlAbs / totalRange) * 100)) : 0;
+  const barColor = reached ? 'bg-teal-500' : (currentPnl ?? 0) >= 0 ? 'bg-cyan-500' : 'bg-rose-400';
   return (
-    <div className="flex items-center gap-1.5">
-      <BConditionDot met={reached} />
-      <span className={`text-[8px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-400'}`}>
-        {maePct.toFixed(1)}%
-      </span>
-      <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden relative">
-        <div
-          className={`h-1 rounded-full transition-all duration-300 ${barColor}`}
-          style={{ width: `${reached ? 100 : pct}%` }}
-        />
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center gap-1.5">
+        <BConditionDot met={reached} />
+        <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-400'}`}>
+          MFE {mfePct.toFixed(2)}%
+        </span>
+        <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden relative">
+          <div
+            className={`h-1.5 rounded-full transition-all duration-300 ${barColor}`}
+            style={{ width: `${reached ? 100 : fillPct}%` }}
+          />
+          {mfeAbs > 0 && totalRange > 0 && !reached && (
+            <div
+              className="absolute top-0 h-1.5 w-px bg-amber-500/80"
+              style={{ left: `${Math.min(100, (mfeAbs / totalRange) * 100)}%` }}
+            />
+          )}
+        </div>
+        <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-500'}`}>
+          VWAP {distToVwap >= 0 ? '+' : ''}{distToVwap.toFixed(2)}%
+        </span>
       </div>
-      <span className={`text-[8px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-500'}`}>
-        {distToVwap >= 0 ? '+' : ''}{distToVwap.toFixed(2)}%
-      </span>
     </div>
   );
 }
 
-function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl }: BinanceExitConditionsPanelProps) {
+function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl, mfePct, currentPrice, positionSide }: BinanceExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
   const rTrail = exitConditions?.RTRAIL;
@@ -227,35 +238,42 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
-          {vwap && (
-            <div className={`rounded-md border p-1.5 transition-all ${
-              vwap.armed
-                ? 'bg-teal-50 border-teal-300'
-                : 'bg-stone-50 border-stone-200'
-            }`}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    vwap.armed ? 'bg-teal-500 shadow-[0_0_5px_rgba(20,184,166,0.8)]' : 'bg-stone-300'
-                  }`} />
-                  <span className={`text-[10px] font-bold ${vwap.armed ? 'text-teal-700' : 'text-slate-500'}`}>VWAP</span>
-                  <span className="text-[8px] text-stone-400">익절</span>
+          {vwap && (() => {
+            const vwapTarget = exitPrices?.vwapTarget ?? vwap.vwapTarget;
+            const vwapReached = currentPrice != null && vwapTarget != null
+              ? (positionSide === 'SHORT' ? currentPrice <= vwapTarget : currentPrice >= vwapTarget)
+              : false;
+            return (
+              <div className={`rounded-md border p-1.5 transition-all ${
+                vwapReached
+                  ? 'bg-teal-50 border-teal-300'
+                  : 'bg-stone-50 border-stone-200'
+              }`}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                      vwapReached ? 'bg-teal-500 shadow-[0_0_5px_rgba(20,184,166,0.8)]' : 'bg-stone-300'
+                    }`} />
+                    <span className={`text-[10px] font-bold ${vwapReached ? 'text-teal-700' : 'text-slate-500'}`}>VWAP</span>
+                    <span className="text-[8px] text-stone-400">익절</span>
+                  </div>
+                  {vwapTarget != null && (
+                    <span className={`text-[10px] font-bold tabular-nums ${vwapReached ? 'text-teal-700' : 'text-slate-400'}`}>
+                      ${vwapTarget.toFixed(1)}
+                    </span>
+                  )}
                 </div>
-                {(exitPrices?.vwapTarget ?? vwap.vwapTarget) != null && (
-                  <span className={`text-[10px] font-bold tabular-nums ${vwap.armed ? 'text-teal-700' : 'text-slate-400'}`}>
-                    ${(exitPrices?.vwapTarget ?? vwap.vwapTarget!).toFixed(1)}
-                  </span>
+                {vwap.distanceToVwap != null && (
+                  <BVwapRangeBar
+                    mfePct={mfePct ?? 0}
+                    distToVwap={vwap.distanceToVwap}
+                    currentPnl={currentPnl}
+                    reached={vwapReached}
+                  />
                 )}
               </div>
-              {vwap.distanceToVwap != null && (
-                <BVwapRangeBar
-                  maePct={cut?.mae_current ?? 0}
-                  distToVwap={vwap.distanceToVwap}
-                  currentPnl={currentPnl}
-                />
-              )}
-            </div>
-          )}
+            );
+          })()}
 
           {swTrail && (
             <div className={`rounded-md border p-1.5 transition-all ${
@@ -636,6 +654,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           strategyParams={ss?.strategy_params}
           entryMode={ss?.entry_mode || data.position?.entry_mode}
           currentPnl={currentPnl}
+          mfePct={data.position.mfe}
+          currentPrice={data.currentPrice}
+          positionSide={positionSide}
         />
       </div>
     );

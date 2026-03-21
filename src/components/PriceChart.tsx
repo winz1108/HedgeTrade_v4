@@ -89,7 +89,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const [scrollOffset, setScrollOffset] = useState(0);
   const [resetScroll, setResetScroll] = useState(0);
   const [candleWidth, setCandleWidth] = useState(4);
-  const [timeframe, setTimeframe] = useState<Timeframe>('15m');
+  const [timeframe, setTimeframe] = useState<Timeframe>('5m');
   const [volumeHeight, setVolumeHeight] = useState(60);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number; trade: TradeEvent; hasPairedSell: boolean; pairedTrade?: TradeEvent } | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -926,7 +926,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               })();
 
               const vwapHoverData = (() => {
-                if (mouseY === null || !candle || timeframe !== '15m' || !v10Strategy) return null;
+                if (mouseY === null || !candle || timeframe !== '5m' || !v10Strategy) return null;
                 const bs = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
                 if (!bs?.timestamps) return null;
                 const candleTs = normalizeTimestamp(candle.timestamp);
@@ -1120,7 +1120,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               })();
 
               const isVWAPBandHovered = (() => {
-                if (mouseY === null || hoveredCandleIndex === null || timeframe !== '15m' || !v10Strategy) return false;
+                if (mouseY === null || hoveredCandleIndex === null || timeframe !== '5m' || !v10Strategy) return false;
                 const bs = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
                 if (!bs?.timestamps) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
@@ -1197,8 +1197,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* VWAP Band Series - 15m only, always visible, timestamp-matched */}
-                  {timeframe === '15m' && (() => {
+                  {/* VWAP Band Series - 5m only, always visible, timestamp-matched */}
+                  {timeframe === '5m' && (() => {
                     if (!v10Strategy) return null;
                     const bandSeries = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
                     if (!bandSeries) return null;
@@ -1738,9 +1738,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               );
             })()}
 
-            {showTradeMarkers && data.holding.isHolding && (() => {
+            {showTradeMarkers && (() => {
               const vwapTarget = v10Strategy?.exitPrices?.vwapTarget
-                ?? v10Strategy?.exitConditions?.VWAP?.vwapTarget;
+                ?? v10Strategy?.exitConditions?.VWAP?.vwapTarget
+                ?? v10Strategy?.vwap;
               if (!vwapTarget) return null;
               const goldColor = '#d4a017';
               const goldGlow = 'rgba(212, 160, 23, 0.4)';

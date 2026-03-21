@@ -15,6 +15,9 @@ interface ExitConditionsPanelProps {
   strategyParams?: { rideConsecN?: number; [key: string]: any };
   entryMode?: 'SW' | 'RIDE';
   currentPnl?: number;
+  mfePct?: number;
+  currentPrice?: number;
+  positionSide?: 'LONG' | 'SHORT' | null;
 }
 
 function ConditionDot({ met }: { met: boolean }) {
@@ -40,33 +43,41 @@ function ProgressBar({ current, target, reverse = false, color }: { current: num
   );
 }
 
-function VwapRangeBar({ maePct, distToVwap, currentPnl }: { maePct: number; distToVwap: number; currentPnl?: number }) {
-  const maeAbs = Math.abs(maePct);
-  const totalRange = maeAbs + Math.max(0, distToVwap);
-  const pct = totalRange > 0 ? Math.min(100, (maeAbs / totalRange) * 100) : 0;
-  const reached = distToVwap <= 0;
-  const netPnl = (currentPnl ?? 0) - 0.1;
-  const barColor = netPnl >= 0 ? 'bg-teal-400' : 'bg-rose-400';
+function VwapRangeBar({ mfePct, distToVwap, currentPnl, reached }: { mfePct: number; distToVwap: number; currentPnl?: number; reached: boolean }) {
+  const mfeAbs = Math.abs(mfePct);
+  const vwapDist = Math.abs(distToVwap);
+  const totalRange = mfeAbs + vwapDist;
+  const currentPnlAbs = Math.abs(currentPnl ?? 0);
+  const fillPct = totalRange > 0 ? Math.min(100, Math.max(0, (currentPnlAbs / totalRange) * 100)) : 0;
+  const barColor = reached ? 'bg-teal-400' : (currentPnl ?? 0) >= 0 ? 'bg-cyan-400' : 'bg-rose-400';
   return (
-    <div className="flex items-center gap-1.5">
-      <ConditionDot met={reached} />
-      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-300' : 'text-slate-500'}`}>
-        {maePct.toFixed(1)}%
-      </span>
-      <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
-        <div
-          className={`h-1 rounded-full transition-all duration-300 ${barColor}`}
-          style={{ width: `${reached ? 100 : pct}%` }}
-        />
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center gap-1.5">
+        <ConditionDot met={reached} />
+        <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-300' : 'text-slate-500'}`}>
+          MFE {mfePct.toFixed(2)}%
+        </span>
+        <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden relative">
+          <div
+            className={`h-1.5 rounded-full transition-all duration-300 ${barColor}`}
+            style={{ width: `${reached ? 100 : fillPct}%` }}
+          />
+          {mfeAbs > 0 && totalRange > 0 && !reached && (
+            <div
+              className="absolute top-0 h-1.5 w-px bg-amber-400/80"
+              style={{ left: `${Math.min(100, (mfeAbs / totalRange) * 100)}%` }}
+            />
+          )}
+        </div>
+        <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-300' : 'text-slate-500'}`}>
+          VWAP {distToVwap >= 0 ? '+' : ''}{distToVwap.toFixed(2)}%
+        </span>
       </div>
-      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-300' : 'text-slate-500'}`}>
-        {distToVwap >= 0 ? '+' : ''}{distToVwap.toFixed(2)}%
-      </span>
     </div>
   );
 }
 
-function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl }: ExitConditionsPanelProps) {
+function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl, mfePct, currentPrice, positionSide }: ExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
   const rTrail = exitConditions?.RTRAIL;
@@ -196,35 +207,42 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
-          {vwap && (
-            <div className={`rounded-md border p-1.5 transition-all ${
-              vwap.armed
-                ? 'bg-teal-900/30 border-teal-600/50'
-                : 'bg-slate-700/20 border-slate-700/50'
-            }`}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    vwap.armed ? 'bg-teal-400 shadow-[0_0_5px_rgba(45,212,191,0.9)]' : 'bg-slate-600'
-                  }`} />
-                  <span className={`text-[10px] font-bold ${vwap.armed ? 'text-teal-300' : 'text-slate-400'}`}>VWAP</span>
-                  <span className="text-[8px] text-slate-500">익절</span>
+          {vwap && (() => {
+            const vwapTarget = exitPrices?.vwapTarget ?? vwap.vwapTarget;
+            const vwapReached = currentPrice != null && vwapTarget != null
+              ? (positionSide === 'SHORT' ? currentPrice <= vwapTarget : currentPrice >= vwapTarget)
+              : false;
+            return (
+              <div className={`rounded-md border p-1.5 transition-all ${
+                vwapReached
+                  ? 'bg-teal-900/30 border-teal-600/50'
+                  : 'bg-slate-700/20 border-slate-700/50'
+              }`}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                      vwapReached ? 'bg-teal-400 shadow-[0_0_5px_rgba(45,212,191,0.9)]' : 'bg-slate-600'
+                    }`} />
+                    <span className={`text-[10px] font-bold ${vwapReached ? 'text-teal-300' : 'text-slate-400'}`}>VWAP</span>
+                    <span className="text-[8px] text-slate-500">익절</span>
+                  </div>
+                  {vwapTarget != null && (
+                    <span className={`text-[10px] font-bold tabular-nums ${vwapReached ? 'text-teal-300' : 'text-slate-500'}`}>
+                      ${vwapTarget.toFixed(1)}
+                    </span>
+                  )}
                 </div>
-                {(exitPrices?.vwapTarget ?? vwap.vwapTarget) != null && (
-                  <span className={`text-[10px] font-bold tabular-nums ${vwap.armed ? 'text-teal-300' : 'text-slate-500'}`}>
-                    ${(exitPrices?.vwapTarget ?? vwap.vwapTarget!).toFixed(1)}
-                  </span>
+                {vwap.distanceToVwap != null && (
+                  <VwapRangeBar
+                    mfePct={mfePct ?? 0}
+                    distToVwap={vwap.distanceToVwap}
+                    currentPnl={currentPnl}
+                    reached={vwapReached}
+                  />
                 )}
               </div>
-              {vwap.distanceToVwap != null && (
-                <VwapRangeBar
-                  maePct={cut?.mae_current ?? 0}
-                  distToVwap={vwap.distanceToVwap}
-                  currentPnl={currentPnl}
-                />
-              )}
-            </div>
-          )}
+            );
+          })()}
 
           {swTrail && (
             <div className={`rounded-md border p-1.5 transition-all ${
@@ -648,6 +666,9 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           strategyParams={ss?.strategyParams}
           entryMode={ss?.entryMode || data.position?.entry_mode || data.strategyA?.entry_mode}
           currentPnl={currentPnl}
+          mfePct={ss?.mfe ?? data.strategyA?.mfe}
+          currentPrice={data.currentPrice}
+          positionSide={data.position?.position_side}
         />
       </div>
     );
