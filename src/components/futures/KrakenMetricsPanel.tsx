@@ -30,15 +30,16 @@ function ConditionDot({ met }: { met: boolean }) {
   );
 }
 
-function ProgressBar({ current, target, reverse = false, color }: { current: number; target: number; reverse?: boolean; color?: string }) {
+function ProgressBar({ current, target, reverse = false, color, positionSide }: { current: number; target: number; reverse?: boolean; color?: string; positionSide?: 'LONG' | 'SHORT' | null }) {
   let pct: number;
   pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
   const met = reverse ? current <= target : current >= target;
-  const barColor = color ?? (met ? 'bg-cyan-400' : 'bg-slate-300');
+  const sideColor = positionSide === 'SHORT' ? 'bg-orange-400' : 'bg-cyan-400';
+  const barColor = color ?? (met ? sideColor : 'bg-slate-600');
   return (
-    <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
+    <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
       <div
-        className={`h-1 rounded-full transition-all duration-300 ${barColor}`}
+        className={`h-1.5 rounded-full transition-all duration-300 ${barColor}`}
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -54,11 +55,16 @@ function VwapRangeBar({ maePct, entryPrice, currentPrice, vwapTarget, positionSi
   const hi = Math.max(maePrice, vwapTarget);
   const range = hi - lo;
   const fillPct = range > 0 ? Math.min(100, Math.max(0, ((currentPrice - lo) / range) * 100)) : 0;
-  const barColor = reached ? 'bg-teal-400' : 'bg-cyan-400';
+  const isShortSide = positionSide === 'SHORT';
+  const sideColor = isShortSide ? 'bg-orange-400' : 'bg-cyan-400';
+  const barColor = reached ? sideColor : sideColor;
+  const textColor = isShortSide
+    ? (reached ? 'text-orange-300' : 'text-slate-500')
+    : (reached ? 'text-cyan-300' : 'text-slate-500');
   return (
     <div className="flex items-center gap-1.5">
       <ConditionDot met={reached} />
-      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-300' : 'text-slate-500'}`}>
+      <span className={`text-[7px] flex-shrink-0 tabular-nums ${textColor}`}>
         {maePrice.toFixed(0)}
       </span>
       <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
@@ -67,7 +73,7 @@ function VwapRangeBar({ maePct, entryPrice, currentPrice, vwapTarget, positionSi
           style={{ width: `${reached ? 100 : fillPct}%` }}
         />
       </div>
-      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-300' : 'text-slate-500'}`}>
+      <span className={`text-[7px] flex-shrink-0 tabular-nums ${textColor}`}>
         {vwapTarget.toFixed(0)}
       </span>
     </div>
@@ -139,7 +145,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={rTrail.targetReached} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${rTrail.targetReached ? 'text-blue-300' : 'text-slate-500'}`}>MFE</span>
-                  <ProgressBar current={rTrail.mfePct} target={rTrail.trailTarget} color={rTrail.targetReached ? 'bg-blue-400' : undefined} />
+                  <ProgressBar current={rTrail.mfePct} target={rTrail.trailTarget} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.targetReached ? 'text-blue-300' : 'text-slate-500'}`}>
                     +{rTrail.mfePct.toFixed(2)}%
                   </span>
@@ -189,7 +195,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.maeOk} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
-                  <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} />
+                  <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-400' : 'text-slate-500'}`}>
                     {(cut.maeCurrent ?? 0).toFixed(2)}%
                   </span>
@@ -269,7 +275,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={swTrail.targetReached} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${swTrail.targetReached ? 'text-amber-300' : 'text-slate-500'}`}>MFE</span>
-                  <ProgressBar current={swTrail.mfePct} target={swTrail.trailTarget} color={swTrail.targetReached ? 'bg-amber-400' : undefined} />
+                  <ProgressBar current={swTrail.mfePct} target={swTrail.trailTarget} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.targetReached ? 'text-amber-300' : 'text-slate-500'}`}>
                     +{swTrail.mfePct.toFixed(2)}%
                   </span>
@@ -357,7 +363,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                 <div className="flex items-center gap-1.5">
                   <ConditionDot met={cut.maeOk} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
-                  <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} />
+                  <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-400' : 'text-slate-500'}`}>
                     {(cut.maeCurrent ?? 0).toFixed(2)}%
                   </span>
