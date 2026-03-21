@@ -463,7 +463,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
 
     return (
       <div className="flex flex-col gap-1.5">
-        <div className="bg-white border border-amber-200 rounded-lg shadow-sm p-2">
+        <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-slate-800">Status</h3>
             <Activity className="w-3 h-3 text-slate-600" />
@@ -521,7 +521,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
               </div>
             </div>
 
-            <div className="border-t border-amber-200 pt-1.5">
+            <div className="border-t border-stone-200 pt-1.5">
               <div className="text-[10px] text-slate-800 mb-1 font-medium">POSITION</div>
               {hasPosition && entryPrice ? (
                 <div className="space-y-0.5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-1.5 border border-amber-300">
@@ -708,10 +708,10 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
 
     return (
       <div className="flex flex-col gap-1.5">
-        <div className="bg-white border border-amber-300 rounded-lg shadow-sm p-2">
+        <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-slate-800">Performance</h3>
-            <DollarSign className="w-3 h-3 text-amber-600" />
+            <DollarSign className="w-3 h-3 text-slate-400" />
           </div>
 
           <div className="space-y-1.5">
@@ -762,7 +762,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           </div>
         </div>
 
-        <div className="bg-white border border-amber-200 rounded-lg shadow-sm p-2">
+        <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-slate-800">Statistics</h3>
             <Target className="w-3 h-3 text-slate-600" />
@@ -781,7 +781,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
               <span className="text-[10px] text-slate-600 font-bold">Total</span>
               <span className="text-xs font-bold text-slate-600">{totalTrades}</span>
             </div>
-            <div className="border-t border-amber-200 pt-1 mt-1">
+            <div className="border-t border-stone-200 pt-1 mt-1">
               <div className="text-[10px] text-slate-800 mb-1 font-bold">WIN RATE</div>
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-stone-200 rounded-full h-2.5 overflow-hidden">
@@ -828,7 +828,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
     });
 
     return (
-      <div className="bg-white border border-amber-200 rounded-lg shadow-sm p-2 flex flex-col" style={{ height: '100%' }}>
+      <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2 flex flex-col" style={{ height: '100%' }}>
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-[11px] font-bold text-slate-800">Recent Trades</h3>
           <div className="flex items-center gap-1">

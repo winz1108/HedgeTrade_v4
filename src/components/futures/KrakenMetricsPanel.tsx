@@ -710,10 +710,10 @@ export function KrakenMetricsPanel({ data, position }: Props) {
 
     return (
       <div className="flex flex-col gap-1.5">
-        <div className="bg-slate-800/95 border border-cyan-500/50 rounded-lg shadow-sm p-2">
+        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-white">Performance</h3>
-            <DollarSign className="w-3 h-3 text-cyan-400" />
+            <DollarSign className="w-3 h-3 text-slate-400" />
           </div>
 
           <div className="space-y-1.5">
@@ -766,7 +766,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-2">
+        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-white">Statistics</h3>
             <Target className="w-3 h-3 text-slate-300" />
@@ -787,7 +787,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 <span className="text-xs font-bold text-slate-300">{data.metrics.totalTrades}</span>
               </div>
             )}
-            <div className="border-t border-slate-600 pt-1 mt-1">
+            <div className="border-t border-slate-700 pt-1 mt-1">
               <div className="text-[10px] text-white mb-1 font-bold">WIN RATE</div>
               <div className="flex items-center gap-2">
                 {(() => {
@@ -846,7 +846,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
     });
 
     return (
-      <div className="bg-slate-800/95 border border-slate-600 rounded-lg shadow-sm p-2 flex flex-col" style={{ height: '100%' }}>
+      <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2 flex flex-col" style={{ height: '100%' }}>
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-[11px] font-bold text-white">Recent Trades</h3>
           <div className="flex items-center gap-1">
