@@ -50,6 +50,7 @@ interface BinanceExitConditionsPanelProps {
   entryMode?: 'SW' | 'RIDE';
   currentPnl?: number;
   mfePct?: number;
+  maePct?: number;
   currentPrice?: number;
   entryPrice?: number;
   positionSide?: 'LONG' | 'SHORT' | null;
@@ -76,13 +77,13 @@ function BProgressBar({ current, target }: { current: number; target: number }) 
   );
 }
 
-function BVwapRangeBar({ mfePct, entryPrice, currentPrice, vwapTarget, positionSide, reached }: {
-  mfePct: number; entryPrice: number; currentPrice: number; vwapTarget: number; positionSide?: 'LONG' | 'SHORT' | null; reached: boolean;
+function BVwapRangeBar({ maePct, entryPrice, currentPrice, vwapTarget, positionSide, reached }: {
+  maePct: number; entryPrice: number; currentPrice: number; vwapTarget: number; positionSide?: 'LONG' | 'SHORT' | null; reached: boolean;
 }) {
   const isShort = positionSide === 'SHORT';
-  const mfePrice = isShort ? entryPrice * (1 - mfePct / 100) : entryPrice * (1 + mfePct / 100);
-  const lo = Math.min(mfePrice, vwapTarget);
-  const hi = Math.max(mfePrice, vwapTarget);
+  const maePrice = isShort ? entryPrice * (1 + Math.abs(maePct) / 100) : entryPrice * (1 - Math.abs(maePct) / 100);
+  const lo = Math.min(maePrice, vwapTarget);
+  const hi = Math.max(maePrice, vwapTarget);
   const range = hi - lo;
   const fillPct = range > 0 ? Math.min(100, Math.max(0, ((currentPrice - lo) / range) * 100)) : 0;
   const barColor = reached ? 'bg-teal-500' : 'bg-cyan-500';
@@ -90,7 +91,7 @@ function BVwapRangeBar({ mfePct, entryPrice, currentPrice, vwapTarget, positionS
     <div className="flex items-center gap-1.5">
       <BConditionDot met={reached} />
       <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-400'}`}>
-        {mfePrice.toFixed(0)}
+        {maePrice.toFixed(0)}
       </span>
       <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
         <div
@@ -105,7 +106,7 @@ function BVwapRangeBar({ mfePct, entryPrice, currentPrice, vwapTarget, positionS
   );
 }
 
-function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl, mfePct, currentPrice, entryPrice, positionSide }: BinanceExitConditionsPanelProps) {
+function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl, mfePct, maePct, currentPrice, entryPrice, positionSide }: BinanceExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
   const rTrail = exitConditions?.RTRAIL;
@@ -261,7 +262,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                 </div>
                 {currentPrice != null && entryPrice != null && vwapTarget != null && (
                   <BVwapRangeBar
-                    mfePct={mfePct ?? 0}
+                    maePct={maePct ?? 0}
                     entryPrice={entryPrice}
                     currentPrice={currentPrice}
                     vwapTarget={vwapTarget}
@@ -653,6 +654,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           entryMode={ss?.entry_mode || data.position?.entry_mode}
           currentPnl={currentPnl}
           mfePct={data.position.mfe}
+          maePct={data.position.mae}
           currentPrice={data.currentPrice}
           entryPrice={entryPrice ?? undefined}
           positionSide={positionSide}

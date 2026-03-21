@@ -16,6 +16,7 @@ interface ExitConditionsPanelProps {
   entryMode?: 'SW' | 'RIDE';
   currentPnl?: number;
   mfePct?: number;
+  maePct?: number;
   currentPrice?: number;
   entryPrice?: number;
   positionSide?: 'LONG' | 'SHORT' | null;
@@ -44,13 +45,13 @@ function ProgressBar({ current, target, reverse = false, color }: { current: num
   );
 }
 
-function VwapRangeBar({ mfePct, entryPrice, currentPrice, vwapTarget, positionSide, reached }: {
-  mfePct: number; entryPrice: number; currentPrice: number; vwapTarget: number; positionSide?: 'LONG' | 'SHORT' | null; reached: boolean;
+function VwapRangeBar({ maePct, entryPrice, currentPrice, vwapTarget, positionSide, reached }: {
+  maePct: number; entryPrice: number; currentPrice: number; vwapTarget: number; positionSide?: 'LONG' | 'SHORT' | null; reached: boolean;
 }) {
   const isShort = positionSide === 'SHORT';
-  const mfePrice = isShort ? entryPrice * (1 - mfePct / 100) : entryPrice * (1 + mfePct / 100);
-  const lo = Math.min(mfePrice, vwapTarget);
-  const hi = Math.max(mfePrice, vwapTarget);
+  const maePrice = isShort ? entryPrice * (1 + Math.abs(maePct) / 100) : entryPrice * (1 - Math.abs(maePct) / 100);
+  const lo = Math.min(maePrice, vwapTarget);
+  const hi = Math.max(maePrice, vwapTarget);
   const range = hi - lo;
   const fillPct = range > 0 ? Math.min(100, Math.max(0, ((currentPrice - lo) / range) * 100)) : 0;
   const barColor = reached ? 'bg-teal-400' : 'bg-cyan-400';
@@ -58,7 +59,7 @@ function VwapRangeBar({ mfePct, entryPrice, currentPrice, vwapTarget, positionSi
     <div className="flex items-center gap-1.5">
       <ConditionDot met={reached} />
       <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-300' : 'text-slate-500'}`}>
-        {mfePrice.toFixed(0)}
+        {maePrice.toFixed(0)}
       </span>
       <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
         <div
@@ -73,7 +74,7 @@ function VwapRangeBar({ mfePct, entryPrice, currentPrice, vwapTarget, positionSi
   );
 }
 
-function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl, mfePct, currentPrice, entryPrice, positionSide }: ExitConditionsPanelProps) {
+function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl, mfePct, maePct, currentPrice, entryPrice, positionSide }: ExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
   const rTrail = exitConditions?.RTRAIL;
@@ -230,7 +231,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                 </div>
                 {currentPrice != null && entryPrice != null && vwapTarget != null && (
                   <VwapRangeBar
-                    mfePct={mfePct ?? 0}
+                    maePct={maePct ?? 0}
                     entryPrice={entryPrice}
                     currentPrice={currentPrice}
                     vwapTarget={vwapTarget}
@@ -665,6 +666,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           entryMode={ss?.entryMode || data.position?.entry_mode || data.strategyA?.entry_mode}
           currentPnl={currentPnl}
           mfePct={ss?.mfe ?? data.strategyA?.mfe}
+          maePct={ss?.mae ?? data.strategyA?.mae}
           currentPrice={data.currentPrice}
           entryPrice={data.position?.entry_price ?? ss?.entryPrice}
           positionSide={data.position?.position_side}
