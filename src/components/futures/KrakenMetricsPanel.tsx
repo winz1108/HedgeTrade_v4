@@ -22,10 +22,14 @@ interface ExitConditionsPanelProps {
   positionSide?: 'LONG' | 'SHORT' | null;
 }
 
-function ConditionDot({ met }: { met: boolean }) {
+function ConditionDot({ met, positionSide }: { met: boolean; positionSide?: 'LONG' | 'SHORT' | null }) {
+  const isShort = positionSide === 'SHORT';
+  const activeColor = isShort
+    ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.8)]'
+    : 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]';
   return (
     <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
-      met ? 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]' : 'bg-slate-600'
+      met ? activeColor : 'bg-slate-600'
     }`} />
   );
 }
@@ -57,7 +61,7 @@ function VwapRangeBar({ maePct, entryPrice, currentPrice, vwapTarget, positionSi
   const sideColor = isShort ? 'bg-orange-400' : 'bg-cyan-400';
   return (
     <div className="flex items-center gap-1.5">
-      <ConditionDot met={reached} />
+      <ConditionDot met={reached} positionSide={positionSide} />
       <span className={`text-[9px] w-[30px] flex-shrink-0 tabular-nums ${reached ? (isShort ? 'text-orange-300' : 'text-cyan-300') : 'text-slate-500'}`}>
         {maePrice.toFixed(0)}
       </span>
@@ -144,7 +148,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={rTrail.targetReached} />
+                  <ConditionDot met={rTrail.targetReached} positionSide={positionSide} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${rTrail.targetReached ? rActiveColor : 'text-slate-500'}`}>MFE</span>
                   <ProgressBar current={rTrail.mfePct} target={rTrail.trailTarget} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.targetReached ? rActiveColor : 'text-slate-500'}`}>
@@ -195,7 +199,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={cut.maeOk} />
+                  <ConditionDot met={cut.maeOk} positionSide={positionSide} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
                   <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-400' : 'text-slate-500'}`}>
@@ -203,7 +207,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={cut.emaReversed} />
+                  <ConditionDot met={cut.emaReversed} positionSide={positionSide} />
                   <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
                 </div>
               </div>
@@ -288,7 +292,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={swTrail.targetReached} />
+                  <ConditionDot met={swTrail.targetReached} positionSide={positionSide} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${swTrail.targetReached ? trailActiveColor : 'text-slate-500'}`}>MFE</span>
                   <ProgressBar current={swTrail.mfePct} target={swTrail.trailTarget} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.targetReached ? trailActiveColor : 'text-slate-500'}`}>
@@ -377,7 +381,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
               })()}
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={cut.maeOk} />
+                  <ConditionDot met={cut.maeOk} positionSide={positionSide} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-300' : 'text-slate-600'}`}>MAE</span>
                   <ProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-400' : 'text-slate-500'}`}>
@@ -385,7 +389,7 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <ConditionDot met={cut.emaReversed} />
+                  <ConditionDot met={cut.emaReversed} positionSide={positionSide} />
                   <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-300' : 'text-slate-600'}`}>1m EMA 역전</span>
                 </div>
               </div>

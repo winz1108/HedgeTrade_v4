@@ -56,10 +56,14 @@ interface BinanceExitConditionsPanelProps {
   positionSide?: 'LONG' | 'SHORT' | null;
 }
 
-function BConditionDot({ met }: { met: boolean }) {
+function BConditionDot({ met, positionSide }: { met: boolean; positionSide?: 'LONG' | 'SHORT' | null }) {
+  const isShort = positionSide === 'SHORT';
+  const activeColor = isShort
+    ? 'bg-orange-500 shadow-[0_0_4px_rgba(251,146,60,0.7)]'
+    : 'bg-cyan-500 shadow-[0_0_4px_rgba(6,182,212,0.7)]';
   return (
     <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
-      met ? 'bg-cyan-500 shadow-[0_0_4px_rgba(6,182,212,0.7)]' : 'bg-stone-300'
+      met ? activeColor : 'bg-stone-300'
     }`} />
   );
 }
@@ -90,7 +94,7 @@ function BVwapRangeBar({ maePct, entryPrice, currentPrice, vwapTarget, positionS
   const sideColor = isShort ? 'bg-orange-500' : 'bg-cyan-500';
   return (
     <div className="flex items-center gap-1.5">
-      <BConditionDot met={reached} />
+      <BConditionDot met={reached} positionSide={positionSide} />
       <span className={`text-[9px] w-[30px] flex-shrink-0 tabular-nums ${reached ? (isShort ? 'text-orange-600' : 'text-cyan-600') : 'text-stone-400'}`}>
         {maePrice.toFixed(0)}
       </span>
@@ -176,7 +180,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={rTrail.targetReached} />
+                  <BConditionDot met={rTrail.targetReached} positionSide={positionSide} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${rTrail.targetReached ? rActiveColor : 'text-stone-500'}`}>MFE</span>
                   <BProgressBar current={rTrail.mfePct} target={rTrail.trailTarget} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${rTrail.targetReached ? rActiveColor : 'text-stone-500'}`}>
@@ -227,7 +231,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.maeOk} />
+                  <BConditionDot met={cut.maeOk} positionSide={positionSide} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
                   <BProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-slate-400'}`}>
@@ -235,7 +239,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.emaReversed} />
+                  <BConditionDot met={cut.emaReversed} positionSide={positionSide} />
                   <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
                 </div>
               </div>
@@ -320,7 +324,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               </div>
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={swTrail.targetReached} />
+                  <BConditionDot met={swTrail.targetReached} positionSide={positionSide} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${swTrail.targetReached ? trailActiveColor : 'text-stone-500'}`}>MFE</span>
                   <BProgressBar current={swTrail.mfePct} target={swTrail.trailTarget} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${swTrail.targetReached ? trailActiveColor : 'text-stone-500'}`}>
@@ -407,7 +411,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
               })()}
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.maeOk} />
+                  <BConditionDot met={cut.maeOk} positionSide={positionSide} />
                   <span className={`text-[9px] w-[30px] flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-stone-400'}`}>MAE</span>
                   <BProgressBar current={Math.abs(cut.maeCurrent ?? 0)} target={Math.abs(cut.maeThreshold ?? 1)} positionSide={positionSide} />
                   <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 ${cut.maeOk ? 'text-rose-600' : 'text-slate-400'}`}>
@@ -415,7 +419,7 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <BConditionDot met={cut.emaReversed} />
+                  <BConditionDot met={cut.emaReversed} positionSide={positionSide} />
                   <span className={`text-[9px] flex-1 ${cut.emaReversed ? 'text-rose-700' : 'text-stone-400'}`}>1m EMA 역전</span>
                 </div>
               </div>
