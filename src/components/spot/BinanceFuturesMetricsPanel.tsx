@@ -51,6 +51,7 @@ interface BinanceExitConditionsPanelProps {
   currentPnl?: number;
   mfePct?: number;
   currentPrice?: number;
+  entryPrice?: number;
   positionSide?: 'LONG' | 'SHORT' | null;
 }
 
@@ -75,41 +76,36 @@ function BProgressBar({ current, target }: { current: number; target: number }) 
   );
 }
 
-function BVwapRangeBar({ mfePct, distToVwap, currentPnl, reached }: { mfePct: number; distToVwap: number; currentPnl?: number; reached: boolean }) {
-  const mfeAbs = Math.abs(mfePct);
-  const vwapDist = Math.abs(distToVwap);
-  const totalRange = mfeAbs + vwapDist;
-  const currentPnlAbs = Math.abs(currentPnl ?? 0);
-  const fillPct = totalRange > 0 ? Math.min(100, Math.max(0, (currentPnlAbs / totalRange) * 100)) : 0;
-  const barColor = reached ? 'bg-teal-500' : (currentPnl ?? 0) >= 0 ? 'bg-cyan-500' : 'bg-rose-400';
+function BVwapRangeBar({ mfePct, entryPrice, currentPrice, vwapTarget, positionSide, reached }: {
+  mfePct: number; entryPrice: number; currentPrice: number; vwapTarget: number; positionSide?: 'LONG' | 'SHORT' | null; reached: boolean;
+}) {
+  const isShort = positionSide === 'SHORT';
+  const mfePrice = isShort ? entryPrice * (1 - mfePct / 100) : entryPrice * (1 + mfePct / 100);
+  const lo = Math.min(mfePrice, vwapTarget);
+  const hi = Math.max(mfePrice, vwapTarget);
+  const range = hi - lo;
+  const fillPct = range > 0 ? Math.min(100, Math.max(0, ((currentPrice - lo) / range) * 100)) : 0;
+  const barColor = reached ? 'bg-teal-500' : 'bg-cyan-500';
   return (
-    <div className="flex flex-col gap-0.5">
-      <div className="flex items-center gap-1.5">
-        <BConditionDot met={reached} />
-        <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-400'}`}>
-          MFE {mfePct.toFixed(2)}%
-        </span>
-        <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden relative">
-          <div
-            className={`h-1.5 rounded-full transition-all duration-300 ${barColor}`}
-            style={{ width: `${reached ? 100 : fillPct}%` }}
-          />
-          {mfeAbs > 0 && totalRange > 0 && !reached && (
-            <div
-              className="absolute top-0 h-1.5 w-px bg-amber-500/80"
-              style={{ left: `${Math.min(100, (mfeAbs / totalRange) * 100)}%` }}
-            />
-          )}
-        </div>
-        <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-500'}`}>
-          VWAP {distToVwap >= 0 ? '+' : ''}{distToVwap.toFixed(2)}%
-        </span>
+    <div className="flex items-center gap-1.5">
+      <BConditionDot met={reached} />
+      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-400'}`}>
+        {mfePrice.toFixed(0)}
+      </span>
+      <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
+        <div
+          className={`h-1.5 rounded-full transition-all duration-300 ${barColor}`}
+          style={{ width: `${reached ? 100 : fillPct}%` }}
+        />
       </div>
+      <span className={`text-[7px] flex-shrink-0 tabular-nums ${reached ? 'text-teal-600' : 'text-stone-500'}`}>
+        {vwapTarget.toFixed(0)}
+      </span>
     </div>
   );
 }
 
-function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl, mfePct, currentPrice, positionSide }: BinanceExitConditionsPanelProps) {
+function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl, mfePct, currentPrice, entryPrice, positionSide }: BinanceExitConditionsPanelProps) {
   const vwap = exitConditions?.VWAP;
   const cut = exitConditions?.CUT;
   const rTrail = exitConditions?.RTRAIL;
@@ -263,11 +259,13 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, st
                     </span>
                   )}
                 </div>
-                {vwap.distanceToVwap != null && (
+                {currentPrice != null && entryPrice != null && vwapTarget != null && (
                   <BVwapRangeBar
                     mfePct={mfePct ?? 0}
-                    distToVwap={vwap.distanceToVwap}
-                    currentPnl={currentPnl}
+                    entryPrice={entryPrice}
+                    currentPrice={currentPrice}
+                    vwapTarget={vwapTarget}
+                    positionSide={positionSide}
                     reached={vwapReached}
                   />
                 )}
@@ -656,6 +654,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           currentPnl={currentPnl}
           mfePct={data.position.mfe}
           currentPrice={data.currentPrice}
+          entryPrice={entryPrice ?? undefined}
           positionSide={positionSide}
         />
       </div>
