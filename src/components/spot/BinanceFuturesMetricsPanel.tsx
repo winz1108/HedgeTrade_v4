@@ -1,4 +1,4 @@
-import { DollarSign, Activity, Target, History, ShieldAlert, Clock } from 'lucide-react';
+import { DollarSign, Activity, Target, History, ShieldAlert, Clock, TrendingUp } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
 import type { BFDashboardData, V10StrategyStatus, ExitConditions, V32Data } from '../../types/dashboard';
@@ -8,7 +8,6 @@ interface Props {
   position: 'left' | 'right' | 'trades';
   currentTime: number;
 }
-
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
   const diffMs = currentTime - entryTime;
@@ -42,9 +41,136 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
   return { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-300' };
 };
 
-interface BinanceExitConditionsPanelProps {
+const PATTERN_LABELS: Record<string, string> = {
+  '382': '38.2% Retracement',
+  'ENG': 'Engulfing',
+  'REV': 'Reversal',
+  'DBL': 'Double Bottom/Top',
+  'FLAG': 'Flag Pattern',
+  'RSI_DIV': 'RSI Divergence',
+};
+
+function EntryConditionsPanel({ ss, currentPrice }: { ss?: V10StrategyStatus; currentPrice: number }) {
+  const v32 = ss?.v32;
+  const ema200Dir = v32?.ema200_direction ?? 0;
+  const htfAlign = v32?.htf_alignment ?? 0;
+  const ema20 = v32?.ema20;
+  const ema50 = v32?.ema50;
+  const ema200 = v32?.ema200;
+  const atr = v32?.atr;
+  const isInValueZone = ema20 != null && ema50 != null && atr != null && currentPrice
+    ? (currentPrice >= Math.min(ema20, ema50) - 2 * atr && currentPrice <= Math.max(ema20, ema50) + 2 * atr)
+    : false;
+  const entryPattern = v32?.entry_pattern;
+
+  const trendDirection = ema200Dir === 1 ? 'long' : ema200Dir === -1 ? 'short' : 'neutral';
+  const htfDirection = htfAlign === 1 ? 'long' : htfAlign === -1 ? 'short' : 'neutral';
+
+  const conditions = [
+    {
+      key: 'htf',
+      label: '4h HTF',
+      met: htfAlign !== 0,
+      detail: htfAlign === 1 ? 'Bullish' : htfAlign === -1 ? 'Bearish' : 'Neutral',
+      sub: v32?.htf_ema50 != null ? `EMA50: $${v32.htf_ema50.toFixed(0)}` : null,
+      direction: htfDirection,
+    },
+    {
+      key: 'trend',
+      label: 'EMA200',
+      met: ema200Dir !== 0,
+      detail: ema200Dir === 1 ? 'Uptrend' : ema200Dir === -1 ? 'Downtrend' : 'Flat',
+      sub: ema200 != null ? `$${ema200.toFixed(0)} (${currentPrice > ema200 ? '+' : ''}${((currentPrice - ema200) / ema200 * 100).toFixed(2)}%)` : null,
+      direction: trendDirection,
+    },
+    {
+      key: 'vz',
+      label: 'Value Zone',
+      met: isInValueZone,
+      detail: isInValueZone ? 'In Zone' : 'Outside',
+      sub: ema20 != null && ema50 != null ? `EMA20: $${ema20.toFixed(0)} / EMA50: $${ema50.toFixed(0)}` : null,
+      direction: isInValueZone ? 'active' : 'neutral',
+    },
+    {
+      key: 'pattern',
+      label: 'Pattern',
+      met: !!entryPattern,
+      detail: entryPattern ? (PATTERN_LABELS[entryPattern] || entryPattern) : 'Scanning...',
+      sub: entryPattern ? `1h candle close` : '6 patterns monitored',
+      direction: entryPattern ? 'active' : 'neutral',
+    },
+  ];
+
+  const metCount = conditions.filter(c => c.met).length;
+  const progressPct = (metCount / conditions.length) * 100;
+
+  const getConditionStyle = (met: boolean, direction: string) => {
+    if (!met) return { bg: 'bg-stone-50 border-stone-200', text: 'text-stone-400', detail: 'text-stone-400', dot: 'bg-stone-300' };
+    if (direction === 'long') return { bg: 'bg-cyan-50 border-cyan-400', text: 'text-cyan-700', detail: 'text-cyan-600', dot: 'bg-cyan-500 shadow-[0_0_6px_rgba(6,182,212,0.9)]' };
+    if (direction === 'short') return { bg: 'bg-orange-50 border-orange-400', text: 'text-orange-700', detail: 'text-orange-600', dot: 'bg-orange-500 shadow-[0_0_6px_rgba(251,146,60,0.9)]' };
+    return { bg: 'bg-emerald-50 border-emerald-400', text: 'text-emerald-700', detail: 'text-emerald-600', dot: 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.9)]' };
+  };
+
+  return (
+    <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Entry Conditions</h3>
+        <div className={`text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded ${
+          progressPct >= 100 ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-stone-100 text-slate-500 border border-stone-200'
+        }`}>{metCount}/{conditions.length}</div>
+      </div>
+
+      <div className="mb-2">
+        <div className="bg-stone-200 rounded-full h-2 overflow-hidden">
+          <div className={`h-2 rounded-full transition-all duration-500 ${
+            progressPct >= 100 ? 'bg-emerald-500' : progressPct >= 75 ? 'bg-cyan-500' : progressPct >= 50 ? 'bg-amber-500' : 'bg-stone-400'
+          }`} style={{ width: `${progressPct}%` }} />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        {conditions.map(c => {
+          const style = getConditionStyle(c.met, c.direction);
+          return (
+            <div key={c.key} className={`rounded-md border p-1.5 transition-all duration-300 ${style.bg}`}>
+              <div className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all ${style.dot}`} />
+                <span className={`text-[10px] font-bold flex-shrink-0 ${style.text}`}>{c.label}</span>
+                <span className={`text-[10px] font-bold ml-auto tabular-nums ${style.detail}`}>{c.detail}</span>
+              </div>
+              {c.sub && (
+                <div className={`text-[8px] mt-0.5 ml-3.5 ${c.met ? style.detail : 'text-stone-400'} opacity-80`}>{c.sub}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {(v32?.rsi != null || v32?.atr != null) && (
+        <div className="mt-1.5 flex items-center gap-3 bg-stone-50 rounded-md border border-stone-200 px-2 py-1">
+          {v32?.rsi != null && (
+            <div className="flex items-center gap-1">
+              <span className="text-[8px] text-stone-500 font-medium">RSI(14)</span>
+              <span className={`text-[10px] font-bold tabular-nums ${
+                v32.rsi > 70 ? 'text-rose-600' : v32.rsi < 30 ? 'text-emerald-600' : 'text-slate-700'
+              }`}>{v32.rsi.toFixed(1)}</span>
+            </div>
+          )}
+          {v32?.atr != null && (
+            <div className="flex items-center gap-1">
+              <span className="text-[8px] text-stone-500 font-medium">ATR(14)</span>
+              <span className="text-[10px] font-bold tabular-nums text-slate-700">${v32.atr.toFixed(0)}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ExitPanelProps {
   exitConditions?: ExitConditions;
-  exitPrices?: { vwapTarget?: number; cutThresholdMae?: number; rideTrailPrice?: number; slPrice?: number; trailPrice?: number; [key: string]: any };
+  exitPrices?: { slPrice?: number; trailPrice?: number; [key: string]: any };
   inPosition: boolean;
   currentPnl?: number;
   mfePct?: number;
@@ -54,26 +180,30 @@ interface BinanceExitConditionsPanelProps {
   v32?: V32Data;
 }
 
-function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, currentPnl, mfePct, currentPrice, entryPrice, positionSide, v32 }: BinanceExitConditionsPanelProps) {
+function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, currentPnl, mfePct, currentPrice, entryPrice, positionSide, v32 }: ExitPanelProps) {
   if (!inPosition) return null;
 
   const isShort = positionSide === 'SHORT';
-  const sideColor = isShort ? 'text-orange-600' : 'text-cyan-600';
-  const sideBg = isShort ? 'bg-orange-50 border-orange-300' : 'bg-cyan-50 border-cyan-300';
 
-  const slPrice = v32?.sl_price ?? exitPrices?.slPrice ?? exitConditions?.SL?.slPrice;
   const trailPrice = v32?.trail_price ?? exitPrices?.trailPrice;
   const peakPnl = v32?.peak_pnl ?? exitConditions?.V32TRAIL?.peakPnl ?? mfePct ?? 0;
+  const trailArmed = exitConditions?.V32TRAIL?.armed ?? (peakPnl > 0.5);
+  const trailLevel = exitConditions?.V32TRAIL?.currentLevel;
+
+  const slPrice = v32?.sl_price ?? exitPrices?.slPrice ?? exitConditions?.SL?.slPrice;
+  const slArmed = exitConditions?.SL?.armed ?? !!slPrice;
+  const slDistance = slPrice && currentPrice
+    ? (isShort ? ((slPrice - currentPrice) / currentPrice * 100) : ((currentPrice - slPrice) / currentPrice * 100))
+    : null;
+
   const barsHeld = v32?.bars_held ?? exitConditions?.TIME?.barsHeld ?? 0;
   const maxBars = v32?.max_bars ?? exitConditions?.TIME?.maxBars ?? 24;
   const timeProgress = maxBars > 0 ? Math.min(100, (barsHeld / maxBars) * 100) : 0;
+  const remainingHours = maxBars - barsHeld;
 
-  const slArmed = exitConditions?.SL?.armed ?? !!slPrice;
-  const trailArmed = exitConditions?.V32TRAIL?.armed ?? (peakPnl > 0);
-
-  const slDistance = slPrice && currentPrice
-    ? (isShort ? ((slPrice - currentPrice) / currentPrice * 100) : ((currentPrice - slPrice) / currentPrice * 100))
-    : 0;
+  const sideActiveColors = isShort
+    ? { bg: 'bg-orange-50 border-orange-400', text: 'text-orange-700', dot: 'bg-orange-500 shadow-[0_0_6px_rgba(251,146,60,0.9)]', bar: 'bg-orange-500' }
+    : { bg: 'bg-cyan-50 border-cyan-400', text: 'text-cyan-700', dot: 'bg-cyan-500 shadow-[0_0_6px_rgba(6,182,212,0.9)]', bar: 'bg-cyan-500' };
 
   return (
     <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
@@ -83,16 +213,56 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, cu
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className={`rounded-md border p-1.5 transition-all ${
-          slArmed ? 'bg-rose-50 border-rose-300' : 'bg-stone-50 border-stone-200'
+        <div className={`rounded-md border p-2 transition-all duration-300 ${
+          trailArmed ? sideActiveColors.bg : 'bg-stone-50 border-stone-200'
         }`}>
-          <div className="flex items-center justify-between mb-0.5">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                slArmed ? 'bg-rose-500 shadow-[0_0_5px_rgba(248,113,113,0.9)]' : 'bg-stone-300'
+              <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all ${
+                trailArmed ? sideActiveColors.dot : 'bg-stone-300'
+              }`} />
+              <span className={`text-[10px] font-bold ${trailArmed ? sideActiveColors.text : 'text-slate-500'}`}>TRAIL</span>
+              <span className="text-[8px] text-stone-400">ATR Trailing</span>
+            </div>
+            {trailPrice != null && (
+              <span className={`text-[10px] font-bold tabular-nums ${trailArmed ? sideActiveColors.text : 'text-slate-400'}`}>
+                ${trailPrice.toFixed(1)}
+              </span>
+            )}
+          </div>
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className={`text-[9px] w-[36px] flex-shrink-0 ${trailArmed ? sideActiveColors.text : 'text-stone-400'}`}>Peak</span>
+              <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
+                <div className={`h-1.5 rounded-full transition-all duration-300 ${trailArmed ? sideActiveColors.bar : 'bg-stone-300'}`}
+                  style={{ width: `${Math.min(100, Math.max(0, peakPnl * 20))}%` }} />
+              </div>
+              <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 font-bold ${trailArmed ? sideActiveColors.text : 'text-stone-400'}`}>
+                +{peakPnl.toFixed(2)}%
+              </span>
+            </div>
+            {trailArmed && currentPnl != null && (
+              <div className={`flex items-center gap-1.5 ${isShort ? 'bg-orange-100/60' : 'bg-cyan-100/60'} rounded px-1.5 py-0.5 mt-0.5`}>
+                <TrendingUp className={`w-2.5 h-2.5 ${sideActiveColors.text}`} />
+                <span className={`text-[8px] font-semibold ${sideActiveColors.text}`}>Trailing active</span>
+                <span className={`text-[9px] tabular-nums font-bold ml-auto ${currentPnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {currentPnl >= 0 ? '+' : ''}{currentPnl.toFixed(2)}%
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className={`rounded-md border p-2 transition-all duration-300 ${
+          slArmed ? 'bg-rose-50 border-rose-400' : 'bg-stone-50 border-stone-200'
+        }`}>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-1.5">
+              <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all ${
+                slArmed ? 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.9)]' : 'bg-stone-300'
               }`} />
               <span className={`text-[10px] font-bold ${slArmed ? 'text-rose-700' : 'text-slate-500'}`}>SL</span>
-              <span className="text-[8px] text-stone-400">ATR Stop</span>
+              <span className="text-[8px] text-stone-400">0.5 x ATR</span>
             </div>
             {slPrice != null && (
               <span className={`text-[10px] font-bold tabular-nums ${slArmed ? 'text-rose-700' : 'text-slate-400'}`}>
@@ -100,72 +270,46 @@ function BinanceExitConditionsPanel({ exitConditions, exitPrices, inPosition, cu
               </span>
             )}
           </div>
-          {slDistance !== 0 && (
+          {slDistance != null && (
             <div className="flex items-center gap-1.5">
-              <span className={`text-[9px] w-[50px] flex-shrink-0 ${slArmed ? 'text-rose-600' : 'text-stone-400'}`}>Distance</span>
+              <span className={`text-[9px] w-[36px] flex-shrink-0 ${slArmed ? 'text-rose-600' : 'text-stone-400'}`}>Dist.</span>
               <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
                 <div className="h-1.5 rounded-full transition-all duration-300 bg-rose-400"
-                  style={{ width: `${Math.min(100, Math.max(5, 100 - Math.abs(slDistance) * 20))}%` }} />
+                  style={{ width: `${Math.min(100, Math.max(5, 100 - Math.abs(slDistance) * 15))}%` }} />
               </div>
-              <span className={`text-[9px] tabular-nums w-[40px] text-right flex-shrink-0 ${slArmed ? 'text-rose-600' : 'text-slate-400'}`}>
+              <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 font-bold ${
+                slDistance < 0.5 ? 'text-rose-600' : slArmed ? 'text-rose-600' : 'text-slate-400'
+              }`}>
                 {slDistance.toFixed(2)}%
               </span>
             </div>
           )}
         </div>
 
-        <div className={`rounded-md border p-1.5 transition-all ${
-          trailArmed ? sideBg : 'bg-stone-50 border-stone-200'
+        <div className={`rounded-md border p-2 transition-all duration-300 ${
+          timeProgress >= 75 ? 'bg-amber-50 border-amber-400' : 'bg-stone-50 border-stone-200'
         }`}>
-          <div className="flex items-center justify-between mb-0.5">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                trailArmed
-                  ? (isShort ? 'bg-orange-500 shadow-[0_0_5px_rgba(251,146,60,0.9)]' : 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.9)]')
-                  : 'bg-stone-300'
-              }`} />
-              <span className={`text-[10px] font-bold ${trailArmed ? sideColor : 'text-slate-500'}`}>TRAIL</span>
-              <span className="text-[8px] text-stone-400">ATR Trailing</span>
+              <Clock className={`w-3.5 h-3.5 ${timeProgress >= 75 ? 'text-amber-600' : 'text-stone-400'}`} />
+              <span className={`text-[10px] font-bold ${timeProgress >= 75 ? 'text-amber-700' : 'text-slate-500'}`}>TIMEOUT</span>
+              <span className="text-[8px] text-stone-400">{maxBars}h max</span>
             </div>
-            {trailPrice != null && (
-              <span className={`text-[10px] font-bold tabular-nums ${trailArmed ? sideColor : 'text-slate-400'}`}>
-                ${trailPrice.toFixed(1)}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className={`text-[9px] w-[50px] flex-shrink-0 ${trailArmed ? sideColor : 'text-stone-400'}`}>Peak</span>
-            <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
-              <div className={`h-1.5 rounded-full transition-all duration-300 ${isShort ? 'bg-orange-500' : 'bg-cyan-500'}`}
-                style={{ width: `${Math.min(100, Math.max(0, peakPnl * 20))}%` }} />
-            </div>
-            <span className={`text-[9px] tabular-nums w-[40px] text-right flex-shrink-0 ${trailArmed ? sideColor : 'text-slate-400'}`}>
-              +{peakPnl.toFixed(2)}%
-            </span>
-          </div>
-        </div>
-
-        <div className={`rounded-md border p-1.5 transition-all ${
-          timeProgress >= 80 ? 'bg-amber-50 border-amber-300' : 'bg-stone-50 border-stone-200'
-        }`}>
-          <div className="flex items-center justify-between mb-0.5">
-            <div className="flex items-center gap-1.5">
-              <Clock className={`w-3 h-3 ${timeProgress >= 80 ? 'text-amber-600' : 'text-stone-400'}`} />
-              <span className={`text-[10px] font-bold ${timeProgress >= 80 ? 'text-amber-700' : 'text-slate-500'}`}>TIME</span>
-              <span className="text-[8px] text-stone-400">{maxBars}h Max</span>
-            </div>
-            <span className={`text-[10px] font-bold tabular-nums ${timeProgress >= 80 ? 'text-amber-700' : 'text-slate-400'}`}>
-              {barsHeld}/{maxBars}h
+            <span className={`text-[10px] font-bold tabular-nums ${timeProgress >= 75 ? 'text-amber-700' : 'text-slate-400'}`}>
+              {remainingHours > 0 ? `${remainingHours}h left` : 'Expired'}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
+            <span className={`text-[9px] w-[36px] flex-shrink-0 tabular-nums ${timeProgress >= 75 ? 'text-amber-600' : 'text-stone-400'}`}>
+              {barsHeld}h
+            </span>
             <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
               <div className={`h-1.5 rounded-full transition-all duration-300 ${
-                timeProgress >= 80 ? 'bg-amber-500' : 'bg-stone-400'
+                timeProgress >= 90 ? 'bg-rose-500' : timeProgress >= 75 ? 'bg-amber-500' : 'bg-stone-400'
               }`} style={{ width: `${timeProgress}%` }} />
             </div>
-            <span className={`text-[9px] tabular-nums w-[30px] text-right flex-shrink-0 ${
-              timeProgress >= 80 ? 'text-amber-600' : 'text-slate-400'
+            <span className={`text-[9px] tabular-nums w-[36px] text-right flex-shrink-0 font-bold ${
+              timeProgress >= 75 ? 'text-amber-600' : 'text-slate-400'
             }`}>
               {timeProgress.toFixed(0)}%
             </span>
@@ -193,9 +337,6 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
     const entryPrice = data.position.entryPrice;
     const currentPnl = data.position.currentPnl;
     const ss = data.strategyStatus;
-    const entryConditionsLong = data.strategy?.entryConditionsLong || data.strategy?.entry_conditions_long;
-    const entryConditionsShort = data.strategy?.entryConditionsShort || data.strategy?.entry_conditions_short;
-    const entryDetails = data.strategyStatus?.entryDetails || data.strategy?.entryDetails || data.strategy?.entry_details;
 
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {
@@ -316,74 +457,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           </div>
         </div>
 
-        <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Entry Conditions</h3>
-          </div>
+        <EntryConditionsPanel ss={ss} currentPrice={data.currentPrice} />
 
-          {(() => {
-            const v32 = ss?.v32;
-            const ema200Dir = v32?.ema200_direction ?? 0;
-            const htfAlign = v32?.htf_alignment ?? 0;
-            const ema20 = v32?.ema20;
-            const ema50 = v32?.ema50;
-            const atr = v32?.atr;
-            const isInValueZone = ema20 != null && ema50 != null && atr != null && data.currentPrice
-              ? (data.currentPrice >= Math.min(ema20, ema50) - 2 * atr && data.currentPrice <= Math.max(ema20, ema50) + 2 * atr)
-              : false;
-            const entryPattern = v32?.entry_pattern;
-
-            const conditions = [
-              { key: 'trend', label: 'EMA200', desc: ema200Dir === 1 ? 'Up' : ema200Dir === -1 ? 'Down' : 'Flat', met: ema200Dir !== 0, color: ema200Dir === 1 ? 'text-cyan-600' : ema200Dir === -1 ? 'text-orange-600' : 'text-stone-400' },
-              { key: 'htf', label: 'HTF 4h', desc: htfAlign === 1 ? 'Aligned' : htfAlign === -1 ? 'Reverse' : 'Neutral', met: htfAlign !== 0, color: htfAlign === 1 ? 'text-cyan-600' : htfAlign === -1 ? 'text-orange-600' : 'text-stone-400' },
-              { key: 'vz', label: 'Value Zone', desc: isInValueZone ? 'In Zone' : 'Outside', met: isInValueZone, color: isInValueZone ? 'text-emerald-600' : 'text-stone-400' },
-              { key: 'pattern', label: 'Pattern', desc: entryPattern || 'Waiting', met: !!entryPattern, color: entryPattern ? 'text-emerald-600' : 'text-stone-400' },
-            ];
-
-            const metCount = conditions.filter(c => c.met).length;
-            const progressPct = (metCount / conditions.length) * 100;
-
-            return (
-              <>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
-                    <div className={`h-1.5 rounded-full transition-all duration-500 ${
-                      progressPct >= 100 ? 'bg-emerald-500' : progressPct >= 50 ? 'bg-cyan-500' : 'bg-stone-400'
-                    }`} style={{ width: `${progressPct}%` }} />
-                  </div>
-                  <span className={`text-[10px] font-bold tabular-nums ${
-                    progressPct >= 100 ? 'text-emerald-600' : 'text-slate-500'
-                  }`}>{metCount}/{conditions.length}</span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  {conditions.map(c => (
-                    <div key={c.key} className={`flex items-center gap-1.5 rounded px-1.5 py-1 transition-all ${
-                      c.met ? 'bg-stone-100' : 'bg-stone-50/50'
-                    }`}>
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
-                        c.met ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.8)]' : 'bg-stone-300'
-                      }`} />
-                      <span className={`text-[9px] font-semibold flex-shrink-0 w-[60px] ${c.met ? 'text-slate-700' : 'text-stone-400'}`}>{c.label}</span>
-                      <span className={`text-[9px] font-bold tabular-nums ${c.color}`}>{c.desc}</span>
-                    </div>
-                  ))}
-                </div>
-                {v32?.rsi != null && (
-                  <div className="mt-1 flex items-center gap-2 bg-stone-50 rounded px-1.5 py-0.5">
-                    <span className="text-[8px] text-stone-400">RSI</span>
-                    <span className={`text-[9px] font-bold tabular-nums ${
-                      v32.rsi > 70 ? 'text-rose-600' : v32.rsi < 30 ? 'text-emerald-600' : 'text-slate-600'
-                    }`}>{v32.rsi.toFixed(1)}</span>
-                    <span className="text-[8px] text-stone-400">ATR</span>
-                    <span className="text-[9px] font-bold tabular-nums text-slate-600">{v32.atr?.toFixed(1) ?? '--'}</span>
-                  </div>
-                )}
-              </>
-            );
-          })()}
-        </div>
-
-        <BinanceExitConditionsPanel
+        <ExitConditionsPanel
           exitConditions={ss?.exitConditions}
           exitPrices={ss?.exitPrices}
           inPosition={!!hasPosition}

@@ -89,7 +89,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const [scrollOffset, setScrollOffset] = useState(0);
   const [resetScroll, setResetScroll] = useState(0);
   const [candleWidth, setCandleWidth] = useState(4);
-  const [timeframe, setTimeframe] = useState<Timeframe>('5m');
+  const [timeframe, setTimeframe] = useState<Timeframe>('1h');
   const [volumeHeight, setVolumeHeight] = useState(60);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number; trade: TradeEvent; hasPairedSell: boolean; pairedTrade?: TradeEvent } | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -134,7 +134,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     panelBorder: 'border-slate-600',
     emaShort: '#22d3ee',
     emaLong: '#fb923c',
-    ema200: '#a78bfa',
+    ema200: '#f87171',
     bb: '#a78bfa',
   } : {
     chartBg: 'bg-white/60',
@@ -153,7 +153,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     panelBorder: 'border-slate-200',
     emaShort: '#3b82f6',
     emaLong: '#f59e0b',
-    ema200: '#8b5cf6',
+    ema200: '#ef4444',
     bb: '#8b5cf6',
   };
   const minVolumeHeight = 80;
