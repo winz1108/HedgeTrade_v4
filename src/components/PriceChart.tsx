@@ -206,10 +206,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
     const prices = visibleCandles.flatMap(c => {
       const vals = [c.high, c.low];
-      if (c.ema_short) vals.push(c.ema_short);
-      if (c.ema_long) vals.push(c.ema_long);
-      if (c.ema3) vals.push(c.ema3);
-      if (c.ema8) vals.push(c.ema8);
       if (c.ema20) vals.push(c.ema20);
       if (c.ema50) vals.push(c.ema50);
       if (c.ema200) vals.push(c.ema200);
@@ -922,8 +918,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                        (lowerY !== null && Math.abs(mouseY - lowerY) < HOVER_THRESHOLD);
               })();
 
-              const emaShortVal = candle?.ema20 ?? candle?.ema_short;
-              const emaLongVal = candle?.ema50 ?? candle?.ema_long;
+              const emaShortVal = candle?.ema20;
+              const emaLongVal = candle?.ema50;
               const ema200Val = candle?.ema200;
 
               const isEmaShortHovered = (() => {
@@ -981,16 +977,16 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     {(isEmaShortHovered || isEmaLongHovered || isEma200Hovered) && (
                       <>
                         <span className={`${colors.textSecondary} text-[10px] font-semibold`}>EMA</span>
-                        {(hoveredCandle.ema20 ?? hoveredCandle.ema_short) != null && (
+                        {hoveredCandle.ema20 != null && (
                           <>
                             <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">20</span>
-                            <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{(hoveredCandle.ema20 ?? hoveredCandle.ema_short)!.toFixed(2)}</span>
+                            <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema20.toFixed(2)}</span>
                           </>
                         )}
-                        {(hoveredCandle.ema50 ?? hoveredCandle.ema_long) != null && (
+                        {hoveredCandle.ema50 != null && (
                           <>
                             <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">50</span>
-                            <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{(hoveredCandle.ema50 ?? hoveredCandle.ema_long)!.toFixed(2)}</span>
+                            <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema50.toFixed(2)}</span>
                           </>
                         )}
                         {hoveredCandle.ema200 != null && (
@@ -1058,8 +1054,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               visibleCandles.forEach((candle, idx) => {
                 const x = idx * (candleWidth + candleGap) + candleWidth / 2;
 
-                const ema20v = candle.ema20 ?? candle.ema_short;
-                const ema50v = candle.ema50 ?? candle.ema_long;
+                const ema20v = candle.ema20;
+                const ema50v = candle.ema50;
 
                 if (ema20v !== undefined) {
                   emaShortPoints.push(`${x},${priceToY(ema20v)}`);
@@ -1103,7 +1099,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 if (mouseY === null || hoveredCandleIndex === null) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
                 if (!candle) return false;
-                const v = candle.ema20 ?? candle.ema_short;
+                const v = candle.ema20;
                 if (v === undefined) return false;
                 return Math.abs(mouseY - priceToY(v)) < HOVER_THRESHOLD;
               })();
@@ -1112,7 +1108,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 if (mouseY === null || hoveredCandleIndex === null) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
                 if (!candle) return false;
-                const v = candle.ema50 ?? candle.ema_long;
+                const v = candle.ema50;
                 if (v === undefined) return false;
                 return Math.abs(mouseY - priceToY(v)) < HOVER_THRESHOLD;
               })();

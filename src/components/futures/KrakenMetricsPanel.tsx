@@ -323,11 +323,13 @@ export function KrakenMetricsPanel({ data, position }: Props) {
 
         {(() => {
           const v32 = ss?.v32;
-          const env = v32?.env_status;
           const patProx = v32?.pattern_proximity;
           const ema200Dir = v32?.ema200_direction ?? 0;
           const htfAlign = v32?.htf_alignment ?? 0;
           const inVz = v32?.in_value_zone ?? false;
+          const vzComputed = inVz || (v32?.ema20 != null && v32?.ema50 != null && v32?.atr != null &&
+            data.currentPrice >= Math.min(v32.ema20!, v32.ema50!) - 2 * v32.atr! &&
+            data.currentPrice <= Math.max(v32.ema20!, v32.ema50!) + 2 * v32.atr!);
 
           const longConds = entryConditionsLong || {};
           const shortConds = entryConditionsShort || {};
@@ -336,49 +338,13 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           const longTotal = Math.max(Object.keys(longConds).length, 3);
           const shortTotal = Math.max(Object.keys(shortConds).length, 3);
 
-          const PATTERN_LABELS: Record<string, string> = { '382': '38.2%', ENG: 'Engulf', REV: 'Reversal', DBL: 'DblB/T', FLAG: 'Flag', RSI_DIV: 'RSI Div' };
-          const PATTERN_KEYS = ['382', 'ENG', 'REV', 'DBL', 'FLAG', 'RSI_DIV'] as const;
+          const PAT_NAMES: Record<string, string> = { '382': '38.2% Retrace', ENG: 'Engulfing', REV: 'Reversal', DBL: 'Double B/T', FLAG: 'Flag', RSI_DIV: 'RSI Diverg.' };
+          const PAT_KEYS = ['382', 'ENG', 'REV', 'DBL', 'FLAG', 'RSI_DIV'] as const;
 
-          const envConds = [
-            {
-              key: 'ema200', label: 'EMA200', met: ema200Dir !== 0, dir: ema200Dir,
-              detail: (() => {
-                if (env?.ema200_trend) {
-                  const s = env.ema200_trend;
-                  const slope = s.slope_pct != null ? `slope ${s.slope_pct > 0 ? '+' : ''}${s.slope_pct.toFixed(2)}%` : '';
-                  const dist = s.distance_pct != null ? `${s.distance_pct > 0 ? '+' : ''}${s.distance_pct.toFixed(1)}%` : '';
-                  const price = s.ema200_price != null ? `$${s.ema200_price.toFixed(0)}` : (v32?.ema200 != null ? `$${v32.ema200.toFixed(0)}` : '');
-                  return [price, dist, slope].filter(Boolean).join(' ');
-                }
-                if (v32?.ema200 != null) return `$${v32.ema200.toFixed(0)} ${((data.currentPrice - v32.ema200) / v32.ema200 * 100).toFixed(1)}%`;
-                return ema200Dir === 1 ? 'Up' : ema200Dir === -1 ? 'Down' : 'Flat';
-              })(),
-            },
-            {
-              key: 'htf', label: '4h HTF', met: htfAlign !== 0, dir: htfAlign,
-              detail: (() => {
-                if (env?.htf_align) {
-                  const h = env.htf_align;
-                  const price = h.ema50_4h_price != null ? `4h E50 $${h.ema50_4h_price.toFixed(0)}` : (v32?.htf_ema50 != null ? `$${v32.htf_ema50.toFixed(0)}` : '');
-                  const dist = h.distance_pct != null ? `${h.distance_pct > 0 ? '+' : ''}${h.distance_pct.toFixed(1)}%` : '';
-                  return [price, dist].filter(Boolean).join(' ');
-                }
-                return htfAlign === 1 ? 'Bullish' : htfAlign === -1 ? 'Bearish' : 'Neutral';
-              })(),
-            },
-            {
-              key: 'vz', label: 'Value Zone', met: inVz || (v32?.ema20 != null && v32?.ema50 != null && v32?.atr != null && data.currentPrice >= Math.min(v32.ema20, v32.ema50) - 2 * v32.atr && data.currentPrice <= Math.max(v32.ema20, v32.ema50) + 2 * v32.atr), dir: 0,
-              detail: (() => {
-                if (env?.value_zone) {
-                  const vz = env.value_zone;
-                  const e20d = vz.ema20_distance_pct != null ? `E20 ${vz.ema20_distance_pct > 0 ? '+' : ''}${vz.ema20_distance_pct.toFixed(1)}%` : '';
-                  const e50d = vz.ema50_distance_pct != null ? `E50 ${vz.ema50_distance_pct > 0 ? '+' : ''}${vz.ema50_distance_pct.toFixed(1)}%` : '';
-                  return [e20d, e50d].filter(Boolean).join(' / ');
-                }
-                if (v32?.ema20 != null && v32?.ema50 != null) return `E20 $${v32.ema20.toFixed(0)} / E50 $${v32.ema50.toFixed(0)}`;
-                return inVz ? 'In Zone' : 'Outside';
-              })(),
-            },
+          const envRows = [
+            { key: 'ema200', label: 'Trend', met: ema200Dir !== 0, dir: ema200Dir, status: ema200Dir === 1 ? 'Uptrend' : ema200Dir === -1 ? 'Downtrend' : 'Flat' },
+            { key: 'htf', label: '4h Align', met: htfAlign !== 0, dir: htfAlign, status: htfAlign === 1 ? 'Bullish' : htfAlign === -1 ? 'Bearish' : 'Neutral' },
+            { key: 'vz', label: 'Value Zone', met: vzComputed, dir: 0, status: vzComputed ? 'Inside' : 'Outside' },
           ];
 
           const getStyle = (met: boolean, dir: number) => {
@@ -394,23 +360,23 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 <h3 className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Entry</h3>
                 <div className="flex items-center gap-1.5">
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${longMet >= longTotal ? 'bg-cyan-900/40 text-cyan-300 border-cyan-500/50' : 'bg-slate-700/30 text-slate-500 border-slate-600'}`}>
-                    L {longMet}/{longTotal}
+                    LONG {longMet}/{longTotal}
                   </span>
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${shortMet >= shortTotal ? 'bg-orange-900/40 text-orange-300 border-orange-500/50' : 'bg-slate-700/30 text-slate-500 border-slate-600'}`}>
-                    S {shortMet}/{shortTotal}
+                    SHORT {shortMet}/{shortTotal}
                   </span>
                 </div>
               </div>
 
               <div className="flex flex-col gap-0.5 mb-1.5">
-                {envConds.map(c => {
+                {envRows.map(c => {
                   const st = getStyle(c.met, c.dir);
                   return (
                     <div key={c.key} className={`rounded border px-1.5 py-1 transition-all ${st.bg}`}>
                       <div className="flex items-center gap-1.5">
                         <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${st.dot}`} />
-                        <span className={`text-[9px] font-bold flex-shrink-0 w-[52px] ${st.text}`}>{c.label}</span>
-                        <span className={`text-[8px] font-medium ml-auto tabular-nums truncate max-w-[140px] ${c.met ? st.text : 'text-slate-500'}`}>{c.detail}</span>
+                        <span className={`text-[9px] font-bold flex-shrink-0 ${st.text}`}>{c.label}</span>
+                        <span className={`text-[10px] font-bold ml-auto ${c.met ? st.text : 'text-slate-500'}`}>{c.status}</span>
                       </div>
                     </div>
                   );
@@ -421,20 +387,13 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[9px] font-bold text-slate-400 uppercase">Patterns</span>
                   {v32?.rsi != null && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-[8px] text-slate-500">RSI</span>
-                      <span className={`text-[9px] font-bold tabular-nums ${v32.rsi > 70 ? 'text-rose-400' : v32.rsi < 30 ? 'text-emerald-400' : 'text-slate-300'}`}>{v32.rsi.toFixed(1)}</span>
-                      {v32?.atr != null && (
-                        <>
-                          <span className="text-[8px] text-slate-500">ATR</span>
-                          <span className="text-[9px] font-bold tabular-nums text-slate-300">${v32.atr.toFixed(0)}</span>
-                        </>
-                      )}
-                    </div>
+                    <span className={`text-[9px] font-bold tabular-nums ${v32.rsi > 70 ? 'text-rose-400' : v32.rsi < 30 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                      RSI {v32.rsi.toFixed(0)}
+                    </span>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-0.5">
-                  {PATTERN_KEYS.map(pk => {
+                <div className="flex flex-col gap-0.5">
+                  {PAT_KEYS.map(pk => {
                     const info = patProx?.[pk];
                     const prox = info?.proximity ?? 0;
                     const ready = info?.ready ?? false;
@@ -447,16 +406,19 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                     const textColor = ready
                       ? (dir === 1 ? 'text-cyan-300' : dir === -1 ? 'text-orange-300' : 'text-emerald-300')
                       : 'text-slate-500';
+                    const bgColor = ready
+                      ? (dir === 1 ? 'bg-cyan-900/30 border-cyan-500/40' : dir === -1 ? 'bg-orange-900/30 border-orange-500/40' : 'bg-emerald-900/30 border-emerald-500/40')
+                      : 'bg-slate-700/15 border-slate-700/30';
                     return (
-                      <div key={pk} className={`rounded border px-1 py-0.5 transition-all ${
-                        ready ? (dir === 1 ? 'bg-cyan-900/30 border-cyan-500/40' : dir === -1 ? 'bg-orange-900/30 border-orange-500/40' : 'bg-emerald-900/30 border-emerald-500/40') : 'bg-slate-700/15 border-slate-700/30'
-                      }`} title={detail || undefined}>
-                        <div className="flex items-center gap-1">
-                          <span className={`text-[8px] font-bold w-[38px] flex-shrink-0 ${textColor}`}>{PATTERN_LABELS[pk] || pk}</span>
-                          <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
-                            <div className={`h-1 rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+                      <div key={pk} className={`rounded border px-1.5 py-0.5 transition-all ${bgColor}`} title={detail || undefined}>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[9px] font-bold w-[72px] flex-shrink-0 ${textColor}`}>{PAT_NAMES[pk] || pk}</span>
+                          <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden min-w-[30px]">
+                            <div className={`h-1.5 rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
                           </div>
-                          <span className={`text-[8px] font-bold tabular-nums w-[24px] text-right ${textColor}`}>{prox.toFixed(1)}</span>
+                          <span className={`text-[9px] font-bold tabular-nums w-[28px] text-right flex-shrink-0 ${textColor}`}>
+                            {ready ? (dir === 1 ? 'BUY' : dir === -1 ? 'SELL' : 'GO') : `${(prox * 100).toFixed(0)}%`}
+                          </span>
                         </div>
                       </div>
                     );
