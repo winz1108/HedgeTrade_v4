@@ -132,9 +132,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     tooltipBorder: 'border-slate-600',
     panelBg: 'bg-slate-700/30',
     panelBorder: 'border-slate-600',
-    emaShort: '#22d3ee',
-    emaLong: '#fb923c',
-    ema200: '#f87171',
+    emaShort: '#26a69a',
+    emaLong: '#42a5f5',
+    ema200: '#ef5350',
     bb: '#a78bfa',
   } : {
     chartBg: 'bg-white/60',
@@ -151,9 +151,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     tooltipBorder: 'border-slate-300',
     panelBg: 'bg-white/80',
     panelBorder: 'border-slate-200',
-    emaShort: '#3b82f6',
-    emaLong: '#f59e0b',
-    ema200: '#ef4444',
+    emaShort: '#26a69a',
+    emaLong: '#42a5f5',
+    ema200: '#ef5350',
     bb: '#8b5cf6',
   };
   const minVolumeHeight = 80;
@@ -770,11 +770,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           <div className={`flex items-center gap-1.5 text-[9px] sm:text-[10px] sm:gap-2 ${colors.panelBg} px-1.5 py-1 sm:px-2 rounded flex-wrap`}>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
-              <span className={colors.textSecondary}>EMA S</span>
+              <span className={colors.textSecondary}>EMA 20</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
-              <span className={colors.textSecondary}>EMA L</span>
+              <span className={colors.textSecondary}>EMA 50</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
@@ -981,13 +981,13 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         <span className={`${colors.textSecondary} text-[10px] font-semibold`}>EMA</span>
                         {(hoveredCandle.ema_short ?? hoveredCandle.ema20 ?? hoveredCandle.ema8) != null && (
                           <>
-                            <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">S</span>
+                            <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">20</span>
                             <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{(hoveredCandle.ema_short ?? hoveredCandle.ema20 ?? hoveredCandle.ema8)!.toFixed(2)}</span>
                           </>
                         )}
                         {(hoveredCandle.ema_long ?? hoveredCandle.ema50 ?? hoveredCandle.ema13) != null && (
                           <>
-                            <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">L</span>
+                            <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">50</span>
                             <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{(hoveredCandle.ema_long ?? hoveredCandle.ema50 ?? hoveredCandle.ema13)!.toFixed(2)}</span>
                           </>
                         )}
@@ -1611,12 +1611,17 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const entryColor = isLong ? '#06b6d4' : '#f97316';
               const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(249, 115, 22, 0.5)';
 
-              const slPrice = v10Strategy?.v32?.sl_price
+              const rawSl = v10Strategy?.exitConditions?.SL?.price
                 ?? v10Strategy?.exitPrices?.slPrice
-                ?? v10Strategy?.exitConditions?.SL?.slPrice;
+                ?? v10Strategy?.v32?.sl_price;
+              const slPrice = (rawSl && rawSl > 0) ? rawSl : null;
 
-              const trailPrice = v10Strategy?.v32?.trail_price
-                ?? v10Strategy?.exitPrices?.trailPrice;
+              const trailTriggerPrice = v10Strategy?.exitPrices?.trailTriggerPrice
+                ?? v10Strategy?.exitConditions?.TRAIL?.trigger_price
+                ?? null;
+              const rawTrailExit = v10Strategy?.v32?.trail_price
+                ?? v10Strategy?.exitPrices?.trailExitPrice;
+              const trailPrice = (trailTriggerPrice && trailTriggerPrice > 0) ? trailTriggerPrice : (rawTrailExit && rawTrailExit > 0) ? rawTrailExit : null;
 
               return (
                 <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
@@ -1642,13 +1647,13 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         y1={priceToY(slPrice)}
                         x2="100%"
                         y2={priceToY(slPrice)}
-                        stroke="#f87171"
+                        stroke="#f85149"
                         strokeWidth="1.2"
                         strokeDasharray="5 4"
                         opacity="0.8"
-                        filter="drop-shadow(0 0 2px rgba(248, 113, 113, 0.4))"
+                        filter="drop-shadow(0 0 2px rgba(248, 81, 73, 0.4))"
                       />
-                      <rect x="0" y={priceToY(slPrice) - 8} width="58" height="16" rx="3" fill="#f87171" opacity="0.85" />
+                      <rect x="0" y={priceToY(slPrice) - 8} width="58" height="16" rx="3" fill="#f85149" opacity="0.85" />
                       <text x="29" y={priceToY(slPrice) + 3.5} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="monospace">
                         {`SL ${slPrice.toFixed(0)}`}
                       </text>
@@ -1661,15 +1666,15 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         y1={priceToY(trailPrice)}
                         x2="100%"
                         y2={priceToY(trailPrice)}
-                        stroke="#fbbf24"
+                        stroke="#ffd700"
                         strokeWidth="1.2"
                         strokeDasharray="6 3"
                         opacity="0.8"
-                        filter="drop-shadow(0 0 2px rgba(251, 191, 36, 0.4))"
+                        filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.4))"
                       />
-                      <rect x="0" y={priceToY(trailPrice) - 8} width="62" height="16" rx="3" fill="#fbbf24" opacity="0.85" />
-                      <text x="31" y={priceToY(trailPrice) + 3.5} textAnchor="middle" fill="#1e293b" fontSize="9" fontWeight="700" fontFamily="monospace">
-                        {`Trail ${trailPrice.toFixed(0)}`}
+                      <rect x="0" y={priceToY(trailPrice) - 8} width="58" height="16" rx="3" fill="#ffd700" opacity="0.85" />
+                      <text x="29" y={priceToY(trailPrice) + 3.5} textAnchor="middle" fill="#1e293b" fontSize="9" fontWeight="700" fontFamily="monospace">
+                        {`TR ${trailPrice.toFixed(0)}`}
                       </text>
                     </>
                   )}

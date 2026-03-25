@@ -246,6 +246,23 @@ export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
       },
     };
 
+    const saExit = data.strategyA?.exit_prices;
+    const saExitCond = data.strategyA?.exit_conditions as any;
+    if (saExit || saExitCond) {
+      merged.exitPrices = {
+        ...merged.exitPrices,
+        slPrice: saExit?.sl_price || saExitCond?.SL?.price || merged.exitPrices?.slPrice,
+        trailTriggerPrice: saExit?.trail_trigger_price || saExitCond?.TRAIL?.trigger_price,
+        trailExitPrice: saExit?.trail_exit_price || saExitCond?.TRAIL?.trail_exit_price,
+      };
+      merged.exitConditions = {
+        ...merged.exitConditions,
+        SL: { ...merged.exitConditions?.SL, ...saExitCond?.SL },
+        TRAIL: { ...merged.exitConditions?.TRAIL, ...saExitCond?.TRAIL },
+        TIME: { ...merged.exitConditions?.TIME, ...saExitCond?.TIME },
+      };
+    }
+
     return merged;
   }, [data.strategyStatus, data.indicators, data.strategyA, data.position?.in_position, data]);
 

@@ -1,4 +1,4 @@
-import { KrakenDashboardData, ExitConditions, V32Data } from '../../types/dashboard';
+import { KrakenDashboardData } from '../../types/dashboard';
 import { DollarSign, Activity, Target, History, ShieldAlert, Clock } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
@@ -9,131 +9,136 @@ interface Props {
 }
 
 interface ExitConditionsPanelProps {
-  exitConditions?: ExitConditions;
-  exitPrices?: { slPrice?: number; trailPrice?: number; [key: string]: any };
+  exitConds?: any;
   inPosition: boolean;
-  mfePct?: number;
-  currentPrice?: number;
+  currentPrice: number;
+  entryPrice: number;
   positionSide?: 'LONG' | 'SHORT' | null;
-  v32?: V32Data;
 }
 
-function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, mfePct, currentPrice, positionSide, v32 }: ExitConditionsPanelProps) {
-  if (!inPosition) return null;
+function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, positionSide }: ExitConditionsPanelProps) {
+  if (!inPosition || !exitConds) return null;
 
   const isShort = positionSide === 'SHORT';
-  const sideColor = isShort ? 'text-orange-300' : 'text-cyan-300';
-  const sideBg = isShort ? 'bg-orange-900/30 border-orange-500/50' : 'bg-cyan-900/30 border-cyan-500/50';
+  const barFill = isShort ? 'bg-orange-400' : 'bg-cyan-400';
+  const sideText = isShort ? 'text-orange-300' : 'text-cyan-300';
 
-  const slPrice = v32?.sl_price ?? exitPrices?.slPrice ?? exitConditions?.SL?.slPrice;
-  const trailPrice = v32?.trail_price ?? exitPrices?.trailPrice;
-  const peakPnl = v32?.peak_pnl ?? exitConditions?.V32TRAIL?.peakPnl ?? mfePct ?? 0;
-  const barsHeld = v32?.bars_held ?? exitConditions?.TIME?.barsHeld ?? 0;
-  const maxBars = v32?.max_bars ?? exitConditions?.TIME?.maxBars ?? 24;
-  const timeProgress = maxBars > 0 ? Math.min(100, (barsHeld / maxBars) * 100) : 0;
+  const sl = exitConds.SL || {};
+  const trail = exitConds.TRAIL || {};
+  const time = exitConds.TIME || {};
 
-  const slArmed = exitConditions?.SL?.armed ?? !!slPrice;
-  const trailArmed = exitConditions?.V32TRAIL?.armed ?? (peakPnl > 0);
+  const slPrice = sl.price > 0 ? sl.price : null;
+  const triggerPrice = trail.trigger_price > 0 ? trail.trigger_price : null;
+  const trailingActive = trail.trailing_active === true;
+  const peakPrice = trail.peak_price > 0 ? trail.peak_price : null;
+  const trailExitPrice = trail.trail_exit_price > 0 ? trail.trail_exit_price : null;
 
-  const slDistance = slPrice && currentPrice
-    ? (isShort ? ((slPrice - currentPrice) / currentPrice * 100) : ((currentPrice - slPrice) / currentPrice * 100))
-    : 0;
+  const barsHeld = time.bars_held ?? 0;
+  const maxBars = time.max_bars ?? 24;
+  const hoursLeft = time.hours_left ?? (maxBars - barsHeld);
+  const timePct = maxBars > 0 ? Math.min(100, (barsHeld / maxBars) * 100) : 0;
+
+  const calcProgress = (left: number, right: number, current: number) => {
+    if (right === left) return 50;
+    return Math.max(0, Math.min(100, ((current - left) / (right - left)) * 100));
+  };
+
+  const slProgress = slPrice ? calcProgress(slPrice, entryPrice, currentPrice) : 50;
+
+  let trailLeftLabel = '';
+  let trailRightLabel = '';
+  let trailProgress = 0;
+  let trailStatusLabel = '';
+
+  if (trailingActive && peakPrice && trailExitPrice) {
+    trailLeftLabel = `$${trailExitPrice.toFixed(0)}`;
+    trailRightLabel = `$${peakPrice.toFixed(0)}`;
+    trailProgress = calcProgress(trailExitPrice, peakPrice, currentPrice);
+    trailStatusLabel = 'Phase 2';
+  } else if (triggerPrice) {
+    trailLeftLabel = `$${entryPrice.toFixed(0)}`;
+    trailRightLabel = `$${triggerPrice.toFixed(0)}`;
+    const prog = isShort
+      ? calcProgress(triggerPrice, entryPrice, currentPrice)
+      : calcProgress(entryPrice, triggerPrice, currentPrice);
+    trailProgress = Math.max(0, prog);
+    trailStatusLabel = 'Phase 1';
+  }
 
   return (
     <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
       <div className="flex items-center justify-between mb-1.5">
-        <div className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Exit Conditions</div>
+        <div className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Exit</div>
         <ShieldAlert className="w-3 h-3 text-slate-500" />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className={`rounded-md border p-1.5 transition-all ${
-          trailArmed ? sideBg : 'bg-slate-700/20 border-slate-700/50'
-        }`}>
-          <div className="flex items-center justify-between mb-0.5">
+        <div className="rounded-md border p-1.5 bg-slate-700/20 border-slate-700/50">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                trailArmed
-                  ? (isShort ? 'bg-orange-400 shadow-[0_0_5px_rgba(251,146,60,0.9)]' : 'bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.9)]')
-                  : 'bg-slate-600'
-              }`} />
-              <span className={`text-[10px] font-bold ${trailArmed ? sideColor : 'text-slate-400'}`}>TRAIL</span>
-              <span className="text-[8px] text-slate-500">ATR Trailing</span>
+              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${slPrice ? 'bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.8)]' : 'bg-slate-600'}`} />
+              <span className="text-[10px] font-bold text-slate-300">SL</span>
+              {slPrice && <span className={`text-[9px] font-bold tabular-nums ${sideText}`}>${slPrice.toFixed(0)}</span>}
             </div>
-            {trailPrice != null && (
-              <span className={`text-[10px] font-bold tabular-nums ${trailArmed ? sideColor : 'text-slate-500'}`}>
-                ${trailPrice.toFixed(1)}
-              </span>
-            )}
+            <span className="text-[9px] tabular-nums text-slate-500">${entryPrice.toFixed(0)}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={`text-[9px] w-[50px] flex-shrink-0 ${trailArmed ? sideColor : 'text-slate-600'}`}>Peak</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[8px] tabular-nums text-slate-500 w-[42px] flex-shrink-0">{slPrice ? `$${slPrice.toFixed(0)}` : '--'}</span>
             <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
-              <div className={`h-1.5 rounded-full transition-all duration-300 ${isShort ? 'bg-orange-400' : 'bg-cyan-400'}`}
-                style={{ width: `${Math.min(100, Math.max(0, peakPnl * 20))}%` }} />
+              <div className={`h-1.5 rounded-full transition-all duration-300 ${barFill}`}
+                style={{ width: `${slProgress}%` }} />
             </div>
-            <span className={`text-[9px] tabular-nums w-[40px] text-right flex-shrink-0 ${trailArmed ? sideColor : 'text-slate-500'}`}>
-              +{peakPnl.toFixed(2)}%
-            </span>
+            <span className="text-[8px] tabular-nums text-slate-500 w-[42px] text-right flex-shrink-0">${entryPrice.toFixed(0)}</span>
           </div>
         </div>
 
         <div className={`rounded-md border p-1.5 transition-all ${
-          slArmed ? 'bg-rose-900/30 border-rose-600/50' : 'bg-slate-700/20 border-slate-700/50'
+          trailingActive ? (isShort ? 'bg-orange-900/30 border-orange-500/50' : 'bg-cyan-900/30 border-cyan-500/50') : 'bg-slate-700/20 border-slate-700/50'
         }`}>
-          <div className="flex items-center justify-between mb-0.5">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
               <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                slArmed ? 'bg-rose-400 shadow-[0_0_5px_rgba(248,113,113,0.9)]' : 'bg-slate-600'
+                trailingActive
+                  ? (isShort ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.8)]' : 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]')
+                  : 'bg-slate-600'
               }`} />
-              <span className={`text-[10px] font-bold ${slArmed ? 'text-rose-300' : 'text-slate-400'}`}>SL</span>
-              <span className="text-[8px] text-slate-500">0.5x ATR</span>
+              <span className={`text-[10px] font-bold ${trailingActive ? sideText : 'text-slate-300'}`}>TRAIL</span>
+              <span className="text-[8px] text-slate-500">{trailStatusLabel}</span>
             </div>
-            {slPrice != null && (
-              <span className={`text-[10px] font-bold tabular-nums ${slArmed ? 'text-rose-300' : 'text-slate-500'}`}>
-                ${slPrice.toFixed(1)}
-              </span>
+            {triggerPrice && !trailingActive && (
+              <span className={`text-[9px] font-bold tabular-nums ${sideText}`}>${triggerPrice.toFixed(0)}</span>
             )}
           </div>
-          {slDistance !== 0 && (
-            <div className="flex items-center gap-1.5">
-              <span className={`text-[9px] w-[50px] flex-shrink-0 ${slArmed ? 'text-rose-300' : 'text-slate-600'}`}>Dist.</span>
+          {(triggerPrice || trailingActive) && (
+            <div className="flex items-center gap-1">
+              <span className="text-[8px] tabular-nums text-slate-500 w-[42px] flex-shrink-0">{trailLeftLabel}</span>
               <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                <div className="h-1.5 rounded-full transition-all duration-300 bg-rose-400"
-                  style={{ width: `${Math.min(100, Math.max(5, 100 - Math.abs(slDistance) * 20))}%` }} />
+                <div className={`h-1.5 rounded-full transition-all duration-300 ${barFill}`}
+                  style={{ width: `${trailProgress}%` }} />
               </div>
-              <span className={`text-[9px] tabular-nums w-[40px] text-right flex-shrink-0 ${slArmed ? 'text-rose-400' : 'text-slate-500'}`}>
-                {slDistance.toFixed(2)}%
-              </span>
+              <span className="text-[8px] tabular-nums text-slate-500 w-[42px] text-right flex-shrink-0">{trailRightLabel}</span>
             </div>
           )}
         </div>
 
-        <div className={`rounded-md border p-1.5 transition-all ${
-          timeProgress >= 80 ? 'bg-amber-900/30 border-amber-600/50' : 'bg-slate-700/20 border-slate-700/50'
-        }`}>
-          <div className="flex items-center justify-between mb-0.5">
+        <div className="rounded-md border p-1.5 bg-slate-700/20 border-slate-700/50">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
-              <Clock className={`w-3 h-3 ${timeProgress >= 80 ? 'text-amber-400' : 'text-slate-600'}`} />
-              <span className={`text-[10px] font-bold ${timeProgress >= 80 ? 'text-amber-300' : 'text-slate-400'}`}>TIMEOUT</span>
+              <Clock className={`w-3 h-3 ${timePct >= 80 ? sideText : 'text-slate-600'}`} />
+              <span className={`text-[10px] font-bold ${timePct >= 80 ? sideText : 'text-slate-300'}`}>TIME</span>
               <span className="text-[8px] text-slate-500">{maxBars}h max</span>
             </div>
-            <span className={`text-[10px] font-bold tabular-nums ${timeProgress >= 80 ? 'text-amber-300' : 'text-slate-500'}`}>
-              {maxBars - barsHeld > 0 ? `${maxBars - barsHeld}h left` : 'Expired'}
+            <span className={`text-[9px] font-bold tabular-nums ${timePct >= 80 ? sideText : 'text-slate-500'}`}>
+              {hoursLeft > 0 ? `${hoursLeft}h left` : 'Expired'}
             </span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={`text-[9px] w-[50px] flex-shrink-0 tabular-nums ${timeProgress >= 80 ? 'text-amber-400' : 'text-slate-600'}`}>{barsHeld}h</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[8px] tabular-nums text-slate-500 w-[20px] flex-shrink-0">0h</span>
             <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
-              <div className={`h-1.5 rounded-full transition-all duration-300 ${
-                timeProgress >= 90 ? 'bg-rose-400' : timeProgress >= 80 ? 'bg-amber-400' : 'bg-slate-500'
-              }`} style={{ width: `${timeProgress}%` }} />
+              <div className={`h-1.5 rounded-full transition-all duration-300 ${barFill}`}
+                style={{ width: `${timePct}%` }} />
             </div>
-            <span className={`text-[9px] tabular-nums w-[30px] text-right flex-shrink-0 ${
-              timeProgress >= 80 ? 'text-amber-400' : 'text-slate-500'
-            }`}>
-              {timeProgress.toFixed(0)}%
-            </span>
+            <span className="text-[8px] tabular-nums text-slate-500 w-[24px] text-right flex-shrink-0">{maxBars}h</span>
           </div>
         </div>
       </div>
@@ -193,8 +198,6 @@ export function KrakenMetricsPanel({ data, position }: Props) {
     const entryPrice = data.strategyA?.entry_price;
     const currentPnl = data.strategyA?.current_pnl;
     const ss = data.strategyStatus;
-    const entryConditionsLong = data.strategyA?.entry_conditions_long;
-    const entryConditionsShort = data.strategyA?.entry_conditions_short;
 
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {
@@ -235,13 +238,9 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                       });
 
                       return sorted.map(([currency, info]) => {
-                        let textColor = 'text-emerald-400'; // USD default
-
-                        if (currency === 'BTC') {
-                          textColor = 'text-yellow-400';
-                        } else if (currency === 'EUR') {
-                          textColor = 'text-blue-400';
-                        }
+                        let textColor = 'text-emerald-400';
+                        if (currency === 'BTC') textColor = 'text-yellow-400';
+                        else if (currency === 'EUR') textColor = 'text-blue-400';
 
                         return (
                           <div key={currency} className="flex justify-between items-center">
@@ -325,48 +324,29 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           const v32 = ss?.v32;
           const env = v32?.env_status;
           const patProx = v32?.pattern_proximity;
-          const ema200Dir = v32?.ema200_direction ?? 0;
           const htfAlign = v32?.htf_alignment ?? 0;
-          const inVz = v32?.in_value_zone ?? false;
-          const vzComputed = inVz || (v32?.ema20 != null && v32?.ema50 != null && v32?.atr != null &&
-            data.currentPrice >= Math.min(v32.ema20!, v32.ema50!) - 2 * v32.atr! &&
-            data.currentPrice <= Math.max(v32.ema20!, v32.ema50!) + 2 * v32.atr!);
 
-          const longConds = entryConditionsLong || {};
-          const shortConds = entryConditionsShort || {};
-          const longMet = Object.values(longConds).filter(Boolean).length;
-          const shortMet = Object.values(shortConds).filter(Boolean).length;
-          const longTotal = Math.max(Object.keys(longConds).length, 3);
-          const shortTotal = Math.max(Object.keys(shortConds).length, 3);
+          const htfDist = env?.htf_align?.distance_pct ?? null;
+          const htfLabel = htfAlign === 1 ? 'LONG' : htfAlign === -1 ? 'SHORT' : 'FLAT';
+          const htfColor = htfAlign === 1 ? 'text-cyan-400' : htfAlign === -1 ? 'text-orange-400' : 'text-slate-500';
+          const htfBg = htfAlign === 1 ? 'bg-cyan-900/30 border-cyan-500/40' : htfAlign === -1 ? 'bg-orange-900/30 border-orange-500/40' : 'bg-slate-700/30 border-slate-700/50';
+          const htfDot = htfAlign === 1 ? 'bg-cyan-400' : htfAlign === -1 ? 'bg-orange-400' : 'bg-slate-600';
 
           const PAT_NAMES: Record<string, string> = { '382': '38.2%', ENG: 'Engulf', REV: 'Reversal', DBL: 'Dbl B/T', FLAG: 'Flag', RSI_DIV: 'RSI Div' };
           const PAT_KEYS = ['382', 'ENG', 'REV', 'DBL', 'FLAG', 'RSI_DIV'] as const;
 
-          const ema200Dist = env?.ema200_trend?.distance_pct ?? (v32?.ema200 != null ? ((data.currentPrice - v32.ema200) / v32.ema200 * 100) : null);
-          const htfDist = env?.htf_align?.distance_pct ?? null;
-          const vzE20Dist = env?.value_zone?.ema20_distance_pct ?? (v32?.ema20 != null ? ((data.currentPrice - v32.ema20) / v32.ema20 * 100) : null);
-          const vzE50Dist = env?.value_zone?.ema50_distance_pct ?? (v32?.ema50 != null ? ((data.currentPrice - v32.ema50) / v32.ema50 * 100) : null);
-
-          const condColor = (met: boolean, dir: number) => {
-            if (!met) return 'text-slate-500';
-            return dir >= 0 ? 'text-cyan-400' : 'text-orange-400';
-          };
-          const dotColor = (met: boolean, dir: number) => {
-            if (!met) return 'bg-slate-600';
-            return dir >= 0 ? 'bg-cyan-400' : 'bg-orange-400';
-          };
+          const bestPattern = PAT_KEYS.reduce<{ key: string; prox: number; ready: boolean }>((best, pk) => {
+            const info = patProx?.[pk];
+            const prox = info?.proximity ?? 0;
+            if (prox > best.prox) return { key: pk, prox, ready: info?.ready ?? false };
+            return best;
+          }, { key: '', prox: 0, ready: false });
 
           return (
             <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-1.5">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="text-[10px] font-bold text-slate-200 tracking-wide uppercase">Entry</h3>
-                <div className="flex items-center gap-1">
-                  <span className={`text-[8px] font-bold px-1 py-px rounded ${longMet >= longTotal ? 'bg-cyan-900/50 text-cyan-300' : 'text-slate-500'}`}>
-                    L {longMet}/{longTotal}
-                  </span>
-                  <span className={`text-[8px] font-bold px-1 py-px rounded ${shortMet >= shortTotal ? 'bg-orange-900/50 text-orange-300' : 'text-slate-500'}`}>
-                    S {shortMet}/{shortTotal}
-                  </span>
+                <div className="flex items-center gap-1.5">
                   {v32?.rsi != null && (
                     <span className={`text-[8px] font-bold tabular-nums ${v32.rsi > 70 ? 'text-orange-400' : v32.rsi < 30 ? 'text-cyan-400' : 'text-slate-400'}`}>
                       RSI {v32.rsi.toFixed(0)}
@@ -375,34 +355,19 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                 </div>
               </div>
 
-              <div className="flex gap-0.5 mb-1">
-                <div className="flex-1 rounded bg-slate-700/30 border border-slate-700/50 px-1 py-0.5">
-                  <div className="flex items-center gap-1">
-                    <div className={`w-1 h-1 rounded-full flex-shrink-0 ${dotColor(ema200Dir !== 0, ema200Dir)}`} />
-                    <span className={`text-[8px] font-bold ${condColor(ema200Dir !== 0, ema200Dir)}`}>200</span>
-                    <span className={`text-[8px] font-bold tabular-nums ml-auto ${condColor(ema200Dir !== 0, ema200Dir)}`}>
-                      {ema200Dist != null ? `${ema200Dist > 0 ? '+' : ''}${ema200Dist.toFixed(1)}%` : '--'}
-                    </span>
+              <div className={`rounded border p-1.5 mb-1 ${htfBg}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${htfDot}`} />
+                    <span className="text-[8px] font-bold text-slate-400">HTF 4h EMA</span>
                   </div>
-                </div>
-                <div className="flex-1 rounded bg-slate-700/30 border border-slate-700/50 px-1 py-0.5">
-                  <div className="flex items-center gap-1">
-                    <div className={`w-1 h-1 rounded-full flex-shrink-0 ${dotColor(htfAlign !== 0, htfAlign)}`} />
-                    <span className={`text-[8px] font-bold ${condColor(htfAlign !== 0, htfAlign)}`}>4h</span>
-                    <span className={`text-[8px] font-bold tabular-nums ml-auto ${condColor(htfAlign !== 0, htfAlign)}`}>
-                      {htfDist != null ? `${htfDist > 0 ? '+' : ''}${htfDist.toFixed(1)}%` : (htfAlign === 1 ? 'Bull' : htfAlign === -1 ? 'Bear' : '--')}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-1 rounded bg-slate-700/30 border border-slate-700/50 px-1 py-0.5">
-                  <div className="flex items-center gap-1">
-                    <div className={`w-1 h-1 rounded-full flex-shrink-0 ${dotColor(vzComputed, 0)}`} />
-                    <span className={`text-[8px] font-bold ${condColor(vzComputed, 0)}`}>VZ</span>
-                    <span className={`text-[8px] font-bold tabular-nums ml-auto ${condColor(vzComputed, 0)}`}>
-                      {vzE20Dist != null && vzE50Dist != null
-                        ? `${vzE20Dist > 0 ? '+' : ''}${vzE20Dist.toFixed(1)}`
-                        : vzComputed ? 'In' : 'Out'}
-                    </span>
+                  <div className="flex items-center gap-1.5">
+                    {htfDist != null && (
+                      <span className={`text-[8px] tabular-nums ${htfColor}`}>
+                        {htfDist > 0 ? '+' : ''}{htfDist.toFixed(2)}%
+                      </span>
+                    )}
+                    <span className={`text-[9px] font-black ${htfColor}`}>{htfLabel}</span>
                   </div>
                 </div>
               </div>
@@ -413,15 +378,15 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                   const prox = info?.proximity ?? 0;
                   const ready = info?.ready ?? false;
                   const detail = info?.detail;
-                  const dir = info?.dir ?? 0;
                   const pct = Math.min(100, prox * 100);
-                  const isLong = dir >= 0;
+                  const isBest = pk === bestPattern.key && bestPattern.prox > 0;
                   const barColor = ready
-                    ? (isLong ? 'bg-cyan-400' : 'bg-orange-400')
-                    : pct > 60 ? (isLong ? 'bg-cyan-500/50' : 'bg-orange-500/50') : 'bg-slate-600';
+                    ? (htfAlign >= 0 ? 'bg-cyan-400' : 'bg-orange-400')
+                    : isBest ? (htfAlign >= 0 ? 'bg-cyan-500/60' : 'bg-orange-500/60')
+                    : pct > 50 ? 'bg-slate-500' : 'bg-slate-600';
                   const textColor = ready
-                    ? (isLong ? 'text-cyan-300' : 'text-orange-300')
-                    : 'text-slate-500';
+                    ? (htfAlign >= 0 ? 'text-cyan-300' : 'text-orange-300')
+                    : isBest ? 'text-slate-300' : 'text-slate-500';
                   return (
                     <div key={pk} className="flex items-center gap-1" title={detail || undefined}>
                       <span className={`text-[8px] font-bold w-[34px] flex-shrink-0 ${textColor}`}>{PAT_NAMES[pk] || pk}</span>
@@ -438,13 +403,11 @@ export function KrakenMetricsPanel({ data, position }: Props) {
         })()}
 
         <ExitConditionsPanel
-          exitConditions={ss?.exitConditions}
-          exitPrices={ss?.exitPrices}
+          exitConds={(data.strategyA as any)?.exit_conditions}
           inPosition={!!hasPosition}
-          mfePct={ss?.mfe ?? data.strategyA?.mfe}
           currentPrice={data.currentPrice}
+          entryPrice={entryPrice ?? 0}
           positionSide={data.position?.position_side}
-          v32={ss?.v32}
         />
       </div>
     );
@@ -622,8 +585,8 @@ export function KrakenMetricsPanel({ data, position }: Props) {
                           {isLong ? 'LONG' : 'SHORT'}
                         </span>
                         <div className="flex flex-col items-end">
-                          <span className={`text-[10px] font-bold text-white`}>{formatCurrency(trade.price)}</span>
-                          <span className={`text-[8px] text-slate-300`}>{formatLocalDateTime(trade.timestamp)}</span>
+                          <span className="text-[10px] font-bold text-white">{formatCurrency(trade.price)}</span>
+                          <span className="text-[8px] text-slate-300">{formatLocalDateTime(trade.timestamp)}</span>
                         </div>
                       </div>
                     </div>

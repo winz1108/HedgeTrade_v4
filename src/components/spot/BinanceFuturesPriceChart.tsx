@@ -103,8 +103,25 @@ export function BinanceFuturesPriceChart({ data, onTimeframeChange }: Props) {
       merged.indicators = { ...stratInd, ...merged.indicators };
     }
 
+    const posExit = (data.position as any)?.exitConditions;
+    const posExitPrices = (data.position as any)?.exitPrices;
+    if (posExit || posExitPrices) {
+      merged.exitPrices = {
+        ...merged.exitPrices,
+        slPrice: posExitPrices?.sl_price || posExit?.SL?.price || merged.exitPrices?.slPrice,
+        trailTriggerPrice: posExitPrices?.trail_trigger_price || posExit?.TRAIL?.trigger_price,
+        trailExitPrice: posExitPrices?.trail_exit_price || posExit?.TRAIL?.trail_exit_price,
+      };
+      merged.exitConditions = {
+        ...merged.exitConditions,
+        SL: { ...merged.exitConditions?.SL, ...posExit?.SL },
+        TRAIL: { ...merged.exitConditions?.TRAIL, ...posExit?.TRAIL },
+        TIME: { ...merged.exitConditions?.TIME, ...posExit?.TIME },
+      };
+    }
+
     return merged;
-  }, [data.strategyStatus, data.strategy?.indicators, data.position?.inPosition]);
+  }, [data.strategyStatus, data.strategy?.indicators, data.position]);
 
   return (
     <PriceChart
