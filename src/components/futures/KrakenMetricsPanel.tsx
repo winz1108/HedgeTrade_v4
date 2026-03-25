@@ -134,12 +134,12 @@ function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, 
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-[8px] tabular-nums text-slate-500 w-[20px] flex-shrink-0">0h</span>
+            <span className="text-[8px] tabular-nums text-slate-500 w-[42px] flex-shrink-0">0h</span>
             <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
               <div className={`h-1.5 rounded-full transition-all duration-300 ${barFill}`}
                 style={{ width: `${timePct}%` }} />
             </div>
-            <span className="text-[8px] tabular-nums text-slate-500 w-[24px] text-right flex-shrink-0">{maxBars}h</span>
+            <span className="text-[8px] tabular-nums text-slate-500 w-[42px] text-right flex-shrink-0">{maxBars}h</span>
           </div>
         </div>
       </div>
