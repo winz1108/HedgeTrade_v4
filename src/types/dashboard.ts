@@ -141,6 +141,42 @@ export interface ExitConditions {
   V32TRAIL?: ExitConditionV32TRAIL;
 }
 
+export interface V32EnvCondition {
+  value: number | boolean;
+  slope_pct?: number;
+  ema200_price?: number;
+  distance_pct?: number;
+  ema50_4h_price?: number;
+  ema20_distance_pct?: number;
+  ema50_distance_pct?: number;
+  ema20_price?: number;
+  ema50_price?: number;
+  threshold?: number;
+}
+
+export interface V32EnvStatus {
+  ema200_trend?: V32EnvCondition;
+  htf_align?: V32EnvCondition;
+  value_zone?: V32EnvCondition;
+}
+
+export interface V32PatternInfo {
+  ready: boolean;
+  dir?: number;
+  proximity: number;
+  detail?: string;
+}
+
+export interface V32PatternProximity {
+  '382'?: V32PatternInfo;
+  ENG?: V32PatternInfo;
+  REV?: V32PatternInfo;
+  DBL?: V32PatternInfo;
+  FLAG?: V32PatternInfo;
+  RSI_DIV?: V32PatternInfo;
+  [key: string]: V32PatternInfo | undefined;
+}
+
 export interface V32Data {
   ema20?: number;
   ema50?: number;
@@ -150,6 +186,7 @@ export interface V32Data {
   htf_ema50?: number;
   htf_alignment?: number;
   ema200_direction?: number;
+  in_value_zone?: boolean;
   sl_price?: number;
   trail_price?: number;
   peak_pnl?: number;
@@ -157,6 +194,8 @@ export interface V32Data {
   max_bars?: number;
   entry_pattern?: string;
   entry_atr?: number;
+  env_status?: V32EnvStatus;
+  pattern_proximity?: V32PatternProximity;
 }
 
 export interface EntryDetailADX {

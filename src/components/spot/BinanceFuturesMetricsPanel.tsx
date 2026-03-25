@@ -42,128 +42,172 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
 };
 
 const PATTERN_LABELS: Record<string, string> = {
-  '382': '38.2% Retracement',
-  'ENG': 'Engulfing',
+  '382': '38.2%',
+  'ENG': 'Engulf',
   'REV': 'Reversal',
-  'DBL': 'Double Bottom/Top',
-  'FLAG': 'Flag Pattern',
-  'RSI_DIV': 'RSI Divergence',
+  'DBL': 'DblBot/Top',
+  'FLAG': 'Flag',
+  'RSI_DIV': 'RSI Div',
 };
 
-function EntryConditionsPanel({ ss, currentPrice }: { ss?: V10StrategyStatus; currentPrice: number }) {
+const PATTERN_KEYS = ['382', 'ENG', 'REV', 'DBL', 'FLAG', 'RSI_DIV'] as const;
+
+function EntryConditionsPanel({ ss, currentPrice, entryConditionsLong, entryConditionsShort }: {
+  ss?: V10StrategyStatus;
+  currentPrice: number;
+  entryConditionsLong?: Record<string, boolean>;
+  entryConditionsShort?: Record<string, boolean>;
+}) {
   const v32 = ss?.v32;
+  const env = v32?.env_status;
+  const patProx = v32?.pattern_proximity;
+
   const ema200Dir = v32?.ema200_direction ?? 0;
   const htfAlign = v32?.htf_alignment ?? 0;
-  const ema20 = v32?.ema20;
-  const ema50 = v32?.ema50;
-  const ema200 = v32?.ema200;
-  const atr = v32?.atr;
-  const isInValueZone = ema20 != null && ema50 != null && atr != null && currentPrice
-    ? (currentPrice >= Math.min(ema20, ema50) - 2 * atr && currentPrice <= Math.max(ema20, ema50) + 2 * atr)
-    : false;
-  const entryPattern = v32?.entry_pattern;
+  const inVz = v32?.in_value_zone ?? false;
 
-  const trendDirection = ema200Dir === 1 ? 'long' : ema200Dir === -1 ? 'short' : 'neutral';
-  const htfDirection = htfAlign === 1 ? 'long' : htfAlign === -1 ? 'short' : 'neutral';
+  const longConds = entryConditionsLong || {};
+  const shortConds = entryConditionsShort || {};
+  const longMet = Object.values(longConds).filter(Boolean).length;
+  const shortMet = Object.values(shortConds).filter(Boolean).length;
+  const longTotal = Math.max(Object.keys(longConds).length, 3);
+  const shortTotal = Math.max(Object.keys(shortConds).length, 3);
 
-  const conditions = [
+  const envConditions = [
+    {
+      key: 'ema200',
+      label: 'EMA200',
+      met: ema200Dir !== 0,
+      dir: ema200Dir,
+      detail: (() => {
+        if (env?.ema200_trend) {
+          const s = env.ema200_trend;
+          const slope = s.slope_pct != null ? `slope ${s.slope_pct > 0 ? '+' : ''}${s.slope_pct.toFixed(2)}%` : '';
+          const dist = s.distance_pct != null ? `${s.distance_pct > 0 ? '+' : ''}${s.distance_pct.toFixed(1)}%` : '';
+          const price = s.ema200_price != null ? `$${s.ema200_price.toFixed(0)}` : (v32?.ema200 != null ? `$${v32.ema200.toFixed(0)}` : '');
+          return [price, dist, slope].filter(Boolean).join(' ');
+        }
+        if (v32?.ema200 != null) return `$${v32.ema200.toFixed(0)} ${currentPrice > v32.ema200 ? '+' : ''}${((currentPrice - v32.ema200) / v32.ema200 * 100).toFixed(1)}%`;
+        return ema200Dir === 1 ? 'Up' : ema200Dir === -1 ? 'Down' : 'Flat';
+      })(),
+    },
     {
       key: 'htf',
       label: '4h HTF',
       met: htfAlign !== 0,
-      detail: htfAlign === 1 ? 'Bullish' : htfAlign === -1 ? 'Bearish' : 'Neutral',
-      sub: v32?.htf_ema50 != null ? `EMA50: $${v32.htf_ema50.toFixed(0)}` : null,
-      direction: htfDirection,
-    },
-    {
-      key: 'trend',
-      label: 'EMA200',
-      met: ema200Dir !== 0,
-      detail: ema200Dir === 1 ? 'Uptrend' : ema200Dir === -1 ? 'Downtrend' : 'Flat',
-      sub: ema200 != null ? `$${ema200.toFixed(0)} (${currentPrice > ema200 ? '+' : ''}${((currentPrice - ema200) / ema200 * 100).toFixed(2)}%)` : null,
-      direction: trendDirection,
+      dir: htfAlign,
+      detail: (() => {
+        if (env?.htf_align) {
+          const h = env.htf_align;
+          const price = h.ema50_4h_price != null ? `4h EMA50 $${h.ema50_4h_price.toFixed(0)}` : (v32?.htf_ema50 != null ? `$${v32.htf_ema50.toFixed(0)}` : '');
+          const dist = h.distance_pct != null ? `${h.distance_pct > 0 ? '+' : ''}${h.distance_pct.toFixed(1)}%` : '';
+          return [price, dist].filter(Boolean).join(' ');
+        }
+        return htfAlign === 1 ? 'Bullish' : htfAlign === -1 ? 'Bearish' : 'Neutral';
+      })(),
     },
     {
       key: 'vz',
       label: 'Value Zone',
-      met: isInValueZone,
-      detail: isInValueZone ? 'In Zone' : 'Outside',
-      sub: ema20 != null && ema50 != null ? `EMA20: $${ema20.toFixed(0)} / EMA50: $${ema50.toFixed(0)}` : null,
-      direction: isInValueZone ? 'active' : 'neutral',
-    },
-    {
-      key: 'pattern',
-      label: 'Pattern',
-      met: !!entryPattern,
-      detail: entryPattern ? (PATTERN_LABELS[entryPattern] || entryPattern) : 'Scanning...',
-      sub: entryPattern ? `1h candle close` : '6 patterns monitored',
-      direction: entryPattern ? 'active' : 'neutral',
+      met: inVz || (v32?.ema20 != null && v32?.ema50 != null && v32?.atr != null &&
+        currentPrice >= Math.min(v32.ema20, v32.ema50) - 2 * v32.atr &&
+        currentPrice <= Math.max(v32.ema20, v32.ema50) + 2 * v32.atr),
+      dir: 0,
+      detail: (() => {
+        if (env?.value_zone) {
+          const vz = env.value_zone;
+          const e20d = vz.ema20_distance_pct != null ? `E20 ${vz.ema20_distance_pct > 0 ? '+' : ''}${vz.ema20_distance_pct.toFixed(1)}%` : '';
+          const e50d = vz.ema50_distance_pct != null ? `E50 ${vz.ema50_distance_pct > 0 ? '+' : ''}${vz.ema50_distance_pct.toFixed(1)}%` : '';
+          return [e20d, e50d].filter(Boolean).join(' / ');
+        }
+        if (v32?.ema20 != null && v32?.ema50 != null) return `E20 $${v32.ema20.toFixed(0)} / E50 $${v32.ema50.toFixed(0)}`;
+        return inVz ? 'In Zone' : 'Outside';
+      })(),
     },
   ];
 
-  const metCount = conditions.filter(c => c.met).length;
-  const progressPct = (metCount / conditions.length) * 100;
-
-  const getConditionStyle = (met: boolean, direction: string) => {
-    if (!met) return { bg: 'bg-stone-50 border-stone-200', text: 'text-stone-400', detail: 'text-stone-400', dot: 'bg-stone-300' };
-    if (direction === 'long') return { bg: 'bg-cyan-50 border-cyan-400', text: 'text-cyan-700', detail: 'text-cyan-600', dot: 'bg-cyan-500 shadow-[0_0_6px_rgba(6,182,212,0.9)]' };
-    if (direction === 'short') return { bg: 'bg-orange-50 border-orange-400', text: 'text-orange-700', detail: 'text-orange-600', dot: 'bg-orange-500 shadow-[0_0_6px_rgba(251,146,60,0.9)]' };
-    return { bg: 'bg-emerald-50 border-emerald-400', text: 'text-emerald-700', detail: 'text-emerald-600', dot: 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.9)]' };
+  const getEnvStyle = (met: boolean, dir: number) => {
+    if (!met) return { bg: 'bg-stone-50 border-stone-200', text: 'text-stone-400', dot: 'bg-stone-300' };
+    if (dir === 1) return { bg: 'bg-cyan-50 border-cyan-400', text: 'text-cyan-700', dot: 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]' };
+    if (dir === -1) return { bg: 'bg-orange-50 border-orange-400', text: 'text-orange-700', dot: 'bg-orange-500 shadow-[0_0_5px_rgba(251,146,60,0.8)]' };
+    return { bg: 'bg-emerald-50 border-emerald-400', text: 'text-emerald-700', dot: 'bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]' };
   };
 
   return (
     <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Entry Conditions</h3>
-        <div className={`text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded ${
-          progressPct >= 100 ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-stone-100 text-slate-500 border border-stone-200'
-        }`}>{metCount}/{conditions.length}</div>
-      </div>
-
-      <div className="mb-2">
-        <div className="bg-stone-200 rounded-full h-2 overflow-hidden">
-          <div className={`h-2 rounded-full transition-all duration-500 ${
-            progressPct >= 100 ? 'bg-emerald-500' : progressPct >= 75 ? 'bg-cyan-500' : progressPct >= 50 ? 'bg-amber-500' : 'bg-stone-400'
-          }`} style={{ width: `${progressPct}%` }} />
+      <div className="flex items-center justify-between mb-1.5">
+        <h3 className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Entry</h3>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${longMet >= longTotal ? 'bg-cyan-100 text-cyan-700 border-cyan-300' : 'bg-stone-50 text-stone-400 border-stone-200'}`}>
+            L {longMet}/{longTotal}
+          </span>
+          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${shortMet >= shortTotal ? 'bg-orange-100 text-orange-700 border-orange-300' : 'bg-stone-50 text-stone-400 border-stone-200'}`}>
+            S {shortMet}/{shortTotal}
+          </span>
         </div>
       </div>
 
-      <div className="flex flex-col gap-1">
-        {conditions.map(c => {
-          const style = getConditionStyle(c.met, c.direction);
+      <div className="flex flex-col gap-0.5 mb-1.5">
+        {envConditions.map(c => {
+          const s = getEnvStyle(c.met, c.dir);
           return (
-            <div key={c.key} className={`rounded-md border p-1.5 transition-all duration-300 ${style.bg}`}>
+            <div key={c.key} className={`rounded border px-1.5 py-1 transition-all ${s.bg}`}>
               <div className="flex items-center gap-1.5">
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all ${style.dot}`} />
-                <span className={`text-[10px] font-bold flex-shrink-0 ${style.text}`}>{c.label}</span>
-                <span className={`text-[10px] font-bold ml-auto tabular-nums ${style.detail}`}>{c.detail}</span>
+                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.dot}`} />
+                <span className={`text-[9px] font-bold flex-shrink-0 w-[52px] ${s.text}`}>{c.label}</span>
+                <span className={`text-[8px] font-medium ml-auto tabular-nums truncate max-w-[140px] ${c.met ? s.text : 'text-stone-400'}`}>{c.detail}</span>
               </div>
-              {c.sub && (
-                <div className={`text-[8px] mt-0.5 ml-3.5 ${c.met ? style.detail : 'text-stone-400'} opacity-80`}>{c.sub}</div>
-              )}
             </div>
           );
         })}
       </div>
 
-      {(v32?.rsi != null || v32?.atr != null) && (
-        <div className="mt-1.5 flex items-center gap-3 bg-stone-50 rounded-md border border-stone-200 px-2 py-1">
+      <div className="border-t border-stone-200 pt-1.5">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[9px] font-bold text-slate-600 uppercase">Patterns</span>
           {v32?.rsi != null && (
-            <div className="flex items-center gap-1">
-              <span className="text-[8px] text-stone-500 font-medium">RSI(14)</span>
-              <span className={`text-[10px] font-bold tabular-nums ${
-                v32.rsi > 70 ? 'text-rose-600' : v32.rsi < 30 ? 'text-emerald-600' : 'text-slate-700'
-              }`}>{v32.rsi.toFixed(1)}</span>
-            </div>
-          )}
-          {v32?.atr != null && (
-            <div className="flex items-center gap-1">
-              <span className="text-[8px] text-stone-500 font-medium">ATR(14)</span>
-              <span className="text-[10px] font-bold tabular-nums text-slate-700">${v32.atr.toFixed(0)}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[8px] text-stone-400">RSI</span>
+              <span className={`text-[9px] font-bold tabular-nums ${v32.rsi > 70 ? 'text-rose-600' : v32.rsi < 30 ? 'text-emerald-600' : 'text-slate-600'}`}>{v32.rsi.toFixed(1)}</span>
+              {v32?.atr != null && (
+                <>
+                  <span className="text-[8px] text-stone-400">ATR</span>
+                  <span className="text-[9px] font-bold tabular-nums text-slate-600">${v32.atr.toFixed(0)}</span>
+                </>
+              )}
             </div>
           )}
         </div>
-      )}
+        <div className="grid grid-cols-2 gap-0.5">
+          {PATTERN_KEYS.map(pk => {
+            const info = patProx?.[pk];
+            const prox = info?.proximity ?? 0;
+            const ready = info?.ready ?? false;
+            const detail = info?.detail;
+            const dir = info?.dir ?? 0;
+            const pct = Math.min(100, prox * 100);
+            const barColor = ready
+              ? (dir === 1 ? 'bg-cyan-500' : dir === -1 ? 'bg-orange-500' : 'bg-emerald-500')
+              : pct > 60 ? 'bg-amber-400' : 'bg-stone-300';
+            const textColor = ready
+              ? (dir === 1 ? 'text-cyan-700' : dir === -1 ? 'text-orange-700' : 'text-emerald-700')
+              : 'text-stone-500';
+            return (
+              <div key={pk} className={`rounded border px-1 py-0.5 transition-all ${
+                ready ? (dir === 1 ? 'bg-cyan-50 border-cyan-300' : dir === -1 ? 'bg-orange-50 border-orange-300' : 'bg-emerald-50 border-emerald-300') : 'bg-stone-50 border-stone-200'
+              }`} title={detail || undefined}>
+                <div className="flex items-center gap-1">
+                  <span className={`text-[8px] font-bold w-[38px] flex-shrink-0 ${textColor}`}>{PATTERN_LABELS[pk] || pk}</span>
+                  <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
+                    <div className={`h-1 rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className={`text-[8px] font-bold tabular-nums w-[24px] text-right ${textColor}`}>{prox.toFixed(1)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -188,7 +232,6 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, currentPn
   const trailPrice = v32?.trail_price ?? exitPrices?.trailPrice;
   const peakPnl = v32?.peak_pnl ?? exitConditions?.V32TRAIL?.peakPnl ?? mfePct ?? 0;
   const trailArmed = exitConditions?.V32TRAIL?.armed ?? (peakPnl > 0.5);
-  const trailLevel = exitConditions?.V32TRAIL?.currentLevel;
 
   const slPrice = v32?.sl_price ?? exitPrices?.slPrice ?? exitConditions?.SL?.slPrice;
   const slArmed = exitConditions?.SL?.armed ?? !!slPrice;
@@ -457,7 +500,12 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           </div>
         </div>
 
-        <EntryConditionsPanel ss={ss} currentPrice={data.currentPrice} />
+        <EntryConditionsPanel
+          ss={ss}
+          currentPrice={data.currentPrice}
+          entryConditionsLong={data.strategy?.entryConditionsLong || data.strategy?.entry_conditions_long}
+          entryConditionsShort={data.strategy?.entryConditionsShort || data.strategy?.entry_conditions_short}
+        />
 
         <ExitConditionsPanel
           exitConditions={ss?.exitConditions}

@@ -1,5 +1,5 @@
-import { KrakenDashboardData, V10StrategyStatus, ExitConditions, ExitConditionTRAIL, V32Data } from '../../types/dashboard';
-import { DollarSign, Activity, Target, History, ShieldAlert, TrendingUp, Clock } from 'lucide-react';
+import { KrakenDashboardData, ExitConditions, V32Data } from '../../types/dashboard';
+import { DollarSign, Activity, Target, History, ShieldAlert, Clock } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
 
@@ -10,76 +10,15 @@ interface Props {
 
 interface ExitConditionsPanelProps {
   exitConditions?: ExitConditions;
-  exitPrices?: { vwapTarget?: number; cutThresholdMae?: number; rideTrailPrice?: number; slPrice?: number; trailPrice?: number; [key: string]: any };
+  exitPrices?: { slPrice?: number; trailPrice?: number; [key: string]: any };
   inPosition: boolean;
-  strategyParams?: { rideConsecN?: number; [key: string]: any };
-  entryMode?: 'SW' | 'RIDE';
-  currentPnl?: number;
   mfePct?: number;
-  maePct?: number;
   currentPrice?: number;
-  entryPrice?: number;
   positionSide?: 'LONG' | 'SHORT' | null;
   v32?: V32Data;
 }
 
-function ConditionDot({ met, positionSide, color }: { met: boolean; positionSide?: 'LONG' | 'SHORT' | null; color?: string }) {
-  const defaultColor = positionSide === 'SHORT'
-    ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.8)]'
-    : 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]';
-  const activeColor = color ?? defaultColor;
-  return (
-    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
-      met ? activeColor : 'bg-slate-600'
-    }`} />
-  );
-}
-
-function ProgressBar({ current, target, reverse = false, color, positionSide }: { current: number; target: number; reverse?: boolean; color?: string; positionSide?: 'LONG' | 'SHORT' | null }) {
-  let pct: number;
-  pct = target !== 0 ? Math.min(100, Math.max(0, (current / target) * 100)) : 0;
-  const sideColor = positionSide === 'SHORT' ? 'bg-orange-400' : 'bg-cyan-400';
-  const barColor = color ?? sideColor;
-  return (
-    <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
-      <div
-        className={`h-1.5 rounded-full transition-all duration-300 ${barColor}`}
-        style={{ width: `${pct}%` }}
-      />
-    </div>
-  );
-}
-
-function VwapRangeBar({ maePct, entryPrice, currentPrice, vwapTarget, positionSide, reached }: {
-  maePct: number; entryPrice: number; currentPrice: number; vwapTarget: number; positionSide?: 'LONG' | 'SHORT' | null; reached: boolean;
-}) {
-  const isShort = positionSide === 'SHORT';
-  const maePrice = isShort ? entryPrice * (1 + Math.abs(maePct) / 100) : entryPrice * (1 - Math.abs(maePct) / 100);
-  const lo = Math.min(maePrice, vwapTarget);
-  const hi = Math.max(maePrice, vwapTarget);
-  const range = hi - lo;
-  const fillPct = range > 0 ? Math.min(100, Math.max(0, ((currentPrice - lo) / range) * 100)) : 0;
-  const sideColor = isShort ? 'bg-orange-400' : 'bg-cyan-400';
-  return (
-    <div className="flex items-center gap-1.5">
-      <ConditionDot met={reached} positionSide={positionSide} />
-      <span className={`text-[9px] w-[30px] flex-shrink-0 tabular-nums ${reached ? (isShort ? 'text-orange-300' : 'text-cyan-300') : 'text-slate-500'}`}>
-        {maePrice.toFixed(0)}
-      </span>
-      <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
-        <div
-          className={`h-1.5 rounded-full transition-all duration-300 ${sideColor}`}
-          style={{ width: `${reached ? 100 : fillPct}%` }}
-        />
-      </div>
-      <span className={`text-[9px] tabular-nums w-[44px] text-right flex-shrink-0 ${reached ? (isShort ? 'text-orange-300' : 'text-cyan-300') : 'text-slate-500'}`}>
-        {vwapTarget.toFixed(0)}
-      </span>
-    </div>
-  );
-}
-
-function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyParams, entryMode, currentPnl, mfePct, maePct, currentPrice, entryPrice, positionSide, v32 }: ExitConditionsPanelProps) {
+function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, mfePct, currentPrice, positionSide, v32 }: ExitConditionsPanelProps) {
   if (!inPosition) return null;
 
   const isShort = positionSide === 'SHORT';
@@ -108,37 +47,6 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className={`rounded-md border p-1.5 transition-all ${
-          slArmed ? 'bg-rose-900/30 border-rose-600/50' : 'bg-slate-700/20 border-slate-700/50'
-        }`}>
-          <div className="flex items-center justify-between mb-0.5">
-            <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                slArmed ? 'bg-rose-400 shadow-[0_0_5px_rgba(248,113,113,0.9)]' : 'bg-slate-600'
-              }`} />
-              <span className={`text-[10px] font-bold ${slArmed ? 'text-rose-300' : 'text-slate-400'}`}>SL</span>
-              <span className="text-[8px] text-slate-500">ATR Stop</span>
-            </div>
-            {slPrice != null && (
-              <span className={`text-[10px] font-bold tabular-nums ${slArmed ? 'text-rose-300' : 'text-slate-500'}`}>
-                ${slPrice.toFixed(1)}
-              </span>
-            )}
-          </div>
-          {slDistance !== 0 && (
-            <div className="flex items-center gap-1.5">
-              <span className={`text-[9px] w-[50px] flex-shrink-0 ${slArmed ? 'text-rose-300' : 'text-slate-600'}`}>Distance</span>
-              <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                <div className="h-1.5 rounded-full transition-all duration-300 bg-rose-400"
-                  style={{ width: `${Math.min(100, Math.max(5, 100 - Math.abs(slDistance) * 20))}%` }} />
-              </div>
-              <span className={`text-[9px] tabular-nums w-[40px] text-right flex-shrink-0 ${slArmed ? 'text-rose-400' : 'text-slate-500'}`}>
-                {slDistance.toFixed(2)}%
-              </span>
-            </div>
-          )}
-        </div>
-
         <div className={`rounded-md border p-1.5 transition-all ${
           trailArmed ? sideBg : 'bg-slate-700/20 border-slate-700/50'
         }`}>
@@ -171,22 +79,54 @@ function ExitConditionsPanel({ exitConditions, exitPrices, inPosition, strategyP
         </div>
 
         <div className={`rounded-md border p-1.5 transition-all ${
+          slArmed ? 'bg-rose-900/30 border-rose-600/50' : 'bg-slate-700/20 border-slate-700/50'
+        }`}>
+          <div className="flex items-center justify-between mb-0.5">
+            <div className="flex items-center gap-1.5">
+              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                slArmed ? 'bg-rose-400 shadow-[0_0_5px_rgba(248,113,113,0.9)]' : 'bg-slate-600'
+              }`} />
+              <span className={`text-[10px] font-bold ${slArmed ? 'text-rose-300' : 'text-slate-400'}`}>SL</span>
+              <span className="text-[8px] text-slate-500">0.5x ATR</span>
+            </div>
+            {slPrice != null && (
+              <span className={`text-[10px] font-bold tabular-nums ${slArmed ? 'text-rose-300' : 'text-slate-500'}`}>
+                ${slPrice.toFixed(1)}
+              </span>
+            )}
+          </div>
+          {slDistance !== 0 && (
+            <div className="flex items-center gap-1.5">
+              <span className={`text-[9px] w-[50px] flex-shrink-0 ${slArmed ? 'text-rose-300' : 'text-slate-600'}`}>Dist.</span>
+              <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                <div className="h-1.5 rounded-full transition-all duration-300 bg-rose-400"
+                  style={{ width: `${Math.min(100, Math.max(5, 100 - Math.abs(slDistance) * 20))}%` }} />
+              </div>
+              <span className={`text-[9px] tabular-nums w-[40px] text-right flex-shrink-0 ${slArmed ? 'text-rose-400' : 'text-slate-500'}`}>
+                {slDistance.toFixed(2)}%
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className={`rounded-md border p-1.5 transition-all ${
           timeProgress >= 80 ? 'bg-amber-900/30 border-amber-600/50' : 'bg-slate-700/20 border-slate-700/50'
         }`}>
           <div className="flex items-center justify-between mb-0.5">
             <div className="flex items-center gap-1.5">
               <Clock className={`w-3 h-3 ${timeProgress >= 80 ? 'text-amber-400' : 'text-slate-600'}`} />
-              <span className={`text-[10px] font-bold ${timeProgress >= 80 ? 'text-amber-300' : 'text-slate-400'}`}>TIME</span>
-              <span className="text-[8px] text-slate-500">{maxBars}h Max</span>
+              <span className={`text-[10px] font-bold ${timeProgress >= 80 ? 'text-amber-300' : 'text-slate-400'}`}>TIMEOUT</span>
+              <span className="text-[8px] text-slate-500">{maxBars}h max</span>
             </div>
             <span className={`text-[10px] font-bold tabular-nums ${timeProgress >= 80 ? 'text-amber-300' : 'text-slate-500'}`}>
-              {barsHeld}/{maxBars}h
+              {maxBars - barsHeld > 0 ? `${maxBars - barsHeld}h left` : 'Expired'}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
+            <span className={`text-[9px] w-[50px] flex-shrink-0 tabular-nums ${timeProgress >= 80 ? 'text-amber-400' : 'text-slate-600'}`}>{barsHeld}h</span>
             <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
               <div className={`h-1.5 rounded-full transition-all duration-300 ${
-                timeProgress >= 80 ? 'bg-amber-400' : 'bg-slate-500'
+                timeProgress >= 90 ? 'bg-rose-400' : timeProgress >= 80 ? 'bg-amber-400' : 'bg-slate-500'
               }`} style={{ width: `${timeProgress}%` }} />
             </div>
             <span className={`text-[9px] tabular-nums w-[30px] text-right flex-shrink-0 ${
@@ -255,7 +195,6 @@ export function KrakenMetricsPanel({ data, position }: Props) {
     const ss = data.strategyStatus;
     const entryConditionsLong = data.strategyA?.entry_conditions_long;
     const entryConditionsShort = data.strategyA?.entry_conditions_short;
-    const entryDetails = data.strategyStatus?.entryDetails || data.strategyA?.entry_details;
 
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {
@@ -382,84 +321,158 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           </div>
         </div>
 
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Entry Conditions</h3>
-          </div>
+        {(() => {
+          const v32 = ss?.v32;
+          const env = v32?.env_status;
+          const patProx = v32?.pattern_proximity;
+          const ema200Dir = v32?.ema200_direction ?? 0;
+          const htfAlign = v32?.htf_alignment ?? 0;
+          const inVz = v32?.in_value_zone ?? false;
 
-          {(() => {
-            const v32 = ss?.v32;
-            const ema200Dir = v32?.ema200_direction ?? 0;
-            const htfAlign = v32?.htf_alignment ?? 0;
-            const ema20 = v32?.ema20;
-            const ema50 = v32?.ema50;
-            const atr = v32?.atr;
-            const isInValueZone = ema20 != null && ema50 != null && atr != null && data.currentPrice
-              ? (data.currentPrice >= Math.min(ema20, ema50) - 2 * atr && data.currentPrice <= Math.max(ema20, ema50) + 2 * atr)
-              : false;
-            const entryPattern = v32?.entry_pattern;
+          const longConds = entryConditionsLong || {};
+          const shortConds = entryConditionsShort || {};
+          const longMet = Object.values(longConds).filter(Boolean).length;
+          const shortMet = Object.values(shortConds).filter(Boolean).length;
+          const longTotal = Math.max(Object.keys(longConds).length, 3);
+          const shortTotal = Math.max(Object.keys(shortConds).length, 3);
 
-            const conditions = [
-              { key: 'trend', label: 'EMA200', desc: ema200Dir === 1 ? 'Up' : ema200Dir === -1 ? 'Down' : 'Flat', met: ema200Dir !== 0, color: ema200Dir === 1 ? 'text-cyan-300' : ema200Dir === -1 ? 'text-orange-300' : 'text-slate-500' },
-              { key: 'htf', label: 'HTF 4h', desc: htfAlign === 1 ? 'Aligned' : htfAlign === -1 ? 'Reverse' : 'Neutral', met: htfAlign !== 0, color: htfAlign === 1 ? 'text-cyan-300' : htfAlign === -1 ? 'text-orange-300' : 'text-slate-500' },
-              { key: 'vz', label: 'Value Zone', desc: isInValueZone ? 'In Zone' : 'Outside', met: isInValueZone, color: isInValueZone ? 'text-emerald-300' : 'text-slate-500' },
-              { key: 'pattern', label: 'Pattern', desc: entryPattern || 'Waiting', met: !!entryPattern, color: entryPattern ? 'text-emerald-300' : 'text-slate-500' },
-            ];
+          const PATTERN_LABELS: Record<string, string> = { '382': '38.2%', ENG: 'Engulf', REV: 'Reversal', DBL: 'DblB/T', FLAG: 'Flag', RSI_DIV: 'RSI Div' };
+          const PATTERN_KEYS = ['382', 'ENG', 'REV', 'DBL', 'FLAG', 'RSI_DIV'] as const;
 
-            const metCount = conditions.filter(c => c.met).length;
-            const progressPct = (metCount / conditions.length) * 100;
+          const envConds = [
+            {
+              key: 'ema200', label: 'EMA200', met: ema200Dir !== 0, dir: ema200Dir,
+              detail: (() => {
+                if (env?.ema200_trend) {
+                  const s = env.ema200_trend;
+                  const slope = s.slope_pct != null ? `slope ${s.slope_pct > 0 ? '+' : ''}${s.slope_pct.toFixed(2)}%` : '';
+                  const dist = s.distance_pct != null ? `${s.distance_pct > 0 ? '+' : ''}${s.distance_pct.toFixed(1)}%` : '';
+                  const price = s.ema200_price != null ? `$${s.ema200_price.toFixed(0)}` : (v32?.ema200 != null ? `$${v32.ema200.toFixed(0)}` : '');
+                  return [price, dist, slope].filter(Boolean).join(' ');
+                }
+                if (v32?.ema200 != null) return `$${v32.ema200.toFixed(0)} ${((data.currentPrice - v32.ema200) / v32.ema200 * 100).toFixed(1)}%`;
+                return ema200Dir === 1 ? 'Up' : ema200Dir === -1 ? 'Down' : 'Flat';
+              })(),
+            },
+            {
+              key: 'htf', label: '4h HTF', met: htfAlign !== 0, dir: htfAlign,
+              detail: (() => {
+                if (env?.htf_align) {
+                  const h = env.htf_align;
+                  const price = h.ema50_4h_price != null ? `4h E50 $${h.ema50_4h_price.toFixed(0)}` : (v32?.htf_ema50 != null ? `$${v32.htf_ema50.toFixed(0)}` : '');
+                  const dist = h.distance_pct != null ? `${h.distance_pct > 0 ? '+' : ''}${h.distance_pct.toFixed(1)}%` : '';
+                  return [price, dist].filter(Boolean).join(' ');
+                }
+                return htfAlign === 1 ? 'Bullish' : htfAlign === -1 ? 'Bearish' : 'Neutral';
+              })(),
+            },
+            {
+              key: 'vz', label: 'Value Zone', met: inVz || (v32?.ema20 != null && v32?.ema50 != null && v32?.atr != null && data.currentPrice >= Math.min(v32.ema20, v32.ema50) - 2 * v32.atr && data.currentPrice <= Math.max(v32.ema20, v32.ema50) + 2 * v32.atr), dir: 0,
+              detail: (() => {
+                if (env?.value_zone) {
+                  const vz = env.value_zone;
+                  const e20d = vz.ema20_distance_pct != null ? `E20 ${vz.ema20_distance_pct > 0 ? '+' : ''}${vz.ema20_distance_pct.toFixed(1)}%` : '';
+                  const e50d = vz.ema50_distance_pct != null ? `E50 ${vz.ema50_distance_pct > 0 ? '+' : ''}${vz.ema50_distance_pct.toFixed(1)}%` : '';
+                  return [e20d, e50d].filter(Boolean).join(' / ');
+                }
+                if (v32?.ema20 != null && v32?.ema50 != null) return `E20 $${v32.ema20.toFixed(0)} / E50 $${v32.ema50.toFixed(0)}`;
+                return inVz ? 'In Zone' : 'Outside';
+              })(),
+            },
+          ];
 
-            return (
-              <>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                    <div className={`h-1.5 rounded-full transition-all duration-500 ${
-                      progressPct >= 100 ? 'bg-emerald-400' : progressPct >= 50 ? 'bg-cyan-400' : 'bg-slate-500'
-                    }`} style={{ width: `${progressPct}%` }} />
-                  </div>
-                  <span className={`text-[10px] font-bold tabular-nums ${
-                    progressPct >= 100 ? 'text-emerald-400' : 'text-slate-400'
-                  }`}>{metCount}/{conditions.length}</span>
+          const getStyle = (met: boolean, dir: number) => {
+            if (!met) return { bg: 'bg-slate-700/15 border-slate-700/30', text: 'text-slate-500', dot: 'bg-slate-600' };
+            if (dir === 1) return { bg: 'bg-cyan-900/30 border-cyan-500/40', text: 'text-cyan-300', dot: 'bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.8)]' };
+            if (dir === -1) return { bg: 'bg-orange-900/30 border-orange-500/40', text: 'text-orange-300', dot: 'bg-orange-400 shadow-[0_0_5px_rgba(251,146,60,0.8)]' };
+            return { bg: 'bg-emerald-900/30 border-emerald-500/40', text: 'text-emerald-300', dot: 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.8)]' };
+          };
+
+          return (
+            <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <h3 className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Entry</h3>
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${longMet >= longTotal ? 'bg-cyan-900/40 text-cyan-300 border-cyan-500/50' : 'bg-slate-700/30 text-slate-500 border-slate-600'}`}>
+                    L {longMet}/{longTotal}
+                  </span>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${shortMet >= shortTotal ? 'bg-orange-900/40 text-orange-300 border-orange-500/50' : 'bg-slate-700/30 text-slate-500 border-slate-600'}`}>
+                    S {shortMet}/{shortTotal}
+                  </span>
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  {conditions.map(c => (
-                    <div key={c.key} className={`flex items-center gap-1.5 rounded px-1.5 py-1 transition-all ${
-                      c.met ? 'bg-slate-700/40' : 'bg-slate-700/15'
-                    }`}>
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
-                        c.met ? 'bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.8)]' : 'bg-slate-600'
-                      }`} />
-                      <span className={`text-[9px] font-semibold flex-shrink-0 w-[60px] ${c.met ? 'text-slate-200' : 'text-slate-500'}`}>{c.label}</span>
-                      <span className={`text-[9px] font-bold tabular-nums ${c.color}`}>{c.desc}</span>
+              </div>
+
+              <div className="flex flex-col gap-0.5 mb-1.5">
+                {envConds.map(c => {
+                  const st = getStyle(c.met, c.dir);
+                  return (
+                    <div key={c.key} className={`rounded border px-1.5 py-1 transition-all ${st.bg}`}>
+                      <div className="flex items-center gap-1.5">
+                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${st.dot}`} />
+                        <span className={`text-[9px] font-bold flex-shrink-0 w-[52px] ${st.text}`}>{c.label}</span>
+                        <span className={`text-[8px] font-medium ml-auto tabular-nums truncate max-w-[140px] ${c.met ? st.text : 'text-slate-500'}`}>{c.detail}</span>
+                      </div>
                     </div>
-                  ))}
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-slate-700 pt-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">Patterns</span>
+                  {v32?.rsi != null && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] text-slate-500">RSI</span>
+                      <span className={`text-[9px] font-bold tabular-nums ${v32.rsi > 70 ? 'text-rose-400' : v32.rsi < 30 ? 'text-emerald-400' : 'text-slate-300'}`}>{v32.rsi.toFixed(1)}</span>
+                      {v32?.atr != null && (
+                        <>
+                          <span className="text-[8px] text-slate-500">ATR</span>
+                          <span className="text-[9px] font-bold tabular-nums text-slate-300">${v32.atr.toFixed(0)}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
-                {v32?.rsi != null && (
-                  <div className="mt-1 flex items-center gap-2 bg-slate-700/20 rounded px-1.5 py-0.5">
-                    <span className="text-[8px] text-slate-500">RSI</span>
-                    <span className={`text-[9px] font-bold tabular-nums ${
-                      v32.rsi > 70 ? 'text-rose-400' : v32.rsi < 30 ? 'text-emerald-400' : 'text-slate-300'
-                    }`}>{v32.rsi.toFixed(1)}</span>
-                    <span className="text-[8px] text-slate-500">ATR</span>
-                    <span className="text-[9px] font-bold tabular-nums text-slate-300">{v32.atr?.toFixed(1) ?? '--'}</span>
-                  </div>
-                )}
-              </>
-            );
-          })()}
-        </div>
+                <div className="grid grid-cols-2 gap-0.5">
+                  {PATTERN_KEYS.map(pk => {
+                    const info = patProx?.[pk];
+                    const prox = info?.proximity ?? 0;
+                    const ready = info?.ready ?? false;
+                    const detail = info?.detail;
+                    const dir = info?.dir ?? 0;
+                    const pct = Math.min(100, prox * 100);
+                    const barColor = ready
+                      ? (dir === 1 ? 'bg-cyan-400' : dir === -1 ? 'bg-orange-400' : 'bg-emerald-400')
+                      : pct > 60 ? 'bg-amber-500' : 'bg-slate-600';
+                    const textColor = ready
+                      ? (dir === 1 ? 'text-cyan-300' : dir === -1 ? 'text-orange-300' : 'text-emerald-300')
+                      : 'text-slate-500';
+                    return (
+                      <div key={pk} className={`rounded border px-1 py-0.5 transition-all ${
+                        ready ? (dir === 1 ? 'bg-cyan-900/30 border-cyan-500/40' : dir === -1 ? 'bg-orange-900/30 border-orange-500/40' : 'bg-emerald-900/30 border-emerald-500/40') : 'bg-slate-700/15 border-slate-700/30'
+                      }`} title={detail || undefined}>
+                        <div className="flex items-center gap-1">
+                          <span className={`text-[8px] font-bold w-[38px] flex-shrink-0 ${textColor}`}>{PATTERN_LABELS[pk] || pk}</span>
+                          <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
+                            <div className={`h-1 rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className={`text-[8px] font-bold tabular-nums w-[24px] text-right ${textColor}`}>{prox.toFixed(1)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         <ExitConditionsPanel
           exitConditions={ss?.exitConditions}
           exitPrices={ss?.exitPrices}
           inPosition={!!hasPosition}
-          strategyParams={ss?.strategyParams}
-          entryMode={ss?.entryMode || data.position?.entry_mode || data.strategyA?.entry_mode}
-          currentPnl={currentPnl}
           mfePct={ss?.mfe ?? data.strategyA?.mfe}
-          maePct={ss?.mae ?? data.strategyA?.mae}
           currentPrice={data.currentPrice}
-          entryPrice={data.position?.entry_price ?? ss?.entryPrice}
           positionSide={data.position?.position_side}
           v32={ss?.v32}
         />
@@ -629,7 +642,6 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           {recentTrades.length > 0 ? (
             recentTrades.map((trade, index) => {
               const isLong = (trade as any).side !== 'SHORT';
-              const sideColor = isLong ? 'cyan' : 'orange';
 
               return (
                 <div key={`${trade.timestamp}-${index}`}>

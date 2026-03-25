@@ -1633,31 +1633,47 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     opacity="0.75"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
                   />
+                  <rect x="0" y={priceToY(data.holding.buyPrice) - 8} width="68" height="16" rx="3" fill={entryColor} opacity="0.85" />
+                  <text x="34" y={priceToY(data.holding.buyPrice) + 3.5} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="monospace">
+                    {`Entry ${data.holding.buyPrice.toFixed(0)}`}
+                  </text>
                   {slPrice && (
-                    <line
-                      x1="0"
-                      y1={priceToY(slPrice)}
-                      x2="100%"
-                      y2={priceToY(slPrice)}
-                      stroke="#f87171"
-                      strokeWidth="1.2"
-                      strokeDasharray="5 4"
-                      opacity="0.8"
-                      filter="drop-shadow(0 0 2px rgba(248, 113, 113, 0.4))"
-                    />
+                    <>
+                      <line
+                        x1="0"
+                        y1={priceToY(slPrice)}
+                        x2="100%"
+                        y2={priceToY(slPrice)}
+                        stroke="#f87171"
+                        strokeWidth="1.2"
+                        strokeDasharray="5 4"
+                        opacity="0.8"
+                        filter="drop-shadow(0 0 2px rgba(248, 113, 113, 0.4))"
+                      />
+                      <rect x="0" y={priceToY(slPrice) - 8} width="58" height="16" rx="3" fill="#f87171" opacity="0.85" />
+                      <text x="29" y={priceToY(slPrice) + 3.5} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="monospace">
+                        {`SL ${slPrice.toFixed(0)}`}
+                      </text>
+                    </>
                   )}
                   {trailPrice && (
-                    <line
-                      x1="0"
-                      y1={priceToY(trailPrice)}
-                      x2="100%"
-                      y2={priceToY(trailPrice)}
-                      stroke="#fbbf24"
-                      strokeWidth="1.2"
-                      strokeDasharray="6 3"
-                      opacity="0.8"
-                      filter="drop-shadow(0 0 2px rgba(251, 191, 36, 0.4))"
-                    />
+                    <>
+                      <line
+                        x1="0"
+                        y1={priceToY(trailPrice)}
+                        x2="100%"
+                        y2={priceToY(trailPrice)}
+                        stroke="#fbbf24"
+                        strokeWidth="1.2"
+                        strokeDasharray="6 3"
+                        opacity="0.8"
+                        filter="drop-shadow(0 0 2px rgba(251, 191, 36, 0.4))"
+                      />
+                      <rect x="0" y={priceToY(trailPrice) - 8} width="62" height="16" rx="3" fill="#fbbf24" opacity="0.85" />
+                      <text x="31" y={priceToY(trailPrice) + 3.5} textAnchor="middle" fill="#1e293b" fontSize="9" fontWeight="700" fontFamily="monospace">
+                        {`Trail ${trailPrice.toFixed(0)}`}
+                      </text>
+                    </>
                   )}
                 </svg>
               );
