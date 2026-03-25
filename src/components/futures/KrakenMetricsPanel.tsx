@@ -1,5 +1,5 @@
 import { KrakenDashboardData } from '../../types/dashboard';
-import { DollarSign, Activity, Target, History, ShieldAlert, Clock } from 'lucide-react';
+import { DollarSign, Activity, Target, History, Clock } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
 
@@ -14,9 +14,10 @@ interface ExitConditionsPanelProps {
   currentPrice: number;
   entryPrice: number;
   positionSide?: 'LONG' | 'SHORT' | null;
+  atr?: number;
 }
 
-function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, positionSide }: ExitConditionsPanelProps) {
+function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, positionSide, atr }: ExitConditionsPanelProps) {
   if (!inPosition || !exitConds) return null;
 
   const isShort = positionSide === 'SHORT';
@@ -73,7 +74,9 @@ function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, 
     <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
       <div className="flex items-center justify-between mb-1.5">
         <div className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Exit</div>
-        <ShieldAlert className="w-3 h-3 text-slate-500" />
+        {atr != null && (
+          <span className="text-[9px] font-bold tabular-nums text-slate-400">ATR ${atr.toFixed(1)}</span>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -395,6 +398,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           currentPrice={data.currentPrice}
           entryPrice={entryPrice ?? 0}
           positionSide={data.position?.position_side}
+          atr={ss?.v32?.atr ?? ss?.indicators?.['1h']?.atr}
         />
       </div>
     );

@@ -132,9 +132,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     tooltipBorder: 'border-slate-600',
     panelBg: 'bg-slate-700/30',
     panelBorder: 'border-slate-600',
-    emaShort: '#ffb300',
+    emaShort: '#e91e63',
     emaLong: '#2979ff',
-    ema200: '#ef5350',
+    ema200: '#84cc16',
     bb: '#a78bfa',
   } : {
     chartBg: 'bg-white/60',
@@ -151,9 +151,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     tooltipBorder: 'border-slate-300',
     panelBg: 'bg-white/80',
     panelBorder: 'border-slate-200',
-    emaShort: '#ffb300',
+    emaShort: '#e91e63',
     emaLong: '#2979ff',
-    ema200: '#ef5350',
+    ema200: '#84cc16',
     bb: '#8b5cf6',
   };
   const minVolumeHeight = 80;

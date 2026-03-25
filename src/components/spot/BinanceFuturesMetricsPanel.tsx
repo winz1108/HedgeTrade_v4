@@ -1,4 +1,4 @@
-import { DollarSign, Activity, Target, History, ShieldAlert, Clock } from 'lucide-react';
+import { DollarSign, Activity, Target, History, Clock } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
 import type { BFDashboardData, V10StrategyStatus } from '../../types/dashboard';
@@ -126,9 +126,10 @@ interface ExitPanelProps {
   currentPrice: number;
   entryPrice: number;
   positionSide?: 'LONG' | 'SHORT' | null;
+  atr?: number;
 }
 
-function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, positionSide }: ExitPanelProps) {
+function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, positionSide, atr }: ExitPanelProps) {
   if (!inPosition || !exitConds) return null;
 
   const isShort = positionSide === 'SHORT';
@@ -185,7 +186,9 @@ function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, 
     <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
       <div className="flex items-center justify-between mb-1.5">
         <div className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Exit</div>
-        <ShieldAlert className="w-3 h-3 text-stone-400" />
+        {atr != null && (
+          <span className="text-[9px] font-bold tabular-nums text-stone-500">ATR ${atr.toFixed(1)}</span>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -401,6 +404,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           currentPrice={data.currentPrice}
           entryPrice={entryPrice ?? 0}
           positionSide={positionSide}
+          atr={ss?.v32?.atr ?? ss?.indicators?.['1h']?.atr}
         />
       </div>
     );
