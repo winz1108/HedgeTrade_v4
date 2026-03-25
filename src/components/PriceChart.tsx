@@ -134,6 +134,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     panelBorder: 'border-slate-600',
     emaShort: '#22d3ee',
     emaLong: '#fb923c',
+    ema200: '#a78bfa',
     bb: '#a78bfa',
   } : {
     chartBg: 'bg-white/60',
@@ -152,6 +153,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     panelBorder: 'border-slate-200',
     emaShort: '#3b82f6',
     emaLong: '#f59e0b',
+    ema200: '#8b5cf6',
     bb: '#8b5cf6',
   };
   const minVolumeHeight = 80;
@@ -204,12 +206,13 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
     const prices = visibleCandles.flatMap(c => {
       const vals = [c.high, c.low];
-      // 백엔드 필드명: ema_short, ema_long
       if (c.ema_short) vals.push(c.ema_short);
       if (c.ema_long) vals.push(c.ema_long);
       if (c.ema3) vals.push(c.ema3);
       if (c.ema8) vals.push(c.ema8);
-      // BB 필드명: bb_upper, bb_mid, bb_lower
+      if (c.ema20) vals.push(c.ema20);
+      if (c.ema50) vals.push(c.ema50);
+      if (c.ema200) vals.push(c.ema200);
       if (c.bb_upper) vals.push(c.bb_upper);
       if (c.bb_mid) vals.push(c.bb_mid);
       if (c.bb_lower) vals.push(c.bb_lower);
@@ -769,11 +772,15 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           <div className={`flex items-center gap-1.5 text-[9px] sm:text-[10px] sm:gap-2 ${colors.panelBg} px-1.5 py-1 sm:px-2 rounded flex-wrap`}>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
-              <span className={colors.textSecondary}>EMA 8</span>
+              <span className={colors.textSecondary}>EMA 20</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
-              <span className={colors.textSecondary}>EMA 13</span>
+              <span className={colors.textSecondary}>EMA 50</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
+              <span className={colors.textSecondary}>EMA 200</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
@@ -915,38 +922,29 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                        (lowerY !== null && Math.abs(mouseY - lowerY) < HOVER_THRESHOLD);
               })();
 
+              const emaShortVal = candle?.ema20 ?? candle?.ema_short;
+              const emaLongVal = candle?.ema50 ?? candle?.ema_long;
+              const ema200Val = candle?.ema200;
+
               const isEmaShortHovered = (() => {
-                if (mouseY === null || !candle || candle.ema_short === undefined) return false;
-                return Math.abs(mouseY - priceToY(candle.ema_short)) < HOVER_THRESHOLD;
+                if (mouseY === null || !candle || emaShortVal === undefined) return false;
+                return Math.abs(mouseY - priceToY(emaShortVal)) < HOVER_THRESHOLD;
               })();
 
               const isEmaLongHovered = (() => {
-                if (mouseY === null || !candle || candle.ema_long === undefined) return false;
-                return Math.abs(mouseY - priceToY(candle.ema_long)) < HOVER_THRESHOLD;
+                if (mouseY === null || !candle || emaLongVal === undefined) return false;
+                return Math.abs(mouseY - priceToY(emaLongVal)) < HOVER_THRESHOLD;
               })();
 
-              const vwapHoverData = (() => {
-                if (mouseY === null || !candle || timeframe !== '5m' || !v10Strategy) return null;
-                const bs = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
-                if (!bs?.timestamps) return null;
-                const candleTs = normalizeTimestamp(candle.timestamp);
-                const idx = bs.timestamps.indexOf(candleTs);
-                if (idx === -1) return null;
-                const vwap = bs.vwap?.[idx] ?? null;
-                const upper = bs.upper?.[idx] ?? null;
-                const lower = bs.lower?.[idx] ?? null;
-                if (vwap === null && upper === null && lower === null) return null;
-                const vwapY = vwap !== null ? priceToY(vwap) : null;
-                const upperY = upper !== null ? priceToY(upper) : null;
-                const lowerY = lower !== null ? priceToY(lower) : null;
-                const isHovered = (upperY !== null && Math.abs(mouseY - upperY) < HOVER_THRESHOLD) ||
-                                  (lowerY !== null && Math.abs(mouseY - lowerY) < HOVER_THRESHOLD) ||
-                                  (vwapY !== null && Math.abs(mouseY - vwapY) < HOVER_THRESHOLD);
-                return isHovered ? { vwap, upper, lower } : null;
+              const isEma200Hovered = (() => {
+                if (mouseY === null || !candle || ema200Val === undefined) return false;
+                return Math.abs(mouseY - priceToY(ema200Val)) < HOVER_THRESHOLD;
               })();
-              const isVWAPHovered = vwapHoverData !== null;
 
-              const anyIndicatorHovered = isBBHovered || isEmaShortHovered || isEmaLongHovered || isVWAPHovered;
+              const vwapHoverData = null;
+              const isVWAPHovered = false;
+
+              const anyIndicatorHovered = isBBHovered || isEmaShortHovered || isEmaLongHovered || isEma200Hovered || isVWAPHovered;
 
               return (
                 <div className={`text-xs ${colors.tooltipBg} px-2.5 py-1.5 rounded-lg border ${colors.tooltipBorder} shadow-lg`}>
@@ -980,32 +978,27 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         )}
                       </>
                     )}
-                    {(isEmaShortHovered || isEmaLongHovered) && (
+                    {(isEmaShortHovered || isEmaLongHovered || isEma200Hovered) && (
                       <>
                         <span className={`${colors.textSecondary} text-[10px] font-semibold`}>EMA</span>
-                        {hoveredCandle.ema_short && (
+                        {(hoveredCandle.ema20 ?? hoveredCandle.ema_short) != null && (
                           <>
-                            <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">8</span>
-                            <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema_short.toFixed(2)}</span>
+                            <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">20</span>
+                            <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{(hoveredCandle.ema20 ?? hoveredCandle.ema_short)!.toFixed(2)}</span>
                           </>
                         )}
-                        {hoveredCandle.ema_long && (
+                        {(hoveredCandle.ema50 ?? hoveredCandle.ema_long) != null && (
                           <>
-                            <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">13</span>
-                            <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema_long.toFixed(2)}</span>
+                            <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">50</span>
+                            <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{(hoveredCandle.ema50 ?? hoveredCandle.ema_long)!.toFixed(2)}</span>
                           </>
                         )}
-                      </>
-                    )}
-                    {isVWAPHovered && vwapHoverData && (
-                      <>
-                        <span className={`text-[10px] font-semibold ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>VWAP</span>
-                        <span className={`${colors.textSecondary} text-[10px]`}>상단</span>
-                        <span className={`${darkMode ? 'text-amber-300' : 'text-amber-800'} font-bold tabular-nums`}>{vwapHoverData.upper?.toFixed(2) ?? '-'}</span>
-                        <span className={`${colors.textSecondary} text-[10px]`}>중앙</span>
-                        <span className={`${darkMode ? 'text-amber-200' : 'text-amber-700'} font-bold tabular-nums`}>{vwapHoverData.vwap?.toFixed(2) ?? '-'}</span>
-                        <span className={`${colors.textSecondary} text-[10px]`}>하단</span>
-                        <span className={`${darkMode ? 'text-amber-300' : 'text-amber-800'} font-bold tabular-nums`}>{vwapHoverData.lower?.toFixed(2) ?? '-'}</span>
+                        {hoveredCandle.ema200 != null && (
+                          <>
+                            <span style={{ color: colors.ema200 }} className="text-[10px] font-medium">200</span>
+                            <span style={{ color: colors.ema200 }} className="font-bold tabular-nums">{hoveredCandle.ema200.toFixed(2)}</span>
+                          </>
+                        )}
                       </>
                     )}
                   </div>
@@ -1057,6 +1050,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             {(() => {
               const emaShortPoints: string[] = [];
               const emaLongPoints: string[] = [];
+              const ema200Points: string[] = [];
               const bbUpperPoints: string[] = [];
               const bbMiddlePoints: string[] = [];
               const bbLowerPoints: string[] = [];
@@ -1064,31 +1058,31 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               visibleCandles.forEach((candle, idx) => {
                 const x = idx * (candleWidth + candleGap) + candleWidth / 2;
 
-                // 백엔드 필드명 직접 사용: ema_short, ema_long
-                if (candle.ema_short !== undefined) {
-                  const y = priceToY(candle.ema_short);
-                  emaShortPoints.push(`${x},${y}`);
+                const ema20v = candle.ema20 ?? candle.ema_short;
+                const ema50v = candle.ema50 ?? candle.ema_long;
+
+                if (ema20v !== undefined) {
+                  emaShortPoints.push(`${x},${priceToY(ema20v)}`);
                 }
 
-                if (candle.ema_long !== undefined) {
-                  const y = priceToY(candle.ema_long);
-                  emaLongPoints.push(`${x},${y}`);
+                if (ema50v !== undefined) {
+                  emaLongPoints.push(`${x},${priceToY(ema50v)}`);
                 }
 
-                // 백엔드 필드명: bb_upper, bb_mid, bb_lower
+                if (candle.ema200 !== undefined) {
+                  ema200Points.push(`${x},${priceToY(candle.ema200)}`);
+                }
+
                 if (candle.bb_upper !== undefined) {
-                  const y = priceToY(candle.bb_upper);
-                  bbUpperPoints.push(`${x},${y}`);
+                  bbUpperPoints.push(`${x},${priceToY(candle.bb_upper)}`);
                 }
 
                 if (candle.bb_mid !== undefined) {
-                  const y = priceToY(candle.bb_mid);
-                  bbMiddlePoints.push(`${x},${y}`);
+                  bbMiddlePoints.push(`${x},${priceToY(candle.bb_mid)}`);
                 }
 
                 if (candle.bb_lower !== undefined) {
-                  const y = priceToY(candle.bb_lower);
-                  bbLowerPoints.push(`${x},${y}`);
+                  bbLowerPoints.push(`${x},${priceToY(candle.bb_lower)}`);
                 }
               });
 
@@ -1108,35 +1102,26 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const isEmaShortHovered = (() => {
                 if (mouseY === null || hoveredCandleIndex === null) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
-                if (!candle || candle.ema_short === undefined) return false;
-                return Math.abs(mouseY - priceToY(candle.ema_short)) < HOVER_THRESHOLD;
+                if (!candle) return false;
+                const v = candle.ema20 ?? candle.ema_short;
+                if (v === undefined) return false;
+                return Math.abs(mouseY - priceToY(v)) < HOVER_THRESHOLD;
               })();
 
               const isEmaLongHovered = (() => {
                 if (mouseY === null || hoveredCandleIndex === null) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
-                if (!candle || candle.ema_long === undefined) return false;
-                return Math.abs(mouseY - priceToY(candle.ema_long)) < HOVER_THRESHOLD;
+                if (!candle) return false;
+                const v = candle.ema50 ?? candle.ema_long;
+                if (v === undefined) return false;
+                return Math.abs(mouseY - priceToY(v)) < HOVER_THRESHOLD;
               })();
 
-              const isVWAPBandHovered = (() => {
-                if (mouseY === null || hoveredCandleIndex === null || timeframe !== '5m' || !v10Strategy) return false;
-                const bs = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
-                if (!bs?.timestamps) return false;
+              const isEma200Hovered = (() => {
+                if (mouseY === null || hoveredCandleIndex === null) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
-                if (!candle) return false;
-                const candleTs = normalizeTimestamp(candle.timestamp);
-                const idx = bs.timestamps.indexOf(candleTs);
-                if (idx === -1) return false;
-                const vwap = bs.vwap?.[idx] ?? null;
-                const upper = bs.upper?.[idx] ?? null;
-                const lower = bs.lower?.[idx] ?? null;
-                const vwapY = vwap !== null ? priceToY(vwap) : null;
-                const upperY = upper !== null ? priceToY(upper) : null;
-                const lowerY = lower !== null ? priceToY(lower) : null;
-                return (upperY !== null && Math.abs(mouseY - upperY) < HOVER_THRESHOLD) ||
-                       (lowerY !== null && Math.abs(mouseY - lowerY) < HOVER_THRESHOLD) ||
-                       (vwapY !== null && Math.abs(mouseY - vwapY) < HOVER_THRESHOLD);
+                if (!candle || candle.ema200 === undefined) return false;
+                return Math.abs(mouseY - priceToY(candle.ema200)) < HOVER_THRESHOLD;
               })();
 
               return (
@@ -1197,87 +1182,17 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* VWAP Band Series - 5m only, always visible, timestamp-matched */}
-                  {timeframe === '5m' && (() => {
-                    if (!v10Strategy) return null;
-                    const bandSeries = v10Strategy.vwapBandSeries || (v10Strategy as any)?.vwap_band_series;
-                    if (!bandSeries) return null;
-
-                    const { timestamps, vwap: vwapArr, upper: upperArr, lower: lowerArr } = bandSeries;
-                    if (!timestamps || !vwapArr || !upperArr || !lowerArr) return null;
-                    if (timestamps.length === 0) return null;
-
-                    const tsToLocalIdx = new Map<number, number>();
-                    visibleCandles.forEach((c, idx) => {
-                      const ts = normalizeTimestamp(c.timestamp);
-                      tsToLocalIdx.set(ts, idx);
-                    });
-
-                    const upperPoints: string[] = [];
-                    const lowerPoints: string[] = [];
-                    const vwapPoints: string[] = [];
-                    const fillUpperPoints: string[] = [];
-                    const fillLowerPoints: string[] = [];
-
-                    for (let i = 0; i < timestamps.length; i++) {
-                      const localIdx = tsToLocalIdx.get(timestamps[i]);
-                      if (localIdx === undefined) continue;
-                      const x = localIdx * (candleWidth + candleGap) + candleWidth / 2;
-
-                      if (upperArr[i] != null) {
-                        const y = priceToY(upperArr[i]!);
-                        upperPoints.push(`${x},${y}`);
-                        fillUpperPoints.push(`${x},${y}`);
-                      }
-                      if (lowerArr[i] != null) {
-                        const y = priceToY(lowerArr[i]!);
-                        lowerPoints.push(`${x},${y}`);
-                        fillLowerPoints.push(`${x},${y}`);
-                      }
-                      if (vwapArr[i] != null) {
-                        vwapPoints.push(`${x},${priceToY(vwapArr[i]!)}`);
-                      }
-                    }
-
-                    const hov = isVWAPBandHovered;
-                    const fillColor = darkMode
-                      ? hov ? 'rgba(217,170,100,0.08)' : 'rgba(217,170,100,0.04)'
-                      : hov ? 'rgba(146,100,52,0.08)' : 'rgba(146,100,52,0.04)';
-                    const lineColor = darkMode
-                      ? hov ? 'rgba(230,190,120,0.75)' : 'rgba(200,160,90,0.35)'
-                      : hov ? 'rgba(120,80,30,0.7)' : 'rgba(146,100,52,0.4)';
-                    const centerColor = darkMode
-                      ? hov ? 'rgba(240,200,130,0.85)' : 'rgba(210,170,100,0.5)'
-                      : hov ? 'rgba(110,70,20,0.8)' : 'rgba(146,100,52,0.55)';
-
-                    const fillPoints = fillUpperPoints.length > 1 && fillLowerPoints.length > 1
-                      ? [...fillUpperPoints, ...fillLowerPoints.slice().reverse()].join(' ')
-                      : null;
-
-                    return (
-                      <>
-                        {fillPoints && (
-                          <polygon points={fillPoints} fill={fillColor} stroke="none"
-                            style={{ transition: 'fill 0.15s' }} />
-                        )}
-                        {upperPoints.length >= 2 && (
-                          <polyline points={upperPoints.join(' ')} fill="none"
-                            stroke={lineColor} strokeWidth={hov ? '1.4' : '0.8'} strokeDasharray="5 3"
-                            style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }} />
-                        )}
-                        {lowerPoints.length >= 2 && (
-                          <polyline points={lowerPoints.join(' ')} fill="none"
-                            stroke={lineColor} strokeWidth={hov ? '1.4' : '0.8'} strokeDasharray="5 3"
-                            style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }} />
-                        )}
-                        {vwapPoints.length >= 2 && (
-                          <polyline points={vwapPoints.join(' ')} fill="none"
-                            stroke={centerColor} strokeWidth={hov ? '1.5' : '1'}
-                            style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }} />
-                        )}
-                      </>
-                    );
-                  })()}
+                  {ema200Points.length > 1 && (
+                    <polyline
+                      points={ema200Points.join(' ')}
+                      fill="none"
+                      stroke={colors.ema200}
+                      strokeWidth={isEma200Hovered ? '2' : '1'}
+                      opacity={isEma200Hovered ? '1' : '0.6'}
+                      strokeDasharray="4 2"
+                      style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
+                    />
+                  )}
 
                   {/* BB Touch Markers - Most Recent Only */}
                   {(() => {
@@ -1698,9 +1613,15 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const entryColor = isLong ? '#06b6d4' : '#f97316';
               const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(249, 115, 22, 0.5)';
 
+              const slPrice = v10Strategy?.v32?.sl_price
+                ?? v10Strategy?.exitPrices?.slPrice
+                ?? v10Strategy?.exitConditions?.SL?.slPrice;
+
+              const trailPrice = v10Strategy?.v32?.trail_price
+                ?? v10Strategy?.exitPrices?.trailPrice;
+
               return (
                 <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
-                  {/* Entry price line */}
                   <line
                     x1="0"
                     y1={priceToY(data.holding.buyPrice)}
@@ -1712,52 +1633,32 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     opacity="0.75"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
                   />
-                  {(() => {
-                    const ep = data.holding.buyPrice;
-                    if (!ep) return null;
-                    const maePct = Math.abs(
-                      v10Strategy?.exitConditions?.CUT?.maeThreshold
-                      ?? v10Strategy?.exitPrices?.cutThresholdMae
-                      ?? 0.5
-                    ) / 100;
-                    const maePrice = isLong ? ep * (1 - maePct) : ep * (1 + maePct);
-                    return (
-                      <line
-                        x1="0"
-                        y1={priceToY(maePrice)}
-                        x2="100%"
-                        y2={priceToY(maePrice)}
-                        stroke="#fca5a5"
-                        strokeWidth="1.2"
-                        strokeDasharray="5 4"
-                        opacity="0.75"
-                      />
-                    );
-                  })()}
-                </svg>
-              );
-            })()}
-
-            {showTradeMarkers && (() => {
-              const vwapTarget = v10Strategy?.exitPrices?.vwapTarget
-                ?? v10Strategy?.exitConditions?.VWAP?.vwapTarget
-                ?? v10Strategy?.vwap;
-              if (!vwapTarget) return null;
-              const goldColor = '#d4a017';
-              const goldGlow = 'rgba(212, 160, 23, 0.4)';
-              return (
-                <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
-                  <line
-                    x1="0"
-                    y1={priceToY(vwapTarget)}
-                    x2="100%"
-                    y2={priceToY(vwapTarget)}
-                    stroke={goldColor}
-                    strokeWidth="1.2"
-                    strokeDasharray="6 3"
-                    opacity="0.8"
-                    filter={`drop-shadow(0 0 2px ${goldGlow})`}
-                  />
+                  {slPrice && (
+                    <line
+                      x1="0"
+                      y1={priceToY(slPrice)}
+                      x2="100%"
+                      y2={priceToY(slPrice)}
+                      stroke="#f87171"
+                      strokeWidth="1.2"
+                      strokeDasharray="5 4"
+                      opacity="0.8"
+                      filter="drop-shadow(0 0 2px rgba(248, 113, 113, 0.4))"
+                    />
+                  )}
+                  {trailPrice && (
+                    <line
+                      x1="0"
+                      y1={priceToY(trailPrice)}
+                      x2="100%"
+                      y2={priceToY(trailPrice)}
+                      stroke="#fbbf24"
+                      strokeWidth="1.2"
+                      strokeDasharray="6 3"
+                      opacity="0.8"
+                      filter="drop-shadow(0 0 2px rgba(251, 191, 36, 0.4))"
+                    />
+                  )}
                 </svg>
               );
             })()}

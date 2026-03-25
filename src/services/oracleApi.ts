@@ -447,6 +447,7 @@ const normalizeStrategyStatus = (raw: any): any => {
     rideMfePct: raw.rideMfePct ?? raw.ride_mfe_pct,
     strategy_version: raw.strategy_version ?? raw.strategyVersion,
     strategyParams: raw.strategyParams ?? raw.strategy_params,
+    v32: raw.v32,
   };
 };
 

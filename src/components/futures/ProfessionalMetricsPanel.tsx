@@ -1,4 +1,4 @@
-import { KrakenDashboardData } from '../../types/dashboard';
+import { KrakenDashboardData, V32Data } from '../../types/dashboard';
 import { DollarSign, Activity, Target, History } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
@@ -181,97 +181,66 @@ export function ProfessionalMetricsPanel({ data, position }: Props) {
             <h3 className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Entry Conditions</h3>
           </div>
 
-          {entryDetails?.VWAP ? (() => {
-            const vwap = entryDetails.VWAP!;
-            const longDist = vwap.long_distance_pct;
-            const shortDist = vwap.short_distance_pct;
-            const closerSide = longDist >= shortDist ? 'LONG' : 'SHORT';
+          {(() => {
+            const v32 = ss?.v32;
+            const ema200Dir = v32?.ema200_direction ?? 0;
+            const htfAlign = v32?.htf_alignment ?? 0;
+            const ema20 = v32?.ema20;
+            const ema50 = v32?.ema50;
+            const atr = v32?.atr;
+            const isInValueZone = ema20 != null && ema50 != null && atr != null && data.currentPrice
+              ? (data.currentPrice >= Math.min(ema20, ema50) - 2 * atr && data.currentPrice <= Math.max(ema20, ema50) + 2 * atr)
+              : false;
+            const entryPattern = v32?.entry_pattern;
+
+            const conditions = [
+              { key: 'trend', label: 'EMA200', desc: ema200Dir === 1 ? 'Up' : ema200Dir === -1 ? 'Down' : 'Flat', met: ema200Dir !== 0, color: ema200Dir === 1 ? 'text-cyan-300' : ema200Dir === -1 ? 'text-orange-300' : 'text-slate-500' },
+              { key: 'htf', label: 'HTF 4h', desc: htfAlign === 1 ? 'Aligned' : htfAlign === -1 ? 'Reverse' : 'Neutral', met: htfAlign !== 0, color: htfAlign === 1 ? 'text-cyan-300' : htfAlign === -1 ? 'text-orange-300' : 'text-slate-500' },
+              { key: 'vz', label: 'Value Zone', desc: isInValueZone ? 'In Zone' : 'Outside', met: isInValueZone, color: isInValueZone ? 'text-emerald-300' : 'text-slate-500' },
+              { key: 'pattern', label: 'Pattern', desc: entryPattern || 'Waiting', met: !!entryPattern, color: entryPattern ? 'text-emerald-300' : 'text-slate-500' },
+            ];
+
+            const metCount = conditions.filter(c => c.met).length;
+            const progressPct = (metCount / conditions.length) * 100;
 
             return (
-              <div className="grid grid-cols-2 gap-1.5">
-                {(['LONG', 'SHORT'] as const).map(side => {
-                  const isLongSide = side === 'LONG';
-                  const isCloser = side === closerSide;
-                  const met = isLongSide ? vwap.long_met : vwap.short_met;
-                  const rawDist = isLongSide ? longDist : shortDist;
-                  const targetPrice = isLongSide ? vwap.lower : vwap.upper;
-                  const maxRange = 1.0;
-                  const progressPct = met || rawDist >= 0
-                    ? 100
-                    : Math.max(0, Math.min(100, (1 - Math.abs(rawDist) / maxRange) * 100));
-                  const isNear = progressPct >= 70;
-                  const panelBg = met
-                    ? (isLongSide ? 'bg-cyan-500/20 border-cyan-400/60' : 'bg-orange-500/20 border-orange-400/60')
-                    : isCloser && isNear
-                      ? (isLongSide ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-orange-500/10 border-orange-500/30')
-                      : 'bg-slate-800/30 border-slate-700/50';
-                  const labelColor = met
-                    ? (isLongSide ? 'text-cyan-300 font-bold' : 'text-orange-300 font-bold')
-                    : isCloser ? (isLongSide ? 'text-cyan-400' : 'text-orange-400') : 'text-slate-500';
-                  const distLabel = met
-                    ? (rawDist > 0 ? `+${rawDist.toFixed(3)}%` : '0.000%')
-                    : `${rawDist.toFixed(3)}%`;
-                  const distColor = met
-                    ? (isLongSide ? 'text-cyan-300' : 'text-orange-300')
-                    : isNear ? (isLongSide ? 'text-cyan-400' : 'text-orange-400') : 'text-slate-400';
-                  const barTrack = 'bg-slate-700/60';
-                  const barFill = met
-                    ? (isLongSide ? 'bg-cyan-400' : 'bg-orange-400')
-                    : isNear
-                      ? (isLongSide ? 'bg-cyan-400/70' : 'bg-orange-400/70')
-                      : (isLongSide ? 'bg-cyan-500/30' : 'bg-orange-500/30');
-
-                  return (
-                    <div key={side} className={`rounded-md border p-1.5 transition-all duration-300 ${panelBg}`}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`text-[9px] font-semibold tracking-wide ${labelColor}`}>{side}</span>
-                        {met && <span className="text-[8px] font-bold text-emerald-400 tracking-wider animate-pulse">MET</span>}
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center justify-between">
-                          {isLongSide ? (
-                            <>
-                              <span className="text-[9px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
-                              <span className={`text-[9px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className={`text-[9px] tabular-nums font-medium ${distColor}`}>{distLabel}</span>
-                              <span className="text-[9px] tabular-nums text-slate-500">{targetPrice.toFixed(1)}</span>
-                            </>
-                          )}
-                        </div>
-                        <div className={`${barTrack} rounded-full h-1.5 overflow-hidden`}>
-                          {isLongSide ? (
-                            <div className={`h-full rounded-full transition-all duration-500 ease-out ml-auto ${barFill} ${met ? 'shadow-[0_0_4px_rgba(34,211,238,0.4)]' : ''}`}
-                              style={{ width: `${progressPct}%` }} />
-                          ) : (
-                            <div className={`h-full rounded-full transition-all duration-500 ease-out ${barFill} ${met ? 'shadow-[0_0_4px_rgba(251,146,60,0.4)]' : ''}`}
-                              style={{ width: `${progressPct}%` }} />
-                          )}
-                        </div>
-                      </div>
+              <>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                    <div className={`h-1.5 rounded-full transition-all duration-500 ${
+                      progressPct >= 100 ? 'bg-emerald-400' : progressPct >= 50 ? 'bg-cyan-400' : 'bg-slate-500'
+                    }`} style={{ width: `${progressPct}%` }} />
+                  </div>
+                  <span className={`text-[10px] font-bold tabular-nums ${
+                    progressPct >= 100 ? 'text-emerald-400' : 'text-slate-400'
+                  }`}>{metCount}/{conditions.length}</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  {conditions.map(c => (
+                    <div key={c.key} className={`flex items-center gap-1.5 rounded px-1.5 py-1 transition-all ${
+                      c.met ? 'bg-slate-700/40' : 'bg-slate-700/15'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
+                        c.met ? 'bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.8)]' : 'bg-slate-600'
+                      }`} />
+                      <span className={`text-[9px] font-semibold flex-shrink-0 w-[60px] ${c.met ? 'text-slate-200' : 'text-slate-500'}`}>{c.label}</span>
+                      <span className={`text-[9px] font-bold tabular-nums ${c.color}`}>{c.desc}</span>
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+                {v32?.rsi != null && (
+                  <div className="mt-1 flex items-center gap-2 bg-slate-700/20 rounded px-1.5 py-0.5">
+                    <span className="text-[8px] text-slate-500">RSI</span>
+                    <span className={`text-[9px] font-bold tabular-nums ${
+                      v32.rsi > 70 ? 'text-rose-400' : v32.rsi < 30 ? 'text-emerald-400' : 'text-slate-300'
+                    }`}>{v32.rsi.toFixed(1)}</span>
+                    <span className="text-[8px] text-slate-500">ATR</span>
+                    <span className="text-[9px] font-bold tabular-nums text-slate-300">{v32.atr?.toFixed(1) ?? '--'}</span>
+                  </div>
+                )}
+              </>
             );
-          })() : (
-            <div className="flex items-center justify-center h-8 text-slate-500 text-[11px]">
-              Waiting...
-            </div>
-          )}
-          {!hasPosition && (ss?.consecCutCount ?? 0) >= 1 && (
-            <div className="mt-1.5 flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-[9px] font-semibold text-amber-300">
-                연속CUT {ss?.consecCutCount}/{ss?.strategyParams?.rideConsecN ?? 2}
-              </span>
-              {(ss?.consecCutCount ?? 0) >= (ss?.strategyParams?.rideConsecN ?? 2) - 1 && (
-                <span className="text-[8px] text-amber-200 bg-amber-500/20 px-1 rounded">RIDE 예고</span>
-              )}
-            </div>
-          )}
+          })()}
         </div>
 
         <ManualOrderPanel

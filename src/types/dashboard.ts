@@ -7,24 +7,24 @@ export interface Candle {
   volume: number;
   isComplete?: boolean;
   isPrediction?: boolean;
-  // 백엔드 제공 인디케이터 필드명
-  ema_short?: number;    // EMA short (1m/5m/30m/1h/1d: 5 또는 3)
-  ema_long?: number;     // EMA long (1m/5m/30m/1h/1d: 13 또는 8)
-  ema3?: number;         // 15m 전용 EMA(3)
-  ema8?: number;         // 15m 전용 EMA(8)
-  bb_upper?: number;     // Bollinger Band 상단
-  bb_mid?: number;       // Bollinger Band 중심 (SMA 20)
-  bb_lower?: number;     // Bollinger Band 하단
-  bbw?: number;          // Bollinger Band Width %
-  adx?: number;          // ADX(14)
-  // MACD - 백엔드 실제 필드명 (모든 타임프레임)
-  macd?: number;         // MACD Line (백엔드 전송 필드명)
-  signal?: number;       // MACD Signal (백엔드 전송 필드명)
-  histogram?: number;    // MACD Histogram (백엔드 전송 필드명)
-  // MACD - 레거시/대체 필드명 (하위 호환성)
-  macd_line?: number;    // MACD Line (레거시)
-  macd_signal?: number;  // MACD Signal (레거시)
-  macd_hist?: number;    // MACD Histogram (레거시)
+  ema_short?: number;
+  ema_long?: number;
+  ema3?: number;
+  ema8?: number;
+  ema20?: number;
+  ema50?: number;
+  ema200?: number;
+  bb_upper?: number;
+  bb_mid?: number;
+  bb_lower?: number;
+  bbw?: number;
+  adx?: number;
+  macd?: number;
+  signal?: number;
+  histogram?: number;
+  macd_line?: number;
+  macd_signal?: number;
+  macd_hist?: number;
   rsi?: number;
 }
 
@@ -111,11 +111,52 @@ export interface ExitConditionTRAIL {
   currentPnl: number;
 }
 
+export interface ExitConditionSL {
+  armed: boolean;
+  slPrice?: number;
+  distance?: number;
+}
+
+export interface ExitConditionV32TRAIL {
+  armed: boolean;
+  peakPnl?: number;
+  trailDrop?: number;
+  currentLevel?: number;
+}
+
+export interface ExitConditionTIME {
+  armed: boolean;
+  barsHeld?: number;
+  maxBars?: number;
+  progress?: number;
+}
+
 export interface ExitConditions {
   CUT?: ExitConditionCUT;
   VWAP?: ExitConditionVWAP;
   RTRAIL?: ExitConditionRTRAIL;
   TRAIL?: ExitConditionTRAIL;
+  SL?: ExitConditionSL;
+  TIME?: ExitConditionTIME;
+  V32TRAIL?: ExitConditionV32TRAIL;
+}
+
+export interface V32Data {
+  ema20?: number;
+  ema50?: number;
+  ema200?: number;
+  atr?: number;
+  rsi?: number;
+  htf_ema50?: number;
+  htf_alignment?: number;
+  ema200_direction?: number;
+  sl_price?: number;
+  trail_price?: number;
+  peak_pnl?: number;
+  bars_held?: number;
+  max_bars?: number;
+  entry_pattern?: string;
+  entry_atr?: number;
 }
 
 export interface EntryDetailADX {
@@ -216,6 +257,7 @@ export interface V10StrategyStatus {
     cutThresholdMae?: number;
     rideTrailPrice?: number;
     trailPrice?: number;
+    slPrice?: number;
   };
   exitConditions?: ExitConditions;
   entryDetails?: EntryDetails;
@@ -227,9 +269,10 @@ export interface V10StrategyStatus {
   indicators?: {
     '5m'?: { bd?: number; bu?: number; [key: string]: any };
     '15m'?: { ema8?: number; ema13?: number; bd?: number; bu?: number; [key: string]: any };
-    '1h'?: { ema8?: number; ema13?: number; adx?: number; [key: string]: any };
+    '1h'?: { ema8?: number; ema13?: number; ema20?: number; ema50?: number; ema200?: number; atr?: number; adx?: number; [key: string]: any };
     [key: string]: any;
   };
+  v32?: V32Data;
 }
 
 export interface MarketState {

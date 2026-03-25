@@ -244,10 +244,12 @@ function FuturesDashboard() {
         if (priceData.entry_price !== undefined) { statusUpdate.entryPrice = priceData.entry_price; statusChanged = true; }
         if (priceData.vwap_band_series !== undefined) { statusUpdate.vwapBandSeries = priceData.vwap_band_series; statusChanged = true; }
         if (priceData.indicators) { statusUpdate.indicators = { ...prevStatus.indicators, ...priceData.indicators }; statusChanged = true; }
+        if (priceData.v32) { statusUpdate.v32 = { ...prevStatus.v32, ...priceData.v32 }; statusChanged = true; }
         if (priceData.exit_prices) {
           statusUpdate.exitPrices = { ...prevStatus.exitPrices, ...priceData.exit_prices };
           statusChanged = true;
         }
+        if (priceData.exit_conditions) { statusUpdate.exitConditions = { ...prevStatus.exitConditions, ...priceData.exit_conditions }; statusChanged = true; }
 
         if (statusChanged) updated.strategyStatus = statusUpdate;
 
