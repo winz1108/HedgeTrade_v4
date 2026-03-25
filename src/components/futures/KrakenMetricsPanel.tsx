@@ -323,6 +323,7 @@ export function KrakenMetricsPanel({ data, position }: Props) {
 
         {(() => {
           const v32 = ss?.v32;
+          const env = v32?.env_status;
           const patProx = v32?.pattern_proximity;
           const ema200Dir = v32?.ema200_direction ?? 0;
           const htfAlign = v32?.htf_alignment ?? 0;
@@ -338,92 +339,99 @@ export function KrakenMetricsPanel({ data, position }: Props) {
           const longTotal = Math.max(Object.keys(longConds).length, 3);
           const shortTotal = Math.max(Object.keys(shortConds).length, 3);
 
-          const PAT_NAMES: Record<string, string> = { '382': '38.2% Retrace', ENG: 'Engulfing', REV: 'Reversal', DBL: 'Double B/T', FLAG: 'Flag', RSI_DIV: 'RSI Diverg.' };
+          const PAT_NAMES: Record<string, string> = { '382': '38.2%', ENG: 'Engulf', REV: 'Reversal', DBL: 'Dbl B/T', FLAG: 'Flag', RSI_DIV: 'RSI Div' };
           const PAT_KEYS = ['382', 'ENG', 'REV', 'DBL', 'FLAG', 'RSI_DIV'] as const;
 
-          const envRows = [
-            { key: 'ema200', label: 'Trend', met: ema200Dir !== 0, dir: ema200Dir, status: ema200Dir === 1 ? 'Uptrend' : ema200Dir === -1 ? 'Downtrend' : 'Flat' },
-            { key: 'htf', label: '4h Align', met: htfAlign !== 0, dir: htfAlign, status: htfAlign === 1 ? 'Bullish' : htfAlign === -1 ? 'Bearish' : 'Neutral' },
-            { key: 'vz', label: 'Value Zone', met: vzComputed, dir: 0, status: vzComputed ? 'Inside' : 'Outside' },
-          ];
+          const ema200Dist = env?.ema200_trend?.distance_pct ?? (v32?.ema200 != null ? ((data.currentPrice - v32.ema200) / v32.ema200 * 100) : null);
+          const htfDist = env?.htf_align?.distance_pct ?? null;
+          const vzE20Dist = env?.value_zone?.ema20_distance_pct ?? (v32?.ema20 != null ? ((data.currentPrice - v32.ema20) / v32.ema20 * 100) : null);
+          const vzE50Dist = env?.value_zone?.ema50_distance_pct ?? (v32?.ema50 != null ? ((data.currentPrice - v32.ema50) / v32.ema50 * 100) : null);
 
-          const getStyle = (met: boolean, dir: number) => {
-            if (!met) return { bg: 'bg-slate-700/15 border-slate-700/30', text: 'text-slate-500', dot: 'bg-slate-600' };
-            if (dir === 1) return { bg: 'bg-cyan-900/30 border-cyan-500/40', text: 'text-cyan-300', dot: 'bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.8)]' };
-            if (dir === -1) return { bg: 'bg-orange-900/30 border-orange-500/40', text: 'text-orange-300', dot: 'bg-orange-400 shadow-[0_0_5px_rgba(251,146,60,0.8)]' };
-            return { bg: 'bg-emerald-900/30 border-emerald-500/40', text: 'text-emerald-300', dot: 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.8)]' };
+          const condColor = (met: boolean, dir: number) => {
+            if (!met) return 'text-slate-500';
+            return dir >= 0 ? 'text-cyan-400' : 'text-orange-400';
+          };
+          const dotColor = (met: boolean, dir: number) => {
+            if (!met) return 'bg-slate-600';
+            return dir >= 0 ? 'bg-cyan-400' : 'bg-orange-400';
           };
 
           return (
-            <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
-              <div className="flex items-center justify-between mb-1.5">
-                <h3 className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Entry</h3>
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${longMet >= longTotal ? 'bg-cyan-900/40 text-cyan-300 border-cyan-500/50' : 'bg-slate-700/30 text-slate-500 border-slate-600'}`}>
-                    LONG {longMet}/{longTotal}
+            <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-1.5">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-[10px] font-bold text-slate-200 tracking-wide uppercase">Entry</h3>
+                <div className="flex items-center gap-1">
+                  <span className={`text-[8px] font-bold px-1 py-px rounded ${longMet >= longTotal ? 'bg-cyan-900/50 text-cyan-300' : 'text-slate-500'}`}>
+                    L {longMet}/{longTotal}
                   </span>
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${shortMet >= shortTotal ? 'bg-orange-900/40 text-orange-300 border-orange-500/50' : 'bg-slate-700/30 text-slate-500 border-slate-600'}`}>
-                    SHORT {shortMet}/{shortTotal}
+                  <span className={`text-[8px] font-bold px-1 py-px rounded ${shortMet >= shortTotal ? 'bg-orange-900/50 text-orange-300' : 'text-slate-500'}`}>
+                    S {shortMet}/{shortTotal}
                   </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-0.5 mb-1.5">
-                {envRows.map(c => {
-                  const st = getStyle(c.met, c.dir);
-                  return (
-                    <div key={c.key} className={`rounded border px-1.5 py-1 transition-all ${st.bg}`}>
-                      <div className="flex items-center gap-1.5">
-                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${st.dot}`} />
-                        <span className={`text-[9px] font-bold flex-shrink-0 ${st.text}`}>{c.label}</span>
-                        <span className={`text-[10px] font-bold ml-auto ${c.met ? st.text : 'text-slate-500'}`}>{c.status}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="border-t border-slate-700 pt-1.5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">Patterns</span>
                   {v32?.rsi != null && (
-                    <span className={`text-[9px] font-bold tabular-nums ${v32.rsi > 70 ? 'text-rose-400' : v32.rsi < 30 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                    <span className={`text-[8px] font-bold tabular-nums ${v32.rsi > 70 ? 'text-orange-400' : v32.rsi < 30 ? 'text-cyan-400' : 'text-slate-400'}`}>
                       RSI {v32.rsi.toFixed(0)}
                     </span>
                   )}
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  {PAT_KEYS.map(pk => {
-                    const info = patProx?.[pk];
-                    const prox = info?.proximity ?? 0;
-                    const ready = info?.ready ?? false;
-                    const detail = info?.detail;
-                    const dir = info?.dir ?? 0;
-                    const pct = Math.min(100, prox * 100);
-                    const barColor = ready
-                      ? (dir === 1 ? 'bg-cyan-400' : dir === -1 ? 'bg-orange-400' : 'bg-emerald-400')
-                      : pct > 60 ? 'bg-amber-500' : 'bg-slate-600';
-                    const textColor = ready
-                      ? (dir === 1 ? 'text-cyan-300' : dir === -1 ? 'text-orange-300' : 'text-emerald-300')
-                      : 'text-slate-500';
-                    const bgColor = ready
-                      ? (dir === 1 ? 'bg-cyan-900/30 border-cyan-500/40' : dir === -1 ? 'bg-orange-900/30 border-orange-500/40' : 'bg-emerald-900/30 border-emerald-500/40')
-                      : 'bg-slate-700/15 border-slate-700/30';
-                    return (
-                      <div key={pk} className={`rounded border px-1.5 py-0.5 transition-all ${bgColor}`} title={detail || undefined}>
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-[9px] font-bold w-[72px] flex-shrink-0 ${textColor}`}>{PAT_NAMES[pk] || pk}</span>
-                          <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden min-w-[30px]">
-                            <div className={`h-1.5 rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
-                          </div>
-                          <span className={`text-[9px] font-bold tabular-nums w-[28px] text-right flex-shrink-0 ${textColor}`}>
-                            {ready ? (dir === 1 ? 'BUY' : dir === -1 ? 'SELL' : 'GO') : `${(prox * 100).toFixed(0)}%`}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
+              </div>
+
+              <div className="flex gap-0.5 mb-1">
+                <div className="flex-1 rounded bg-slate-700/30 border border-slate-700/50 px-1 py-0.5">
+                  <div className="flex items-center gap-1">
+                    <div className={`w-1 h-1 rounded-full flex-shrink-0 ${dotColor(ema200Dir !== 0, ema200Dir)}`} />
+                    <span className={`text-[8px] font-bold ${condColor(ema200Dir !== 0, ema200Dir)}`}>200</span>
+                    <span className={`text-[8px] font-bold tabular-nums ml-auto ${condColor(ema200Dir !== 0, ema200Dir)}`}>
+                      {ema200Dist != null ? `${ema200Dist > 0 ? '+' : ''}${ema200Dist.toFixed(1)}%` : '--'}
+                    </span>
+                  </div>
                 </div>
+                <div className="flex-1 rounded bg-slate-700/30 border border-slate-700/50 px-1 py-0.5">
+                  <div className="flex items-center gap-1">
+                    <div className={`w-1 h-1 rounded-full flex-shrink-0 ${dotColor(htfAlign !== 0, htfAlign)}`} />
+                    <span className={`text-[8px] font-bold ${condColor(htfAlign !== 0, htfAlign)}`}>4h</span>
+                    <span className={`text-[8px] font-bold tabular-nums ml-auto ${condColor(htfAlign !== 0, htfAlign)}`}>
+                      {htfDist != null ? `${htfDist > 0 ? '+' : ''}${htfDist.toFixed(1)}%` : (htfAlign === 1 ? 'Bull' : htfAlign === -1 ? 'Bear' : '--')}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1 rounded bg-slate-700/30 border border-slate-700/50 px-1 py-0.5">
+                  <div className="flex items-center gap-1">
+                    <div className={`w-1 h-1 rounded-full flex-shrink-0 ${dotColor(vzComputed, 0)}`} />
+                    <span className={`text-[8px] font-bold ${condColor(vzComputed, 0)}`}>VZ</span>
+                    <span className={`text-[8px] font-bold tabular-nums ml-auto ${condColor(vzComputed, 0)}`}>
+                      {vzE20Dist != null && vzE50Dist != null
+                        ? `${vzE20Dist > 0 ? '+' : ''}${vzE20Dist.toFixed(1)}`
+                        : vzComputed ? 'In' : 'Out'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
+                {PAT_KEYS.map(pk => {
+                  const info = patProx?.[pk];
+                  const prox = info?.proximity ?? 0;
+                  const ready = info?.ready ?? false;
+                  const detail = info?.detail;
+                  const dir = info?.dir ?? 0;
+                  const pct = Math.min(100, prox * 100);
+                  const isLong = dir >= 0;
+                  const barColor = ready
+                    ? (isLong ? 'bg-cyan-400' : 'bg-orange-400')
+                    : pct > 60 ? (isLong ? 'bg-cyan-500/50' : 'bg-orange-500/50') : 'bg-slate-600';
+                  const textColor = ready
+                    ? (isLong ? 'text-cyan-300' : 'text-orange-300')
+                    : 'text-slate-500';
+                  return (
+                    <div key={pk} className="flex items-center gap-1" title={detail || undefined}>
+                      <span className={`text-[8px] font-bold w-[34px] flex-shrink-0 ${textColor}`}>{PAT_NAMES[pk] || pk}</span>
+                      <div className="flex-1 bg-slate-700 rounded-full h-1 overflow-hidden">
+                        <div className={`h-1 rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className={`text-[7px] font-bold tabular-nums w-[18px] text-right flex-shrink-0 ${textColor}`}>{(prox * 100).toFixed(0)}%</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
