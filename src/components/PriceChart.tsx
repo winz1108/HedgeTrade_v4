@@ -132,8 +132,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     tooltipBorder: 'border-slate-600',
     panelBg: 'bg-slate-700/30',
     panelBorder: 'border-slate-600',
-    emaShort: '#26a69a',
-    emaLong: '#42a5f5',
+    emaShort: '#00bfa5',
+    emaLong: '#2979ff',
     ema200: '#ef5350',
     bb: '#a78bfa',
   } : {
@@ -151,8 +151,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     tooltipBorder: 'border-slate-300',
     panelBg: 'bg-white/80',
     panelBorder: 'border-slate-200',
-    emaShort: '#26a69a',
-    emaLong: '#42a5f5',
+    emaShort: '#00bfa5',
+    emaLong: '#2979ff',
     ema200: '#ef5350',
     bb: '#8b5cf6',
   };
@@ -1185,9 +1185,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       points={ema200Points.join(' ')}
                       fill="none"
                       stroke={colors.ema200}
-                      strokeWidth={isEma200Hovered ? '2' : '1'}
-                      opacity={isEma200Hovered ? '1' : '0.6'}
-                      strokeDasharray="4 2"
+                      strokeWidth={isEma200Hovered ? '2' : '1.2'}
+                      opacity={isEma200Hovered ? '1' : '0.8'}
                       style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
                     />
                   )}
@@ -1636,47 +1635,31 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     opacity="0.75"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
                   />
-                  <rect x="0" y={priceToY(data.holding.buyPrice) - 8} width="68" height="16" rx="3" fill={entryColor} opacity="0.85" />
-                  <text x="34" y={priceToY(data.holding.buyPrice) + 3.5} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="monospace">
-                    {`Entry ${data.holding.buyPrice.toFixed(0)}`}
-                  </text>
                   {slPrice && (
-                    <>
-                      <line
-                        x1="0"
-                        y1={priceToY(slPrice)}
-                        x2="100%"
-                        y2={priceToY(slPrice)}
-                        stroke="#f85149"
-                        strokeWidth="1.2"
-                        strokeDasharray="5 4"
-                        opacity="0.8"
-                        filter="drop-shadow(0 0 2px rgba(248, 81, 73, 0.4))"
-                      />
-                      <rect x="0" y={priceToY(slPrice) - 8} width="58" height="16" rx="3" fill="#f85149" opacity="0.85" />
-                      <text x="29" y={priceToY(slPrice) + 3.5} textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="monospace">
-                        {`SL ${slPrice.toFixed(0)}`}
-                      </text>
-                    </>
+                    <line
+                      x1="0"
+                      y1={priceToY(slPrice)}
+                      x2="100%"
+                      y2={priceToY(slPrice)}
+                      stroke="#f85149"
+                      strokeWidth="1.2"
+                      strokeDasharray="5 4"
+                      opacity="0.8"
+                      filter="drop-shadow(0 0 2px rgba(248, 81, 73, 0.4))"
+                    />
                   )}
                   {trailPrice && (
-                    <>
-                      <line
-                        x1="0"
-                        y1={priceToY(trailPrice)}
-                        x2="100%"
-                        y2={priceToY(trailPrice)}
-                        stroke="#ffd700"
-                        strokeWidth="1.2"
-                        strokeDasharray="6 3"
-                        opacity="0.8"
-                        filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.4))"
-                      />
-                      <rect x="0" y={priceToY(trailPrice) - 8} width="58" height="16" rx="3" fill="#ffd700" opacity="0.85" />
-                      <text x="29" y={priceToY(trailPrice) + 3.5} textAnchor="middle" fill="#1e293b" fontSize="9" fontWeight="700" fontFamily="monospace">
-                        {`TR ${trailPrice.toFixed(0)}`}
-                      </text>
-                    </>
+                    <line
+                      x1="0"
+                      y1={priceToY(trailPrice)}
+                      x2="100%"
+                      y2={priceToY(trailPrice)}
+                      stroke="#ffd700"
+                      strokeWidth="1.2"
+                      strokeDasharray="6 3"
+                      opacity="0.8"
+                      filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.4))"
+                    />
                   )}
                 </svg>
               );

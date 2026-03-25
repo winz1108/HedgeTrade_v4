@@ -64,13 +64,6 @@ function EntryConditionsPanel({ ss }: { ss?: V10StrategyStatus }) {
   const htfBg = htfAlign === 1 ? 'bg-cyan-50 border-cyan-300' : htfAlign === -1 ? 'bg-orange-50 border-orange-300' : 'bg-stone-50 border-stone-200';
   const htfDot = htfAlign === 1 ? 'bg-cyan-500' : htfAlign === -1 ? 'bg-orange-500' : 'bg-stone-300';
 
-  const bestPattern = PATTERN_KEYS.reduce<{ key: string; prox: number; ready: boolean }>((best, pk) => {
-    const info = patProx?.[pk];
-    const prox = info?.proximity ?? 0;
-    if (prox > best.prox) return { key: pk, prox, ready: info?.ready ?? false };
-    return best;
-  }, { key: '', prox: 0, ready: false });
-
   return (
     <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-1.5">
       <div className="flex items-center justify-between mb-1">
@@ -108,14 +101,10 @@ function EntryConditionsPanel({ ss }: { ss?: V10StrategyStatus }) {
           const ready = info?.ready ?? false;
           const detail = info?.detail;
           const pct = Math.min(100, prox * 100);
-          const isBest = pk === bestPattern.key && bestPattern.prox > 0;
-          const barColor = ready
-            ? (htfAlign >= 0 ? 'bg-cyan-500' : 'bg-orange-500')
-            : isBest ? (htfAlign >= 0 ? 'bg-cyan-400' : 'bg-orange-400')
-            : pct > 50 ? 'bg-stone-400' : 'bg-stone-300';
+          const barColor = htfAlign >= 0 ? 'bg-cyan-500' : 'bg-orange-500';
           const textColor = ready
             ? (htfAlign >= 0 ? 'text-cyan-700' : 'text-orange-700')
-            : isBest ? 'text-stone-600' : 'text-stone-500';
+            : 'text-stone-500';
           return (
             <div key={pk} className="flex items-center gap-1" title={detail || undefined}>
               <span className={`text-[8px] font-bold w-[34px] flex-shrink-0 ${textColor}`}>{PATTERN_NAMES[pk] || pk}</span>
@@ -166,18 +155,22 @@ function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, 
     return Math.max(0, Math.min(100, ((current - left) / (right - left)) * 100));
   };
 
-  const slProgress = slPrice ? calcProgress(slPrice, entryPrice, currentPrice) : 50;
+  const slLossPct = slPrice
+    ? (isShort
+      ? Math.max(0, Math.min(100, ((currentPrice - entryPrice) / (slPrice - entryPrice)) * 100))
+      : Math.max(0, Math.min(100, ((entryPrice - currentPrice) / (entryPrice - slPrice)) * 100)))
+    : 0;
 
   let trailLeftLabel = '';
   let trailRightLabel = '';
   let trailProgress = 0;
-  let trailStatusLabel = '';
+  let trailPhaseLabel = '';
 
   if (trailingActive && peakPrice && trailExitPrice) {
     trailLeftLabel = `$${trailExitPrice.toFixed(0)}`;
     trailRightLabel = `$${peakPrice.toFixed(0)}`;
     trailProgress = calcProgress(trailExitPrice, peakPrice, currentPrice);
-    trailStatusLabel = 'Phase 2';
+    trailPhaseLabel = 'Phase 2';
   } else if (triggerPrice) {
     trailLeftLabel = `$${entryPrice.toFixed(0)}`;
     trailRightLabel = `$${triggerPrice.toFixed(0)}`;
@@ -185,7 +178,7 @@ function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, 
       ? calcProgress(triggerPrice, entryPrice, currentPrice)
       : calcProgress(entryPrice, triggerPrice, currentPrice);
     trailProgress = Math.max(0, prog);
-    trailStatusLabel = 'Phase 1';
+    trailPhaseLabel = 'Phase 1';
   }
 
   return (
@@ -196,25 +189,6 @@ function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, 
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className="rounded-md border p-1.5 bg-stone-50 border-stone-200">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${slPrice ? 'bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.8)]' : 'bg-stone-300'}`} />
-              <span className="text-[10px] font-bold text-slate-600">SL</span>
-              {slPrice && <span className={`text-[9px] font-bold tabular-nums ${sideText}`}>${slPrice.toFixed(0)}</span>}
-            </div>
-            <span className="text-[9px] tabular-nums text-stone-400">${entryPrice.toFixed(0)}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] flex-shrink-0">{slPrice ? `$${slPrice.toFixed(0)}` : '--'}</span>
-            <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
-              <div className={`h-1.5 rounded-full transition-all duration-300 ${barFill}`}
-                style={{ width: `${slProgress}%` }} />
-            </div>
-            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] text-right flex-shrink-0">${entryPrice.toFixed(0)}</span>
-          </div>
-        </div>
-
         <div className={`rounded-md border p-1.5 transition-all ${
           trailingActive ? (isShort ? 'bg-orange-50 border-orange-300' : 'bg-cyan-50 border-cyan-300') : 'bg-stone-50 border-stone-200'
         }`}>
@@ -226,11 +200,8 @@ function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, 
                   : 'bg-stone-300'
               }`} />
               <span className={`text-[10px] font-bold ${trailingActive ? sideText : 'text-slate-600'}`}>TRAIL</span>
-              <span className="text-[8px] text-stone-400">{trailStatusLabel}</span>
             </div>
-            {triggerPrice && !trailingActive && (
-              <span className={`text-[9px] font-bold tabular-nums ${sideText}`}>${triggerPrice.toFixed(0)}</span>
-            )}
+            <span className={`text-[8px] font-bold ${trailingActive ? sideText : 'text-stone-400'}`}>{trailPhaseLabel}</span>
           </div>
           {(triggerPrice || trailingActive) && (
             <div className="flex items-center gap-1">
@@ -247,9 +218,25 @@ function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, 
         <div className="rounded-md border p-1.5 bg-stone-50 border-stone-200">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
+              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${slPrice ? 'bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.8)]' : 'bg-stone-300'}`} />
+              <span className="text-[10px] font-bold text-slate-600">SL</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] flex-shrink-0">{slPrice ? `$${slPrice.toFixed(0)}` : '--'}</span>
+            <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden relative">
+              <div className="absolute right-0 top-0 h-1.5 rounded-full transition-all duration-300 bg-rose-500"
+                style={{ width: `${slLossPct}%` }} />
+            </div>
+            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] text-right flex-shrink-0">${entryPrice.toFixed(0)}</span>
+          </div>
+        </div>
+
+        <div className="rounded-md border p-1.5 bg-stone-50 border-stone-200">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-1.5">
               <Clock className={`w-3 h-3 ${timePct >= 80 ? sideText : 'text-stone-400'}`} />
               <span className={`text-[10px] font-bold ${timePct >= 80 ? sideText : 'text-slate-600'}`}>TIME</span>
-              <span className="text-[8px] text-stone-400">{maxBars}h max</span>
             </div>
             <span className={`text-[9px] font-bold tabular-nums ${timePct >= 80 ? sideText : 'text-stone-400'}`}>
               {hoursLeft > 0 ? `${hoursLeft}h left` : 'Expired'}
