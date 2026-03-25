@@ -175,6 +175,15 @@ function App() {
         if (statusData.indicators) {
           updated.strategy = { ...updated.strategy, indicators: statusData.indicators };
         }
+        if (statusData.v32 || statusData.exit_conditions || statusData.exit_prices) {
+          const prevSS = updated.strategyStatus || {} as any;
+          updated.strategyStatus = {
+            ...prevSS,
+            ...(statusData.v32 ? { v32: { ...prevSS.v32, ...statusData.v32 } } : {}),
+            ...(statusData.exit_conditions ? { exitConditions: { ...prevSS.exitConditions, ...statusData.exit_conditions } } : {}),
+            ...(statusData.exit_prices ? { exitPrices: { ...prevSS.exitPrices, ...statusData.exit_prices } } : {}),
+          };
+        }
         if (statusData.in_position !== undefined) {
           updated.position = {
             ...updated.position,
@@ -251,6 +260,16 @@ function App() {
             ...prevStatus,
             vwapBandSeries: priceData.vwap_band_series,
           };
+        }
+        {
+          const prevStatus = updated.strategyStatus || {} as any;
+          let ssChanged = false;
+          const ssUpdate: any = { ...prevStatus };
+          if (priceData.v32) { ssUpdate.v32 = { ...prevStatus.v32, ...priceData.v32 }; ssChanged = true; }
+          if (priceData.exit_conditions) { ssUpdate.exitConditions = { ...prevStatus.exitConditions, ...priceData.exit_conditions }; ssChanged = true; }
+          if (priceData.exit_prices) { ssUpdate.exitPrices = { ...prevStatus.exitPrices, ...priceData.exit_prices }; ssChanged = true; }
+          if (priceData.indicators) { ssUpdate.indicators = { ...prevStatus.indicators, ...priceData.indicators }; ssChanged = true; }
+          if (ssChanged) updated.strategyStatus = ssUpdate;
         }
         if (prev.priceHistories) {
           const updatedHistories = { ...prev.priceHistories };
