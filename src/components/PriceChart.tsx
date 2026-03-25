@@ -206,8 +206,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
     const prices = visibleCandles.flatMap(c => {
       const vals = [c.high, c.low];
-      if (c.ema20) vals.push(c.ema20);
-      if (c.ema50) vals.push(c.ema50);
+      const es = c.ema_short ?? c.ema20 ?? c.ema8;
+      const el = c.ema_long ?? c.ema50 ?? c.ema13;
+      if (es) vals.push(es);
+      if (el) vals.push(el);
       if (c.ema200) vals.push(c.ema200);
       if (c.bb_upper) vals.push(c.bb_upper);
       if (c.bb_mid) vals.push(c.bb_mid);
@@ -768,11 +770,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           <div className={`flex items-center gap-1.5 text-[9px] sm:text-[10px] sm:gap-2 ${colors.panelBg} px-1.5 py-1 sm:px-2 rounded flex-wrap`}>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
-              <span className={colors.textSecondary}>EMA 20</span>
+              <span className={colors.textSecondary}>EMA S</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
-              <span className={colors.textSecondary}>EMA 50</span>
+              <span className={colors.textSecondary}>EMA L</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
@@ -918,8 +920,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                        (lowerY !== null && Math.abs(mouseY - lowerY) < HOVER_THRESHOLD);
               })();
 
-              const emaShortVal = candle?.ema20;
-              const emaLongVal = candle?.ema50;
+              const emaShortVal = candle?.ema_short ?? candle?.ema20 ?? candle?.ema8;
+              const emaLongVal = candle?.ema_long ?? candle?.ema50 ?? candle?.ema13;
               const ema200Val = candle?.ema200;
 
               const isEmaShortHovered = (() => {
@@ -977,16 +979,16 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     {(isEmaShortHovered || isEmaLongHovered || isEma200Hovered) && (
                       <>
                         <span className={`${colors.textSecondary} text-[10px] font-semibold`}>EMA</span>
-                        {hoveredCandle.ema20 != null && (
+                        {(hoveredCandle.ema_short ?? hoveredCandle.ema20 ?? hoveredCandle.ema8) != null && (
                           <>
-                            <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">20</span>
-                            <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{hoveredCandle.ema20.toFixed(2)}</span>
+                            <span style={{ color: colors.emaShort }} className="text-[10px] font-medium">S</span>
+                            <span style={{ color: colors.emaShort }} className="font-bold tabular-nums">{(hoveredCandle.ema_short ?? hoveredCandle.ema20 ?? hoveredCandle.ema8)!.toFixed(2)}</span>
                           </>
                         )}
-                        {hoveredCandle.ema50 != null && (
+                        {(hoveredCandle.ema_long ?? hoveredCandle.ema50 ?? hoveredCandle.ema13) != null && (
                           <>
-                            <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">50</span>
-                            <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{hoveredCandle.ema50.toFixed(2)}</span>
+                            <span style={{ color: colors.emaLong }} className="text-[10px] font-medium">L</span>
+                            <span style={{ color: colors.emaLong }} className="font-bold tabular-nums">{(hoveredCandle.ema_long ?? hoveredCandle.ema50 ?? hoveredCandle.ema13)!.toFixed(2)}</span>
                           </>
                         )}
                         {hoveredCandle.ema200 != null && (
@@ -1054,18 +1056,18 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               visibleCandles.forEach((candle, idx) => {
                 const x = idx * (candleWidth + candleGap) + candleWidth / 2;
 
-                const ema20v = candle.ema20;
-                const ema50v = candle.ema50;
+                const emaS = candle.ema_short ?? candle.ema20 ?? candle.ema8;
+                const emaL = candle.ema_long ?? candle.ema50 ?? candle.ema13;
 
-                if (ema20v !== undefined) {
-                  emaShortPoints.push(`${x},${priceToY(ema20v)}`);
+                if (emaS != null) {
+                  emaShortPoints.push(`${x},${priceToY(emaS)}`);
                 }
 
-                if (ema50v !== undefined) {
-                  emaLongPoints.push(`${x},${priceToY(ema50v)}`);
+                if (emaL != null) {
+                  emaLongPoints.push(`${x},${priceToY(emaL)}`);
                 }
 
-                if (candle.ema200 !== undefined) {
+                if (candle.ema200 != null) {
                   ema200Points.push(`${x},${priceToY(candle.ema200)}`);
                 }
 
@@ -1099,8 +1101,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 if (mouseY === null || hoveredCandleIndex === null) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
                 if (!candle) return false;
-                const v = candle.ema20;
-                if (v === undefined) return false;
+                const v = candle.ema_short ?? candle.ema20 ?? candle.ema8;
+                if (v == null) return false;
                 return Math.abs(mouseY - priceToY(v)) < HOVER_THRESHOLD;
               })();
 
@@ -1108,15 +1110,15 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 if (mouseY === null || hoveredCandleIndex === null) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
                 if (!candle) return false;
-                const v = candle.ema50;
-                if (v === undefined) return false;
+                const v = candle.ema_long ?? candle.ema50 ?? candle.ema13;
+                if (v == null) return false;
                 return Math.abs(mouseY - priceToY(v)) < HOVER_THRESHOLD;
               })();
 
               const isEma200Hovered = (() => {
                 if (mouseY === null || hoveredCandleIndex === null) return false;
                 const candle = visibleCandles[hoveredCandleIndex];
-                if (!candle || candle.ema200 === undefined) return false;
+                if (!candle || candle.ema200 == null) return false;
                 return Math.abs(mouseY - priceToY(candle.ema200)) < HOVER_THRESHOLD;
               })();
 

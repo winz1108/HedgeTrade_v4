@@ -11,6 +11,7 @@ export interface Candle {
   ema_long?: number;
   ema3?: number;
   ema8?: number;
+  ema13?: number;
   ema20?: number;
   ema50?: number;
   ema200?: number;
