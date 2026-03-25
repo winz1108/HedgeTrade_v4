@@ -1,4 +1,4 @@
-import { KrakenDashboardData, V32Data } from '../../types/dashboard';
+import { KrakenDashboardData } from '../../types/dashboard';
 import { DollarSign, Activity, Target, History } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
@@ -56,9 +56,6 @@ export function ProfessionalMetricsPanel({ data, position }: Props) {
     const positionSide = data.position?.position_side;
     const entryPrice = data.strategyA?.entry_price;
     const currentPnl = data.strategyA?.current_pnl;
-    const ss = data.strategyStatus;
-    const entryDetails = data.strategyStatus?.entryDetails || data.strategyA?.entry_details;
-
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {
       if (positionSide === 'LONG') {
@@ -174,73 +171,6 @@ export function ProfessionalMetricsPanel({ data, position }: Props) {
               )}
             </div>
           </div>
-        </div>
-
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">Entry Conditions</h3>
-          </div>
-
-          {(() => {
-            const v32 = ss?.v32;
-            const ema200Dir = v32?.ema200_direction ?? 0;
-            const htfAlign = v32?.htf_alignment ?? 0;
-            const ema20 = v32?.ema20;
-            const ema50 = v32?.ema50;
-            const atr = v32?.atr;
-            const isInValueZone = ema20 != null && ema50 != null && atr != null && data.currentPrice
-              ? (data.currentPrice >= Math.min(ema20, ema50) - 2 * atr && data.currentPrice <= Math.max(ema20, ema50) + 2 * atr)
-              : false;
-            const entryPattern = v32?.entry_pattern;
-
-            const conditions = [
-              { key: 'trend', label: 'EMA200', desc: ema200Dir === 1 ? 'Up' : ema200Dir === -1 ? 'Down' : 'Flat', met: ema200Dir !== 0, color: ema200Dir === 1 ? 'text-cyan-300' : ema200Dir === -1 ? 'text-orange-300' : 'text-slate-500' },
-              { key: 'htf', label: 'HTF 4h', desc: htfAlign === 1 ? 'Aligned' : htfAlign === -1 ? 'Reverse' : 'Neutral', met: htfAlign !== 0, color: htfAlign === 1 ? 'text-cyan-300' : htfAlign === -1 ? 'text-orange-300' : 'text-slate-500' },
-              { key: 'vz', label: 'Value Zone', desc: isInValueZone ? 'In Zone' : 'Outside', met: isInValueZone, color: isInValueZone ? 'text-emerald-300' : 'text-slate-500' },
-              { key: 'pattern', label: 'Pattern', desc: entryPattern || 'Waiting', met: !!entryPattern, color: entryPattern ? 'text-emerald-300' : 'text-slate-500' },
-            ];
-
-            const metCount = conditions.filter(c => c.met).length;
-            const progressPct = (metCount / conditions.length) * 100;
-
-            return (
-              <>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                    <div className={`h-1.5 rounded-full transition-all duration-500 ${
-                      progressPct >= 100 ? 'bg-emerald-400' : progressPct >= 50 ? 'bg-cyan-400' : 'bg-slate-500'
-                    }`} style={{ width: `${progressPct}%` }} />
-                  </div>
-                  <span className={`text-[10px] font-bold tabular-nums ${
-                    progressPct >= 100 ? 'text-emerald-400' : 'text-slate-400'
-                  }`}>{metCount}/{conditions.length}</span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  {conditions.map(c => (
-                    <div key={c.key} className={`flex items-center gap-1.5 rounded px-1.5 py-1 transition-all ${
-                      c.met ? 'bg-slate-700/40' : 'bg-slate-700/15'
-                    }`}>
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
-                        c.met ? 'bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.8)]' : 'bg-slate-600'
-                      }`} />
-                      <span className={`text-[9px] font-semibold flex-shrink-0 w-[60px] ${c.met ? 'text-slate-200' : 'text-slate-500'}`}>{c.label}</span>
-                      <span className={`text-[9px] font-bold tabular-nums ${c.color}`}>{c.desc}</span>
-                    </div>
-                  ))}
-                </div>
-                {v32?.rsi != null && (
-                  <div className="mt-1 flex items-center gap-2 bg-slate-700/20 rounded px-1.5 py-0.5">
-                    <span className="text-[8px] text-slate-500">RSI</span>
-                    <span className={`text-[9px] font-bold tabular-nums ${
-                      v32.rsi > 70 ? 'text-rose-400' : v32.rsi < 30 ? 'text-emerald-400' : 'text-slate-300'
-                    }`}>{v32.rsi.toFixed(1)}</span>
-                    <span className="text-[8px] text-slate-500">ATR</span>
-                    <span className="text-[9px] font-bold tabular-nums text-slate-300">{v32.atr?.toFixed(1) ?? '--'}</span>
-                  </div>
-                )}
-              </>
-            );
-          })()}
         </div>
 
         <ManualOrderPanel
