@@ -41,17 +41,6 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
   return { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-300' };
 };
 
-const PATTERN_NAMES: Record<string, string> = {
-  '382': '38.2%',
-  'ENG': 'Engulf',
-  'REV': 'Reversal',
-  'DBL': 'Dbl B/T',
-  'FLAG': 'Flag',
-  'RSI_DIV': 'RSI Div',
-};
-
-const PATTERN_KEYS = ['382', 'ENG', 'REV', 'DBL', 'FLAG', 'RSI_DIV'] as const;
-
 function EntryConditionsPanel({ ss }: { ss?: V10StrategyStatus }) {
   const v32 = ss?.v32;
   const env = v32?.env_status;
@@ -63,6 +52,16 @@ function EntryConditionsPanel({ ss }: { ss?: V10StrategyStatus }) {
   const htfColor = htfAlign === 1 ? 'text-cyan-600' : htfAlign === -1 ? 'text-orange-600' : 'text-stone-400';
   const htfBg = htfAlign === 1 ? 'bg-cyan-50 border-cyan-300' : htfAlign === -1 ? 'bg-orange-50 border-orange-300' : 'bg-stone-50 border-stone-200';
   const htfDot = htfAlign === 1 ? 'bg-cyan-500' : htfAlign === -1 ? 'bg-orange-500' : 'bg-stone-300';
+
+  const revInfo = patProx?.REV;
+  const revProx = revInfo?.proximity ?? 0;
+  const revReady = revInfo?.ready ?? false;
+  const revDetail = revInfo?.detail;
+  const revPct = Math.min(100, revProx * 100);
+  const revBarColor = htfAlign >= 0 ? 'bg-cyan-500' : 'bg-orange-500';
+  const revTextColor = revReady
+    ? (htfAlign >= 0 ? 'text-cyan-700' : 'text-orange-700')
+    : 'text-stone-500';
 
   return (
     <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-1.5">
@@ -94,27 +93,19 @@ function EntryConditionsPanel({ ss }: { ss?: V10StrategyStatus }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
-        {PATTERN_KEYS.map(pk => {
-          const info = patProx?.[pk];
-          const prox = info?.proximity ?? 0;
-          const ready = info?.ready ?? false;
-          const detail = info?.detail;
-          const pct = Math.min(100, prox * 100);
-          const barColor = htfAlign >= 0 ? 'bg-cyan-500' : 'bg-orange-500';
-          const textColor = ready
-            ? (htfAlign >= 0 ? 'text-cyan-700' : 'text-orange-700')
-            : 'text-stone-500';
-          return (
-            <div key={pk} className="flex items-center gap-1" title={detail || undefined}>
-              <span className={`text-[8px] font-bold w-[34px] flex-shrink-0 ${textColor}`}>{PATTERN_NAMES[pk] || pk}</span>
-              <div className="flex-1 bg-stone-200 rounded-full h-1 overflow-hidden">
-                <div className={`h-1 rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
-              </div>
-              <span className={`text-[7px] font-bold tabular-nums w-[18px] text-right flex-shrink-0 ${textColor}`}>{(prox * 100).toFixed(0)}%</span>
-            </div>
-          );
-        })}
+      <div className="space-y-1">
+        <div className="flex items-center gap-1" title={revDetail || undefined}>
+          <span className={`text-[8px] font-bold w-[42px] flex-shrink-0 ${revTextColor}`}>Reversal</span>
+          <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
+            <div className={`h-1.5 rounded-full transition-all ${revBarColor}`} style={{ width: `${revPct}%` }} />
+          </div>
+          <span className={`text-[8px] font-bold tabular-nums w-[28px] text-right flex-shrink-0 ${revTextColor}`}>{(revProx * 100).toFixed(0)}%</span>
+        </div>
+        {revDetail && (
+          <p className={`text-[7px] leading-tight ${revReady ? (htfAlign >= 0 ? 'text-cyan-600/80' : 'text-orange-600/80') : 'text-stone-400/70'}`}>
+            {revDetail}
+          </p>
+        )}
       </div>
     </div>
   );
