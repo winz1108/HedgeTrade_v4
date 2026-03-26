@@ -750,8 +750,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
   const chartContent = (
     <div className={`${colors.chartBg} rounded-xl shadow-lg border ${colors.chartBorder} w-full overflow-hidden ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
-      <div className={`${colors.headerBg} px-2 sm:px-4 py-2 flex items-center justify-between border-b ${colors.headerBorder} flex-wrap gap-2`}>
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+      <div className={`${colors.headerBg} px-2 sm:px-3 py-1.5 flex items-center justify-between border-b ${colors.headerBorder} gap-2`}>
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <h2 className={`text-sm sm:text-base font-bold ${colors.textPrimary}`}>BTC/USDC</h2>
             {displayPrice != null && (
@@ -766,38 +766,38 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className={`flex items-center gap-1.5 text-[9px] sm:text-[10px] sm:gap-2 ${colors.panelBg} px-1.5 py-1 sm:px-2 rounded flex-wrap`}>
-            <div className="flex items-center gap-1">
-              <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className={`flex items-center gap-1 text-[9px] sm:gap-1.5 sm:text-[10px] ${colors.panelBg} px-1.5 py-1 rounded`}>
+            <div className="flex items-center gap-0.5">
+              <div className="w-2 sm:w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
               <span className={colors.textSecondary}>EMA 20</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
+            <div className="flex items-center gap-0.5">
+              <div className="w-2 sm:w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
               <span className={colors.textSecondary}>EMA 50</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2.5 sm:w-3 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
+            <div className="flex items-center gap-0.5">
+              <div className="w-2 sm:w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
               <span className={colors.textSecondary}>EMA 200</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2.5 sm:w-3 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
+            <div className="flex items-center gap-0.5">
+              <div className="w-2 sm:w-2.5 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
             {data.holding.isHolding && (
               <>
                 <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
-                <div className="flex items-center gap-1">
-                  <svg width="12" height="6" style={{ display: 'block' }}>
-                    <line x1="0" y1="3" x2="12" y2="3" stroke={data.holding.positionSide === 'SHORT' ? '#f97316' : '#06b6d4'} strokeWidth="1.5" strokeDasharray="4 2" />
+                <div className="flex items-center gap-0.5">
+                  <svg width="10" height="6" style={{ display: 'block' }}>
+                    <line x1="0" y1="3" x2="10" y2="3" stroke={data.holding.positionSide === 'SHORT' ? '#f97316' : '#06b6d4'} strokeWidth="1.5" strokeDasharray="4 2" />
                   </svg>
                   <span className={colors.textSecondary}>Entry</span>
                 </div>
               </>
             )}
           </div>
-          <div className="flex items-center gap-1.5">
-          <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5 overflow-x-auto`}>
+          <div className="flex items-center gap-1">
+          <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5`}>
             {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
               const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
               const isLoading = !hasData && tf !== timeframe;
