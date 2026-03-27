@@ -750,38 +750,36 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
   const chartContent = (
     <div className={`${colors.chartBg} rounded-xl shadow-lg border ${colors.chartBorder} w-full overflow-hidden ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
-      <div className={`${colors.headerBg} px-2 sm:px-3 py-1.5 flex items-center justify-between border-b ${colors.headerBorder} gap-2`}>
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <h2 className={`text-sm sm:text-base font-bold ${colors.textPrimary}`}>BTC/USDC</h2>
-            {displayPrice != null && (
-              <>
-                <div className={`text-base sm:text-lg font-bold ${colors.textPrimary}`}>
-                  ${displayPrice.toFixed(2)}
-                </div>
-                <div className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {priceChange >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
-                </div>
-              </>
-            )}
-          </div>
+      <div className={`${colors.headerBg} px-2 sm:px-3 py-1.5 flex items-center justify-between border-b ${colors.headerBorder} gap-2 overflow-hidden`}>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <h2 className={`text-sm sm:text-base font-bold ${colors.textPrimary} whitespace-nowrap`}>BTC/USDC</h2>
+          {displayPrice != null && (
+            <>
+              <span className={`text-base sm:text-lg font-bold ${colors.textPrimary} whitespace-nowrap`}>
+                ${displayPrice.toFixed(2)}
+              </span>
+              <span className={`text-xs font-semibold whitespace-nowrap ${priceChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {priceChange >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
+              </span>
+            </>
+          )}
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <div className={`flex items-center gap-1 text-[9px] sm:gap-1.5 sm:text-[10px] ${colors.panelBg} px-1.5 py-1 rounded`}>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <div className={`hidden sm:flex items-center gap-1.5 text-[10px] ${colors.panelBg} px-1.5 py-1 rounded`}>
             <div className="flex items-center gap-0.5">
-              <div className="w-2 sm:w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
+              <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
               <span className={colors.textSecondary}>EMA 20</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <div className="w-2 sm:w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
+              <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
               <span className={colors.textSecondary}>EMA 50</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <div className="w-2 sm:w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
+              <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
               <span className={colors.textSecondary}>EMA 200</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <div className="w-2 sm:w-2.5 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
+              <div className="w-2.5 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
             {data.holding.isHolding && (
