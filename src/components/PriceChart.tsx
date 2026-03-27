@@ -750,36 +750,152 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
   const chartContent = (
     <div className={`${colors.chartBg} rounded-xl shadow-lg border ${colors.chartBorder} w-full overflow-hidden ${isMaximized ? 'fixed inset-0 z-50 h-screen rounded-none' : ''}`}>
-      <div className={`${colors.headerBg} px-2 sm:px-3 py-1.5 flex items-center justify-between border-b ${colors.headerBorder} gap-2 overflow-hidden`}>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <h2 className={`text-sm sm:text-base font-bold ${colors.textPrimary} whitespace-nowrap`}>BTC/USDC</h2>
-          {displayPrice != null && (
-            <>
-              <span className={`text-base sm:text-lg font-bold ${colors.textPrimary} whitespace-nowrap`}>
-                ${displayPrice.toFixed(2)}
-              </span>
-              <span className={`text-xs font-semibold whitespace-nowrap ${priceChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {priceChange >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
-              </span>
-            </>
-          )}
+      <div className={`${colors.headerBg} px-2 sm:px-3 py-1.5 border-b ${colors.headerBorder}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <h2 className={`text-sm sm:text-base font-bold ${colors.textPrimary} whitespace-nowrap`}>BTC/USDC</h2>
+            {displayPrice != null && (
+              <>
+                <span className={`text-base sm:text-lg font-bold ${colors.textPrimary} whitespace-nowrap`}>
+                  ${displayPrice.toFixed(2)}
+                </span>
+                <span className={`text-xs font-semibold whitespace-nowrap ${priceChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {priceChange >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
+                </span>
+              </>
+            )}
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5">
+            <div className={`flex items-center gap-1.5 text-[10px] ${colors.panelBg} px-1.5 py-1 rounded`}>
+              <div className="flex items-center gap-0.5">
+                <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
+                <span className={colors.textSecondary}>EMA 20</span>
+              </div>
+              <div className="flex items-center gap-0.5">
+                <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
+                <span className={colors.textSecondary}>EMA 50</span>
+              </div>
+              <div className="flex items-center gap-0.5">
+                <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
+                <span className={colors.textSecondary}>EMA 200</span>
+              </div>
+              <div className="flex items-center gap-0.5">
+                <div className="w-2.5 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
+                <span className={colors.textSecondary}>BB</span>
+              </div>
+              {data.holding.isHolding && (
+                <>
+                  <div className="w-px h-3 opacity-30" style={{ backgroundColor: colors.textSecondary }}></div>
+                  <div className="flex items-center gap-0.5">
+                    <svg width="10" height="6" style={{ display: 'block' }}>
+                      <line x1="0" y1="3" x2="10" y2="3" stroke={data.holding.positionSide === 'SHORT' ? '#f97316' : '#06b6d4'} strokeWidth="1.5" strokeDasharray="4 2" />
+                    </svg>
+                    <span className={colors.textSecondary}>Entry</span>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5`}>
+              {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
+                const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
+                const isLoading = !hasData && tf !== timeframe;
+                return (
+                  <button
+                    key={tf}
+                    onClick={() => {
+                      setTimeframe(tf);
+                      setScrollOffset(0);
+                      setResetScroll(prev => prev + 1);
+                      if (onTimeframeChange) {
+                        onTimeframeChange(tf);
+                      }
+                      if (!hasData) {
+                        websocketService.requestTimeframeData(tf);
+                      }
+                    }}
+                    className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all flex-shrink-0 ${
+                      timeframe === tf
+                        ? `${colors.buttonActive} text-white shadow-sm`
+                        : `${colors.textSecondary} ${darkMode ? 'hover:text-slate-200 hover:bg-slate-600/60' : 'hover:text-stone-900 hover:bg-stone-300/60'}`
+                    }`}
+                  >
+                    {tf}
+                    {isLoading && <span className="ml-1 text-[8px] opacity-50">•••</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={handleZoomOut}
+              className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
+              title="Zoom Out (Ctrl + Scroll)"
+            >
+              <ZoomOut className="w-3 h-3 ${colors.textSecondary}" />
+            </button>
+            <button
+              onClick={handleZoomIn}
+              className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
+              title="Zoom In (Ctrl + Scroll)"
+            >
+              <ZoomIn className="w-3 h-3 ${colors.textSecondary}" />
+            </button>
+            {scrollOffset > 0 && (
+              <button
+                onClick={handleResetScroll}
+                className="p-1 bg-blue-500/90 hover:bg-blue-600 rounded transition-colors"
+                title="Go to Latest"
+              >
+                <ChevronsRight className="w-3 h-3 text-white" />
+              </button>
+            )}
+            <button
+              onClick={() => setShowTradeMarkers(!showTradeMarkers)}
+              className={`p-1 rounded transition-colors ${
+                showTradeMarkers
+                  ? 'bg-[#4169E1] hover:bg-[#365abf]'
+                  : 'bg-stone-200/60 hover:bg-stone-300/70'
+              }`}
+              title={showTradeMarkers ? "Hide B/S Markers" : "Show B/S Markers"}
+            >
+              {showTradeMarkers ? (
+                <Eye className="w-3 h-3 text-white" />
+              ) : (
+                <EyeOff className="w-3 h-3 ${colors.textSecondary}" />
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setIsMaximized(!isMaximized);
+                setScrollOffset(0);
+                setResetScroll(prev => prev + 1);
+              }}
+              className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
+              title={isMaximized ? "Exit Fullscreen" : "Fullscreen"}
+            >
+              {isMaximized ? (
+                <Minimize2 className="w-3 h-3 ${colors.textSecondary}" />
+              ) : (
+                <Maximize2 className="w-3 h-3 ${colors.textSecondary}" />
+              )}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <div className={`hidden sm:flex items-center gap-1.5 text-[10px] ${colors.panelBg} px-1.5 py-1 rounded`}>
+        <div className="flex sm:hidden items-center gap-1.5 mt-1.5">
+          <div className={`flex items-center gap-1 text-[9px] ${colors.panelBg} px-1.5 py-1 rounded`}>
             <div className="flex items-center gap-0.5">
-              <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
+              <div className="w-2 h-0.5 rounded" style={{ backgroundColor: colors.emaShort }}></div>
               <span className={colors.textSecondary}>EMA 20</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
+              <div className="w-2 h-0.5 rounded" style={{ backgroundColor: colors.emaLong }}></div>
               <span className={colors.textSecondary}>EMA 50</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
+              <div className="w-2 h-0.5 rounded" style={{ backgroundColor: colors.ema200 }}></div>
               <span className={colors.textSecondary}>EMA 200</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <div className="w-2.5 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
+              <div className="w-2 h-0.5 border-t border-dashed" style={{ borderColor: darkMode ? 'rgba(195,195,195,0.65)' : 'rgba(75,75,75,0.62)' }}></div>
               <span className={colors.textSecondary}>BB</span>
             </div>
             {data.holding.isHolding && (
@@ -794,12 +910,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               </>
             )}
           </div>
-          <div className="flex items-center gap-1">
           <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5`}>
             {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
               const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
               const isLoading = !hasData && tf !== timeframe;
-
               return (
                 <button
                   key={tf}
@@ -814,7 +928,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       websocketService.requestTimeframeData(tf);
                     }
                   }}
-                  className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all flex-shrink-0 ${
+                  className={`px-1.5 py-0.5 text-[10px] font-medium rounded transition-all flex-shrink-0 ${
                     timeframe === tf
                       ? `${colors.buttonActive} text-white shadow-sm`
                       : `${colors.textSecondary} ${darkMode ? 'hover:text-slate-200 hover:bg-slate-600/60' : 'hover:text-stone-900 hover:bg-stone-300/60'}`
@@ -829,14 +943,14 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           <button
             onClick={handleZoomOut}
             className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
-            title="Zoom Out (Ctrl + Scroll)"
+            title="Zoom Out"
           >
             <ZoomOut className="w-3 h-3 ${colors.textSecondary}" />
           </button>
           <button
             onClick={handleZoomIn}
             className="p-1 bg-stone-200/60 hover:bg-stone-300/70 rounded transition-colors"
-            title="Zoom In (Ctrl + Scroll)"
+            title="Zoom In"
           >
             <ZoomIn className="w-3 h-3 ${colors.textSecondary}" />
           </button>
@@ -879,7 +993,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <Maximize2 className="w-3 h-3 ${colors.textSecondary}" />
             )}
           </button>
-        </div>
         </div>
       </div>
 
