@@ -642,6 +642,15 @@ export interface ZoneExitConditions {
   TIMEOUT?: ZoneExitTimeout;
 }
 
+export interface SkippedSignal {
+  dir: 'long' | 'short';
+  atr: number;
+  sl_distance: number;
+  sl_atr_ratio: number;
+  min_required: number;
+  blocked: boolean;
+}
+
 export interface ZoneData {
   nearestSupport: ZoneInfo | null;
   nearestResistance: ZoneInfo | null;
@@ -651,6 +660,7 @@ export interface ZoneData {
   zoneCount: number;
   atr: number;
   signal: any | null;
+  skipped_signal?: SkippedSignal | null;
 }
 
 export interface KrakenStrategyA {

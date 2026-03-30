@@ -1373,10 +1373,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                                 <g transform={`translate(${cx}, ${Math.max(s + 2, priceToY(candle.high) - offset)})`}>
                                   <path
                                     d={`M 0 ${s} L ${-s} ${-s * 0.5} Q 0 ${-s * 0.15} ${s} ${-s * 0.5} Z`}
-                                    fill="#ef4444"
-                                    stroke="#fca5a5"
-                                    strokeWidth="0.3"
-                                    opacity="0.25"
+                                    fill="#a16207"
+                                    stroke="#ca8a04"
+                                    strokeWidth="0.4"
+                                    opacity="0.45"
                                   />
                                 </g>
                               )}
@@ -1384,10 +1384,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                                 <g transform={`translate(${cx}, ${Math.min(priceChartHeight - s - 2, priceToY(candle.low) + offset)})`}>
                                   <path
                                     d={`M 0 ${-s} L ${s} ${s * 0.5} Q 0 ${s * 0.15} ${-s} ${s * 0.5} Z`}
-                                    fill="#22c55e"
-                                    stroke="#86efac"
-                                    strokeWidth="0.3"
-                                    opacity="0.25"
+                                    fill="#0e7490"
+                                    stroke="#06b6d4"
+                                    strokeWidth="0.4"
+                                    opacity="0.45"
                                   />
                                 </g>
                               )}

@@ -1,5 +1,5 @@
-import { Clock } from 'lucide-react';
-import type { ZoneData, ZoneExitConditions } from '../types/dashboard';
+import { Clock, ShieldOff } from 'lucide-react';
+import type { ZoneData, ZoneExitConditions, SkippedSignal } from '../types/dashboard';
 
 interface EntryPanelProps {
   zoneData: ZoneData | null | undefined;
@@ -60,6 +60,7 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
 
   const signalData = zoneData?.signal;
   const signalDir = signalData?.dir as string | undefined;
+  const skipped = zoneData?.skipped_signal as SkippedSignal | null | undefined;
 
   const longFillPct = (1 - ratio) * 100;
   const shortFillPct = ratio * 100;
@@ -71,11 +72,23 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
           Entry
         </h3>
         {zoneData && (
-          <span className={`text-[8px] font-bold tabular-nums ${dark ? 'text-slate-500' : 'text-stone-500'}`}>
-            ATR {zoneData.atr?.toFixed(1)} | {zoneData.zoneCount} zones
+          <span className={`text-[8px] tabular-nums ${dark ? 'text-slate-400' : 'text-stone-500'}`}>
+            ATR {zoneData.atr?.toFixed(1)}
+            {skipped ? ` | SL $${skipped.sl_distance.toFixed(0)} (${skipped.sl_atr_ratio.toFixed(2)}x)` : ''}
           </span>
         )}
       </div>
+
+      {skipped?.blocked && !inPosition && (
+        <div className={`flex items-center gap-1.5 mb-1.5 rounded px-1.5 py-1 ${
+          dark ? 'bg-rose-900/30 border border-rose-500/30' : 'bg-rose-50 border border-rose-200'
+        }`}>
+          <ShieldOff className={`w-3 h-3 flex-shrink-0 ${dark ? 'text-rose-400' : 'text-rose-500'}`} />
+          <span className={`text-[8px] font-medium ${dark ? 'text-rose-300' : 'text-rose-600'}`}>
+            {skipped.dir.toUpperCase()} blocked -- SL/ATR {skipped.sl_atr_ratio.toFixed(2)} &lt; {skipped.min_required.toFixed(1)}
+          </span>
+        </div>
+      )}
 
       {hasData ? (
         <div className="space-y-1">
