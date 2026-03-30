@@ -29,9 +29,23 @@ export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus }:
 
       let processedCandles = candles.map(c => {
         const raw = c.open_time_ms ?? c.timestamp ?? c.time ?? 0;
+        const ind = c.indicators || {};
         return {
           ...c,
           timestamp: toMs(raw),
+          swing_high: c.swing_high ?? ind.swing_high ?? false,
+          swing_low: c.swing_low ?? ind.swing_low ?? false,
+          ema_short: c.ema_short ?? ind.ema_short,
+          ema_long: c.ema_long ?? ind.ema_long,
+          ema200: c.ema200 ?? ind.ema200,
+          bb_upper: c.bb_upper ?? ind.bb_upper,
+          bb_mid: c.bb_mid ?? ind.bb_mid,
+          bb_lower: c.bb_lower ?? ind.bb_lower,
+          adx: c.adx ?? ind.adx,
+          rsi: c.rsi ?? ind.rsi,
+          macd: c.macd ?? ind.macd ?? ind.macd_line,
+          signal: c.signal ?? ind.signal ?? ind.macd_signal,
+          histogram: c.histogram ?? ind.histogram ?? ind.macd_hist,
         };
       });
 

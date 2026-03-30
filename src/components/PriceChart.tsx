@@ -1322,8 +1322,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
                   {/* Swing High/Low Markers */}
                   {(() => {
-                    const arrowSize = 4;
-                    const arrowOffset = 8;
+                    const arrowSize = 5;
+                    const arrowOffset = 6;
 
                     return (
                       <>
@@ -1332,28 +1332,24 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                           return (
                             <g key={`swing-${idx}`}>
                               {candle.swing_high && (
-                                <g transform={`translate(${cx}, ${Math.max(0, priceToY(candle.high) - arrowOffset)})`}>
-                                  <path
-                                    d={`M 0 0 L ${arrowSize} ${-arrowSize} L 0 ${-arrowSize * 0.7} L ${-arrowSize} ${-arrowSize} Z`}
-                                    fill="#ffffff"
-                                    stroke="#ffffff"
-                                    strokeWidth="1.2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    opacity="0.8"
+                                <g transform={`translate(${cx}, ${Math.max(arrowSize + 2, priceToY(candle.high) - arrowOffset)})`}>
+                                  <polygon
+                                    points={`0,${-arrowSize} ${arrowSize},${arrowSize * 0.4} ${-arrowSize},${arrowSize * 0.4}`}
+                                    fill="#ef4444"
+                                    stroke="#fca5a5"
+                                    strokeWidth="0.6"
+                                    opacity="0.9"
                                   />
                                 </g>
                               )}
                               {candle.swing_low && (
-                                <g transform={`translate(${cx}, ${Math.min(priceChartHeight, priceToY(candle.low) + arrowOffset)})`}>
-                                  <path
-                                    d={`M 0 0 L ${arrowSize} ${arrowSize} L 0 ${arrowSize * 0.7} L ${-arrowSize} ${arrowSize} Z`}
-                                    fill="#ffffff"
-                                    stroke="#ffffff"
-                                    strokeWidth="1.2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    opacity="0.8"
+                                <g transform={`translate(${cx}, ${Math.min(priceChartHeight - arrowSize - 2, priceToY(candle.low) + arrowOffset)})`}>
+                                  <polygon
+                                    points={`0,${arrowSize} ${arrowSize},${-arrowSize * 0.4} ${-arrowSize},${-arrowSize * 0.4}`}
+                                    fill="#22c55e"
+                                    stroke="#86efac"
+                                    strokeWidth="0.6"
+                                    opacity="0.9"
                                   />
                                 </g>
                               )}
