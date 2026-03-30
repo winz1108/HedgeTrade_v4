@@ -1,12 +1,15 @@
 import { DollarSign, Activity, Target, History, Clock } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
-import type { BFDashboardData, V10StrategyStatus } from '../../types/dashboard';
+import type { BFDashboardData } from '../../types/dashboard';
+import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
 
 interface Props {
   data: BFDashboardData;
   position: 'left' | 'right' | 'trades';
   currentTime: number;
+  zbStatus?: ZBStatus | null;
+  zbZones?: ZBZones | null;
 }
 
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
@@ -20,17 +23,9 @@ const formatHoldingDuration = (entryTime: number, currentTime: number): string =
 
 const getExitReasonLabel = (reason?: string): string => {
   if (!reason) return 'TP';
-  if (reason === 'TP') return 'TP';
+  if (reason === 'Trail') return 'TRAIL';
   if (reason === 'SL') return 'SL';
-  if (reason === 'HARD_SL') return 'Hard SL';
-  if (reason === 'PP') return 'PP';
-  if (reason.startsWith('PP_STOP')) return 'PP';
-  if (reason === 'EARLY') return 'Early Exit';
-  if (reason === 'VANISH') return 'Vanish';
-  if (reason === 'TIMEOUT') return 'Timeout';
-  if (reason === 'EXIT_SW_TRAIL') return 'TRAIL';
-  if (reason === 'EXIT_R_TRAIL') return 'RTRAIL';
-  if (reason === 'EXIT_R_CUT') return 'RCUT';
+  if (reason === 'MH') return 'TIMEOUT';
   return reason;
 };
 
@@ -41,216 +36,299 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
   return { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-300' };
 };
 
-function EntryConditionsPanel({ ss }: { ss?: V10StrategyStatus }) {
-  const v32 = ss?.v32;
-  const env = v32?.env_status;
-  const patProx = v32?.pattern_proximity;
-  const htfAlign = v32?.htf_alignment ?? 0;
+function ZBEntryPanel({ zbStatus, zbZones }: { zbStatus?: ZBStatus | null; zbZones?: ZBZones | null }) {
+  const nearestSupport = zbZones?.supports?.[0];
+  const nearestResistance = zbZones?.resistances?.[0];
+  const price = zbStatus?.price ?? 0;
 
-  const htfDist = env?.htf_align?.distance_pct ?? null;
-  const htfLabel = htfAlign === 1 ? 'LONG' : htfAlign === -1 ? 'SHORT' : 'FLAT';
-  const htfColor = htfAlign === 1 ? 'text-cyan-600' : htfAlign === -1 ? 'text-orange-600' : 'text-stone-400';
-  const htfBg = htfAlign === 1 ? 'bg-cyan-50 border-cyan-300' : htfAlign === -1 ? 'bg-orange-50 border-orange-300' : 'bg-stone-50 border-stone-200';
-  const htfDot = htfAlign === 1 ? 'bg-cyan-500' : htfAlign === -1 ? 'bg-orange-500' : 'bg-stone-300';
+  const supportPrice = nearestSupport?.center ?? 0;
+  const resistancePrice = nearestResistance?.center ?? 0;
 
-  const revInfo = patProx?.REV;
-  const revProx = revInfo?.proximity ?? 0;
-  const revReady = revInfo?.ready ?? false;
-  const revDetail = revInfo?.detail;
-  const revPct = Math.min(100, revProx * 100);
-  const revBarColor = htfAlign >= 0 ? 'bg-cyan-500' : 'bg-orange-500';
-  const revTextColor = revReady
-    ? (htfAlign >= 0 ? 'text-cyan-700' : 'text-orange-700')
-    : 'text-stone-500';
+  const hasData = supportPrice > 0 && resistancePrice > 0 && price > 0;
 
-  return (
-    <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-1.5">
-      <div className="flex items-center justify-between mb-1">
-        <h3 className="text-[10px] font-bold text-slate-700 tracking-wide uppercase">Entry</h3>
-        <div className="flex items-center gap-1.5">
-          {v32?.rsi != null && (
-            <span className={`text-[8px] font-bold tabular-nums ${v32.rsi > 70 ? 'text-orange-600' : v32.rsi < 30 ? 'text-cyan-600' : 'text-slate-500'}`}>
-              RSI {v32.rsi.toFixed(0)}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className={`rounded border p-1.5 mb-1 ${htfBg}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${htfDot}`} />
-            <span className="text-[8px] font-bold text-stone-500">HTF 4h EMA</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {htfDist != null && (
-              <span className={`text-[8px] tabular-nums ${htfColor}`}>
-                {htfDist > 0 ? '+' : ''}{htfDist.toFixed(2)}%
-              </span>
-            )}
-            <span className={`text-[9px] font-black ${htfColor}`}>{htfLabel}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        <div className="flex items-center gap-1" title={revDetail || undefined}>
-          <span className={`text-[8px] font-bold w-[42px] flex-shrink-0 ${revTextColor}`}>Reversal</span>
-          <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
-            <div className={`h-1.5 rounded-full transition-all ${revBarColor}`} style={{ width: `${revPct}%` }} />
-          </div>
-          <span className={`text-[8px] font-bold tabular-nums w-[28px] text-right flex-shrink-0 ${revTextColor}`}>{(revProx * 100).toFixed(0)}%</span>
-        </div>
-        {revDetail && (
-          <p className={`text-[7px] leading-tight ${revReady ? (htfAlign >= 0 ? 'text-cyan-600/80' : 'text-orange-600/80') : 'text-stone-400/70'}`}>
-            {revDetail}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-interface ExitPanelProps {
-  exitConds?: any;
-  inPosition: boolean;
-  currentPrice: number;
-  entryPrice: number;
-  positionSide?: 'LONG' | 'SHORT' | null;
-  atr?: number;
-}
-
-function ExitConditionsPanel({ exitConds, inPosition, currentPrice, entryPrice, positionSide, atr }: ExitPanelProps) {
-  if (!inPosition || !exitConds) return null;
-
-  const isShort = positionSide === 'SHORT';
-  const barFill = isShort ? 'bg-orange-500' : 'bg-cyan-500';
-  const sideText = isShort ? 'text-orange-600' : 'text-cyan-600';
-
-  const sl = exitConds.SL || {};
-  const trail = exitConds.TRAIL || {};
-  const time = exitConds.TIME || {};
-
-  const slPrice = sl.price > 0 ? sl.price : null;
-  const triggerPrice = trail.trigger_price > 0 ? trail.trigger_price : null;
-  const trailingActive = trail.trailing_active === true;
-  const peakPrice = trail.peak_price > 0 ? trail.peak_price : null;
-  const trailExitPrice = trail.trail_exit_price > 0 ? trail.trail_exit_price : null;
-
-  const barsHeld = time.bars_held ?? 0;
-  const maxBars = time.max_bars ?? 24;
-  const hoursLeft = time.hours_left ?? (maxBars - barsHeld);
-  const timePct = maxBars > 0 ? Math.min(100, (barsHeld / maxBars) * 100) : 0;
-
-  const calcProgress = (left: number, right: number, current: number) => {
-    if (right === left) return 50;
-    return Math.max(0, Math.min(100, ((current - left) / (right - left)) * 100));
-  };
-
-  const slLossPct = slPrice
-    ? (isShort
-      ? Math.max(0, Math.min(100, ((currentPrice - entryPrice) / (slPrice - entryPrice)) * 100))
-      : Math.max(0, Math.min(100, ((entryPrice - currentPrice) / (entryPrice - slPrice)) * 100)))
-    : 0;
-
-  let trailLeftLabel = '';
-  let trailRightLabel = '';
-  let trailProgress = 0;
-  let trailPhaseLabel = '';
-
-  if (trailingActive && peakPrice && trailExitPrice) {
-    trailLeftLabel = `$${trailExitPrice.toFixed(0)}`;
-    trailRightLabel = `$${peakPrice.toFixed(0)}`;
-    trailProgress = calcProgress(trailExitPrice, peakPrice, currentPrice);
-    trailPhaseLabel = 'Phase 2';
-  } else if (triggerPrice) {
-    trailLeftLabel = `$${entryPrice.toFixed(0)}`;
-    trailRightLabel = `$${triggerPrice.toFixed(0)}`;
-    const prog = isShort
-      ? calcProgress(triggerPrice, entryPrice, currentPrice)
-      : calcProgress(entryPrice, triggerPrice, currentPrice);
-    trailProgress = Math.max(0, prog);
-    trailPhaseLabel = 'Phase 1';
+  let proximity = 0.5;
+  if (hasData) {
+    const range = resistancePrice - supportPrice;
+    if (range > 0) {
+      proximity = (price - supportPrice) / range;
+      proximity = Math.max(0, Math.min(1, proximity));
+    }
   }
+
+  const isLongCloser = proximity < 0.5;
+  const isShortCloser = proximity > 0.5;
+  const isMiddle = proximity === 0.5;
+
+  const supportDist = nearestSupport?.dist_pct ?? 0;
+  const resistanceDist = nearestResistance?.dist_pct ?? 0;
+
+  const supportStrength = nearestSupport?.strength ?? 'weak';
+  const resistanceStrength = nearestResistance?.strength ?? 'weak';
+  const supportTests = nearestSupport?.tests ?? 0;
+  const resistanceTests = nearestResistance?.tests ?? 0;
 
   return (
     <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
       <div className="flex items-center justify-between mb-1.5">
-        <div className="text-[11px] font-bold text-slate-700 tracking-wide uppercase">Exit</div>
-        {atr != null && (
-          <span className="text-[9px] font-bold tabular-nums text-stone-500">ATR ${atr.toFixed(1)}</span>
+        <h3 className="text-[10px] font-bold text-slate-700 tracking-wide uppercase">Entry</h3>
+        {zbStatus && (
+          <span className="text-[8px] font-bold tabular-nums text-stone-500">
+            ATR {zbStatus.atr?.toFixed(1)}
+          </span>
         )}
+      </div>
+
+      {hasData ? (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-[9px] mb-0.5">
+            <div className={`flex items-center gap-1 ${isLongCloser || isMiddle ? 'text-cyan-600 font-bold' : 'text-stone-400'}`}>
+              <span>LONG</span>
+              <span className="tabular-nums">${supportPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+            </div>
+            <div className={`flex items-center gap-1 ${isShortCloser || isMiddle ? 'text-orange-600 font-bold' : 'text-stone-400'}`}>
+              <span className="tabular-nums">${resistancePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              <span>SHORT</span>
+            </div>
+          </div>
+
+          <div className="relative h-2.5 bg-stone-100 rounded-full overflow-hidden border border-stone-200">
+            {isLongCloser || isMiddle ? (
+              <div
+                className="absolute left-0 top-0 h-full bg-gradient-to-r from-cyan-400 to-cyan-300 rounded-full transition-all duration-500"
+                style={{ width: `${(1 - proximity) * 100}%` }}
+              />
+            ) : (
+              <div
+                className="absolute right-0 top-0 h-full bg-gradient-to-l from-orange-400 to-orange-300 rounded-full transition-all duration-500"
+                style={{ width: `${proximity * 100}%` }}
+              />
+            )}
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-1 h-4 bg-slate-800 rounded-full shadow-md transition-all duration-500"
+              style={{ left: `calc(${proximity * 100}% - 2px)` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-[8px]">
+            <div className={`flex items-center gap-1 ${isLongCloser || isMiddle ? 'text-cyan-600' : 'text-stone-400'}`}>
+              <span>{supportDist.toFixed(2)}%</span>
+              <span className="text-stone-300">|</span>
+              <span>{supportTests}x {supportStrength}</span>
+            </div>
+            <div className={`flex items-center gap-1 ${isShortCloser || isMiddle ? 'text-orange-600' : 'text-stone-400'}`}>
+              <span>{resistanceTests}x {resistanceStrength}</span>
+              <span className="text-stone-300">|</span>
+              <span>{resistanceDist.toFixed(2)}%</span>
+            </div>
+          </div>
+
+          {zbStatus?.signal && (
+            <div className={`mt-1 rounded border p-1.5 ${
+              zbStatus.signal.dir === 'long'
+                ? 'bg-cyan-50 border-cyan-300'
+                : 'bg-orange-50 border-orange-300'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                    zbStatus.signal.dir === 'long' ? 'bg-cyan-500' : 'bg-orange-500'
+                  }`} />
+                  <span className={`text-[9px] font-bold uppercase ${
+                    zbStatus.signal.dir === 'long' ? 'text-cyan-700' : 'text-orange-700'
+                  }`}>
+                    {zbStatus.signal.dir} Signal
+                  </span>
+                </div>
+                <span className={`text-[8px] font-medium ${
+                  zbStatus.signal.dir === 'long' ? 'text-cyan-600' : 'text-orange-600'
+                }`}>
+                  Zone {zbStatus.signal.zone_tests}x | SL ${zbStatus.signal.sl_price?.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="text-center py-2">
+          <span className="text-[10px] text-stone-400">Waiting for zone data...</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ZBExitPanel({ zbStatus }: { zbStatus?: ZBStatus | null }) {
+  const pos = zbStatus?.position;
+  if (!pos) return null;
+
+  const isShort = pos.dir === 'short';
+  const sideColor = isShort ? 'text-orange-600' : 'text-cyan-600';
+  const sideFill = isShort ? 'bg-orange-500' : 'bg-cyan-500';
+  const sideBg = isShort ? 'bg-orange-50 border-orange-300' : 'bg-cyan-50 border-cyan-300';
+
+  const trailingActive = pos.trailing;
+  const entryPrice = pos.entry_price;
+  const currentSl = pos.current_sl;
+  const rrTarget = pos.rr_target;
+  const extreme = pos.extreme;
+
+  let trailProgress = 0;
+  if (isShort) {
+    const totalRange = entryPrice - rrTarget;
+    if (totalRange > 0) {
+      trailProgress = Math.max(0, Math.min(100, ((entryPrice - (zbStatus?.price ?? entryPrice)) / totalRange) * 100));
+    }
+  } else {
+    const totalRange = rrTarget - entryPrice;
+    if (totalRange > 0) {
+      trailProgress = Math.max(0, Math.min(100, (((zbStatus?.price ?? entryPrice) - entryPrice) / totalRange) * 100));
+    }
+  }
+
+  let slProgress = 0;
+  if (isShort) {
+    const slRange = currentSl - entryPrice;
+    const priceMove = (zbStatus?.price ?? entryPrice) - entryPrice;
+    if (slRange > 0) {
+      slProgress = Math.max(0, Math.min(100, (priceMove / slRange) * 100));
+    }
+  } else {
+    const slRange = entryPrice - currentSl;
+    const priceMove = entryPrice - (zbStatus?.price ?? entryPrice);
+    if (slRange > 0) {
+      slProgress = Math.max(0, Math.min(100, (priceMove / slRange) * 100));
+    }
+  }
+
+  const slDanger = slProgress >= 80;
+
+  const maxBars = 864;
+  const barsHeld = pos.bars_held;
+  const timePct = Math.min(100, (barsHeld / maxBars) * 100);
+  const timeDanger = timePct >= 80;
+  const hoursLeft = Math.max(0, ((maxBars - barsHeld) * 5) / 60);
+
+  return (
+    <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="text-[10px] font-bold text-slate-700 tracking-wide uppercase">Exit</div>
+        <span className={`text-[8px] font-bold ${sideColor}`}>
+          {pos.unrealized_pct >= 0 ? '+' : ''}{pos.unrealized_pct.toFixed(3)}%
+        </span>
       </div>
 
       <div className="flex flex-col gap-1.5">
         <div className={`rounded-md border p-1.5 transition-all ${
-          trailingActive ? (isShort ? 'bg-orange-50 border-orange-300' : 'bg-cyan-50 border-cyan-300') : 'bg-stone-50 border-stone-200'
+          trailingActive ? sideBg : 'bg-stone-50 border-stone-200'
         }`}>
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
               <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                 trailingActive
-                  ? (isShort ? 'bg-orange-500 shadow-[0_0_4px_rgba(251,146,60,0.8)]' : 'bg-cyan-500 shadow-[0_0_4px_rgba(6,182,212,0.8)]')
+                  ? `${isShort ? 'bg-orange-500 shadow-[0_0_4px_rgba(251,146,60,0.8)]' : 'bg-cyan-500 shadow-[0_0_4px_rgba(6,182,212,0.8)]'}`
                   : 'bg-stone-300'
               }`} />
-              <span className={`text-[10px] font-bold ${trailingActive ? sideText : 'text-slate-600'}`}>TRAIL</span>
+              <span className={`text-[10px] font-bold ${trailingActive ? sideColor : 'text-slate-600'}`}>TRAIL</span>
             </div>
-            <span className={`text-[8px] font-bold ${trailingActive ? sideText : 'text-stone-400'}`}>{trailPhaseLabel}</span>
+            <span className={`text-[8px] font-bold ${trailingActive ? sideColor : 'text-stone-400'}`}>
+              {trailingActive ? 'Active' : `RR 2:1 $${rrTarget.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+            </span>
           </div>
-          {(triggerPrice || trailingActive) && (
-            <div className="flex items-center gap-1">
-              <span className="text-[8px] tabular-nums text-stone-400 w-[42px] flex-shrink-0">{trailLeftLabel}</span>
-              <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
-                <div className={`h-1.5 rounded-full transition-all duration-300 ${barFill}`}
-                  style={{ width: `${trailProgress}%` }} />
-              </div>
-              <span className="text-[8px] tabular-nums text-stone-400 w-[42px] text-right flex-shrink-0">{trailRightLabel}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] flex-shrink-0">
+              ${entryPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </span>
+            <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
+              <div
+                className={`h-1.5 rounded-full transition-all duration-300 ${trailingActive ? sideFill : 'bg-stone-400'}`}
+                style={{ width: `${trailProgress}%` }}
+              />
+            </div>
+            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] text-right flex-shrink-0">
+              ${rrTarget.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </span>
+          </div>
+          {trailingActive && extreme && (
+            <div className="mt-0.5 text-[7px] text-stone-400 text-center">
+              Extreme ${extreme.toLocaleString(undefined, { maximumFractionDigits: 0 })} | TrailSL ${currentSl.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </div>
           )}
         </div>
 
-        <div className="rounded-md border p-1.5 bg-stone-50 border-stone-200">
+        <div className={`rounded-md border p-1.5 transition-all ${
+          slDanger ? 'bg-rose-50 border-rose-300' : 'bg-stone-50 border-stone-200'
+        }`}>
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${slPrice ? 'bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.8)]' : 'bg-stone-300'}`} />
-              <span className="text-[10px] font-bold text-slate-600">SL</span>
+              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                slDanger ? 'bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.8)] animate-pulse' : 'bg-stone-300'
+              }`} />
+              <span className={`text-[10px] font-bold ${slDanger ? 'text-rose-600' : 'text-slate-600'}`}>SL</span>
             </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] flex-shrink-0">{slPrice ? `$${slPrice.toFixed(0)}` : '--'}</span>
-            <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden relative">
-              <div className="absolute right-0 top-0 h-1.5 rounded-full transition-all duration-300 bg-rose-500"
-                style={{ width: `${slLossPct}%` }} />
-            </div>
-            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] text-right flex-shrink-0">${entryPrice.toFixed(0)}</span>
-          </div>
-        </div>
-
-        <div className="rounded-md border p-1.5 bg-stone-50 border-stone-200">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-1.5">
-              <Clock className={`w-3 h-3 ${timePct >= 80 ? sideText : 'text-stone-400'}`} />
-              <span className={`text-[10px] font-bold ${timePct >= 80 ? sideText : 'text-slate-600'}`}>TIME</span>
-            </div>
-            <span className={`text-[9px] font-bold tabular-nums ${timePct >= 80 ? sideText : 'text-stone-400'}`}>
-              {hoursLeft > 0 ? `${hoursLeft}h left` : 'Expired'}
+            <span className={`text-[8px] font-bold tabular-nums ${slDanger ? 'text-rose-600' : 'text-stone-400'}`}>
+              ${currentSl.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] flex-shrink-0">0h</span>
-            <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
-              <div className={`h-1.5 rounded-full transition-all duration-300 ${barFill}`}
-                style={{ width: `${timePct}%` }} />
+            <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${slDanger ? 'text-rose-500' : 'text-stone-400'}`}>
+              ${entryPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </span>
+            <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden relative">
+              <div
+                className={`absolute right-0 top-0 h-1.5 rounded-full transition-all duration-300 ${slDanger ? 'bg-rose-500' : 'bg-stone-400'}`}
+                style={{ width: `${slProgress}%` }}
+              />
             </div>
-            <span className="text-[8px] tabular-nums text-stone-400 w-[42px] text-right flex-shrink-0">{maxBars}h</span>
+            <span className={`text-[8px] tabular-nums w-[42px] text-right flex-shrink-0 ${slDanger ? 'text-rose-500' : 'text-stone-400'}`}>
+              ${currentSl.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </span>
           </div>
         </div>
+
+        <div className={`rounded-md border p-1.5 transition-all ${
+          timeDanger ? (isShort ? 'bg-orange-50 border-orange-300' : 'bg-cyan-50 border-cyan-300') : 'bg-stone-50 border-stone-200'
+        }`}>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-1.5">
+              <Clock className={`w-3 h-3 ${timeDanger ? sideColor : 'text-stone-400'}`} />
+              <span className={`text-[10px] font-bold ${timeDanger ? sideColor : 'text-slate-600'}`}>TIME</span>
+            </div>
+            <span className={`text-[8px] font-bold tabular-nums ${timeDanger ? sideColor : 'text-stone-400'}`}>
+              {hoursLeft > 0 ? `${hoursLeft.toFixed(1)}h left` : 'Expired'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${timeDanger ? sideColor : 'text-stone-400'}`}>
+              0h
+            </span>
+            <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
+              <div
+                className={`h-1.5 rounded-full transition-all duration-300 ${timeDanger ? sideFill : 'bg-stone-400'}`}
+                style={{ width: `${timePct}%` }}
+              />
+            </div>
+            <span className={`text-[8px] tabular-nums w-[42px] text-right flex-shrink-0 ${timeDanger ? sideColor : 'text-stone-400'}`}>
+              72h
+            </span>
+          </div>
+        </div>
+
+        {pos.pending_exit && (
+          <div className="rounded-md border p-1.5 bg-rose-50 border-rose-300 animate-pulse">
+            <div className="flex items-center justify-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              <span className="text-[10px] font-bold text-rose-700">
+                EXIT PENDING: {pos.pending_exit_reason || 'Unknown'}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Props) {
+export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStatus, zbZones }: Props) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -266,7 +344,8 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
     const positionSide = data.position.side;
     const entryPrice = data.position.entryPrice;
     const currentPnl = data.position.currentPnl;
-    const ss = data.strategyStatus;
+
+    const zbPos = zbStatus?.position;
 
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {
@@ -282,7 +361,12 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
         <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-slate-800">Status</h3>
-            <Activity className="w-3 h-3 text-slate-600" />
+            <div className="flex items-center gap-1.5">
+              {zbStatus && (
+                <span className="text-[8px] font-mono text-stone-400">{zbStatus.version}</span>
+              )}
+              <Activity className="w-3 h-3 text-slate-600" />
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -339,19 +423,21 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
 
             <div className="border-t border-stone-200 pt-1.5">
               <div className="text-[10px] text-slate-800 mb-1 font-medium">POSITION</div>
-              {hasPosition && entryPrice ? (
+              {(hasPosition && entryPrice) || zbPos ? (
                 <div className="space-y-0.5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-1.5 border border-amber-300">
                   <div className="flex justify-between items-center">
                     <span className="text-[9px] text-amber-700">Side</span>
                     <span className={`text-[11px] font-bold ${
-                      positionSide === 'LONG' ? 'text-cyan-600' : 'text-orange-600'
+                      (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-600' : 'text-orange-600'
                     }`}>
-                      {positionSide}
+                      {positionSide || zbPos?.dir?.toUpperCase()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[9px] text-amber-700">Entry</span>
-                    <span className="text-[11px] font-bold text-slate-900">{formatCurrency(entryPrice)}</span>
+                    <span className="text-[11px] font-bold text-slate-900">
+                      {formatCurrency(entryPrice ?? zbPos?.entry_price ?? 0)}
+                    </span>
                   </div>
                   {liquidationPrice && (
                     <div className="flex justify-between items-center">
@@ -359,21 +445,33 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
                       <span className="text-[11px] font-bold text-slate-600">{formatCurrency(liquidationPrice)}</span>
                     </div>
                   )}
-                  {currentPnl !== undefined && currentPnl !== null && (
+                  {(currentPnl !== undefined && currentPnl !== null) || zbPos ? (
                     <div className="flex justify-between items-center">
                       <span className="text-[9px] text-amber-700">P&L</span>
                       <span className={`text-[11px] font-bold ${
-                        currentPnl >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                        (currentPnl ?? zbPos?.unrealized_pct ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'
                       }`}>
-                        {currentPnl >= 0 ? '+' : ''}{currentPnl.toFixed(2)}%
+                        {(currentPnl ?? zbPos?.unrealized_pct ?? 0) >= 0 ? '+' : ''}
+                        {(currentPnl ?? zbPos?.unrealized_pct ?? 0).toFixed(3)}%
                       </span>
                     </div>
-                  )}
-                  {data.position.entryTime && (
+                  ) : null}
+                  {(data.position.entryTime || zbPos?.hold_minutes) && (
                     <div className="flex justify-between items-center">
                       <span className="text-[9px] text-amber-700">Duration</span>
                       <span className="text-[11px] font-bold text-amber-700">
-                        {formatHoldingDuration(data.position.entryTime, currentTime)}
+                        {data.position.entryTime
+                          ? formatHoldingDuration(data.position.entryTime, currentTime)
+                          : zbPos ? `${Math.floor((zbPos.hold_minutes ?? 0) / 60)}h ${(zbPos.hold_minutes ?? 0) % 60}m` : ''
+                        }
+                      </span>
+                    </div>
+                  )}
+                  {zbPos && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-[9px] text-amber-700">Risk</span>
+                      <span className="text-[11px] font-bold text-slate-700">
+                        {zbPos.risk_pct.toFixed(2)}% (${zbPos.risk.toFixed(0)})
                       </span>
                     </div>
                   )}
@@ -387,16 +485,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime }: Prop
           </div>
         </div>
 
-        <EntryConditionsPanel ss={ss} />
+        <ZBEntryPanel zbStatus={zbStatus} zbZones={zbZones} />
 
-        <ExitConditionsPanel
-          exitConds={(data.position as any)?.exitConditions}
-          inPosition={!!hasPosition}
-          currentPrice={data.currentPrice}
-          entryPrice={entryPrice ?? 0}
-          positionSide={positionSide}
-          atr={ss?.v32?.atr ?? ss?.indicators?.['1h']?.atr}
-        />
+        <ZBExitPanel zbStatus={zbStatus} />
       </div>
     );
   }

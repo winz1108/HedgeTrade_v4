@@ -3,7 +3,6 @@ import { RefreshCw } from 'lucide-react';
 import { fetchBinanceFuturesDashboard } from './services/oracleApi';
 import { BinanceFuturesMetricsPanel } from './components/spot/BinanceFuturesMetricsPanel';
 import { BinanceFuturesPriceChart } from './components/spot/BinanceFuturesPriceChart';
-import { ZoneBouncePanel } from './components/spot/ZoneBouncePanel';
 import { formatLocalTime } from './utils/time';
 import { websocketService } from './services/websocket';
 import type { BFDashboardData } from './types/dashboard';
@@ -466,14 +465,7 @@ function App() {
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
           <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1">
-            <BinanceFuturesMetricsPanel data={data} position="left" currentTime={currentTime} />
-            <ZoneBouncePanel
-              status={zbData.status}
-              zones={zbData.zones}
-              trades={zbData.trades}
-              params={zbData.params}
-              online={zbData.online}
-            />
+            <BinanceFuturesMetricsPanel data={data} position="left" currentTime={currentTime} zbStatus={zbData.status} zbZones={zbData.zones} />
           </div>
           <div className="w-full min-w-0 order-1 lg:order-2">
             <BinanceFuturesPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} />
