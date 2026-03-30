@@ -292,6 +292,7 @@ export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus }:
       v10Strategy={v10Strategy}
       zbZones={zbZones}
       zbStatus={zbStatus}
+      zoneData={data.zoneData}
     />
   );
 }

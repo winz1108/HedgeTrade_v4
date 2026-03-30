@@ -214,6 +214,15 @@ function App() {
         if (statusData.peak_price !== undefined) {
           updated.position = { ...updated.position, peakPrice: statusData.peak_price };
         }
+        if (statusData.exit_conditions) {
+          updated.strategy = { ...updated.strategy, exit_conditions: { ...updated.strategy?.exit_conditions, ...statusData.exit_conditions } };
+          if (updated.strategyA) {
+            updated.strategyA = { ...updated.strategyA, exit_conditions: { ...updated.strategyA.exit_conditions, ...statusData.exit_conditions } };
+          }
+        }
+        if (statusData.zoneData) {
+          updated.zoneData = statusData.zoneData;
+        }
         return updated;
       });
     };
@@ -270,7 +279,16 @@ function App() {
           if (priceData.exit_conditions) { ssUpdate.exitConditions = { ...prevStatus.exitConditions, ...priceData.exit_conditions }; ssChanged = true; }
           if (priceData.exit_prices) { ssUpdate.exitPrices = { ...prevStatus.exitPrices, ...priceData.exit_prices }; ssChanged = true; }
           if (priceData.indicators) { ssUpdate.indicators = { ...prevStatus.indicators, ...priceData.indicators }; ssChanged = true; }
+          if (priceData.exit_conditions) {
+            updated.strategy = { ...updated.strategy, exit_conditions: { ...updated.strategy?.exit_conditions, ...priceData.exit_conditions } };
+            if (updated.strategyA) {
+              updated.strategyA = { ...updated.strategyA, exit_conditions: { ...updated.strategyA.exit_conditions, ...priceData.exit_conditions } };
+            }
+          }
           if (ssChanged) updated.strategyStatus = ssUpdate;
+        }
+        if (priceData.zoneData) {
+          updated.zoneData = priceData.zoneData;
         }
         if (prev.priceHistories) {
           const updatedHistories = { ...prev.priceHistories };

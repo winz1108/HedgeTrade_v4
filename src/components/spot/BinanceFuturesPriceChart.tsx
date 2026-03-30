@@ -149,6 +149,7 @@ export function BinanceFuturesPriceChart({ data, onTimeframeChange, zbZones, zbS
       v10Strategy={v10Strategy}
       zbZones={zbZones}
       zbStatus={zbStatus}
+      zoneData={data.zoneData}
     />
   );
 }

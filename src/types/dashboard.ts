@@ -602,6 +602,56 @@ export interface DashboardData {
   v10Strategy?: V10StrategyStatus | null;
 }
 
+export interface ZoneInfo {
+  center: number;
+  top: number;
+  bot: number;
+  tests: number;
+  dist_pct: number;
+  strength: 'strong' | 'medium' | 'weak';
+}
+
+export interface ZoneExitSL {
+  armed: boolean;
+  price: number;
+  entry_price: number;
+  distance_pct: number;
+  current_pnl_pct: number;
+}
+
+export interface ZoneExitTrail {
+  armed: boolean;
+  trigger_price: number;
+  trigger_pct: number;
+  trail_sl: number;
+  extreme: number;
+  peak_pnl: number;
+}
+
+export interface ZoneExitTimeout {
+  armed: boolean;
+  max_bars: number;
+  bars_held: number;
+  pct: number;
+}
+
+export interface ZoneExitConditions {
+  SL?: ZoneExitSL;
+  TRAIL?: ZoneExitTrail;
+  TIMEOUT?: ZoneExitTimeout;
+}
+
+export interface ZoneData {
+  nearestSupport: ZoneInfo | null;
+  nearestResistance: ZoneInfo | null;
+  allSupports: ZoneInfo[];
+  allResistances: ZoneInfo[];
+  barCount: number;
+  zoneCount: number;
+  atr: number;
+  signal: any | null;
+}
+
 export interface KrakenStrategyA {
   name: string;
   in_position: boolean;
@@ -649,6 +699,8 @@ export interface KrakenStrategyA {
   entry_conditions_long?: Record<string, boolean>;
   entry_conditions_short?: Record<string, boolean>;
   entry_details?: EntryDetails;
+  exit_conditions?: ZoneExitConditions;
+  strategyParams?: Record<string, any>;
 }
 
 export interface KrakenSellConditions {
@@ -805,6 +857,7 @@ export interface KrakenDashboardData {
     '1d': Candle[];
   };
   strategyStatus?: V10StrategyStatus;
+  zoneData?: ZoneData;
   zoneBounce?: {
     status: any;
     zones: any;
@@ -870,6 +923,13 @@ export interface BFDashboardData {
     entry_details?: EntryDetails;
     indicators: Record<string, any>;
     pp_reversal_price: number | null;
+    exit_conditions?: ZoneExitConditions;
+    strategyParams?: Record<string, any>;
+  };
+  strategyA?: {
+    exit_conditions?: ZoneExitConditions;
+    strategyParams?: Record<string, any>;
+    [key: string]: any;
   };
   metrics: {
     totalTrades: number;
@@ -892,6 +952,7 @@ export interface BFDashboardData {
   recentTrades?: TradeEvent[];
   priceHistories: Record<string, any[]>;
   strategyStatus?: V10StrategyStatus;
+  zoneData?: ZoneData;
   zoneBounce?: {
     status: any;
     zones: any;

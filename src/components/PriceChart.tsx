@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ZoomIn, ZoomOut, Maximize2, Minimize2, Eye, EyeOff, ChevronsRight } from 'lucide-react';
-import { DashboardData, TradeEvent, Candle, V10StrategyStatus } from '../types/dashboard';
+import { DashboardData, TradeEvent, Candle, V10StrategyStatus, ZoneData } from '../types/dashboard';
 import type { ZBZones, ZBStatus } from '../types/zoneBounce';
 import { formatLocalTime, formatChartTime } from '../utils/time';
 import { websocketService } from '../services/websocket';
@@ -14,6 +14,7 @@ interface PriceChartProps {
   v10Strategy?: V10StrategyStatus | null;
   zbZones?: ZBZones | null;
   zbStatus?: ZBStatus | null;
+  zoneData?: ZoneData | null;
 }
 
 type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
@@ -81,7 +82,7 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
   return aggregated.sort((a, b) => a.timestamp - b.timestamp);
 }
 
-export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false, v10Strategy, zbZones, zbStatus }: PriceChartProps) => {
+export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false, v10Strategy, zbZones, zbStatus, zoneData }: PriceChartProps) => {
   const data = useMemo(() => {
     return rawData;
   }, [rawData]);
@@ -1100,6 +1101,40 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return (
                   <rect
                     key={`zone-${i}`}
+                    x="0"
+                    y={topY}
+                    width="100%"
+                    height={h}
+                    fill={fill}
+                    stroke={stroke}
+                    strokeWidth="0.5"
+                  />
+                );
+              })}
+            </svg>
+          )}
+
+          {!zbZones && zoneData && (
+            <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 2 }}>
+              {[
+                ...(zoneData.allSupports || []).map(z => ({ ...z, _type: 'S' as const })),
+                ...(zoneData.allResistances || []).map(z => ({ ...z, _type: 'R' as const })),
+              ].map((zone, i) => {
+                const topY = priceToY(zone.top);
+                const botY = priceToY(zone.bot);
+                const h = Math.max(botY - topY, 1);
+                if (topY > priceChartHeight || botY < 0) return null;
+                const isSupport = zone._type === 'S';
+                const baseOpacity = Math.min(0.08 + zone.tests * 0.06, 0.35);
+                const fill = isSupport
+                  ? `rgba(16, 185, 129, ${baseOpacity})`
+                  : `rgba(239, 68, 68, ${baseOpacity})`;
+                const stroke = isSupport
+                  ? `rgba(16, 185, 129, ${Math.min(baseOpacity + 0.1, 0.45)})`
+                  : `rgba(239, 68, 68, ${Math.min(baseOpacity + 0.1, 0.45)})`;
+                return (
+                  <rect
+                    key={`zd-${i}`}
                     x="0"
                     y={topY}
                     width="100%"

@@ -259,6 +259,17 @@ function FuturesDashboard() {
           };
         }
 
+        if (priceData.exit_conditions) {
+          updated.strategyA = {
+            ...updated.strategyA,
+            exit_conditions: priceData.exit_conditions,
+          };
+        }
+
+        if (priceData.zoneData) {
+          (updated as any).zoneData = priceData.zoneData;
+        }
+
         return updated;
       });
     };
