@@ -1,11 +1,14 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { fetchBinanceFuturesDashboard } from './services/oracleApi';
 import { BinanceFuturesMetricsPanel } from './components/spot/BinanceFuturesMetricsPanel';
 import { BinanceFuturesPriceChart } from './components/spot/BinanceFuturesPriceChart';
+import { ZoneBouncePanel } from './components/spot/ZoneBouncePanel';
 import { formatLocalTime } from './utils/time';
 import { websocketService } from './services/websocket';
+import { fetchZBStatus, fetchZBZones, fetchZBTrades, fetchZBParams, fetchZBHealth } from './services/zoneBounceApi';
 import type { BFDashboardData } from './types/dashboard';
+import type { ZBStatus, ZBZones, ZBTrade, ZBParams } from './types/zoneBounce';
 
 function App() {
   const [data, setData] = useState<BFDashboardData | null>(null);
@@ -13,6 +16,13 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
+
+  const [zbStatus, setZbStatus] = useState<ZBStatus | null>(null);
+  const [zbZones, setZbZones] = useState<ZBZones | null>(null);
+  const [zbTrades, setZbTrades] = useState<ZBTrade[]>([]);
+  const [zbParams, setZbParams] = useState<ZBParams | null>(null);
+  const [zbOnline, setZbOnline] = useState(false);
+  const zbIntervalsRef = useRef<number[]>([]);
 
   const liveCandles = useCallback(
     (
@@ -364,6 +374,42 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const pollStatus = async () => {
+      const s = await fetchZBStatus();
+      if (s) { setZbStatus(s); setZbOnline(true); }
+      else { setZbOnline(false); }
+    };
+    const pollZones = async () => {
+      const z = await fetchZBZones();
+      if (z) setZbZones(z);
+    };
+    const pollTrades = async () => {
+      const t = await fetchZBTrades();
+      if (t) setZbTrades(t.trades);
+    };
+    const pollParams = async () => {
+      const p = await fetchZBParams();
+      if (p) setZbParams(p);
+    };
+    const init = async () => {
+      const h = await fetchZBHealth();
+      setZbOnline(!!h?.ok);
+      pollStatus();
+      pollZones();
+      pollTrades();
+      pollParams();
+    };
+    init();
+    const ids = [
+      window.setInterval(pollStatus, 5000),
+      window.setInterval(pollZones, 30000),
+      window.setInterval(pollTrades, 60000),
+      window.setInterval(pollParams, 60000),
+    ];
+    zbIntervalsRef.current = ids;
+    return () => { ids.forEach(clearInterval); };
+  }, []);
 
   if (loading) {
     return (
@@ -454,9 +500,16 @@ function App() {
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
           <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1">
             <BinanceFuturesMetricsPanel data={data} position="left" currentTime={currentTime} />
+            <ZoneBouncePanel
+              status={zbStatus}
+              zones={zbZones}
+              trades={zbTrades}
+              params={zbParams}
+              online={zbOnline}
+            />
           </div>
           <div className="w-full min-w-0 order-1 lg:order-2">
-            <BinanceFuturesPriceChart data={data} onTimeframeChange={setSelectedTimeframe} />
+            <BinanceFuturesPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbZones} zbStatus={zbStatus} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2">
             <div className="w-full flex-shrink-0">

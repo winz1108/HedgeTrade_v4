@@ -1,13 +1,16 @@
 import { useMemo } from 'react';
 import { PriceChart } from '../PriceChart';
 import { DashboardData, TradeEvent, BFDashboardData } from '../../types/dashboard';
+import type { ZBZones, ZBStatus } from '../../types/zoneBounce';
 
 interface Props {
   data: BFDashboardData;
   onTimeframeChange?: (timeframe: string) => void;
+  zbZones?: ZBZones | null;
+  zbStatus?: ZBStatus | null;
 }
 
-export function BinanceFuturesPriceChart({ data, onTimeframeChange }: Props) {
+export function BinanceFuturesPriceChart({ data, onTimeframeChange, zbZones, zbStatus }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
     const toMs = (v: number): number => {
       if (!v) return 0;
@@ -130,6 +133,8 @@ export function BinanceFuturesPriceChart({ data, onTimeframeChange }: Props) {
       onTimeframeChange={(timeframe: string) => onTimeframeChange?.(timeframe)}
       darkMode={false}
       v10Strategy={v10Strategy}
+      zbZones={zbZones}
+      zbStatus={zbStatus}
     />
   );
 }
