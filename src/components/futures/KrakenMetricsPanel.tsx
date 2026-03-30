@@ -272,7 +272,7 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
                         (currentPnl ?? zbPos?.unrealized_pct ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       }`}>
                         {(currentPnl ?? zbPos?.unrealized_pct ?? 0) >= 0 ? '+' : ''}
-                        {(currentPnl ?? zbPos?.unrealized_pct ?? 0).toFixed(3)}%
+                        {(currentPnl ?? zbPos?.unrealized_pct ?? 0).toFixed(2)}%
                       </span>
                     </div>
                   )}

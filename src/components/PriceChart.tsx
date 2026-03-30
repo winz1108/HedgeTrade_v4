@@ -1368,8 +1368,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                             <g key={`swing-${idx}`}>
                               {candle.swing_high && (
                                 <g transform={`translate(${cx}, ${Math.max(s + 2, priceToY(candle.high) - offset)})`}>
-                                  <polygon
-                                    points={`0,${s} ${-s},${-s * 0.5} ${-s * 0.35},${-s * 0.5} ${-s * 0.35},${-s * 0.1} ${s * 0.35},${-s * 0.1} ${s * 0.35},${-s * 0.5} ${s},${-s * 0.5}`}
+                                  <path
+                                    d={`M 0 ${s} L ${-s} ${-s * 0.5} Q 0 ${-s * 0.15} ${s} ${-s * 0.5} Z`}
                                     fill="#ef4444"
                                     stroke="#fca5a5"
                                     strokeWidth="0.5"
@@ -1379,8 +1379,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                               )}
                               {candle.swing_low && (
                                 <g transform={`translate(${cx}, ${Math.min(priceChartHeight - s - 2, priceToY(candle.low) + offset)})`}>
-                                  <polygon
-                                    points={`0,${-s} ${-s},${s * 0.5} ${-s * 0.35},${s * 0.5} ${-s * 0.35},${s * 0.1} ${s * 0.35},${s * 0.1} ${s * 0.35},${s * 0.5} ${s},${s * 0.5}`}
+                                  <path
+                                    d={`M 0 ${-s} L ${s} ${s * 0.5} Q 0 ${s * 0.15} ${-s} ${s * 0.5} Z`}
                                     fill="#22c55e"
                                     stroke="#86efac"
                                     strokeWidth="0.5"

@@ -62,10 +62,10 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPan
       {hasData ? (
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[9px] mb-0.5">
-            <span className={`tabular-nums ${isLongBias || isCenter ? `${cyanTxt} font-bold` : inactiveTxt}`}>
+            <span className={`tabular-nums ${isShortBias || isCenter ? `${orangeTxt} font-bold` : inactiveTxt}`}>
               ${supportPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </span>
-            <span className={`tabular-nums ${isShortBias || isCenter ? `${orangeTxt} font-bold` : inactiveTxt}`}>
+            <span className={`tabular-nums ${isLongBias || isCenter ? `${cyanTxt} font-bold` : inactiveTxt}`}>
               ${resistancePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </span>
           </div>
@@ -73,31 +73,31 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPan
           <div className={`relative h-3 ${barBg} rounded-full overflow-hidden border ${barBorder}`}>
             {isLongBias || isCenter ? (
               <div
-                className="absolute left-0 top-0 h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-500"
-                style={{ width: `${(1 - ratio) * 100}%` }}
+                className="absolute right-0 top-0 h-full bg-gradient-to-l from-cyan-500 to-cyan-400 rounded-full transition-all duration-500"
+                style={{ width: `${ratio * 100}%` }}
               />
             ) : (
               <div
-                className="absolute right-0 top-0 h-full bg-gradient-to-l from-orange-500 to-orange-400 rounded-full transition-all duration-500"
-                style={{ width: `${ratio * 100}%` }}
+                className="absolute left-0 top-0 h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-500"
+                style={{ width: `${(1 - ratio) * 100}%` }}
               />
             )}
           </div>
 
           <div className="flex items-center justify-between text-[8px]">
-            <div className={`flex items-center gap-1 ${isLongBias || isCenter ? cyanTxt : inactiveTxt}`}>
-              <span className="font-bold">LONG</span>
+            <div className={`flex items-center gap-1 ${isShortBias || isCenter ? orangeTxt : inactiveTxt}`}>
+              <span className="font-bold">SHORT</span>
               <span className={separatorTxt}>|</span>
               <span>{(support?.dist_pct ?? 0).toFixed(2)}%</span>
               <span className={separatorTxt}>|</span>
               <span>{support?.tests ?? 0}x {support?.strength ?? 'weak'}</span>
             </div>
-            <div className={`flex items-center gap-1 ${isShortBias || isCenter ? orangeTxt : inactiveTxt}`}>
+            <div className={`flex items-center gap-1 ${isLongBias || isCenter ? cyanTxt : inactiveTxt}`}>
               <span>{resistance?.tests ?? 0}x {resistance?.strength ?? 'weak'}</span>
               <span className={separatorTxt}>|</span>
               <span>{(resistance?.dist_pct ?? 0).toFixed(2)}%</span>
               <span className={separatorTxt}>|</span>
-              <span className="font-bold">SHORT</span>
+              <span className="font-bold">LONG</span>
             </div>
           </div>
 
@@ -215,57 +215,63 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true }: Exi
                 }`} />
                 <span className={`text-[10px] font-bold ${trailActive ? sideColor : inactiveTxt}`}>TRAIL</span>
               </div>
-              <span className={`text-[8px] font-bold ${trailActive ? sideColor : inactiveNum}`}>
-                {trailActive ? 'Active' : `RR 2:1 $${trail.trigger_price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+              <span className={`text-[8px] font-bold tabular-nums ${trailActive ? sideColor : inactiveNum}`}>
+                {trailActive
+                  ? `MFE $${trail.extreme.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                  : `$${trail.trigger_price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
               </span>
             </div>
-            <div className="flex items-center gap-1">
-              <span className={`text-[8px] tabular-nums w-[28px] flex-shrink-0 ${inactiveNum}`}>0%</span>
-              <div className={`flex-1 ${barBg} rounded-full h-3 overflow-hidden`}>
+            <div className="flex items-center gap-1 justify-center">
+              <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${trailActive ? sideColor : inactiveNum}`}>
+                {trailActive ? `$${trail.trail_sl.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '0%'}
+              </span>
+              <div className={`w-[calc(100%-100px)] ${barBg} rounded-full h-3 overflow-hidden`}>
                 <div
                   className={`h-3 rounded-full transition-all duration-300 ${trailActive ? sideFill : inactiveFill}`}
                   style={{ width: `${trailProgress}%` }}
                 />
               </div>
-              <span className={`text-[8px] tabular-nums w-[28px] text-right flex-shrink-0 ${inactiveNum}`}>
-                {trail.trigger_pct.toFixed(1)}%
+              <span className={`text-[8px] tabular-nums w-[42px] text-right flex-shrink-0 ${trailActive ? sideColor : inactiveNum}`}>
+                {trailActive ? `$${trail.extreme.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : `${trail.trigger_pct.toFixed(1)}%`}
               </span>
             </div>
-            {trailActive && (
-              <div className={`mt-0.5 text-[7px] text-center ${inactiveNum}`}>
-                Extreme ${trail.extreme.toLocaleString(undefined, { maximumFractionDigits: 0 })} | TrailSL ${trail.trail_sl.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-              </div>
-            )}
           </div>
         )}
 
-        {sl && (
-          <div className={`rounded-md border p-1.5 transition-all ${slDanger ? dangerBg : inactiveBg}`}>
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${slDanger ? dangerDot : inactiveDot}`} />
-                <span className={`text-[10px] font-bold ${slDanger ? dangerTxt : inactiveTxt}`}>SL</span>
+        {sl && (() => {
+          const pnlSign = isShort ? -sl.current_pnl_pct : sl.current_pnl_pct;
+          const inLossZone = pnlSign < 0;
+          const showBar = inLossZone;
+          return (
+            <div className={`rounded-md border p-1.5 transition-all ${slDanger ? dangerBg : inactiveBg}`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${slDanger ? dangerDot : inactiveDot}`} />
+                  <span className={`text-[10px] font-bold ${slDanger ? dangerTxt : inactiveTxt}`}>SL</span>
+                </div>
+                <span className={`text-[8px] font-bold tabular-nums ${slDanger ? dangerTxt : inactiveNum}`}>
+                  ${sl.price.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
               </div>
-              <span className={`text-[8px] font-bold tabular-nums ${slDanger ? dangerTxt : inactiveNum}`}>
-                ${sl.price.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${slDanger ? dangerTxt : inactiveNum}`}>
-                ${sl.entry_price.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-              </span>
-              <div className={`flex-1 ${barBg} rounded-full h-3 overflow-hidden relative`}>
-                <div
-                  className={`absolute right-0 top-0 h-3 rounded-full transition-all duration-300 ${slDanger ? 'bg-rose-500' : inactiveFill}`}
-                  style={{ width: `${slProgress}%` }}
-                />
+              <div className="flex items-center gap-1 justify-center">
+                <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${slDanger ? dangerTxt : inactiveNum}`}>
+                  ${sl.price.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
+                <div className={`w-[calc(100%-100px)] ${barBg} rounded-full h-3 overflow-hidden relative`}>
+                  {showBar && (
+                    <div
+                      className={`absolute right-0 top-0 h-3 rounded-full transition-all duration-300 ${slDanger ? 'bg-rose-500' : 'bg-rose-400/60'}`}
+                      style={{ width: `${slProgress}%` }}
+                    />
+                  )}
+                </div>
+                <span className={`text-[8px] tabular-nums w-[42px] text-right flex-shrink-0 ${slDanger ? dangerTxt : inactiveNum}`}>
+                  ${sl.entry_price.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
               </div>
-              <span className={`text-[8px] tabular-nums w-[42px] text-right flex-shrink-0 ${slDanger ? dangerTxt : inactiveNum}`}>
-                ${sl.price.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-              </span>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {timeout && (
           <div className={`rounded-md border p-1.5 transition-all ${timeDanger ? sideBg : inactiveBg}`}>
@@ -278,17 +284,17 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true }: Exi
                 {hoursLeft > 0 ? `${hoursLeft.toFixed(1)}h left` : 'Expired'}
               </span>
             </div>
-            <div className="flex items-center gap-1">
-              <span className={`text-[8px] tabular-nums w-[28px] flex-shrink-0 ${timeDanger ? sideColor : inactiveNum}`}>
+            <div className="flex items-center gap-1 justify-center">
+              <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${timeDanger ? sideColor : inactiveNum}`}>
                 0h
               </span>
-              <div className={`flex-1 ${barBg} rounded-full h-3 overflow-hidden`}>
+              <div className={`w-[calc(100%-100px)] ${barBg} rounded-full h-3 overflow-hidden`}>
                 <div
                   className={`h-3 rounded-full transition-all duration-300 ${timeDanger ? sideFill : inactiveFill}`}
                   style={{ width: `${timePct}%` }}
                 />
               </div>
-              <span className={`text-[8px] tabular-nums w-[28px] text-right flex-shrink-0 ${timeDanger ? sideColor : inactiveNum}`}>
+              <span className={`text-[8px] tabular-nums w-[42px] text-right flex-shrink-0 ${timeDanger ? sideColor : inactiveNum}`}>
                 72h
               </span>
             </div>
