@@ -1375,8 +1375,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                                     d={`M 0 ${s} L ${-s} ${-s * 0.5} Q 0 ${-s * 0.15} ${s} ${-s * 0.5} Z`}
                                     fill="#ef4444"
                                     stroke="#fca5a5"
-                                    strokeWidth="0.5"
-                                    opacity="0.9"
+                                    strokeWidth="0.3"
+                                    opacity="0.25"
                                   />
                                 </g>
                               )}
@@ -1386,8 +1386,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                                     d={`M 0 ${-s} L ${s} ${s * 0.5} Q 0 ${s * 0.15} ${-s} ${s * 0.5} Z`}
                                     fill="#22c55e"
                                     stroke="#86efac"
-                                    strokeWidth="0.5"
-                                    opacity="0.9"
+                                    strokeWidth="0.3"
+                                    opacity="0.25"
                                   />
                                 </g>
                               )}

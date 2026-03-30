@@ -49,11 +49,11 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
   const inactiveFill = dark ? 'bg-slate-500' : 'bg-stone-400';
 
   const shortActiveTxt = inPosition ? dimTxt
-    : variant === 'kraken' ? 'text-amber-400' : 'text-amber-600';
+    : variant === 'kraken' ? 'text-orange-400' : 'text-orange-600';
   const longActiveTxt = inPosition ? dimTxt
     : variant === 'kraken' ? 'text-cyan-400' : 'text-cyan-500';
   const shortBarGrad = variant === 'kraken'
-    ? 'bg-amber-400/80' : 'bg-amber-500/70';
+    ? 'bg-orange-400/80' : 'bg-orange-500/70';
   const longBarGrad = variant === 'kraken'
     ? 'bg-cyan-400/80' : 'bg-cyan-500/70';
   const inactiveTxt = dimTxt;
@@ -135,19 +135,19 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
             <div className={`mt-1 rounded border p-1.5 ${
               signalDir === 'long'
                 ? variant === 'kraken' ? 'bg-slate-700/50 border-slate-500/40' : 'bg-stone-100 border-stone-300'
-                : variant === 'kraken' ? 'bg-slate-600/30 border-white/20' : 'bg-amber-50 border-amber-300'
+                : variant === 'kraken' ? 'bg-slate-600/30 border-white/20' : 'bg-orange-50 border-orange-300'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
                     signalDir === 'long'
                       ? variant === 'kraken' ? 'bg-slate-300' : 'bg-stone-500'
-                      : variant === 'kraken' ? 'bg-white' : 'bg-amber-700'
+                      : variant === 'kraken' ? 'bg-white' : 'bg-orange-500'
                   }`} />
                   <span className={`text-[9px] font-bold uppercase ${
                     signalDir === 'long'
                       ? variant === 'kraken' ? 'text-slate-300' : 'text-stone-600'
-                      : variant === 'kraken' ? 'text-white' : 'text-amber-800'
+                      : variant === 'kraken' ? 'text-white' : 'text-orange-700'
                   }`}>
                     {signalDir} Signal
                   </span>
