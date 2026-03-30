@@ -38,9 +38,10 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
 };
 
 function ZBEntryPanel({ zbStatus, zbZones, data }: { zbStatus?: ZBStatus | null; zbZones?: ZBZones | null; data: BFDashboardData }) {
+  const hasPosition = data.position?.in_position || data.position?.inPosition || !!zbStatus?.position;
   const zoneData = data.zoneData;
   if (zoneData) {
-    return <ZoneEntryPanel zoneData={zoneData} currentPrice={data.currentPrice} dark={false} />;
+    return <ZoneEntryPanel zoneData={zoneData} currentPrice={data.currentPrice} dark={false} inPosition={hasPosition} />;
   }
 
   const nearestSupport = zbZones?.supports?.[0];
@@ -72,6 +73,7 @@ function ZBEntryPanel({ zbStatus, zbZones, data }: { zbStatus?: ZBStatus | null;
       }}
       currentPrice={price}
       dark={false}
+      inPosition={hasPosition}
     />
   );
 }

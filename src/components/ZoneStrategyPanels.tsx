@@ -5,6 +5,7 @@ interface EntryPanelProps {
   zoneData: ZoneData | null | undefined;
   currentPrice: number;
   dark?: boolean;
+  inPosition?: boolean;
 }
 
 interface ExitPanelProps {
@@ -13,7 +14,7 @@ interface ExitPanelProps {
   dark?: boolean;
 }
 
-export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPanelProps) {
+export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition = false }: EntryPanelProps) {
   const support = zoneData?.nearestSupport;
   const resistance = zoneData?.nearestResistance;
 
@@ -36,15 +37,21 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPan
   const isCenter = Math.abs(ratio - 0.5) < 0.05;
 
   const bg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
-  const inactiveTxt = dark ? 'text-slate-500' : 'text-stone-400';
+  const dimTxt = dark ? 'text-slate-500' : 'text-stone-400';
   const barBg = dark ? 'bg-slate-700' : 'bg-stone-100';
   const barBorder = dark ? 'border-slate-600' : 'border-stone-200';
-  const cyanTxt = dark ? 'text-cyan-400' : 'text-cyan-600';
-  const orangeTxt = dark ? 'text-orange-400' : 'text-orange-600';
   const separatorTxt = dark ? 'text-slate-600' : 'text-stone-300';
+
+  const inactiveFill = dark ? 'bg-slate-500' : 'bg-stone-400';
+  const cyanTxt = inPosition ? dimTxt : (dark ? 'text-cyan-400' : 'text-cyan-600');
+  const orangeTxt = inPosition ? dimTxt : (dark ? 'text-orange-400' : 'text-orange-600');
+  const inactiveTxt = dimTxt;
 
   const signalData = zoneData?.signal;
   const signalDir = signalData?.dir as string | undefined;
+
+  const longFillPct = (1 - ratio) * 100;
+  const shortFillPct = ratio * 100;
 
   return (
     <div className={`${bg} border rounded-lg shadow-sm p-2`}>
@@ -62,37 +69,42 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPan
       {hasData ? (
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[9px] mb-0.5">
-            <span className={`tabular-nums ${isShortBias || isCenter ? `${orangeTxt} font-bold` : inactiveTxt}`}>
+            <span className={`tabular-nums ${!inPosition && (isShortBias || isCenter) ? `${orangeTxt} font-bold` : inactiveTxt}`}>
               ${supportPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </span>
-            <span className={`tabular-nums ${isLongBias || isCenter ? `${cyanTxt} font-bold` : inactiveTxt}`}>
+            <span className={`tabular-nums ${!inPosition && (isLongBias || isCenter) ? `${cyanTxt} font-bold` : inactiveTxt}`}>
               ${resistancePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </span>
           </div>
 
           <div className={`relative h-3 ${barBg} rounded-full overflow-hidden border ${barBorder}`}>
-            {isLongBias || isCenter ? (
+            {inPosition ? (
+              <div
+                className={`absolute left-0 top-0 h-full ${inactiveFill} rounded-full transition-all duration-500`}
+                style={{ width: `${shortFillPct}%` }}
+              />
+            ) : isLongBias || isCenter ? (
               <div
                 className="absolute right-0 top-0 h-full bg-gradient-to-l from-cyan-500 to-cyan-400 rounded-full transition-all duration-500"
-                style={{ width: `${ratio * 100}%` }}
+                style={{ width: `${longFillPct}%` }}
               />
             ) : (
               <div
                 className="absolute left-0 top-0 h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-500"
-                style={{ width: `${(1 - ratio) * 100}%` }}
+                style={{ width: `${shortFillPct}%` }}
               />
             )}
           </div>
 
           <div className="flex items-center justify-between text-[8px]">
-            <div className={`flex items-center gap-1 ${isShortBias || isCenter ? orangeTxt : inactiveTxt}`}>
+            <div className={`flex items-center gap-1 ${!inPosition && (isShortBias || isCenter) ? orangeTxt : inactiveTxt}`}>
               <span className="font-bold">SHORT</span>
               <span className={separatorTxt}>|</span>
               <span>{(support?.dist_pct ?? 0).toFixed(2)}%</span>
               <span className={separatorTxt}>|</span>
               <span>{support?.tests ?? 0}x {support?.strength ?? 'weak'}</span>
             </div>
-            <div className={`flex items-center gap-1 ${isLongBias || isCenter ? cyanTxt : inactiveTxt}`}>
+            <div className={`flex items-center gap-1 ${!inPosition && (isLongBias || isCenter) ? cyanTxt : inactiveTxt}`}>
               <span>{resistance?.tests ?? 0}x {resistance?.strength ?? 'weak'}</span>
               <span className={separatorTxt}>|</span>
               <span>{(resistance?.dist_pct ?? 0).toFixed(2)}%</span>
@@ -101,7 +113,7 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPan
             </div>
           </div>
 
-          {signalData && signalDir && (
+          {!inPosition && signalData && signalDir && (
             <div className={`mt-1 rounded border p-1.5 ${
               signalDir === 'long'
                 ? dark ? 'bg-cyan-900/30 border-cyan-500/40' : 'bg-cyan-50 border-cyan-300'
