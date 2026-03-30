@@ -87,8 +87,10 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
     ?? (data.strategyStatus as any)?.exitConditions;
   const positionSide = data.position?.side ?? data.position?.position_side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
 
+  const cp = data.currentPrice ?? zbStatus?.price ?? 0;
+
   if (exitConditions) {
-    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={false} />;
+    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={false} currentPrice={cp} />;
   }
 
   const pos = zbStatus?.position;
@@ -121,6 +123,7 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
         }}
         positionSide={positionSide}
         dark={false}
+        currentPrice={cp}
       />
     );
   }
@@ -132,7 +135,6 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
   const exitPrices = data.position?.exit_prices ?? (data.strategyStatus as any)?.exitPrices;
   const slPrice = data.position?.slPrice ?? exitPrices?.sl_price ?? exitPrices?.slPrice ?? 0;
   const floorPrice = data.position?.floorPrice ?? exitPrices?.floor_price ?? exitPrices?.floorPrice ?? null;
-  const currentPnl = data.position?.currentPnl ?? data.position?.current_pnl ?? 0;
   const mfe = data.position?.mfe ?? 0;
   const isShort = positionSide === 'SHORT';
 
@@ -145,12 +147,12 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
       distance_pct: isShort
         ? ((slPrice - entryPrice) / entryPrice) * 100
         : ((entryPrice - slPrice) / entryPrice) * 100,
-      current_pnl_pct: currentPnl,
+      current_pnl_pct: 0,
     };
   }
   if (floorPrice && entryPrice) {
     const ppActive = data.position?.ppActive ?? data.position?.ppActivated ?? false;
-    const peakPrice = data.position?.peakPrice ?? (isShort ? Math.min(entryPrice, data.currentPrice) : Math.max(entryPrice, data.currentPrice));
+    const peakPrice = data.position?.peakPrice ?? (isShort ? Math.min(entryPrice, cp) : Math.max(entryPrice, cp));
     constructed.TRAIL = {
       armed: ppActive,
       trigger_price: floorPrice,
@@ -165,7 +167,7 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
 
   if (!constructed.SL && !constructed.TRAIL) return null;
 
-  return <ZoneExitPanel exitConditions={constructed} positionSide={positionSide} dark={false} />;
+  return <ZoneExitPanel exitConditions={constructed} positionSide={positionSide} dark={false} currentPrice={cp} />;
 }
 
 export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStatus, zbZones }: Props) {

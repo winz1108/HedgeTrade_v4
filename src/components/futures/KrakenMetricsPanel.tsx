@@ -88,37 +88,20 @@ function ZBEntryPanelDark({ zbStatus, zbZones, data }: { zbStatus?: ZBStatus | n
 function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: KrakenDashboardData }) {
   const exitConditions = data.strategyA?.exit_conditions ?? (data as any).strategy?.exit_conditions ?? (data.strategyStatus as any)?.exitConditions;
   const positionSide = data.position?.position_side ?? data.position?.side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
+  const cp = data.currentPrice ?? zbStatus?.price ?? 0;
 
   if (exitConditions) {
-    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={true} />;
+    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={true} currentPrice={cp} />;
   }
 
   const pos = zbStatus?.position;
   if (!pos) return null;
 
   const isShort = pos.dir === 'short';
-  const sideColor = isShort ? 'text-orange-400' : 'text-cyan-400';
-  const sideFill = isShort ? 'bg-orange-400' : 'bg-cyan-400';
-  const sideBg = isShort ? 'bg-orange-900/30 border-orange-500/40' : 'bg-cyan-900/30 border-cyan-500/40';
-
-  const trailingActive = pos.trailing;
   const entryPrice = pos.entry_price;
   const currentSl = pos.current_sl;
   const rrTarget = pos.rr_target;
   const extreme = pos.extreme;
-
-  let trailProgress = 0;
-  if (isShort) {
-    const totalRange = entryPrice - rrTarget;
-    if (totalRange > 0) {
-      trailProgress = Math.max(0, Math.min(100, ((entryPrice - (zbStatus?.price ?? entryPrice)) / totalRange) * 100));
-    }
-  } else {
-    const totalRange = rrTarget - entryPrice;
-    if (totalRange > 0) {
-      trailProgress = Math.max(0, Math.min(100, (((zbStatus?.price ?? entryPrice) - entryPrice) / totalRange) * 100));
-    }
-  }
 
   return (
     <ZoneExitPanel
@@ -131,12 +114,12 @@ function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data:
           current_pnl_pct: pos.unrealized_pct,
         },
         TRAIL: {
-          armed: trailingActive,
+          armed: pos.trailing,
           trigger_price: rrTarget,
           trigger_pct: isShort ? ((entryPrice - rrTarget) / entryPrice) * 100 : ((rrTarget - entryPrice) / entryPrice) * 100,
           trail_sl: currentSl,
           extreme: extreme,
-          peak_pnl: trailProgress,
+          peak_pnl: 0,
         },
         TIMEOUT: {
           armed: true,
@@ -147,6 +130,7 @@ function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data:
       }}
       positionSide={positionSide}
       dark={true}
+      currentPrice={cp}
     />
   );
 }
