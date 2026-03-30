@@ -49,13 +49,13 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
   const inactiveFill = dark ? 'bg-slate-500' : 'bg-stone-400';
 
   const shortActiveTxt = inPosition ? dimTxt
-    : variant === 'kraken' ? 'text-amber-400' : 'text-amber-800';
+    : variant === 'kraken' ? 'text-amber-400' : 'text-amber-600';
   const longActiveTxt = inPosition ? dimTxt
-    : variant === 'kraken' ? 'text-cyan-400' : 'text-cyan-700';
+    : variant === 'kraken' ? 'text-cyan-400' : 'text-cyan-500';
   const shortBarGrad = variant === 'kraken'
-    ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-amber-700 to-amber-600';
+    ? 'bg-amber-400/80' : 'bg-amber-500/70';
   const longBarGrad = variant === 'kraken'
-    ? 'bg-gradient-to-l from-cyan-500 to-cyan-400' : 'bg-gradient-to-l from-cyan-700 to-cyan-600';
+    ? 'bg-cyan-400/80' : 'bg-cyan-500/70';
   const inactiveTxt = dimTxt;
 
   const signalData = zoneData?.signal;

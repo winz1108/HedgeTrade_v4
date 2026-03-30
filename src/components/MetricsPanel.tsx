@@ -407,11 +407,11 @@ export const MetricsPanel = ({ data, position }: MetricsPanelProps) => {
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-slate-200 rounded-full h-2.5 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 h-2.5 transition-all duration-500"
+                  className="bg-cyan-500 h-2.5 transition-all duration-500"
                   style={{ width: `${winRate}%` }}
                 />
               </div>
-              <span className="text-xs font-bold text-amber-700 min-w-[40px]">
+              <span className="text-xs font-bold text-cyan-600 min-w-[40px]">
                 {winRate.toFixed(1)}%
               </span>
             </div>
