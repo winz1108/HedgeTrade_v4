@@ -6,6 +6,7 @@ interface EntryPanelProps {
   currentPrice: number;
   dark?: boolean;
   inPosition?: boolean;
+  variant?: 'kraken' | 'binance';
 }
 
 interface ExitPanelProps {
@@ -14,7 +15,7 @@ interface ExitPanelProps {
   dark?: boolean;
 }
 
-export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition = false }: EntryPanelProps) {
+export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition = false, variant = 'kraken' }: EntryPanelProps) {
   const support = zoneData?.nearestSupport;
   const resistance = zoneData?.nearestResistance;
 
@@ -43,8 +44,15 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
   const separatorTxt = dark ? 'text-slate-600' : 'text-stone-300';
 
   const inactiveFill = dark ? 'bg-slate-500' : 'bg-stone-400';
-  const cyanTxt = inPosition ? dimTxt : (dark ? 'text-cyan-400' : 'text-cyan-600');
-  const orangeTxt = inPosition ? dimTxt : (dark ? 'text-orange-400' : 'text-orange-600');
+
+  const shortActiveTxt = inPosition ? dimTxt
+    : variant === 'kraken' ? 'text-white' : 'text-amber-800';
+  const longActiveTxt = inPosition ? dimTxt
+    : variant === 'kraken' ? 'text-slate-400' : 'text-stone-500';
+  const shortBarGrad = variant === 'kraken'
+    ? 'bg-gradient-to-r from-white/90 to-slate-300' : 'bg-gradient-to-r from-amber-700 to-amber-600';
+  const longBarGrad = variant === 'kraken'
+    ? 'bg-gradient-to-l from-slate-400 to-slate-500' : 'bg-gradient-to-l from-stone-400 to-stone-500';
   const inactiveTxt = dimTxt;
 
   const signalData = zoneData?.signal;
@@ -69,10 +77,10 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
       {hasData ? (
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[9px] mb-0.5">
-            <span className={`tabular-nums ${!inPosition && (isShortBias || isCenter) ? `${orangeTxt} font-bold` : inactiveTxt}`}>
+            <span className={`tabular-nums ${!inPosition && (isShortBias || isCenter) ? `${shortActiveTxt} font-bold` : inactiveTxt}`}>
               ${supportPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </span>
-            <span className={`tabular-nums ${!inPosition && (isLongBias || isCenter) ? `${cyanTxt} font-bold` : inactiveTxt}`}>
+            <span className={`tabular-nums ${!inPosition && (isLongBias || isCenter) ? `${longActiveTxt} font-bold` : inactiveTxt}`}>
               ${resistancePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </span>
           </div>
@@ -85,26 +93,26 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
               />
             ) : isLongBias || isCenter ? (
               <div
-                className="absolute right-0 top-0 h-full bg-gradient-to-l from-cyan-500 to-cyan-400 rounded-full transition-all duration-500"
+                className={`absolute right-0 top-0 h-full ${longBarGrad} rounded-full transition-all duration-500`}
                 style={{ width: `${longFillPct}%` }}
               />
             ) : (
               <div
-                className="absolute left-0 top-0 h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-500"
+                className={`absolute left-0 top-0 h-full ${shortBarGrad} rounded-full transition-all duration-500`}
                 style={{ width: `${shortFillPct}%` }}
               />
             )}
           </div>
 
           <div className="flex items-center justify-between text-[8px]">
-            <div className={`flex items-center gap-1 ${!inPosition && (isShortBias || isCenter) ? orangeTxt : inactiveTxt}`}>
+            <div className={`flex items-center gap-1 ${!inPosition && (isShortBias || isCenter) ? shortActiveTxt : inactiveTxt}`}>
               <span className="font-bold">SHORT</span>
               <span className={separatorTxt}>|</span>
               <span>{(support?.dist_pct ?? 0).toFixed(2)}%</span>
               <span className={separatorTxt}>|</span>
               <span>{support?.tests ?? 0}x {support?.strength ?? 'weak'}</span>
             </div>
-            <div className={`flex items-center gap-1 ${!inPosition && (isLongBias || isCenter) ? cyanTxt : inactiveTxt}`}>
+            <div className={`flex items-center gap-1 ${!inPosition && (isLongBias || isCenter) ? longActiveTxt : inactiveTxt}`}>
               <span>{resistance?.tests ?? 0}x {resistance?.strength ?? 'weak'}</span>
               <span className={separatorTxt}>|</span>
               <span>{(resistance?.dist_pct ?? 0).toFixed(2)}%</span>
@@ -116,18 +124,20 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
           {!inPosition && signalData && signalDir && (
             <div className={`mt-1 rounded border p-1.5 ${
               signalDir === 'long'
-                ? dark ? 'bg-cyan-900/30 border-cyan-500/40' : 'bg-cyan-50 border-cyan-300'
-                : dark ? 'bg-orange-900/30 border-orange-500/40' : 'bg-orange-50 border-orange-300'
+                ? variant === 'kraken' ? 'bg-slate-700/50 border-slate-500/40' : 'bg-stone-100 border-stone-300'
+                : variant === 'kraken' ? 'bg-slate-600/30 border-white/20' : 'bg-amber-50 border-amber-300'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-                    signalDir === 'long' ? 'bg-cyan-400' : 'bg-orange-400'
+                    signalDir === 'long'
+                      ? variant === 'kraken' ? 'bg-slate-300' : 'bg-stone-500'
+                      : variant === 'kraken' ? 'bg-white' : 'bg-amber-700'
                   }`} />
                   <span className={`text-[9px] font-bold uppercase ${
                     signalDir === 'long'
-                      ? dark ? 'text-cyan-300' : 'text-cyan-700'
-                      : dark ? 'text-orange-300' : 'text-orange-700'
+                      ? variant === 'kraken' ? 'text-slate-300' : 'text-stone-600'
+                      : variant === 'kraken' ? 'text-white' : 'text-amber-800'
                   }`}>
                     {signalDir} Signal
                   </span>
