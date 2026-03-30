@@ -1357,8 +1357,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
                   {/* Swing High/Low Markers */}
                   {(() => {
-                    const arrowSize = 5;
-                    const arrowOffset = 6;
+                    const s = 6;
+                    const offset = 7;
 
                     return (
                       <>
@@ -1367,23 +1367,23 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                           return (
                             <g key={`swing-${idx}`}>
                               {candle.swing_high && (
-                                <g transform={`translate(${cx}, ${Math.max(arrowSize + 2, priceToY(candle.high) - arrowOffset)})`}>
+                                <g transform={`translate(${cx}, ${Math.max(s + 2, priceToY(candle.high) - offset)})`}>
                                   <polygon
-                                    points={`0,${-arrowSize} ${arrowSize},${arrowSize * 0.4} ${-arrowSize},${arrowSize * 0.4}`}
+                                    points={`0,${s} ${-s},${-s * 0.5} ${-s * 0.35},${-s * 0.5} ${-s * 0.35},${-s * 0.1} ${s * 0.35},${-s * 0.1} ${s * 0.35},${-s * 0.5} ${s},${-s * 0.5}`}
                                     fill="#ef4444"
                                     stroke="#fca5a5"
-                                    strokeWidth="0.6"
+                                    strokeWidth="0.5"
                                     opacity="0.9"
                                   />
                                 </g>
                               )}
                               {candle.swing_low && (
-                                <g transform={`translate(${cx}, ${Math.min(priceChartHeight - arrowSize - 2, priceToY(candle.low) + arrowOffset)})`}>
+                                <g transform={`translate(${cx}, ${Math.min(priceChartHeight - s - 2, priceToY(candle.low) + offset)})`}>
                                   <polygon
-                                    points={`0,${arrowSize} ${arrowSize},${-arrowSize * 0.4} ${-arrowSize},${-arrowSize * 0.4}`}
+                                    points={`0,${-s} ${-s},${s * 0.5} ${-s * 0.35},${s * 0.5} ${-s * 0.35},${s * 0.1} ${s * 0.35},${s * 0.1} ${s * 0.35},${s * 0.5} ${s},${s * 0.5}`}
                                     fill="#22c55e"
                                     stroke="#86efac"
-                                    strokeWidth="0.6"
+                                    strokeWidth="0.5"
                                     opacity="0.9"
                                   />
                                 </g>

@@ -39,7 +39,6 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPan
   const inactiveTxt = dark ? 'text-slate-500' : 'text-stone-400';
   const barBg = dark ? 'bg-slate-700' : 'bg-stone-100';
   const barBorder = dark ? 'border-slate-600' : 'border-stone-200';
-  const thumbBg = dark ? 'bg-white' : 'bg-slate-800';
   const cyanTxt = dark ? 'text-cyan-400' : 'text-cyan-600';
   const orangeTxt = dark ? 'text-orange-400' : 'text-orange-600';
   const separatorTxt = dark ? 'text-slate-600' : 'text-stone-300';
@@ -61,19 +60,17 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPan
       </div>
 
       {hasData ? (
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           <div className="flex items-center justify-between text-[9px] mb-0.5">
-            <div className={`flex items-center gap-1 ${isLongBias || isCenter ? `${cyanTxt} font-bold` : inactiveTxt}`}>
-              <span>LONG</span>
-              <span className="tabular-nums">${supportPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-            </div>
-            <div className={`flex items-center gap-1 ${isShortBias || isCenter ? `${orangeTxt} font-bold` : inactiveTxt}`}>
-              <span className="tabular-nums">${resistancePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-              <span>SHORT</span>
-            </div>
+            <span className={`tabular-nums ${isLongBias || isCenter ? `${cyanTxt} font-bold` : inactiveTxt}`}>
+              ${supportPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </span>
+            <span className={`tabular-nums ${isShortBias || isCenter ? `${orangeTxt} font-bold` : inactiveTxt}`}>
+              ${resistancePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </span>
           </div>
 
-          <div className={`relative h-2.5 ${barBg} rounded-full overflow-hidden border ${barBorder}`}>
+          <div className={`relative h-3 ${barBg} rounded-full overflow-hidden border ${barBorder}`}>
             {isLongBias || isCenter ? (
               <div
                 className="absolute left-0 top-0 h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-500"
@@ -85,14 +82,12 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPan
                 style={{ width: `${ratio * 100}%` }}
               />
             )}
-            <div
-              className={`absolute top-1/2 -translate-y-1/2 w-1 h-4 ${thumbBg} rounded-full shadow-md transition-all duration-500`}
-              style={{ left: `calc(${ratio * 100}% - 2px)` }}
-            />
           </div>
 
           <div className="flex items-center justify-between text-[8px]">
             <div className={`flex items-center gap-1 ${isLongBias || isCenter ? cyanTxt : inactiveTxt}`}>
+              <span className="font-bold">LONG</span>
+              <span className={separatorTxt}>|</span>
               <span>{(support?.dist_pct ?? 0).toFixed(2)}%</span>
               <span className={separatorTxt}>|</span>
               <span>{support?.tests ?? 0}x {support?.strength ?? 'weak'}</span>
@@ -101,6 +96,8 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true }: EntryPan
               <span>{resistance?.tests ?? 0}x {resistance?.strength ?? 'weak'}</span>
               <span className={separatorTxt}>|</span>
               <span>{(resistance?.dist_pct ?? 0).toFixed(2)}%</span>
+              <span className={separatorTxt}>|</span>
+              <span className="font-bold">SHORT</span>
             </div>
           </div>
 
@@ -202,7 +199,7 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true }: Exi
       <div className="flex items-center justify-between mb-1.5">
         <div className={`text-[10px] font-bold tracking-wide uppercase ${headerTxt}`}>Exit</div>
         <span className={`text-[8px] font-bold ${sideColor}`}>
-          {currentPnl >= 0 ? '+' : ''}{currentPnl.toFixed(3)}%
+          {currentPnl >= 0 ? '+' : ''}{currentPnl.toFixed(2)}%
         </span>
       </div>
 
@@ -224,9 +221,9 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true }: Exi
             </div>
             <div className="flex items-center gap-1">
               <span className={`text-[8px] tabular-nums w-[28px] flex-shrink-0 ${inactiveNum}`}>0%</span>
-              <div className={`flex-1 ${barBg} rounded-full h-1.5 overflow-hidden`}>
+              <div className={`flex-1 ${barBg} rounded-full h-3 overflow-hidden`}>
                 <div
-                  className={`h-1.5 rounded-full transition-all duration-300 ${trailActive ? sideFill : inactiveFill}`}
+                  className={`h-3 rounded-full transition-all duration-300 ${trailActive ? sideFill : inactiveFill}`}
                   style={{ width: `${trailProgress}%` }}
                 />
               </div>
@@ -257,9 +254,9 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true }: Exi
               <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${slDanger ? dangerTxt : inactiveNum}`}>
                 ${sl.entry_price.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </span>
-              <div className={`flex-1 ${barBg} rounded-full h-1.5 overflow-hidden relative`}>
+              <div className={`flex-1 ${barBg} rounded-full h-3 overflow-hidden relative`}>
                 <div
-                  className={`absolute right-0 top-0 h-1.5 rounded-full transition-all duration-300 ${slDanger ? 'bg-rose-500' : inactiveFill}`}
+                  className={`absolute right-0 top-0 h-3 rounded-full transition-all duration-300 ${slDanger ? 'bg-rose-500' : inactiveFill}`}
                   style={{ width: `${slProgress}%` }}
                 />
               </div>
@@ -285,9 +282,9 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true }: Exi
               <span className={`text-[8px] tabular-nums w-[28px] flex-shrink-0 ${timeDanger ? sideColor : inactiveNum}`}>
                 0h
               </span>
-              <div className={`flex-1 ${barBg} rounded-full h-1.5 overflow-hidden`}>
+              <div className={`flex-1 ${barBg} rounded-full h-3 overflow-hidden`}>
                 <div
-                  className={`h-1.5 rounded-full transition-all duration-300 ${timeDanger ? sideFill : inactiveFill}`}
+                  className={`h-3 rounded-full transition-all duration-300 ${timeDanger ? sideFill : inactiveFill}`}
                   style={{ width: `${timePct}%` }}
                 />
               </div>
