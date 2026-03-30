@@ -27,6 +27,8 @@ export interface Candle {
   macd_signal?: number;
   macd_hist?: number;
   rsi?: number;
+  swing_high?: boolean;
+  swing_low?: boolean;
 }
 
 export interface TradeEvent {

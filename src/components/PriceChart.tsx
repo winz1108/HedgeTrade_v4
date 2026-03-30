@@ -1320,55 +1320,46 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* BB Touch Markers - Most Recent Only */}
+                  {/* Swing High/Low Markers */}
                   {(() => {
-                    let lastUpperTouch: { idx: number; candle: any } | null = null;
-                    let lastLowerTouch: { idx: number; candle: any } | null = null;
-
-                    for (let idx = visibleCandles.length - 1; idx >= 0; idx--) {
-                      const candle = visibleCandles[idx];
-
-                      if (!lastUpperTouch && candle.bb_upper !== undefined && candle.high >= candle.bb_upper) {
-                        lastUpperTouch = { idx, candle };
-                      }
-                      if (!lastLowerTouch && candle.bb_lower !== undefined && candle.low <= candle.bb_lower) {
-                        lastLowerTouch = { idx, candle };
-                      }
-
-                      if (lastUpperTouch && lastLowerTouch) break;
-                    }
-
                     const arrowSize = 4;
                     const arrowOffset = 8;
 
                     return (
                       <>
-                        {lastUpperTouch && (
-                          <g transform={`translate(${lastUpperTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.max(0, priceToY(lastUpperTouch.candle.high) - arrowOffset)})`}>
-                            <path
-                              d={`M 0 0 L ${arrowSize} ${-arrowSize} L 0 ${-arrowSize * 0.7} L ${-arrowSize} ${-arrowSize} Z`}
-                              fill="#ffffff"
-                              stroke="#ffffff"
-                              strokeWidth="1.2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              opacity="0.8"
-                            />
-                          </g>
-                        )}
-                        {lastLowerTouch && (
-                          <g transform={`translate(${lastLowerTouch.idx * (candleWidth + candleGap) + candleWidth / 2}, ${Math.min(priceChartHeight, priceToY(lastLowerTouch.candle.low) + arrowOffset)})`}>
-                            <path
-                              d={`M 0 0 L ${arrowSize} ${arrowSize} L 0 ${arrowSize * 0.7} L ${-arrowSize} ${arrowSize} Z`}
-                              fill="#ffffff"
-                              stroke="#ffffff"
-                              strokeWidth="1.2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              opacity="0.8"
-                            />
-                          </g>
-                        )}
+                        {visibleCandles.map((candle, idx) => {
+                          const cx = idx * (candleWidth + candleGap) + candleWidth / 2;
+                          return (
+                            <g key={`swing-${idx}`}>
+                              {candle.swing_high && (
+                                <g transform={`translate(${cx}, ${Math.max(0, priceToY(candle.high) - arrowOffset)})`}>
+                                  <path
+                                    d={`M 0 0 L ${arrowSize} ${-arrowSize} L 0 ${-arrowSize * 0.7} L ${-arrowSize} ${-arrowSize} Z`}
+                                    fill="#ffffff"
+                                    stroke="#ffffff"
+                                    strokeWidth="1.2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    opacity="0.8"
+                                  />
+                                </g>
+                              )}
+                              {candle.swing_low && (
+                                <g transform={`translate(${cx}, ${Math.min(priceChartHeight, priceToY(candle.low) + arrowOffset)})`}>
+                                  <path
+                                    d={`M 0 0 L ${arrowSize} ${arrowSize} L 0 ${arrowSize * 0.7} L ${-arrowSize} ${arrowSize} Z`}
+                                    fill="#ffffff"
+                                    stroke="#ffffff"
+                                    strokeWidth="1.2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    opacity="0.8"
+                                  />
+                                </g>
+                              )}
+                            </g>
+                          );
+                        })}
                       </>
                     );
                   })()}
