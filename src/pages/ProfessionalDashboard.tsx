@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData, Candle } from '../types/dashboard';
 import { fetchKrakenDashboard, fetchKrakenChartData } from '../services/oracleApi';
@@ -6,6 +6,7 @@ import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
 import { formatLocalTime } from '../utils/time';
 import { websocketService } from '../services/websocket';
 import { ProfessionalMetricsPanel } from '../components/futures/ProfessionalMetricsPanel';
+import type { ZBStatus, ZBZones, ZBTrade, ZBParams } from '../types/zoneBounce';
 
 function ProfessionalDashboard() {
   const [data, setData] = useState<KrakenDashboardData | null>(null);
@@ -255,6 +256,18 @@ function ProfessionalDashboard() {
     };
   }, [selectedTimeframe]);
 
+  const zbData = useMemo(() => {
+    const zb = data?.zoneBounce;
+    if (!zb) return { status: null as ZBStatus | null, zones: null as ZBZones | null, trades: [] as ZBTrade[], params: null as ZBParams | null, online: false };
+    return {
+      status: (zb.status || null) as ZBStatus | null,
+      zones: (zb.zones || null) as ZBZones | null,
+      trades: ((zb.trades as any)?.trades || []) as ZBTrade[],
+      params: (zb.params || null) as ZBParams | null,
+      online: !!zb.status,
+    };
+  }, [data?.zoneBounce]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -336,10 +349,10 @@ function ProfessionalDashboard() {
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
           <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1">
-            <ProfessionalMetricsPanel data={data} position="left" />
+            <ProfessionalMetricsPanel data={data} position="left" zbStatus={zbData.status} zbZones={zbData.zones} />
           </div>
           <div className="w-full min-w-0 order-1 lg:order-2">
-            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} />
+            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2">
             <div className="w-full flex-shrink-0">
