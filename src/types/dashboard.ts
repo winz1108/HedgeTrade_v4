@@ -803,6 +803,13 @@ export interface KrakenDashboardData {
     '1d': Candle[];
   };
   strategyStatus?: V10StrategyStatus;
+  zoneBounce?: {
+    status: any;
+    zones: any;
+    trades: any;
+    slippage: any;
+    params: any;
+  };
 }
 
 export interface BFDashboardData {
@@ -883,4 +890,11 @@ export interface BFDashboardData {
   recentTrades?: TradeEvent[];
   priceHistories: Record<string, any[]>;
   strategyStatus?: V10StrategyStatus;
+  zoneBounce?: {
+    status: any;
+    zones: any;
+    trades: any;
+    slippage: any;
+    params: any;
+  };
 }

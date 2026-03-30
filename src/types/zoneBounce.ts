@@ -69,6 +69,7 @@ export interface ZBTradeExit {
   exit_price: number;
   reason: 'SL' | 'Trail' | 'MaxHold';
   pnl: number;
+  bars_held: number;
   fill_price: number | null;
   slippage_pct: number | null;
 }

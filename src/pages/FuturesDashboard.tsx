@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData, Candle } from '../types/dashboard';
 import { fetchKrakenDashboard, fetchKrakenChartData } from '../services/oracleApi';
@@ -7,7 +7,6 @@ import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
 import { ZoneBouncePanel } from '../components/spot/ZoneBouncePanel';
 import { formatLocalTime } from '../utils/time';
 import { websocketService } from '../services/websocket';
-import { fetchZBStatus, fetchZBZones, fetchZBTrades, fetchZBParams, fetchZBHealth } from '../services/zoneBounceApi';
 import type { ZBStatus, ZBZones, ZBTrade, ZBParams } from '../types/zoneBounce';
 
 function FuturesDashboard() {
@@ -15,13 +14,6 @@ function FuturesDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('5m');
-
-  const [zbStatus, setZbStatus] = useState<ZBStatus | null>(null);
-  const [zbZones, setZbZones] = useState<ZBZones | null>(null);
-  const [zbTrades, setZbTrades] = useState<ZBTrade[]>([]);
-  const [zbParams, setZbParams] = useState<ZBParams | null>(null);
-  const [zbOnline, setZbOnline] = useState(false);
-  const zbIntervalsRef = useRef<number[]>([]);
 
   const mergePreservingLive = useCallback(
     (
@@ -94,7 +86,6 @@ function FuturesDashboard() {
     }
   };
 
-  // Real-time price updates via WebSocket
   const updateLiveCandle = useCallback((price: number) => {
     if (!price) return;
 
@@ -105,7 +96,6 @@ function FuturesDashboard() {
       const timeframes: Array<'1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'> =
         ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
 
-      // Update live candle in priceHistories
       if (prevData.priceHistories) {
         const updatedHistories = { ...prevData.priceHistories };
 
@@ -127,7 +117,6 @@ function FuturesDashboard() {
         updatedData.priceHistories = updatedHistories;
       }
 
-      // Update individual priceHistory fields for backwards compatibility
       timeframes.forEach(tf => {
         const key = `priceHistory${tf}` as keyof KrakenDashboardData;
         const candles = prevData[key] as Candle[] | undefined;
@@ -153,7 +142,6 @@ function FuturesDashboard() {
     loadData();
     const interval = setInterval(loadData, 10000);
 
-    // Connect to WebSocket for real-time price updates
     websocketService.connect();
 
     const applyPriceToCandles = (prevData: KrakenDashboardData, price: number): KrakenDashboardData => {
@@ -361,42 +349,17 @@ function FuturesDashboard() {
     };
   }, [selectedTimeframe]);
 
-  useEffect(() => {
-    const pollStatus = async () => {
-      const s = await fetchZBStatus();
-      if (s) { setZbStatus(s); setZbOnline(true); }
-      else { setZbOnline(false); }
+  const zbData = useMemo(() => {
+    const zb = data?.zoneBounce;
+    if (!zb) return { status: null as ZBStatus | null, zones: null as ZBZones | null, trades: [] as ZBTrade[], params: null as ZBParams | null, online: false };
+    return {
+      status: (zb.status || null) as ZBStatus | null,
+      zones: (zb.zones || null) as ZBZones | null,
+      trades: ((zb.trades as any)?.trades || []) as ZBTrade[],
+      params: (zb.params || null) as ZBParams | null,
+      online: !!zb.status,
     };
-    const pollZones = async () => {
-      const z = await fetchZBZones();
-      if (z) setZbZones(z);
-    };
-    const pollTrades = async () => {
-      const t = await fetchZBTrades();
-      if (t) setZbTrades(t.trades);
-    };
-    const pollParams = async () => {
-      const p = await fetchZBParams();
-      if (p) setZbParams(p);
-    };
-    const init = async () => {
-      const h = await fetchZBHealth();
-      setZbOnline(!!h?.ok);
-      pollStatus();
-      pollZones();
-      pollTrades();
-      pollParams();
-    };
-    init();
-    const ids = [
-      window.setInterval(pollStatus, 5000),
-      window.setInterval(pollZones, 30000),
-      window.setInterval(pollTrades, 60000),
-      window.setInterval(pollParams, 60000),
-    ];
-    zbIntervalsRef.current = ids;
-    return () => { ids.forEach(clearInterval); };
-  }, []);
+  }, [data?.zoneBounce]);
 
   if (loading) {
     return (
@@ -417,7 +380,7 @@ function FuturesDashboard() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center max-w-md bg-slate-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-slate-700">
-          <div className="text-rose-500 text-6xl mb-4">⚠</div>
+          <div className="text-rose-500 text-6xl mb-4">!</div>
           <p className="text-slate-100 text-xl font-bold mb-2">Failed to load data</p>
           <p className="text-slate-300 text-sm mb-6">{error || 'No data available'}</p>
           <button
@@ -490,16 +453,16 @@ function FuturesDashboard() {
           <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1">
             <KrakenMetricsPanel data={data} position="left" />
             <ZoneBouncePanel
-              status={zbStatus}
-              zones={zbZones}
-              trades={zbTrades}
-              params={zbParams}
-              online={zbOnline}
+              status={zbData.status}
+              zones={zbData.zones}
+              trades={zbData.trades}
+              params={zbData.params}
+              online={zbData.online}
               darkMode={true}
             />
           </div>
           <div className="w-full min-w-0 order-1 lg:order-2">
-            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbZones} zbStatus={zbStatus} />
+            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2">
             <div className="w-full flex-shrink-0">
