@@ -1155,23 +1155,26 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 x2="100%" y2={priceToY(zbStatus.position.entry_price)}
                 stroke="#38bdf8" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.85"
               />
-              <line
-                x1="0" y1={priceToY(zbStatus.position.current_sl)}
-                x2="100%" y2={priceToY(zbStatus.position.current_sl)}
-                stroke="#f85149" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.85"
-              />
-              {zbStatus.position.initial_sl !== zbStatus.position.current_sl && (
+              {zbStatus.position.trailing ? (
+                <>
+                  <line
+                    x1="0" y1={priceToY(zbStatus.position.initial_sl)}
+                    x2="100%" y2={priceToY(zbStatus.position.initial_sl)}
+                    stroke="#ff6b6b" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.75"
+                  />
+                  <line
+                    x1="0" y1={priceToY(zbStatus.position.current_sl)}
+                    x2="100%" y2={priceToY(zbStatus.position.current_sl)}
+                    stroke="#ffd700" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.85"
+                  />
+                </>
+              ) : (
                 <line
-                  x1="0" y1={priceToY(zbStatus.position.initial_sl)}
-                  x2="100%" y2={priceToY(zbStatus.position.initial_sl)}
-                  stroke="rgba(156,163,175,0.5)" strokeWidth="0.6" strokeDasharray="4 3" opacity="0.6"
+                  x1="0" y1={priceToY(zbStatus.position.current_sl)}
+                  x2="100%" y2={priceToY(zbStatus.position.current_sl)}
+                  stroke="#ff6b6b" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.75"
                 />
               )}
-              <line
-                x1="0" y1={priceToY(zbStatus.position.rr_target)}
-                x2="100%" y2={priceToY(zbStatus.position.rr_target)}
-                stroke="#22c55e" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.85"
-              />
             </svg>
           )}
 
