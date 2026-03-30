@@ -1153,24 +1153,24 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <line
                 x1="0" y1={priceToY(zbStatus.position.entry_price)}
                 x2="100%" y2={priceToY(zbStatus.position.entry_price)}
-                stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="6 3" opacity="0.85"
+                stroke="#38bdf8" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.85"
               />
               <line
                 x1="0" y1={priceToY(zbStatus.position.current_sl)}
                 x2="100%" y2={priceToY(zbStatus.position.current_sl)}
-                stroke="#f85149" strokeWidth="1.2" strokeDasharray="5 4" opacity="0.85"
+                stroke="#f85149" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.85"
               />
               {zbStatus.position.initial_sl !== zbStatus.position.current_sl && (
                 <line
                   x1="0" y1={priceToY(zbStatus.position.initial_sl)}
                   x2="100%" y2={priceToY(zbStatus.position.initial_sl)}
-                  stroke="rgba(156,163,175,0.5)" strokeWidth="0.8" strokeDasharray="3 4" opacity="0.6"
+                  stroke="rgba(156,163,175,0.5)" strokeWidth="0.6" strokeDasharray="4 3" opacity="0.6"
                 />
               )}
               <line
                 x1="0" y1={priceToY(zbStatus.position.rr_target)}
                 x2="100%" y2={priceToY(zbStatus.position.rr_target)}
-                stroke="#22c55e" strokeWidth="1.2" strokeDasharray="6 3" opacity="0.85"
+                stroke="#22c55e" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.85"
               />
             </svg>
           )}
@@ -1180,12 +1180,12 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               <line
                 x1="0" y1={priceToY(zbStatus.signal.zone_center)}
                 x2="100%" y2={priceToY(zbStatus.signal.zone_center)}
-                stroke="#facc15" strokeWidth="1" strokeDasharray="8 4" opacity="0.7"
+                stroke="#facc15" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.7"
               />
               <line
                 x1="0" y1={priceToY(zbStatus.signal.sl_price)}
                 x2="100%" y2={priceToY(zbStatus.signal.sl_price)}
-                stroke="#f85149" strokeWidth="1" strokeDasharray="4 4" opacity="0.6"
+                stroke="#f85149" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.6"
               />
             </svg>
           )}
@@ -1297,7 +1297,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                           ? isBBUpperHovered ? 'rgba(230,230,230,0.92)' : 'rgba(195,195,195,0.65)'
                           : isBBUpperHovered ? 'rgba(30,30,30,0.88)' : 'rgba(75,75,75,0.62)'}
                         strokeWidth={isBBUpperHovered ? '1.6' : '1'}
-                        strokeDasharray="4 4"
+                        strokeDasharray="4 3"
                         style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }}
                       />
                       {bbMiddlePoints.length > 1 && (
@@ -1305,8 +1305,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                           points={bbMiddlePoints.join(' ')}
                           fill="none"
                           stroke={darkMode ? 'rgba(175,175,175,0.45)' : 'rgba(95,95,95,0.44)'}
-                          strokeWidth="0.8"
-                          strokeDasharray="3 3"
+                          strokeWidth="0.6"
+                          strokeDasharray="4 3"
                         />
                       )}
                       <polyline
@@ -1315,8 +1315,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         stroke={darkMode
                           ? isBBUpperHovered ? 'rgba(230,230,230,0.92)' : 'rgba(195,195,195,0.65)'
                           : isBBUpperHovered ? 'rgba(30,30,30,0.88)' : 'rgba(75,75,75,0.62)'}
-                        strokeWidth={isBBUpperHovered ? '1.6' : '1'}
-                        strokeDasharray="4 4"
+                        strokeWidth={isBBUpperHovered ? '1.4' : '0.8'}
+                        strokeDasharray="4 3"
                         style={{ transition: 'stroke 0.15s, stroke-width 0.15s' }}
                       />
                     </>
@@ -1401,29 +1401,25 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             {/* Crosshair */}
             {crosshairPosition && hoveredCandleIndex !== null && (
               <>
-                {/* Vertical line */}
                 <line
                   x1={crosshairPosition.x}
                   y1="0"
                   x2={crosshairPosition.x}
                   y2={priceChartHeight}
-                  stroke="rgba(251, 191, 36, 0.4)"
-                  strokeWidth="1.5"
-                  strokeDasharray="6 4"
+                  stroke={darkMode ? 'rgba(255, 255, 255, 0.45)' : 'rgba(160, 120, 70, 0.45)'}
+                  strokeWidth="0.8"
+                  strokeDasharray="4 3"
                   style={{ pointerEvents: 'none' }}
-                  filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.3))"
                 />
-                {/* Horizontal line */}
                 <line
                   x1="0"
                   y1={crosshairPosition.y}
                   x2="100%"
                   y2={crosshairPosition.y}
-                  stroke="rgba(251, 191, 36, 0.4)"
-                  strokeWidth="1.5"
-                  strokeDasharray="6 4"
+                  stroke={darkMode ? 'rgba(255, 255, 255, 0.45)' : 'rgba(160, 120, 70, 0.45)'}
+                  strokeWidth="0.8"
+                  strokeDasharray="4 3"
                   style={{ pointerEvents: 'none' }}
-                  filter="drop-shadow(0 0 3px rgba(251, 191, 36, 0.3))"
                 />
               </>
             )}
@@ -1652,8 +1648,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     x2={x2}
                     y2={y2}
                     stroke={lineColor}
-                    strokeWidth="3"
-                    strokeDasharray="6 4"
+                    strokeWidth="2"
+                    strokeDasharray="4 3"
                     opacity="0.9"
                   />
                 </svg>
@@ -1746,8 +1742,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       x2={x2}
                       y2={y2}
                       stroke={lineColor}
-                      strokeWidth="1.5"
-                      strokeDasharray="4 4"
+                      strokeWidth="0.8"
+                      strokeDasharray="4 3"
                       opacity="0.6"
                     />
                   );
@@ -1781,8 +1777,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     x2="100%"
                     y2={priceToY(data.holding.buyPrice)}
                     stroke={entryColor}
-                    strokeWidth="1.5"
-                    strokeDasharray="4 2"
+                    strokeWidth="0.8"
+                    strokeDasharray="4 3"
                     opacity="0.75"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
                   />
@@ -1793,8 +1789,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       x2="100%"
                       y2={priceToY(slPrice)}
                       stroke="#f85149"
-                      strokeWidth="1.2"
-                      strokeDasharray="5 4"
+                      strokeWidth="0.8"
+                      strokeDasharray="4 3"
                       opacity="0.8"
                       filter="drop-shadow(0 0 2px rgba(248, 81, 73, 0.4))"
                     />
@@ -1806,8 +1802,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       x2="100%"
                       y2={priceToY(trailPrice)}
                       stroke="#ffd700"
-                      strokeWidth="1.2"
-                      strokeDasharray="6 3"
+                      strokeWidth="0.8"
+                      strokeDasharray="4 3"
                       opacity="0.8"
                       filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.4))"
                     />
@@ -2340,8 +2336,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       x2="100%"
                       y2={y}
                       stroke={isThreshold ? 'rgba(239, 68, 68, 0.2)' : isMid ? 'rgba(251, 191, 36, 0.15)' : 'rgba(71, 85, 105, 0.1)'}
-                      strokeWidth={isThreshold ? '1.5' : '1'}
-                      strokeDasharray={isThreshold ? '4 2' : '0'}
+                      strokeWidth={isThreshold ? '0.8' : '0.6'}
+                      strokeDasharray={isThreshold ? '4 3' : '0'}
                     />
                   );
                 });
