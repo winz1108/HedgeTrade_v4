@@ -659,6 +659,7 @@ export interface ZoneData {
   barCount: number;
   zoneCount: number;
   atr: number;
+  sl_distance?: number;
   signal: any | null;
   skipped_signal?: SkippedSignal | null;
 }

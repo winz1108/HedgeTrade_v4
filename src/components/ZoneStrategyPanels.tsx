@@ -72,7 +72,7 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
         {zoneData && (
           <span className={`text-[8px] tabular-nums ${dark ? 'text-slate-400' : 'text-stone-500'}`}>
             ATR {Math.round(zoneData.atr ?? 0)}
-            {skipped ? ` | SL ${Math.round(skipped.sl_distance)}` : ''}
+            {zoneData.sl_distance != null ? ` | SL ${Math.round(zoneData.sl_distance)}` : ''}
           </span>
         )}
       </div>
