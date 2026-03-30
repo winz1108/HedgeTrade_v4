@@ -1083,7 +1083,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             })()}
           </svg>
 
-          {zbZones && (
+          {showTradeMarkers && zbZones && (
             <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 2 }}>
               {[...zbZones.supports, ...zbZones.resistances].map((zone, i) => {
                 const topY = priceToY(zone.top);
@@ -1114,7 +1114,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             </svg>
           )}
 
-          {!zbZones && zoneData && (
+          {showTradeMarkers && !zbZones && zoneData && (
             <svg className="absolute top-0 left-0 w-full" height={priceChartHeight} style={{ pointerEvents: 'none', zIndex: 2 }}>
               {[
                 ...(zoneData.allSupports || []).map(z => ({ ...z, _type: 'S' as const })),
@@ -1755,7 +1755,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               </svg>
             )}
 
-            {showTradeMarkers && data.holding.isHolding && data.holding.buyPrice && (() => {
+            {data.holding.isHolding && data.holding.buyPrice && (() => {
               const isLong = data.holding.positionSide === 'LONG';
               const entryColor = isLong ? '#06b6d4' : '#f97316';
               const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(249, 115, 22, 0.5)';
