@@ -88,39 +88,79 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
   }
 
   const pos = zbStatus?.position;
-  if (!pos) return null;
+  if (pos) {
+    const isShort = pos.dir === 'short';
+    return (
+      <ZoneExitPanel
+        exitConditions={{
+          SL: {
+            armed: true,
+            price: pos.current_sl,
+            entry_price: pos.entry_price,
+            distance_pct: isShort ? ((pos.current_sl - pos.entry_price) / pos.entry_price) * 100 : ((pos.entry_price - pos.current_sl) / pos.entry_price) * 100,
+            current_pnl_pct: pos.unrealized_pct,
+          },
+          TRAIL: {
+            armed: pos.trailing,
+            trigger_price: pos.rr_target,
+            trigger_pct: isShort ? ((pos.entry_price - pos.rr_target) / pos.entry_price) * 100 : ((pos.rr_target - pos.entry_price) / pos.entry_price) * 100,
+            trail_sl: pos.current_sl,
+            extreme: pos.extreme,
+            peak_pnl: 0,
+          },
+          TIMEOUT: {
+            armed: true,
+            max_bars: 864,
+            bars_held: pos.bars_held,
+            pct: Math.min(100, (pos.bars_held / 864) * 100),
+          },
+        }}
+        positionSide={positionSide}
+        dark={false}
+      />
+    );
+  }
 
-  const isShort = pos.dir === 'short';
+  const hasPosition = data.position?.inPosition || data.position?.in_position;
+  if (!hasPosition) return null;
 
-  return (
-    <ZoneExitPanel
-      exitConditions={{
-        SL: {
-          armed: true,
-          price: pos.current_sl,
-          entry_price: pos.entry_price,
-          distance_pct: isShort ? ((pos.current_sl - pos.entry_price) / pos.entry_price) * 100 : ((pos.entry_price - pos.current_sl) / pos.entry_price) * 100,
-          current_pnl_pct: pos.unrealized_pct,
-        },
-        TRAIL: {
-          armed: pos.trailing,
-          trigger_price: pos.rr_target,
-          trigger_pct: isShort ? ((pos.entry_price - pos.rr_target) / pos.entry_price) * 100 : ((pos.rr_target - pos.entry_price) / pos.entry_price) * 100,
-          trail_sl: pos.current_sl,
-          extreme: pos.extreme,
-          peak_pnl: 0,
-        },
-        TIMEOUT: {
-          armed: true,
-          max_bars: 864,
-          bars_held: pos.bars_held,
-          pct: Math.min(100, (pos.bars_held / 864) * 100),
-        },
-      }}
-      positionSide={positionSide}
-      dark={false}
-    />
-  );
+  const entryPrice = data.position?.entryPrice ?? data.position?.entry_price ?? 0;
+  const slPrice = data.position?.slPrice ?? data.position?.exit_prices?.sl_price ?? 0;
+  const floorPrice = data.position?.floorPrice ?? data.position?.exit_prices?.floor_price ?? null;
+  const currentPnl = data.position?.currentPnl ?? data.position?.current_pnl ?? 0;
+  const mfe = data.position?.mfe ?? 0;
+  const isShort = positionSide === 'SHORT';
+
+  const constructed: any = {};
+  if (slPrice && entryPrice) {
+    constructed.SL = {
+      armed: true,
+      price: slPrice,
+      entry_price: entryPrice,
+      distance_pct: isShort
+        ? ((slPrice - entryPrice) / entryPrice) * 100
+        : ((entryPrice - slPrice) / entryPrice) * 100,
+      current_pnl_pct: currentPnl,
+    };
+  }
+  if (floorPrice && entryPrice) {
+    const ppActive = data.position?.ppActive ?? data.position?.ppActivated ?? false;
+    const peakPrice = data.position?.peakPrice ?? (isShort ? Math.min(entryPrice, data.currentPrice) : Math.max(entryPrice, data.currentPrice));
+    constructed.TRAIL = {
+      armed: ppActive,
+      trigger_price: floorPrice,
+      trigger_pct: isShort
+        ? ((entryPrice - floorPrice) / entryPrice) * 100
+        : ((floorPrice - entryPrice) / entryPrice) * 100,
+      trail_sl: slPrice || entryPrice,
+      extreme: peakPrice,
+      peak_pnl: mfe,
+    };
+  }
+
+  if (!constructed.SL && !constructed.TRAIL) return null;
+
+  return <ZoneExitPanel exitConditions={constructed} positionSide={positionSide} dark={false} />;
 }
 
 export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStatus, zbZones }: Props) {
