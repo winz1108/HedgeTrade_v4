@@ -89,11 +89,14 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
 
   const cp = data.currentPrice ?? zbStatus?.price ?? 0;
 
+  const pos = zbStatus?.position;
+  const isPendingExit = pos?.pending_exit ?? false;
+  const pendingReason = pos?.pending_exit_reason ?? null;
+
   if (exitConditions) {
-    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={false} currentPrice={cp} />;
+    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={false} currentPrice={cp} pendingExit={isPendingExit} pendingExitReason={pendingReason} />;
   }
 
-  const pos = zbStatus?.position;
   if (pos) {
     const isShort = pos.dir === 'short';
     return (
@@ -124,6 +127,8 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
         positionSide={positionSide}
         dark={false}
         currentPrice={cp}
+        pendingExit={isPendingExit}
+        pendingExitReason={pendingReason}
       />
     );
   }

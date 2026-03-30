@@ -14,6 +14,8 @@ interface ExitPanelProps {
   positionSide: 'LONG' | 'SHORT' | string | null | undefined;
   dark?: boolean;
   currentPrice?: number;
+  pendingExit?: boolean;
+  pendingExitReason?: string | null;
 }
 
 export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition = false, variant = 'kraken' }: EntryPanelProps) {
@@ -47,13 +49,13 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
   const inactiveFill = dark ? 'bg-slate-500' : 'bg-stone-400';
 
   const shortActiveTxt = inPosition ? dimTxt
-    : variant === 'kraken' ? 'text-white' : 'text-amber-800';
+    : variant === 'kraken' ? 'text-amber-400' : 'text-amber-800';
   const longActiveTxt = inPosition ? dimTxt
-    : variant === 'kraken' ? 'text-slate-400' : 'text-stone-500';
+    : variant === 'kraken' ? 'text-cyan-400' : 'text-cyan-700';
   const shortBarGrad = variant === 'kraken'
-    ? 'bg-gradient-to-r from-white/90 to-slate-300' : 'bg-gradient-to-r from-amber-700 to-amber-600';
+    ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-amber-700 to-amber-600';
   const longBarGrad = variant === 'kraken'
-    ? 'bg-gradient-to-l from-slate-400 to-slate-500' : 'bg-gradient-to-l from-stone-400 to-stone-500';
+    ? 'bg-gradient-to-l from-cyan-500 to-cyan-400' : 'bg-gradient-to-l from-cyan-700 to-cyan-600';
   const inactiveTxt = dimTxt;
 
   const signalData = zoneData?.signal;
@@ -163,7 +165,7 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
   );
 }
 
-export function ZoneExitPanel({ exitConditions, positionSide, dark = true, currentPrice = 0 }: ExitPanelProps) {
+export function ZoneExitPanel({ exitConditions, positionSide, dark = true, currentPrice = 0, pendingExit = false, pendingExitReason }: ExitPanelProps) {
   if (!exitConditions) return null;
 
   const sl = exitConditions.SL;
@@ -201,6 +203,9 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
   const trailArmed = trail?.armed ?? false;
   const mfePrice = trail?.mfe_price ?? trail?.extreme ?? 0;
 
+  const pendingTrail = pendingExit && (pendingExitReason === 'Trail' || pendingExitReason === 'EXIT_SW_TRAIL' || pendingExitReason === 'EXIT_R_TRAIL');
+  const pendingSL = pendingExit && (pendingExitReason === 'SL' || pendingExitReason === 'HARD_SL');
+
   let trailBarPct = 0;
   let trailInProfit = false;
   if (trail && price && entryPrice) {
@@ -208,25 +213,30 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
       const trailSlPrice = trail.trail_sl;
       if (isShort) {
         const range = mfePrice > 0 && trailSlPrice > 0 ? trailSlPrice - mfePrice : 1;
-        trailBarPct = range > 0 ? Math.max(0, Math.min(100, ((trailSlPrice - price) / range) * 100)) : 0;
+        trailBarPct = range > 0 ? Math.max(0, ((trailSlPrice - price) / range) * 100) : 0;
       } else {
         const range = mfePrice > 0 && trailSlPrice > 0 ? mfePrice - trailSlPrice : 1;
-        trailBarPct = range > 0 ? Math.max(0, Math.min(100, ((price - trailSlPrice) / range) * 100)) : 0;
+        trailBarPct = range > 0 ? Math.max(0, ((price - trailSlPrice) / range) * 100) : 0;
       }
       trailInProfit = true;
     } else {
       const triggerPrice = trail.trigger_price;
       if (isShort) {
         const range = entryPrice - triggerPrice;
-        trailBarPct = range > 0 ? Math.max(0, Math.min(100, ((entryPrice - price) / range) * 100)) : 0;
+        trailBarPct = range > 0 ? Math.max(0, ((entryPrice - price) / range) * 100) : 0;
         trailInProfit = price < entryPrice;
       } else {
         const range = triggerPrice - entryPrice;
-        trailBarPct = range > 0 ? Math.max(0, Math.min(100, ((price - entryPrice) / range) * 100)) : 0;
+        trailBarPct = range > 0 ? Math.max(0, ((price - entryPrice) / range) * 100) : 0;
         trailInProfit = price > entryPrice;
       }
     }
   }
+  if (pendingTrail) {
+    trailInProfit = true;
+    trailBarPct = Math.max(trailBarPct, 100);
+  }
+  const trailBarVisual = Math.min(trailBarPct, 100);
 
   let slBarPct = 0;
   let slInLoss = false;
@@ -234,15 +244,20 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
     const slPrice = sl.price;
     if (isShort) {
       const range = slPrice - entryPrice;
-      slBarPct = range > 0 ? Math.max(0, Math.min(100, ((price - entryPrice) / range) * 100)) : 0;
+      slBarPct = range > 0 ? Math.max(0, ((price - entryPrice) / range) * 100) : 0;
       slInLoss = price > entryPrice;
     } else {
       const range = entryPrice - slPrice;
-      slBarPct = range > 0 ? Math.max(0, Math.min(100, ((entryPrice - price) / range) * 100)) : 0;
+      slBarPct = range > 0 ? Math.max(0, ((entryPrice - price) / range) * 100) : 0;
       slInLoss = price < entryPrice;
     }
   }
-  const slDanger = slInLoss && slBarPct >= 80;
+  if (pendingSL) {
+    slInLoss = true;
+    slBarPct = Math.max(slBarPct, 100);
+  }
+  const slBarVisual = Math.min(slBarPct, 100);
+  const slDanger = (slInLoss && slBarPct >= 80) || pendingSL;
 
   const timePct = timeout?.pct ?? 0;
   const timeDanger = timePct >= 80;
@@ -313,10 +328,10 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
                   {leftVal}
                 </span>
                 <div className={`w-[calc(100%-100px)] ${barBg} rounded-full h-3 overflow-hidden relative`}>
-                  {trailBarPct > 0 && (
+                  {trailBarVisual > 0 && (
                     <div
                       className={`absolute ${barDir === 'ltr' ? 'left-0' : 'right-0'} top-0 h-3 rounded-full transition-all duration-300 ${activeFill}`}
-                      style={{ width: `${trailBarPct}%` }}
+                      style={{ width: `${trailBarVisual}%` }}
                     />
                   )}
                 </div>
@@ -369,10 +384,10 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
                   {leftVal}
                 </span>
                 <div className={`w-[calc(100%-100px)] ${barBg} rounded-full h-3 overflow-hidden relative`}>
-                  {slBarPct > 0 && (
+                  {slBarVisual > 0 && (
                     <div
                       className={`absolute ${barDir === 'ltr' ? 'left-0' : 'right-0'} top-0 h-3 rounded-full transition-all duration-300 ${slFillColor}`}
-                      style={{ width: `${slBarPct}%` }}
+                      style={{ width: `${slBarVisual}%` }}
                     />
                   )}
                 </div>

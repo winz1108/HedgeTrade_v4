@@ -90,11 +90,14 @@ function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data:
   const positionSide = data.position?.position_side ?? data.position?.side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
   const cp = data.currentPrice ?? zbStatus?.price ?? 0;
 
+  const pos = zbStatus?.position;
+  const isPendingExit = pos?.pending_exit ?? false;
+  const pendingReason = pos?.pending_exit_reason ?? null;
+
   if (exitConditions) {
-    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={true} currentPrice={cp} />;
+    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={true} currentPrice={cp} pendingExit={isPendingExit} pendingExitReason={pendingReason} />;
   }
 
-  const pos = zbStatus?.position;
   if (!pos) return null;
 
   const isShort = pos.dir === 'short';
@@ -127,6 +130,8 @@ function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data:
       positionSide={positionSide}
       dark={true}
       currentPrice={cp}
+      pendingExit={isPendingExit}
+      pendingExitReason={pendingReason}
     />
   );
 }
