@@ -58,8 +58,6 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
     ? 'bg-cyan-400/80' : 'bg-cyan-500/70';
   const inactiveTxt = dimTxt;
 
-  const signalData = zoneData?.signal;
-  const signalDir = signalData?.dir as string | undefined;
   const skipped = zoneData?.skipped_signal as SkippedSignal | null | undefined;
 
   const longFillPct = (1 - ratio) * 100;
@@ -73,8 +71,8 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
         </h3>
         {zoneData && (
           <span className={`text-[8px] tabular-nums ${dark ? 'text-slate-400' : 'text-stone-500'}`}>
-            ATR {zoneData.atr?.toFixed(1)}
-            {skipped ? ` | SL $${skipped.sl_distance.toFixed(0)} (${skipped.sl_atr_ratio.toFixed(2)}x)` : ''}
+            ATR {Math.round(zoneData.atr ?? 0)}
+            {skipped ? ` | SL ${Math.round(skipped.sl_distance)}` : ''}
           </span>
         )}
       </div>
@@ -144,30 +142,6 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
             </div>
           </div>
 
-          {!inPosition && signalData && signalDir && (
-            <div className={`mt-1 rounded border p-1.5 ${
-              signalDir === 'long'
-                ? variant === 'kraken' ? 'bg-slate-700/50 border-slate-500/40' : 'bg-stone-100 border-stone-300'
-                : variant === 'kraken' ? 'bg-slate-600/30 border-white/20' : 'bg-orange-50 border-orange-300'
-            }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-                    signalDir === 'long'
-                      ? variant === 'kraken' ? 'bg-slate-300' : 'bg-stone-500'
-                      : variant === 'kraken' ? 'bg-white' : 'bg-orange-500'
-                  }`} />
-                  <span className={`text-[9px] font-bold uppercase ${
-                    signalDir === 'long'
-                      ? variant === 'kraken' ? 'text-slate-300' : 'text-stone-600'
-                      : variant === 'kraken' ? 'text-white' : 'text-orange-700'
-                  }`}>
-                    {signalDir} Signal
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         <div className="text-center py-2">
