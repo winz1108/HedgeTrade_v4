@@ -1,13 +1,16 @@
 import { useMemo } from 'react';
 import { PriceChart } from '../PriceChart';
 import { KrakenDashboardData, DashboardData, TradeEvent } from '../../types/dashboard';
+import type { ZBZones, ZBStatus } from '../../types/zoneBounce';
 
 interface Props {
   data: KrakenDashboardData;
   onTimeframeChange?: (timeframe: string) => void;
+  zbZones?: ZBZones | null;
+  zbStatus?: ZBStatus | null;
 }
 
-export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
+export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
     const toMs = (v: number): number => {
       if (!v) return 0;
@@ -273,6 +276,8 @@ export function KrakenPriceChart({ data, onTimeframeChange }: Props) {
       onTimeframeChange={(timeframe: string) => onTimeframeChange?.(timeframe)}
       darkMode={true}
       v10Strategy={v10Strategy}
+      zbZones={zbZones}
+      zbStatus={zbStatus}
     />
   );
 }

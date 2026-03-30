@@ -15,7 +15,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
-  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('5m');
 
   const [zbStatus, setZbStatus] = useState<ZBStatus | null>(null);
   const [zbZones, setZbZones] = useState<ZBZones | null>(null);
