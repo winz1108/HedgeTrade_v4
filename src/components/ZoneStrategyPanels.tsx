@@ -112,19 +112,19 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
           </div>
 
           <div className="flex items-center justify-between text-[8px]">
-            <div className={`flex items-center gap-1 ${!inPosition && (isShortBias || isCenter) ? shortActiveTxt : inactiveTxt}`}>
-              <span className="font-bold">SHORT</span>
+            <div className={`flex items-center gap-1 ${!inPosition && (isLongBias || isCenter) ? longActiveTxt : inactiveTxt}`}>
+              <span className="font-bold">LONG</span>
               <span className={separatorTxt}>|</span>
               <span>{(support?.dist_pct ?? 0).toFixed(2)}%</span>
               <span className={separatorTxt}>|</span>
               <span>{support?.tests ?? 0}x {support?.strength ?? 'weak'}</span>
             </div>
-            <div className={`flex items-center gap-1 ${!inPosition && (isLongBias || isCenter) ? longActiveTxt : inactiveTxt}`}>
+            <div className={`flex items-center gap-1 ${!inPosition && (isShortBias || isCenter) ? shortActiveTxt : inactiveTxt}`}>
               <span>{resistance?.tests ?? 0}x {resistance?.strength ?? 'weak'}</span>
               <span className={separatorTxt}>|</span>
               <span>{(resistance?.dist_pct ?? 0).toFixed(2)}%</span>
               <span className={separatorTxt}>|</span>
-              <span className="font-bold">LONG</span>
+              <span className="font-bold">SHORT</span>
             </div>
           </div>
 
@@ -234,9 +234,10 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true }: Exi
 
       <div className="flex flex-col gap-1.5">
         {trail && (() => {
+          const mfePrice = trail.mfe_price ?? trail.extreme;
           const trailLeftVal = trailActive
             ? (isShort
-              ? `$${trail.extreme.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+              ? `$${mfePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
               : `$${trail.trail_sl.toLocaleString(undefined, { maximumFractionDigits: 0 })}`)
             : (isShort
               ? `$${trail.trigger_price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
@@ -244,12 +245,12 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true }: Exi
           const trailRightVal = trailActive
             ? (isShort
               ? `$${trail.trail_sl.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-              : `$${trail.extreme.toLocaleString(undefined, { maximumFractionDigits: 0 })}`)
+              : `$${mfePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`)
             : (isShort
               ? `${trail.trigger_pct.toFixed(1)}%`
               : `$${trail.trigger_price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`);
           const trailHeaderRight = trailActive
-            ? `MFE $${trail.extreme.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+            ? `MFE $${mfePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })} (${trail.peak_pnl.toFixed(2)}%)`
             : `$${trail.trigger_price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
           return (
             <div className={`rounded-md border p-1.5 transition-all ${trailActive ? sideBg : inactiveBg}`}>

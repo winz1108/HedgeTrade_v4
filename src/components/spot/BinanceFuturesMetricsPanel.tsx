@@ -80,7 +80,11 @@ function ZBEntryPanel({ zbStatus, zbZones, data }: { zbStatus?: ZBStatus | null;
 }
 
 function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFDashboardData }) {
-  const exitConditions = data.strategyA?.exit_conditions ?? data.strategy?.exit_conditions;
+  const exitConditions = data.strategyA?.exit_conditions
+    ?? data.strategy?.exit_conditions
+    ?? (data.position as any)?.exit_conditions
+    ?? (data.position as any)?.exitConditions
+    ?? (data.strategyStatus as any)?.exitConditions;
   const positionSide = data.position?.side ?? data.position?.position_side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
 
   if (exitConditions) {
@@ -125,8 +129,9 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
   if (!hasPosition) return null;
 
   const entryPrice = data.position?.entryPrice ?? data.position?.entry_price ?? 0;
-  const slPrice = data.position?.slPrice ?? data.position?.exit_prices?.sl_price ?? 0;
-  const floorPrice = data.position?.floorPrice ?? data.position?.exit_prices?.floor_price ?? null;
+  const exitPrices = data.position?.exit_prices ?? (data.strategyStatus as any)?.exitPrices;
+  const slPrice = data.position?.slPrice ?? exitPrices?.sl_price ?? exitPrices?.slPrice ?? 0;
+  const floorPrice = data.position?.floorPrice ?? exitPrices?.floor_price ?? exitPrices?.floorPrice ?? null;
   const currentPnl = data.position?.currentPnl ?? data.position?.current_pnl ?? 0;
   const mfe = data.position?.mfe ?? 0;
   const isShort = positionSide === 'SHORT';

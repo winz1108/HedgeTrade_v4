@@ -219,6 +219,10 @@ function App() {
           if (updated.strategyA) {
             updated.strategyA = { ...updated.strategyA, exit_conditions: { ...updated.strategyA.exit_conditions, ...statusData.exit_conditions } };
           }
+          updated.position = { ...updated.position, exit_conditions: statusData.exit_conditions } as any;
+        }
+        if (statusData.exit_prices) {
+          updated.position = { ...updated.position, exit_prices: { ...(updated.position as any)?.exit_prices, ...statusData.exit_prices } } as any;
         }
         if (statusData.zoneData) {
           updated.zoneData = statusData.zoneData;
@@ -237,10 +241,6 @@ function App() {
         if (priceData.ws_healthy !== undefined) updated.wsHealthy = priceData.ws_healthy;
         if (priceData.currencies) {
           updated.account = { ...updated.account, currencies: priceData.currencies };
-          const usdtQty = priceData.currencies?.USDT?.quantity;
-          if (usdtQty !== undefined) {
-            updated.account = { ...updated.account, totalAsset: usdtQty };
-          }
         }
         if (priceData.portfolioValue !== undefined) {
           updated.account = { ...updated.account, totalAsset: priceData.portfolioValue };
@@ -284,6 +284,10 @@ function App() {
             if (updated.strategyA) {
               updated.strategyA = { ...updated.strategyA, exit_conditions: { ...updated.strategyA.exit_conditions, ...priceData.exit_conditions } };
             }
+            updated.position = { ...updated.position, exit_conditions: priceData.exit_conditions } as any;
+          }
+          if (priceData.exit_prices) {
+            updated.position = { ...updated.position, exit_prices: { ...(updated.position as any)?.exit_prices, ...priceData.exit_prices } } as any;
           }
           if (ssChanged) updated.strategyStatus = ssUpdate;
         }

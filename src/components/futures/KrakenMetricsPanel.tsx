@@ -86,8 +86,8 @@ function ZBEntryPanelDark({ zbStatus, zbZones, data }: { zbStatus?: ZBStatus | n
 }
 
 function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: KrakenDashboardData }) {
-  const exitConditions = data.strategyA?.exit_conditions;
-  const positionSide = data.position?.position_side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
+  const exitConditions = data.strategyA?.exit_conditions ?? (data as any).strategy?.exit_conditions ?? (data.strategyStatus as any)?.exitConditions;
+  const positionSide = data.position?.position_side ?? data.position?.side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
 
   if (exitConditions) {
     return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={true} />;

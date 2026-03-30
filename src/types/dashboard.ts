@@ -626,6 +626,7 @@ export interface ZoneExitTrail {
   trail_sl: number;
   extreme: number;
   peak_pnl: number;
+  mfe_price?: number;
 }
 
 export interface ZoneExitTimeout {
