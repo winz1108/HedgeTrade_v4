@@ -211,12 +211,11 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
       if (isShort) {
         const range = entryPrice - triggerPrice;
         trailBarPct = range > 0 ? Math.max(0, ((entryPrice - price) / range) * 100) : 0;
-        trailInProfit = price < entryPrice;
       } else {
         const range = triggerPrice - entryPrice;
         trailBarPct = range > 0 ? Math.max(0, ((price - entryPrice) / range) * 100) : 0;
-        trailInProfit = price > entryPrice;
       }
+      trailInProfit = false;
     }
   }
   if (pendingTrail) {
@@ -227,7 +226,7 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
 
   let slBarPct = 0;
   let slInLoss = false;
-  if (sl && price && entryPrice) {
+  if (trailArmed && sl && price && entryPrice) {
     const slPrice = sl.price;
     if (isShort) {
       const range = slPrice - entryPrice;
@@ -247,7 +246,7 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
   const slDanger = (slInLoss && slBarPct >= 80) || pendingSL;
 
   const timePct = timeout?.pct ?? 0;
-  const timeDanger = timePct >= 80;
+  const timeDanger = trailArmed && timePct >= 80;
   const maxBars = timeout?.max_bars ?? 864;
   const barsHeld = timeout?.bars_held ?? 0;
   const hoursLeft = Math.max(0, ((maxBars - barsHeld) * 5) / 60);
