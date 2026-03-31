@@ -226,7 +226,7 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
 
   let slBarPct = 0;
   let slInLoss = false;
-  if (trailArmed && sl && price && entryPrice) {
+  if (sl && price && entryPrice) {
     const slPrice = sl.price;
     if (isShort) {
       const range = slPrice - entryPrice;
