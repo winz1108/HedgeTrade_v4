@@ -1158,15 +1158,19 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               {zbStatus.position.trailing ? (
                 <>
                   <line
-                    x1="0" y1={priceToY(zbStatus.position.initial_sl)}
-                    x2="100%" y2={priceToY(zbStatus.position.initial_sl)}
-                    stroke="#ff6b6b" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.75"
-                  />
-                  <line
                     x1="0" y1={priceToY(zbStatus.position.current_sl)}
                     x2="100%" y2={priceToY(zbStatus.position.current_sl)}
                     stroke="#ffd700" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.85"
+                    filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.5))"
                   />
+                  {zbStatus.position.extreme > 0 && (
+                    <line
+                      x1="0" y1={priceToY(zbStatus.position.extreme)}
+                      x2="100%" y2={priceToY(zbStatus.position.extreme)}
+                      stroke="#22c55e" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.8"
+                      filter="drop-shadow(0 0 2px rgba(34, 197, 94, 0.4))"
+                    />
+                  )}
                 </>
               ) : (
                 <line
@@ -1760,17 +1764,26 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const entryColor = isLong ? '#06b6d4' : '#f97316';
               const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(249, 115, 22, 0.5)';
 
+              const trailCond = v10Strategy?.exitConditions?.TRAIL as any;
+              const trailArmed = trailCond?.armed === true;
+
               const rawSl = v10Strategy?.exitConditions?.SL?.price
                 ?? v10Strategy?.exitPrices?.slPrice
                 ?? v10Strategy?.v32?.sl_price;
               const slPrice = (rawSl && rawSl > 0) ? rawSl : null;
 
               const trailTriggerPrice = v10Strategy?.exitPrices?.trailTriggerPrice
-                ?? v10Strategy?.exitConditions?.TRAIL?.trigger_price
+                ?? trailCond?.trigger_price
                 ?? null;
-              const rawTrailExit = v10Strategy?.v32?.trail_price
-                ?? v10Strategy?.exitPrices?.trailExitPrice;
-              const trailPrice = (trailTriggerPrice && trailTriggerPrice > 0) ? trailTriggerPrice : (rawTrailExit && rawTrailExit > 0) ? rawTrailExit : null;
+
+              const trailSlPrice = trailCond?.trail_sl
+                ?? trailCond?.trailStop
+                ?? v10Strategy?.exitPrices?.trailExitPrice
+                ?? null;
+
+              const mfePrice = trailCond?.mfe_price
+                ?? trailCond?.extreme
+                ?? null;
 
               return (
                 <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
@@ -1785,31 +1798,64 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     opacity="0.75"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
                   />
-                  {slPrice && (
-                    <line
-                      x1="0"
-                      y1={priceToY(slPrice)}
-                      x2="100%"
-                      y2={priceToY(slPrice)}
-                      stroke="#f85149"
-                      strokeWidth="0.8"
-                      strokeDasharray="4 3"
-                      opacity="0.8"
-                      filter="drop-shadow(0 0 2px rgba(248, 81, 73, 0.4))"
-                    />
-                  )}
-                  {trailPrice && (
-                    <line
-                      x1="0"
-                      y1={priceToY(trailPrice)}
-                      x2="100%"
-                      y2={priceToY(trailPrice)}
-                      stroke="#ffd700"
-                      strokeWidth="0.8"
-                      strokeDasharray="4 3"
-                      opacity="0.8"
-                      filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.4))"
-                    />
+                  {trailArmed ? (
+                    <>
+                      {trailSlPrice && trailSlPrice > 0 && (
+                        <line
+                          x1="0"
+                          y1={priceToY(trailSlPrice)}
+                          x2="100%"
+                          y2={priceToY(trailSlPrice)}
+                          stroke="#ffd700"
+                          strokeWidth="0.8"
+                          strokeDasharray="4 3"
+                          opacity="0.85"
+                          filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.5))"
+                        />
+                      )}
+                      {mfePrice && mfePrice > 0 && (
+                        <line
+                          x1="0"
+                          y1={priceToY(mfePrice)}
+                          x2="100%"
+                          y2={priceToY(mfePrice)}
+                          stroke="#22c55e"
+                          strokeWidth="0.8"
+                          strokeDasharray="4 3"
+                          opacity="0.8"
+                          filter="drop-shadow(0 0 2px rgba(34, 197, 94, 0.4))"
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {slPrice && (
+                        <line
+                          x1="0"
+                          y1={priceToY(slPrice)}
+                          x2="100%"
+                          y2={priceToY(slPrice)}
+                          stroke="#f85149"
+                          strokeWidth="0.8"
+                          strokeDasharray="4 3"
+                          opacity="0.8"
+                          filter="drop-shadow(0 0 2px rgba(248, 81, 73, 0.4))"
+                        />
+                      )}
+                      {trailTriggerPrice && trailTriggerPrice > 0 && (
+                        <line
+                          x1="0"
+                          y1={priceToY(trailTriggerPrice)}
+                          x2="100%"
+                          y2={priceToY(trailTriggerPrice)}
+                          stroke="#ffd700"
+                          strokeWidth="0.8"
+                          strokeDasharray="4 3"
+                          opacity="0.8"
+                          filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.4))"
+                        />
+                      )}
+                    </>
                   )}
                 </svg>
               );

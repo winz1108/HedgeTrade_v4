@@ -300,6 +300,8 @@ export interface V10StrategyStatus {
     rideTrailPrice?: number;
     trailPrice?: number;
     slPrice?: number;
+    trailTriggerPrice?: number;
+    trailExitPrice?: number;
   };
   exitConditions?: ExitConditions;
   entryDetails?: EntryDetails;
