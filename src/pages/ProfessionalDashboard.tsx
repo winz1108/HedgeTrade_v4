@@ -344,7 +344,7 @@ function ProfessionalDashboard() {
                     <span className={`text-xs font-bold tracking-wider uppercase ${
                       data.position.position_side === 'SHORT' ? 'text-orange-200' : 'text-cyan-200'
                     }`}>
-                      {data.position.position_side} POSITION
+                      {data.position.position_side}
                     </span>
                   </div>
                 </div>

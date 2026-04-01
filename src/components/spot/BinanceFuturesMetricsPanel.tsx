@@ -299,9 +299,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
               {(hasPosition && entryPrice) || zbPos ? (
                 <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
                   (positionSide === 'LONG' || zbPos?.dir === 'long')
-                    ? 'position-panel-long-light border-cyan-400'
-                    : 'position-panel-short-light border-orange-400'
-                }`}>
+                    ? 'position-panel-long-light'
+                    : 'position-panel-short-light'
+                } ${leverage != null && leverage >= 2 ? 'position-glow' : ''}`}>
                   <div className="flex justify-between items-center">
                     <span className={`text-[9px] font-medium ${
                       (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-700' : 'text-orange-700'

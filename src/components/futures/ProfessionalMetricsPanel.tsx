@@ -224,9 +224,9 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
               {hasPosition && entryPrice ? (
                 <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
                   positionSide === 'LONG'
-                    ? 'position-panel-long border-cyan-500/50'
-                    : 'position-panel-short border-orange-500/50'
-                }`}>
+                    ? 'position-panel-long'
+                    : 'position-panel-short'
+                } ${leverage != null && leverage >= 2 ? 'position-glow' : ''}`}>
                   <div className="flex justify-between items-center">
                     <span className={`text-[9px] ${
                       positionSide === 'LONG' ? 'text-cyan-300' : 'text-orange-300'

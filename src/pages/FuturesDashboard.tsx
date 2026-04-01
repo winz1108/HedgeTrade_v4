@@ -444,7 +444,7 @@ function FuturesDashboard() {
                     <span className={`text-xs font-bold tracking-wider uppercase ${
                       data.position.position_side === 'SHORT' ? 'text-orange-200' : 'text-cyan-200'
                     }`}>
-                      {data.position.position_side} POSITION
+                      {data.position.position_side}
                     </span>
                     {(data.strategyStatus?.entryMode || data.strategyA?.entry_mode) === 'RIDE' && (
                       <span className="px-1.5 py-0.5 text-[9px] font-bold bg-blue-500/30 text-blue-300 border border-blue-400/40 rounded tracking-wider">

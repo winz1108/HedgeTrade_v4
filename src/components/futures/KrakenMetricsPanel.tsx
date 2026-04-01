@@ -263,9 +263,9 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
               {(hasPosition && entryPrice) || zbPos ? (
                 <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
                   (positionSide === 'LONG' || zbPos?.dir === 'long')
-                    ? 'position-panel-long border-cyan-500/50'
-                    : 'position-panel-short border-orange-500/50'
-                }`}>
+                    ? 'position-panel-long'
+                    : 'position-panel-short'
+                } ${leverage != null && leverage >= 2 ? 'position-glow' : ''}`}>
                   <div className="flex justify-between items-center">
                     <span className={`text-[9px] ${
                       (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'
