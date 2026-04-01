@@ -671,6 +671,7 @@ export interface KrakenStrategyA {
   in_position: boolean;
   side?: 'LONG' | 'SHORT';
   entry_mode?: 'SW' | 'RIDE';
+  entry_leverage?: number;
   entry_price?: number;
   current_pnl?: number;
   mfe?: number;

@@ -21,3 +21,40 @@ body {
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
 }
+
+@keyframes leverage-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes leverage-glow {
+  0%, 100% { box-shadow: 0 0 4px 0 var(--leverage-color); }
+  50% { box-shadow: 0 0 12px 2px var(--leverage-color); }
+}
+
+.leverage-badge-2x {
+  --leverage-color: rgba(59, 130, 246, 0.5);
+}
+
+.leverage-badge-3x {
+  --leverage-color: rgba(245, 158, 11, 0.5);
+  animation: leverage-pulse 3s ease-in-out infinite;
+}
+
+.leverage-badge-4x {
+  --leverage-color: rgba(239, 68, 68, 0.6);
+  animation: leverage-pulse 2s ease-in-out infinite;
+}
+
+.leverage-border-2x {
+  box-shadow: 0 0 6px -1px rgba(59, 130, 246, 0.3), inset 0 0 6px -2px rgba(59, 130, 246, 0.1);
+}
+
+.leverage-border-3x {
+  box-shadow: 0 0 10px -1px rgba(245, 158, 11, 0.35), inset 0 0 8px -2px rgba(245, 158, 11, 0.1);
+}
+
+.leverage-border-4x {
+  animation: leverage-glow 2.5s ease-in-out infinite;
+  --leverage-color: rgba(239, 68, 68, 0.4);
+}

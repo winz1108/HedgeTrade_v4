@@ -151,12 +151,27 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
   };
 
   if (position === 'left') {
-    const leverage = 1;
+    const leverage = data.strategyA?.entry_leverage ?? 1;
     const hasPosition = data.position?.in_position;
     const positionSide = data.position?.position_side;
     const entryPrice = data.strategyA?.entry_price;
     const currentPnl = data.strategyA?.current_pnl;
     const zbPos = zbStatus?.position;
+
+    const getLeverageBadgeStyles = (lev: number) => {
+      if (lev >= 4) return { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/60', cls: 'leverage-badge-4x' };
+      if (lev >= 3) return { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/50', cls: 'leverage-badge-3x' };
+      if (lev >= 2) return { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/50', cls: 'leverage-badge-2x' };
+      return { bg: '', text: 'text-cyan-400', border: '', cls: '' };
+    };
+    const levStyle = getLeverageBadgeStyles(leverage);
+
+    const getPositionBorderClass = (lev: number) => {
+      if (lev >= 4) return 'border-red-500/50 leverage-border-4x';
+      if (lev >= 3) return 'border-amber-500/40 leverage-border-3x';
+      if (lev >= 2) return 'border-blue-500/40 leverage-border-2x';
+      return 'border-cyan-500/50';
+    };
 
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {
@@ -227,7 +242,13 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
                 )}
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-300">Leverage</span>
-                  <span className="text-[11px] font-bold text-cyan-400">{leverage}x</span>
+                  {leverage > 1 ? (
+                    <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${levStyle.bg} ${levStyle.text} ${levStyle.border} ${levStyle.cls}`}>
+                      {leverage}x
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold text-cyan-400">{leverage}x</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -235,7 +256,11 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
             <div className="border-t border-slate-700 pt-1.5">
               <div className="text-[10px] text-white mb-1 font-medium">POSITION</div>
               {(hasPosition && entryPrice) || zbPos ? (
-                <div className="space-y-0.5 bg-cyan-500/20 rounded-lg p-1.5 border border-cyan-500/50">
+                <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
+                  leverage > 1
+                    ? `bg-slate-700/40 ${getPositionBorderClass(leverage)}`
+                    : 'bg-cyan-500/20 border-cyan-500/50'
+                }`}>
                   <div className="flex justify-between items-center">
                     <span className="text-[9px] text-cyan-300">Side</span>
                     <span className={`text-[11px] font-bold ${
