@@ -201,7 +201,12 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
           </div>
 
           <div className="space-y-1.5">
-            <div className="bg-cyan-500/20 rounded-lg p-2 border border-cyan-500/50">
+            <div className={`rounded-lg p-2 border ${
+              hasPosition && leverage != null && leverage >= 4 ? 'asset-glow-4x' :
+              hasPosition && leverage != null && leverage >= 3 ? 'asset-glow-3x' :
+              hasPosition && leverage != null && leverage >= 2 ? 'asset-glow-2x' :
+              'bg-cyan-500/20 border-cyan-500/50'
+            }`}>
               <div className="text-[10px] text-cyan-300 font-medium mb-0.5">TOTAL ASSET</div>
               <div className="text-xl font-bold text-white mb-1">
                 {formatCurrency(data.balance.portfolioValue)}

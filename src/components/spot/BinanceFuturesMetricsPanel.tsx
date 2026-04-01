@@ -237,7 +237,12 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
           </div>
 
           <div className="space-y-1.5">
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-2 border border-amber-300">
+            <div className={`rounded-lg p-2 border ${
+              hasPosition && leverage != null && leverage >= 4 ? 'asset-glow-4x-light' :
+              hasPosition && leverage != null && leverage >= 3 ? 'asset-glow-3x-light' :
+              hasPosition && leverage != null && leverage >= 2 ? 'asset-glow-2x-light' :
+              'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
+            }`}>
               <div className="text-[10px] text-amber-700 font-medium mb-0.5">TOTAL ASSET</div>
               <div className="text-xl font-bold text-slate-900 mb-1">
                 {formatCurrency(data.account.totalAsset)}
