@@ -229,9 +229,14 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
   let trailTpImminent = false;
   if (trailArmed && trail && price && entryPrice) {
     const trailSlPrice = trail.trail_sl;
-    if (isShort && price >= trailSlPrice) {
-      trailTpImminent = true;
-    } else if (!isShort && price <= trailSlPrice) {
+    if (trailSlPrice != null && trailSlPrice > 0) {
+      if (isShort && price >= trailSlPrice) {
+        trailTpImminent = true;
+      } else if (!isShort && price <= trailSlPrice) {
+        trailTpImminent = true;
+      }
+    }
+    if (!trailTpImminent && trailBarPct <= 0) {
       trailTpImminent = true;
     }
   }
@@ -282,7 +287,7 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
       <div className="flex flex-col gap-1.5">
         {trail && (() => {
           const trailActive = trailInProfit && trailBarPct > 0;
-          const tpGlow = trailTpImminent;
+          const tpGlow = trailTpImminent || pendingTrail;
           const activeBg = tpGlow ? tpImminentBg : (trailActive ? sideBg : inactiveBg);
           const activeDot = tpGlow ? tpImminentDot : (trailActive
             ? `${isShort ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.8)]' : 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]'}`
