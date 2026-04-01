@@ -427,18 +427,22 @@ function FuturesDashboard() {
                 <span className="text-[10px] text-cyan-400 font-mono">{data.version}</span>
               )}
               {data.position.in_position && (
-                <div className={`relative px-4 py-2 bg-slate-700/80 backdrop-blur-sm rounded-lg border ${
-                  data.position.position_side === 'SHORT' ? 'border-orange-500/40' : 'border-cyan-500/40'
-                } shadow-lg overflow-hidden`}>
+                <div className={`relative px-4 py-2 backdrop-blur-sm rounded-lg border overflow-hidden ${
+                  data.position.position_side === 'SHORT'
+                    ? 'bg-orange-500/20 border-orange-500/60 header-position-short'
+                    : 'bg-cyan-500/20 border-cyan-500/60 header-position-long'
+                }`}>
                   <div className={`absolute inset-0 bg-gradient-to-r ${
-                    data.position.position_side === 'SHORT' ? 'from-orange-500/10 via-transparent to-orange-500/10' : 'from-cyan-500/10 via-transparent to-cyan-500/10'
+                    data.position.position_side === 'SHORT'
+                      ? 'from-orange-500/20 via-orange-400/5 to-orange-500/20'
+                      : 'from-cyan-500/20 via-cyan-400/5 to-cyan-500/20'
                   }`}></div>
                   <div className="relative flex items-center gap-2.5">
-                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                    <div className={`w-2 h-2 rounded-full animate-pulse ${
                       data.position.position_side === 'SHORT' ? 'bg-orange-400' : 'bg-cyan-400'
                     }`}></div>
                     <span className={`text-xs font-bold tracking-wider uppercase ${
-                      data.position.position_side === 'SHORT' ? 'text-orange-300' : 'text-cyan-300'
+                      data.position.position_side === 'SHORT' ? 'text-orange-200' : 'text-cyan-200'
                     }`}>
                       {data.position.position_side} POSITION
                     </span>

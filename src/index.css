@@ -58,3 +58,64 @@ body {
   animation: leverage-glow 2.5s ease-in-out infinite;
   --leverage-color: rgba(239, 68, 68, 0.4);
 }
+
+@keyframes position-glow-long {
+  0%, 100% { box-shadow: 0 0 8px 0 rgba(6, 182, 212, 0.3), inset 0 0 8px -2px rgba(6, 182, 212, 0.1); }
+  50% { box-shadow: 0 0 20px 4px rgba(6, 182, 212, 0.5), inset 0 0 12px -2px rgba(6, 182, 212, 0.15); }
+}
+
+@keyframes position-glow-short {
+  0%, 100% { box-shadow: 0 0 8px 0 rgba(249, 115, 22, 0.3), inset 0 0 8px -2px rgba(249, 115, 22, 0.1); }
+  50% { box-shadow: 0 0 20px 4px rgba(249, 115, 22, 0.5), inset 0 0 12px -2px rgba(249, 115, 22, 0.15); }
+}
+
+@keyframes position-border-pulse {
+  0%, 100% { border-color: var(--pos-border-from); }
+  50% { border-color: var(--pos-border-to); }
+}
+
+.position-panel-long {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(8, 145, 178, 0.15) 50%, rgba(6, 182, 212, 0.2) 100%);
+  --pos-border-from: rgba(6, 182, 212, 0.5);
+  --pos-border-to: rgba(6, 182, 212, 0.8);
+  animation: position-glow-long 2.5s ease-in-out infinite, position-border-pulse 2.5s ease-in-out infinite;
+}
+
+.position-panel-short {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.25) 0%, rgba(234, 88, 12, 0.15) 50%, rgba(249, 115, 22, 0.2) 100%);
+  --pos-border-from: rgba(249, 115, 22, 0.5);
+  --pos-border-to: rgba(249, 115, 22, 0.8);
+  animation: position-glow-short 2.5s ease-in-out infinite, position-border-pulse 2.5s ease-in-out infinite;
+}
+
+.position-panel-long-light {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.08) 50%, rgba(6, 182, 212, 0.12) 100%);
+  --pos-border-from: rgba(6, 182, 212, 0.4);
+  --pos-border-to: rgba(6, 182, 212, 0.7);
+  animation: position-glow-long 2.5s ease-in-out infinite, position-border-pulse 2.5s ease-in-out infinite;
+}
+
+.position-panel-short-light {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(234, 88, 12, 0.08) 50%, rgba(249, 115, 22, 0.12) 100%);
+  --pos-border-from: rgba(249, 115, 22, 0.4);
+  --pos-border-to: rgba(249, 115, 22, 0.7);
+  animation: position-glow-short 2.5s ease-in-out infinite, position-border-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes header-position-glow-long {
+  0%, 100% { box-shadow: 0 0 10px 1px rgba(6, 182, 212, 0.3); }
+  50% { box-shadow: 0 0 24px 6px rgba(6, 182, 212, 0.55); }
+}
+
+@keyframes header-position-glow-short {
+  0%, 100% { box-shadow: 0 0 10px 1px rgba(249, 115, 22, 0.3); }
+  50% { box-shadow: 0 0 24px 6px rgba(249, 115, 22, 0.55); }
+}
+
+.header-position-long {
+  animation: header-position-glow-long 2s ease-in-out infinite;
+}
+
+.header-position-short {
+  animation: header-position-glow-short 2s ease-in-out infinite;
+}

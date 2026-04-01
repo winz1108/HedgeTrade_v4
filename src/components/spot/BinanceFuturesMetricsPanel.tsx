@@ -298,12 +298,14 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
               <div className="text-[10px] text-slate-800 mb-1 font-medium">POSITION</div>
               {(hasPosition && entryPrice) || zbPos ? (
                 <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
-                  leverage != null && leverage > 1
-                    ? `bg-stone-50 ${getPositionBorderClass(leverage)}`
-                    : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
+                  (positionSide === 'LONG' || zbPos?.dir === 'long')
+                    ? 'position-panel-long-light border-cyan-400'
+                    : 'position-panel-short-light border-orange-400'
                 }`}>
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-amber-700">Side</span>
+                    <span className={`text-[9px] font-medium ${
+                      (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-700' : 'text-orange-700'
+                    }`}>Side</span>
                     <span className={`text-[11px] font-bold ${
                       (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-600' : 'text-orange-600'
                     }`}>
@@ -311,7 +313,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-amber-700">Entry</span>
+                    <span className={`text-[9px] font-medium ${
+                      (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-700' : 'text-orange-700'
+                    }`}>Entry</span>
                     <span className="text-[11px] font-bold text-slate-900">
                       {formatCurrency(entryPrice ?? zbPos?.entry_price ?? 0)}
                     </span>
@@ -324,7 +328,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                   )}
                   {(currentPnl !== undefined && currentPnl !== null) || zbPos ? (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-amber-700">P&L</span>
+                      <span className={`text-[9px] font-medium ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-700' : 'text-orange-700'
+                      }`}>P&L</span>
                       <span className={`text-[11px] font-bold ${
                         (currentPnl ?? zbPos?.unrealized_pct ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'
                       }`}>
@@ -335,8 +341,12 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                   ) : null}
                   {(data.position.entryTime || zbPos?.hold_minutes) && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-amber-700">Duration</span>
-                      <span className="text-[11px] font-bold text-amber-700">
+                      <span className={`text-[9px] font-medium ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-700' : 'text-orange-700'
+                      }`}>Duration</span>
+                      <span className={`text-[11px] font-bold ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-600' : 'text-orange-600'
+                      }`}>
                         {data.position.entryTime
                           ? formatHoldingDuration(data.position.entryTime, currentTime)
                           : zbPos ? `${Math.floor((zbPos.hold_minutes ?? 0) / 60)}h ${(zbPos.hold_minutes ?? 0) % 60}m` : ''
@@ -346,7 +356,9 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                   )}
                   {zbPos && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-amber-700">Risk</span>
+                      <span className={`text-[9px] font-medium ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-700' : 'text-orange-700'
+                      }`}>Risk</span>
                       <span className="text-[11px] font-bold text-slate-700">
                         {zbPos.risk_pct.toFixed(2)}% (${zbPos.risk.toFixed(0)})
                       </span>

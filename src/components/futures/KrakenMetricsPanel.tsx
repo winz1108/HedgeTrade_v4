@@ -262,12 +262,14 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
               <div className="text-[10px] text-white mb-1 font-medium">POSITION</div>
               {(hasPosition && entryPrice) || zbPos ? (
                 <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
-                  leverage != null && leverage > 1
-                    ? `bg-slate-700/40 ${getPositionBorderClass(leverage)}`
-                    : 'bg-cyan-500/20 border-cyan-500/50'
+                  (positionSide === 'LONG' || zbPos?.dir === 'long')
+                    ? 'position-panel-long border-cyan-500/50'
+                    : 'position-panel-short border-orange-500/50'
                 }`}>
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-cyan-300">Side</span>
+                    <span className={`text-[9px] ${
+                      (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'
+                    }`}>Side</span>
                     <span className={`text-[11px] font-bold ${
                       (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-400' : 'text-orange-400'
                     }`}>
@@ -275,7 +277,9 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-cyan-300">Entry</span>
+                    <span className={`text-[9px] ${
+                      (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'
+                    }`}>Entry</span>
                     <span className="text-[11px] font-bold text-white">
                       {formatCurrency(entryPrice ?? zbPos?.entry_price ?? 0)}
                     </span>
@@ -288,7 +292,9 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
                   )}
                   {(currentPnl !== undefined || zbPos) && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-cyan-300">P&L</span>
+                      <span className={`text-[9px] ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'
+                      }`}>P&L</span>
                       <span className={`text-[11px] font-bold ${
                         (currentPnl ?? zbPos?.unrealized_pct ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       }`}>
@@ -299,8 +305,12 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
                   )}
                   {(data.strategyA?.entry_time || zbPos?.hold_minutes) && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-cyan-300">Duration</span>
-                      <span className="text-[11px] font-bold text-cyan-400">
+                      <span className={`text-[9px] ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'
+                      }`}>Duration</span>
+                      <span className={`text-[11px] font-bold ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-400' : 'text-orange-400'
+                      }`}>
                         {data.strategyA?.entry_time
                           ? formatHoldingDuration(data.strategyA.entry_time, data.currentTime)
                           : zbPos ? `${Math.floor((zbPos.hold_minutes ?? 0) / 60)}h ${(zbPos.hold_minutes ?? 0) % 60}m` : ''
@@ -310,7 +320,9 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
                   )}
                   {zbPos && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-cyan-300">Risk</span>
+                      <span className={`text-[9px] ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'
+                      }`}>Risk</span>
                       <span className="text-[11px] font-bold text-slate-300">
                         {zbPos.risk_pct.toFixed(2)}% (${zbPos.risk.toFixed(0)})
                       </span>

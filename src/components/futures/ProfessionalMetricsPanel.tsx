@@ -222,9 +222,15 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
             <div className="border-t border-slate-700 pt-1.5">
               <div className="text-[10px] text-white mb-1 font-medium">POSITION</div>
               {hasPosition && entryPrice ? (
-                <div className="space-y-0.5 bg-cyan-500/20 rounded-lg p-1.5 border border-cyan-500/50">
+                <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
+                  positionSide === 'LONG'
+                    ? 'position-panel-long border-cyan-500/50'
+                    : 'position-panel-short border-orange-500/50'
+                }`}>
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-cyan-300">Side</span>
+                    <span className={`text-[9px] ${
+                      positionSide === 'LONG' ? 'text-cyan-300' : 'text-orange-300'
+                    }`}>Side</span>
                     <span className={`text-[11px] font-bold ${
                       positionSide === 'LONG' ? 'text-cyan-400' : 'text-orange-400'
                     }`}>
@@ -232,7 +238,9 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-cyan-300">Entry</span>
+                    <span className={`text-[9px] ${
+                      positionSide === 'LONG' ? 'text-cyan-300' : 'text-orange-300'
+                    }`}>Entry</span>
                     <span className="text-[11px] font-bold text-white">{formatCurrency(entryPrice)}</span>
                   </div>
                   {liquidationPrice && (
@@ -243,7 +251,9 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
                   )}
                   {currentPnl !== undefined && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-cyan-300">P&L</span>
+                      <span className={`text-[9px] ${
+                        positionSide === 'LONG' ? 'text-cyan-300' : 'text-orange-300'
+                      }`}>P&L</span>
                       <span className={`text-[11px] font-bold ${
                         currentPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       }`}>
@@ -253,8 +263,12 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
                   )}
                   {data.strategyA?.entry_time && (
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] text-cyan-300">Duration</span>
-                      <span className="text-[11px] font-bold text-cyan-400">
+                      <span className={`text-[9px] ${
+                        positionSide === 'LONG' ? 'text-cyan-300' : 'text-orange-300'
+                      }`}>Duration</span>
+                      <span className={`text-[11px] font-bold ${
+                        positionSide === 'LONG' ? 'text-cyan-400' : 'text-orange-400'
+                      }`}>
                         {formatHoldingDuration(data.strategyA.entry_time, data.currentTime)}
                       </span>
                     </div>
