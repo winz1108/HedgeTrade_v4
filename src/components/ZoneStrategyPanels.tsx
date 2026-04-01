@@ -184,6 +184,13 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
     ? 'bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.8)] animate-pulse'
     : 'bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.8)] animate-pulse';
 
+  const profitBg = dark ? 'bg-emerald-900/40 border-emerald-400/60 trail-tp-glow' : 'bg-emerald-50 border-emerald-400 trail-tp-glow';
+  const profitTxt = dark ? 'text-emerald-400' : 'text-emerald-600';
+  const profitDot = dark
+    ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse'
+    : 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.9)] animate-pulse';
+  const profitFill = 'bg-emerald-400';
+
   const entryPrice = sl?.entry_price ?? 0;
   const price = currentPrice || entryPrice;
 
@@ -218,7 +225,21 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
       trailInProfit = false;
     }
   }
+  let trailTpImminent = false;
+  if (trailArmed && trail && price && entryPrice) {
+    const trailSlPrice = trail.trail_sl;
+    if (isShort && price >= trailSlPrice) {
+      trailTpImminent = true;
+    } else if (!isShort && price <= trailSlPrice) {
+      trailTpImminent = true;
+    }
+  }
   if (pendingTrail) {
+    trailInProfit = true;
+    trailTpImminent = true;
+    trailBarPct = Math.max(trailBarPct, 100);
+  }
+  if (trailTpImminent) {
     trailInProfit = true;
     trailBarPct = Math.max(trailBarPct, 100);
   }
@@ -260,13 +281,13 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
       <div className="flex flex-col gap-1.5">
         {trail && (() => {
           const trailActive = trailInProfit && trailBarPct > 0;
-          const activeBg = trailActive ? sideBg : inactiveBg;
-          const activeDot = trailActive
+          const activeBg = trailTpImminent ? profitBg : (trailActive ? sideBg : inactiveBg);
+          const activeDot = trailTpImminent ? profitDot : (trailActive
             ? `${isShort ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.8)]' : 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]'}`
-            : inactiveDot;
-          const activeTxt = trailActive ? sideColor : inactiveTxt;
-          const activeNum = trailActive ? sideColor : inactiveNum;
-          const activeFill = trailActive ? sideFill : inactiveFill;
+            : inactiveDot);
+          const activeTxt = trailTpImminent ? profitTxt : (trailActive ? sideColor : inactiveTxt);
+          const activeNum = trailTpImminent ? profitTxt : (trailActive ? sideColor : inactiveNum);
+          const activeFill = trailTpImminent ? profitFill : (trailActive ? sideFill : inactiveFill);
 
           let leftVal: string, rightVal: string, headerRight: string;
           let barDir: 'ltr' | 'rtl';
