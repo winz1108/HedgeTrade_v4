@@ -151,8 +151,9 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
   };
 
   if (position === 'left') {
-    const leverage = (data.position as any)?.entryLeverage ?? (data.position as any)?.entry_leverage ?? null;
     const hasPosition = data.position?.in_position;
+    const rawLeverage = (data.position as any)?.entryLeverage ?? (data.position as any)?.entry_leverage ?? null;
+    const leverage = hasPosition ? (rawLeverage ?? 1) : null;
     const positionSide = data.position?.position_side;
     const entryPrice = data.strategyA?.entry_price;
     const currentPnl = data.strategyA?.current_pnl;
