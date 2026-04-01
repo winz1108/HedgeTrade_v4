@@ -238,7 +238,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
 
           <div className="space-y-1.5">
             <div className={`rounded-lg p-2 border ${
-              hasPosition
+              hasPosition && leverage != null && leverage >= 2
                 ? (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'asset-panel-long-light' : 'asset-panel-short-light'
                 : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
             }`}>

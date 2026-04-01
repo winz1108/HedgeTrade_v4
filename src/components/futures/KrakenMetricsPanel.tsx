@@ -202,7 +202,7 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
 
           <div className="space-y-1.5">
             <div className={`rounded-lg p-2 border ${
-              hasPosition
+              hasPosition && leverage != null && leverage >= 2
                 ? (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'asset-panel-long' : 'asset-panel-short'
                 : 'bg-cyan-500/20 border-cyan-500/50'
             }`}>
