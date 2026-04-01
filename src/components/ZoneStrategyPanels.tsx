@@ -189,13 +189,9 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
   const tpImminentBg = dark
     ? (isShort ? 'trail-tp-panel-short trail-tp-glow-short' : 'trail-tp-panel-long trail-tp-glow-long')
     : (isShort ? 'trail-tp-panel-short-light trail-tp-glow-short' : 'trail-tp-panel-long-light trail-tp-glow-long');
-  const tpImminentTxt = dark
-    ? (isShort ? 'text-orange-300' : 'text-cyan-300')
-    : (isShort ? 'text-orange-600' : 'text-cyan-600');
-  const tpImminentDot = isShort
-    ? 'bg-orange-400 shadow-[0_0_8px_rgba(249,115,22,0.9)] animate-pulse'
-    : 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)] animate-pulse';
-  const tpImminentFill = isShort ? 'bg-orange-400' : 'bg-cyan-400';
+  const tpImminentTxt = dark ? 'text-green-300' : 'text-green-600';
+  const tpImminentDot = 'bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.9)] animate-pulse';
+  const tpImminentFill = 'bg-green-400';
 
   const entryPrice = sl?.entry_price ?? 0;
   const price = currentPrice || entryPrice;
