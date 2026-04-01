@@ -163,21 +163,6 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
     const currentPnl = data.strategyA?.current_pnl;
     const zbPos = zbStatus?.position;
 
-    const getLeverageBadgeStyles = (lev: number) => {
-      if (lev >= 4) return { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/60', cls: 'leverage-badge-4x' };
-      if (lev >= 3) return { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/50', cls: 'leverage-badge-3x' };
-      if (lev >= 2) return { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/50', cls: 'leverage-badge-2x' };
-      return { bg: '', text: 'text-cyan-400', border: '', cls: '' };
-    };
-    const levStyle = leverage != null ? getLeverageBadgeStyles(leverage) : null;
-
-    const getPositionBorderClass = (lev: number) => {
-      if (lev >= 4) return 'border-red-500/50 leverage-border-4x';
-      if (lev >= 3) return 'border-amber-500/40 leverage-border-3x';
-      if (lev >= 2) return 'border-blue-500/40 leverage-border-2x';
-      return 'border-cyan-500/50';
-    };
-
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice && leverage != null) {
       if (positionSide === 'LONG') {

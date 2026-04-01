@@ -169,14 +169,6 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
     const currentPnl = data.strategyA?.current_pnl;
     const zbPos = zbStatus?.position;
 
-    const getLeverageBadgeStyles = (lev: number) => {
-      if (lev >= 4) return { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/60', cls: 'leverage-badge-4x' };
-      if (lev >= 3) return { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/50', cls: 'leverage-badge-3x' };
-      if (lev >= 2) return { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/50', cls: 'leverage-badge-2x' };
-      return { bg: '', text: 'text-cyan-400', border: '', cls: '' };
-    };
-    const levStyle = leverage != null ? getLeverageBadgeStyles(leverage) : null;
-
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice && leverage != null) {
       if (positionSide === 'LONG') {
@@ -239,18 +231,6 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
                     <span className="text-[11px] font-bold text-emerald-400">
                       {formatCurrency(data.balance.available)}
                     </span>
-                  </div>
-                )}
-                {hasPosition && leverage != null && leverage > 1 && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] text-slate-300">Leverage</span>
-                    {levStyle ? (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${levStyle.bg} ${levStyle.text} ${levStyle.border} ${levStyle.cls}`}>
-                        {leverage}x
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-bold text-cyan-400">{leverage}x</span>
-                    )}
                   </div>
                 )}
               </div>
