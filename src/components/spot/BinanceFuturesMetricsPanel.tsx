@@ -186,7 +186,11 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
   };
 
   if (position === 'left') {
-    const leverage = (data.strategyA as any)?.entry_leverage ?? (data.strategy as any)?.entry_leverage ?? 1;
+    const leverage = (data as any).entry_leverage
+      ?? (data.strategyA as any)?.entry_leverage
+      ?? (data.strategy as any)?.entry_leverage
+      ?? (data.position as any)?.entry_leverage
+      ?? 1;
     const hasPosition = data.position.inPosition;
     const positionSide = data.position.side;
     const entryPrice = data.position.entryPrice;
