@@ -60,13 +60,25 @@ body {
 }
 
 @keyframes position-glow-long {
-  0%, 100% { box-shadow: 0 0 8px 0 rgba(6, 182, 212, 0.3), inset 0 0 8px -2px rgba(6, 182, 212, 0.1); }
-  50% { box-shadow: 0 0 20px 4px rgba(6, 182, 212, 0.5), inset 0 0 12px -2px rgba(6, 182, 212, 0.15); }
+  0%, 100% {
+    box-shadow: 0 0 12px 2px rgba(6, 182, 212, 0.5), 0 0 30px 6px rgba(6, 182, 212, 0.2), inset 0 0 12px -2px rgba(6, 182, 212, 0.2);
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.45) 0%, rgba(8, 145, 178, 0.35) 50%, rgba(6, 182, 212, 0.4) 100%);
+  }
+  50% {
+    box-shadow: 0 0 28px 8px rgba(6, 182, 212, 0.7), 0 0 50px 14px rgba(6, 182, 212, 0.3), inset 0 0 18px -2px rgba(6, 182, 212, 0.3);
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.6) 0%, rgba(8, 145, 178, 0.5) 50%, rgba(6, 182, 212, 0.55) 100%);
+  }
 }
 
 @keyframes position-glow-short {
-  0%, 100% { box-shadow: 0 0 8px 0 rgba(249, 115, 22, 0.3), inset 0 0 8px -2px rgba(249, 115, 22, 0.1); }
-  50% { box-shadow: 0 0 20px 4px rgba(249, 115, 22, 0.5), inset 0 0 12px -2px rgba(249, 115, 22, 0.15); }
+  0%, 100% {
+    box-shadow: 0 0 12px 2px rgba(249, 115, 22, 0.5), 0 0 30px 6px rgba(249, 115, 22, 0.2), inset 0 0 12px -2px rgba(249, 115, 22, 0.2);
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.45) 0%, rgba(234, 88, 12, 0.35) 50%, rgba(249, 115, 22, 0.4) 100%);
+  }
+  50% {
+    box-shadow: 0 0 28px 8px rgba(249, 115, 22, 0.7), 0 0 50px 14px rgba(249, 115, 22, 0.3), inset 0 0 18px -2px rgba(249, 115, 22, 0.3);
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.6) 0%, rgba(234, 88, 12, 0.5) 50%, rgba(249, 115, 22, 0.55) 100%);
+  }
 }
 
 @keyframes position-border-pulse {
@@ -80,9 +92,10 @@ body {
 }
 
 .position-panel-long.position-glow {
-  --pos-border-from: rgba(6, 182, 212, 0.5);
-  --pos-border-to: rgba(6, 182, 212, 0.9);
-  animation: position-glow-long 2.5s ease-in-out infinite, position-border-pulse 2.5s ease-in-out infinite;
+  --pos-border-from: rgba(6, 182, 212, 0.6);
+  --pos-border-to: rgba(6, 182, 212, 1);
+  border-width: 1.5px;
+  animation: position-glow-long 2s ease-in-out infinite, position-border-pulse 2s ease-in-out infinite;
 }
 
 .position-panel-short {
@@ -91,9 +104,10 @@ body {
 }
 
 .position-panel-short.position-glow {
-  --pos-border-from: rgba(249, 115, 22, 0.5);
-  --pos-border-to: rgba(249, 115, 22, 0.9);
-  animation: position-glow-short 2.5s ease-in-out infinite, position-border-pulse 2.5s ease-in-out infinite;
+  --pos-border-from: rgba(249, 115, 22, 0.6);
+  --pos-border-to: rgba(249, 115, 22, 1);
+  border-width: 1.5px;
+  animation: position-glow-short 2s ease-in-out infinite, position-border-pulse 2s ease-in-out infinite;
 }
 
 .position-panel-long-light {
@@ -102,9 +116,10 @@ body {
 }
 
 .position-panel-long-light.position-glow {
-  --pos-border-from: rgba(6, 182, 212, 0.4);
-  --pos-border-to: rgba(6, 182, 212, 0.8);
-  animation: position-glow-long 2.5s ease-in-out infinite, position-border-pulse 2.5s ease-in-out infinite;
+  --pos-border-from: rgba(6, 182, 212, 0.5);
+  --pos-border-to: rgba(6, 182, 212, 0.9);
+  border-width: 1.5px;
+  animation: position-glow-long 2s ease-in-out infinite, position-border-pulse 2s ease-in-out infinite;
 }
 
 .position-panel-short-light {
@@ -113,9 +128,10 @@ body {
 }
 
 .position-panel-short-light.position-glow {
-  --pos-border-from: rgba(249, 115, 22, 0.4);
-  --pos-border-to: rgba(249, 115, 22, 0.8);
-  animation: position-glow-short 2.5s ease-in-out infinite, position-border-pulse 2.5s ease-in-out infinite;
+  --pos-border-from: rgba(249, 115, 22, 0.5);
+  --pos-border-to: rgba(249, 115, 22, 0.9);
+  border-width: 1.5px;
+  animation: position-glow-short 2s ease-in-out infinite, position-border-pulse 2s ease-in-out infinite;
 }
 
 @keyframes header-position-glow-long {
