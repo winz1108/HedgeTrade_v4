@@ -225,8 +225,7 @@ function App() {
           updated.position = { ...updated.position, exit_prices: { ...(updated.position as any)?.exit_prices, ...statusData.exit_prices } } as any;
         }
         if (statusData.entry_leverage !== undefined) {
-          (updated as any).entry_leverage = statusData.entry_leverage;
-          updated.strategyA = { ...updated.strategyA, entry_leverage: statusData.entry_leverage };
+          updated.position = { ...updated.position, entryLeverage: statusData.entry_leverage } as any;
         }
         if (statusData.zoneData) {
           updated.zoneData = statusData.zoneData;
@@ -259,8 +258,9 @@ function App() {
         if (priceData.entry_price !== undefined) { positionUpdate.entryPrice = priceData.entry_price; positionChanged = true; }
         if (positionChanged) updated.position = positionUpdate;
         if (priceData.entry_leverage !== undefined) {
-          (updated as any).entry_leverage = priceData.entry_leverage;
-          updated.strategyA = { ...updated.strategyA, entry_leverage: priceData.entry_leverage };
+          const posUpd = positionChanged ? updated.position : { ...updated.position };
+          (posUpd as any).entryLeverage = priceData.entry_leverage;
+          updated.position = posUpd;
         }
         if (priceData.entry_details?.EMA) {
           const prevStatus = updated.strategyStatus || {} as any;

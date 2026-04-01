@@ -223,14 +223,16 @@ function FuturesDashboard() {
           } as any;
         }
 
-        if (priceData.currentPnl !== undefined || priceData.mfe !== undefined || priceData.mae !== undefined || priceData.entry_leverage !== undefined) {
+        if (priceData.currentPnl !== undefined || priceData.mfe !== undefined || priceData.mae !== undefined) {
           updated.strategyA = {
             ...updated.strategyA,
             ...(priceData.currentPnl !== undefined ? { current_pnl: priceData.currentPnl } : {}),
             ...(priceData.mfe !== undefined ? { mfe: priceData.mfe } : {}),
             ...(priceData.mae !== undefined ? { mae: priceData.mae } : {}),
-            ...(priceData.entry_leverage !== undefined ? { entry_leverage: priceData.entry_leverage } : {}),
           };
+        }
+        if (priceData.entry_leverage !== undefined) {
+          updated.position = { ...updated.position, entryLeverage: priceData.entry_leverage } as any;
         }
 
         const prevStatus = updated.strategyStatus || {} as any;

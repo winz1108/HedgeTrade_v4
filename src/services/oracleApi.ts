@@ -612,6 +612,7 @@ export const fetchBinanceFuturesDashboard = async (): Promise<any> => {
         currentPnl: p.currentPnl ?? p.current_pnl,
         side: p.side ?? p.position_side,
         entry_mode: p.entry_mode ?? p.entryMode,
+        entryLeverage: p.entryLeverage ?? p.entry_leverage ?? null,
       };
     }
 

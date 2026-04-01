@@ -763,6 +763,8 @@ export interface KrakenPosition {
   mae?: number;
   holdHours?: number;
   healthScore?: number;
+  entryLeverage?: number;
+  entry_leverage?: number;
   mode: string;
   symbol: string;
   exchange: string;
@@ -915,6 +917,8 @@ export interface BFDashboardData {
     floorPrice?: number | null;
     currentSlPct?: number;
     slPrice?: number | null;
+    entryLeverage?: number;
+    entry_leverage?: number;
     entry_mode?: 'SW' | 'RIDE';
     in_position?: boolean;
     position_side?: 'LONG' | 'SHORT';
