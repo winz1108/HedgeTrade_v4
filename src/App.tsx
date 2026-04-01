@@ -254,6 +254,9 @@ function App() {
         if (priceData.position_side !== undefined) { positionUpdate.side = priceData.position_side; positionChanged = true; }
         if (priceData.entry_price !== undefined) { positionUpdate.entryPrice = priceData.entry_price; positionChanged = true; }
         if (positionChanged) updated.position = positionUpdate;
+        if (priceData.entry_leverage !== undefined) {
+          updated.strategyA = { ...updated.strategyA, entry_leverage: priceData.entry_leverage };
+        }
         if (priceData.entry_details?.EMA) {
           const prevStatus = updated.strategyStatus || {} as any;
           updated.strategyStatus = {

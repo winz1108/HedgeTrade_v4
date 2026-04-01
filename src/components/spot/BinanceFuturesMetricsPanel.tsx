@@ -186,13 +186,28 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
   };
 
   if (position === 'left') {
-    const leverage = 1;
+    const leverage = (data.strategyA as any)?.entry_leverage ?? (data.strategy as any)?.entry_leverage ?? 1;
     const hasPosition = data.position.inPosition;
     const positionSide = data.position.side;
     const entryPrice = data.position.entryPrice;
     const currentPnl = data.position.currentPnl;
 
     const zbPos = zbStatus?.position;
+
+    const getLeverageBadgeStyles = (lev: number) => {
+      if (lev >= 4) return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-400', cls: 'leverage-badge-4x' };
+      if (lev >= 3) return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-400', cls: 'leverage-badge-3x' };
+      if (lev >= 2) return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-400', cls: 'leverage-badge-2x' };
+      return { bg: '', text: 'text-amber-700', border: '', cls: '' };
+    };
+    const levStyle = getLeverageBadgeStyles(leverage);
+
+    const getPositionBorderClass = (lev: number) => {
+      if (lev >= 4) return 'border-red-400 leverage-border-4x';
+      if (lev >= 3) return 'border-amber-400 leverage-border-3x';
+      if (lev >= 2) return 'border-blue-400 leverage-border-2x';
+      return 'border-amber-300';
+    };
 
     let liquidationPrice: number | null = null;
     if (hasPosition && entryPrice) {
@@ -263,7 +278,13 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                 )}
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-600">Leverage</span>
-                  <span className="text-[11px] font-bold text-amber-700">{leverage}x</span>
+                  {leverage > 1 ? (
+                    <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${levStyle.bg} ${levStyle.text} ${levStyle.border} ${levStyle.cls}`}>
+                      {leverage}x
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold text-amber-700">{leverage}x</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -271,7 +292,11 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
             <div className="border-t border-stone-200 pt-1.5">
               <div className="text-[10px] text-slate-800 mb-1 font-medium">POSITION</div>
               {(hasPosition && entryPrice) || zbPos ? (
-                <div className="space-y-0.5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-1.5 border border-amber-300">
+                <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
+                  leverage > 1
+                    ? `bg-stone-50 ${getPositionBorderClass(leverage)}`
+                    : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
+                }`}>
                   <div className="flex justify-between items-center">
                     <span className="text-[9px] text-amber-700">Side</span>
                     <span className={`text-[11px] font-bold ${
