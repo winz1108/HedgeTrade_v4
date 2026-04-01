@@ -88,13 +88,16 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
   const positionSide = data.position?.side ?? data.position?.position_side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
 
   const cp = data.currentPrice ?? zbStatus?.price ?? 0;
+  const hasPos = data.position?.inPosition || data.position?.in_position;
+  const rawLev = (data.position as any)?.entryLeverage ?? (data.position as any)?.entry_leverage ?? null;
+  const lev = hasPos ? (rawLev ?? 1) : null;
 
   const pos = zbStatus?.position;
   const isPendingExit = pos?.pending_exit ?? false;
   const pendingReason = pos?.pending_exit_reason ?? null;
 
   if (exitConditions) {
-    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={false} currentPrice={cp} pendingExit={isPendingExit} pendingExitReason={pendingReason} />;
+    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={false} currentPrice={cp} pendingExit={isPendingExit} pendingExitReason={pendingReason} leverage={lev} />;
   }
 
   if (pos) {
@@ -129,6 +132,7 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
         currentPrice={cp}
         pendingExit={isPendingExit}
         pendingExitReason={pendingReason}
+        leverage={lev}
       />
     );
   }
@@ -172,7 +176,7 @@ function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFD
 
   if (!constructed.SL && !constructed.TRAIL) return null;
 
-  return <ZoneExitPanel exitConditions={constructed} positionSide={positionSide} dark={false} currentPrice={cp} />;
+  return <ZoneExitPanel exitConditions={constructed} positionSide={positionSide} dark={false} currentPrice={cp} leverage={lev} />;
 }
 
 export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStatus, zbZones }: Props) {

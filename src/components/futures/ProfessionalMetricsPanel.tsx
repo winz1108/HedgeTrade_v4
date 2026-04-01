@@ -89,13 +89,16 @@ function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data:
   const exitConditions = data.strategyA?.exit_conditions ?? (data as any).strategy?.exit_conditions ?? (data.strategyStatus as any)?.exitConditions;
   const positionSide = data.position?.position_side ?? data.position?.side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
   const cp = data.currentPrice ?? zbStatus?.price ?? 0;
+  const hasPosition = data.position?.in_position;
+  const rawLev = (data.position as any)?.entryLeverage ?? (data.position as any)?.entry_leverage ?? null;
+  const lev = hasPosition ? (rawLev ?? 1) : null;
 
   const pos = zbStatus?.position;
   const isPendingExit = pos?.pending_exit ?? false;
   const pendingReason = pos?.pending_exit_reason ?? null;
 
   if (exitConditions) {
-    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={true} currentPrice={cp} pendingExit={isPendingExit} pendingExitReason={pendingReason} />;
+    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={true} currentPrice={cp} pendingExit={isPendingExit} pendingExitReason={pendingReason} leverage={lev} />;
   }
 
   if (!pos) return null;
@@ -132,6 +135,7 @@ function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data:
       currentPrice={cp}
       pendingExit={isPendingExit}
       pendingExitReason={pendingReason}
+      leverage={lev}
     />
   );
 }

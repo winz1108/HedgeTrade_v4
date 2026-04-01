@@ -16,6 +16,7 @@ interface ExitPanelProps {
   currentPrice?: number;
   pendingExit?: boolean;
   pendingExitReason?: string | null;
+  leverage?: number | null;
 }
 
 export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition = false, variant = 'kraken' }: EntryPanelProps) {
@@ -152,7 +153,7 @@ export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition
   );
 }
 
-export function ZoneExitPanel({ exitConditions, positionSide, dark = true, currentPrice = 0, pendingExit = false, pendingExitReason }: ExitPanelProps) {
+export function ZoneExitPanel({ exitConditions, positionSide, dark = true, currentPrice = 0, pendingExit = false, pendingExitReason, leverage }: ExitPanelProps) {
   if (!exitConditions) return null;
 
   const sl = exitConditions.SL;
@@ -184,12 +185,17 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
     ? 'bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.8)] animate-pulse'
     : 'bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.8)] animate-pulse';
 
-  const profitBg = dark ? 'bg-emerald-900/40 border-emerald-400/60 trail-tp-glow' : 'bg-emerald-50 border-emerald-400 trail-tp-glow';
-  const profitTxt = dark ? 'text-emerald-400' : 'text-emerald-600';
-  const profitDot = dark
-    ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse'
-    : 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.9)] animate-pulse';
-  const profitFill = 'bg-emerald-400';
+  const highLev = leverage != null && leverage > 1;
+  const tpImminentBg = dark
+    ? (isShort ? 'trail-tp-panel-short trail-tp-glow-short' : 'trail-tp-panel-long trail-tp-glow-long')
+    : (isShort ? 'trail-tp-panel-short-light trail-tp-glow-short' : 'trail-tp-panel-long-light trail-tp-glow-long');
+  const tpImminentTxt = dark
+    ? (isShort ? 'text-orange-300' : 'text-cyan-300')
+    : (isShort ? 'text-orange-600' : 'text-cyan-600');
+  const tpImminentDot = isShort
+    ? 'bg-orange-400 shadow-[0_0_8px_rgba(249,115,22,0.9)] animate-pulse'
+    : 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)] animate-pulse';
+  const tpImminentFill = isShort ? 'bg-orange-400' : 'bg-cyan-400';
 
   const entryPrice = sl?.entry_price ?? 0;
   const price = currentPrice || entryPrice;
@@ -281,13 +287,14 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
       <div className="flex flex-col gap-1.5">
         {trail && (() => {
           const trailActive = trailInProfit && trailBarPct > 0;
-          const activeBg = trailTpImminent ? profitBg : (trailActive ? sideBg : inactiveBg);
-          const activeDot = trailTpImminent ? profitDot : (trailActive
+          const tpGlow = highLev && trailTpImminent;
+          const activeBg = tpGlow ? tpImminentBg : (trailActive ? sideBg : inactiveBg);
+          const activeDot = tpGlow ? tpImminentDot : (trailActive
             ? `${isShort ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.8)]' : 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]'}`
             : inactiveDot);
-          const activeTxt = trailTpImminent ? profitTxt : (trailActive ? sideColor : inactiveTxt);
-          const activeNum = trailTpImminent ? profitTxt : (trailActive ? sideColor : inactiveNum);
-          const activeFill = trailTpImminent ? profitFill : (trailActive ? sideFill : inactiveFill);
+          const activeTxt = tpGlow ? tpImminentTxt : (trailActive ? sideColor : inactiveTxt);
+          const activeNum = tpGlow ? tpImminentTxt : (trailActive ? sideColor : inactiveNum);
+          const activeFill = tpGlow ? tpImminentFill : (trailActive ? sideFill : inactiveFill);
 
           let leftVal: string, rightVal: string, headerRight: string;
           let barDir: 'ltr' | 'rtl';
