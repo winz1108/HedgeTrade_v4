@@ -249,20 +249,6 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-slate-300">Leverage</span>
-                  {hasPosition && leverage != null && levStyle ? (
-                    leverage > 1 ? (
-                      <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${levStyle.bg} ${levStyle.text} ${levStyle.border} ${levStyle.cls}`}>
-                        {leverage}x
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-bold text-cyan-400">{leverage}x</span>
-                    )
-                  ) : (
-                    <span className="text-[10px] text-slate-500">&mdash;</span>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -284,6 +270,14 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
                       {positionSide || zbPos?.dir?.toUpperCase()}
                     </span>
                   </div>
+                  {leverage != null && (
+                    <div className="flex justify-between items-center">
+                      <span className={`text-[9px] ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'
+                      }`}>Leverage</span>
+                      <span className="text-[11px] font-bold text-white">{leverage}x</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className={`text-[9px] ${
                       (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'

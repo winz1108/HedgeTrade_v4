@@ -216,10 +216,6 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-slate-300">Leverage</span>
-                  <span className="text-[11px] font-bold text-cyan-400">{leverage}x</span>
-                </div>
               </div>
             </div>
 
@@ -241,6 +237,14 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
                       {positionSide}
                     </span>
                   </div>
+                  {leverage != null && (
+                    <div className="flex justify-between items-center">
+                      <span className={`text-[9px] ${
+                        positionSide === 'LONG' ? 'text-cyan-300' : 'text-orange-300'
+                      }`}>Leverage</span>
+                      <span className="text-[11px] font-bold text-white">{leverage}x</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className={`text-[9px] ${
                       positionSide === 'LONG' ? 'text-cyan-300' : 'text-orange-300'

@@ -285,20 +285,6 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-slate-600">Leverage</span>
-                  {hasPosition && leverage != null && levStyle ? (
-                    leverage > 1 ? (
-                      <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${levStyle.bg} ${levStyle.text} ${levStyle.border} ${levStyle.cls}`}>
-                        {leverage}x
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-bold text-amber-700">{leverage}x</span>
-                    )
-                  ) : (
-                    <span className="text-[10px] text-slate-400">&mdash;</span>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -320,6 +306,14 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                       {positionSide || zbPos?.dir?.toUpperCase()}
                     </span>
                   </div>
+                  {leverage != null && (
+                    <div className="flex justify-between items-center">
+                      <span className={`text-[9px] font-medium ${
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-700' : 'text-orange-700'
+                      }`}>Leverage</span>
+                      <span className="text-[11px] font-bold text-white">{leverage}x</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className={`text-[9px] font-medium ${
                       (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-700' : 'text-orange-700'
