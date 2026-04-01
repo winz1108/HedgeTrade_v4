@@ -185,7 +185,6 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
     ? 'bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.8)] animate-pulse'
     : 'bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.8)] animate-pulse';
 
-  const highLev = leverage != null && leverage > 1;
   const tpImminentBg = dark
     ? (isShort ? 'trail-tp-panel-short trail-tp-glow-short' : 'trail-tp-panel-long trail-tp-glow-long')
     : (isShort ? 'trail-tp-panel-short-light trail-tp-glow-short' : 'trail-tp-panel-long-light trail-tp-glow-long');
@@ -283,7 +282,7 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
       <div className="flex flex-col gap-1.5">
         {trail && (() => {
           const trailActive = trailInProfit && trailBarPct > 0;
-          const tpGlow = highLev && trailTpImminent;
+          const tpGlow = trailTpImminent;
           const activeBg = tpGlow ? tpImminentBg : (trailActive ? sideBg : inactiveBg);
           const activeDot = tpGlow ? tpImminentDot : (trailActive
             ? `${isShort ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.8)]' : 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]'}`
