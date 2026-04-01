@@ -90,8 +90,13 @@ function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data:
   const positionSide = data.position?.position_side ?? data.position?.side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
   const cp = data.currentPrice ?? zbStatus?.price ?? 0;
   const hasPosition = data.position?.in_position;
-  const rawLev = (data.position as any)?.entryLeverage ?? (data.position as any)?.entry_leverage ?? null;
-  const lev = hasPosition ? (rawLev ?? 1) : null;
+  const rawLev = (data.position as any)?.entryLeverage
+    ?? (data.position as any)?.entry_leverage
+    ?? data.strategyA?.entry_leverage
+    ?? (data.strategyStatus as any)?.entryLeverage
+    ?? (data.strategyStatus as any)?.entry_leverage
+    ?? null;
+  const lev = hasPosition ? (rawLev != null ? Number(rawLev) : 1) : null;
 
   const pos = zbStatus?.position;
   const isPendingExit = pos?.pending_exit ?? false;
@@ -151,13 +156,29 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
   };
 
   if (position === 'left') {
-    const leverage = 1;
     const hasPosition = data.position?.in_position;
+    const rawLeverage = (data.position as any)?.entryLeverage
+      ?? (data.position as any)?.entry_leverage
+      ?? data.strategyA?.entry_leverage
+      ?? (data.strategyStatus as any)?.entryLeverage
+      ?? (data.strategyStatus as any)?.entry_leverage
+      ?? null;
+    const leverage = hasPosition ? (rawLeverage != null ? Number(rawLeverage) : 1) : null;
     const positionSide = data.position?.position_side;
     const entryPrice = data.strategyA?.entry_price;
     const currentPnl = data.strategyA?.current_pnl;
+    const zbPos = zbStatus?.position;
+
+    const getLeverageBadgeStyles = (lev: number) => {
+      if (lev >= 4) return { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/60', cls: 'leverage-badge-4x' };
+      if (lev >= 3) return { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/50', cls: 'leverage-badge-3x' };
+      if (lev >= 2) return { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/50', cls: 'leverage-badge-2x' };
+      return { bg: '', text: 'text-cyan-400', border: '', cls: '' };
+    };
+    const levStyle = leverage != null ? getLeverageBadgeStyles(leverage) : null;
+
     let liquidationPrice: number | null = null;
-    if (hasPosition && entryPrice) {
+    if (hasPosition && entryPrice && leverage != null) {
       if (positionSide === 'LONG') {
         liquidationPrice = entryPrice * (1 - 0.95 / leverage);
       } else if (positionSide === 'SHORT') {
@@ -174,7 +195,11 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
           </div>
 
           <div className="space-y-1.5">
-            <div className="bg-cyan-500/20 rounded-lg p-2 border border-cyan-500/50">
+            <div className={`rounded-lg p-2 border ${
+              hasPosition && leverage != null && leverage >= 2
+                ? (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'asset-panel-long' : 'asset-panel-short'
+                : 'bg-cyan-500/20 border-cyan-500/50'
+            }`}>
               <div className="text-[10px] text-cyan-300 font-medium mb-0.5">TOTAL ASSET</div>
               <div className="text-xl font-bold text-white mb-1">
                 {formatCurrency(data.balance.portfolioValue)}
@@ -216,6 +241,18 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
                     </span>
                   </div>
                 )}
+                {hasPosition && leverage != null && leverage > 1 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] text-slate-300">Leverage</span>
+                    {levStyle ? (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${levStyle.bg} ${levStyle.text} ${levStyle.border} ${levStyle.cls}`}>
+                        {leverage}x
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-bold text-cyan-400">{leverage}x</span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -223,7 +260,7 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
               <div className="text-[10px] text-white mb-1 font-medium">POSITION</div>
               {hasPosition && entryPrice ? (
                 <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
-                  positionSide === 'LONG'
+                  (positionSide === 'LONG' || zbPos?.dir === 'long')
                     ? 'position-panel-long'
                     : 'position-panel-short'
                 } ${leverage != null && leverage >= 2 ? 'position-glow' : ''}`}>
@@ -237,10 +274,10 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
                       {positionSide}
                     </span>
                   </div>
-                  {leverage != null && (
+                  {leverage != null && leverage > 1 && (
                     <div className="flex justify-between items-center">
                       <span className={`text-[9px] ${
-                        positionSide === 'LONG' ? 'text-cyan-300' : 'text-orange-300'
+                        (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'
                       }`}>Leverage</span>
                       <span className="text-[11px] font-bold text-amber-300">{leverage}x</span>
                     </div>
