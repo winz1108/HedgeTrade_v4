@@ -275,7 +275,7 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones }: Props)
                       <span className={`text-[9px] ${
                         (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-300' : 'text-orange-300'
                       }`}>Leverage</span>
-                      <span className="text-[11px] font-bold text-white">{leverage}x</span>
+                      <span className="text-[11px] font-bold text-amber-300">{leverage}x</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center">

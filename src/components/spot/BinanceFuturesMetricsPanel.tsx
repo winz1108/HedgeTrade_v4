@@ -311,7 +311,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                       <span className={`text-[9px] font-medium ${
                         (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'text-cyan-700' : 'text-orange-700'
                       }`}>Leverage</span>
-                      <span className="text-[11px] font-bold text-white">{leverage}x</span>
+                      <span className="text-[11px] font-bold text-yellow-900">{leverage}x</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center">
