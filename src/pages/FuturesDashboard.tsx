@@ -234,6 +234,9 @@ function FuturesDashboard() {
         if (priceData.entry_leverage !== undefined) {
           updated.position = { ...updated.position, entryLeverage: priceData.entry_leverage } as any;
         }
+        if (priceData.in_position === false) {
+          updated.position = { ...updated.position, entryLeverage: null, entry_leverage: undefined } as any;
+        }
 
         const prevStatus = updated.strategyStatus || {} as any;
         const statusUpdate: any = { ...prevStatus };

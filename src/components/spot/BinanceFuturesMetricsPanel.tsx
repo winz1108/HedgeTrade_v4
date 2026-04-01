@@ -186,7 +186,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
   };
 
   if (position === 'left') {
-    const leverage = (data.position as any)?.entryLeverage ?? (data.position as any)?.entry_leverage ?? 1;
+    const leverage = (data.position as any)?.entryLeverage ?? (data.position as any)?.entry_leverage ?? null;
     const hasPosition = data.position.inPosition;
     const positionSide = data.position.side;
     const entryPrice = data.position.entryPrice;
@@ -200,7 +200,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
       if (lev >= 2) return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-400', cls: 'leverage-badge-2x' };
       return { bg: '', text: 'text-amber-700', border: '', cls: '' };
     };
-    const levStyle = getLeverageBadgeStyles(leverage);
+    const levStyle = leverage != null ? getLeverageBadgeStyles(leverage) : null;
 
     const getPositionBorderClass = (lev: number) => {
       if (lev >= 4) return 'border-red-400 leverage-border-4x';
@@ -210,7 +210,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
     };
 
     let liquidationPrice: number | null = null;
-    if (hasPosition && entryPrice) {
+    if (hasPosition && entryPrice && leverage != null) {
       if (positionSide === 'LONG') {
         liquidationPrice = entryPrice * (1 - 0.95 / leverage);
       } else if (positionSide === 'SHORT') {
@@ -278,12 +278,16 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                 )}
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] text-slate-600">Leverage</span>
-                  {leverage > 1 ? (
-                    <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${levStyle.bg} ${levStyle.text} ${levStyle.border} ${levStyle.cls}`}>
-                      {leverage}x
-                    </span>
+                  {hasPosition && leverage != null && levStyle ? (
+                    leverage > 1 ? (
+                      <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${levStyle.bg} ${levStyle.text} ${levStyle.border} ${levStyle.cls}`}>
+                        {leverage}x
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-bold text-amber-700">{leverage}x</span>
+                    )
                   ) : (
-                    <span className="text-[11px] font-bold text-amber-700">{leverage}x</span>
+                    <span className="text-[10px] text-slate-400">&mdash;</span>
                   )}
                 </div>
               </div>
@@ -293,7 +297,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
               <div className="text-[10px] text-slate-800 mb-1 font-medium">POSITION</div>
               {(hasPosition && entryPrice) || zbPos ? (
                 <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
-                  leverage > 1
+                  leverage != null && leverage > 1
                     ? `bg-stone-50 ${getPositionBorderClass(leverage)}`
                     : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
                 }`}>

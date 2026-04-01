@@ -190,7 +190,8 @@ function App() {
             ...updated.position,
             inPosition: statusData.in_position,
             side: statusData.position_side ?? updated.position.side,
-          };
+            ...(statusData.in_position === false ? { entryLeverage: null } : {}),
+          } as any;
         }
         if (statusData.entry_price !== undefined) {
           updated.position = { ...updated.position, entryPrice: statusData.entry_price };
@@ -253,15 +254,15 @@ function App() {
         if (priceData.currentPnl !== undefined) { positionUpdate.currentPnl = priceData.currentPnl; positionChanged = true; }
         if (priceData.mfe !== undefined) { positionUpdate.mfe = priceData.mfe; positionChanged = true; }
         if (priceData.mae !== undefined) { positionUpdate.mae = priceData.mae; positionChanged = true; }
-        if (priceData.in_position !== undefined) { positionUpdate.inPosition = priceData.in_position; positionChanged = true; }
+        if (priceData.in_position !== undefined) {
+          positionUpdate.inPosition = priceData.in_position;
+          if (priceData.in_position === false) (positionUpdate as any).entryLeverage = null;
+          positionChanged = true;
+        }
         if (priceData.position_side !== undefined) { positionUpdate.side = priceData.position_side; positionChanged = true; }
         if (priceData.entry_price !== undefined) { positionUpdate.entryPrice = priceData.entry_price; positionChanged = true; }
+        if (priceData.entry_leverage !== undefined) { (positionUpdate as any).entryLeverage = priceData.entry_leverage; positionChanged = true; }
         if (positionChanged) updated.position = positionUpdate;
-        if (priceData.entry_leverage !== undefined) {
-          const posUpd = positionChanged ? updated.position : { ...updated.position };
-          (posUpd as any).entryLeverage = priceData.entry_leverage;
-          updated.position = posUpd;
-        }
         if (priceData.entry_details?.EMA) {
           const prevStatus = updated.strategyStatus || {} as any;
           updated.strategyStatus = {
