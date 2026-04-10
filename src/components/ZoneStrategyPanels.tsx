@@ -243,11 +243,9 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
   if (pendingTrail) {
     trailInProfit = true;
     trailTpImminent = true;
-    trailBarPct = Math.max(trailBarPct, 100);
   }
   if (trailTpImminent) {
     trailInProfit = true;
-    trailBarPct = Math.max(trailBarPct, 100);
   }
   const trailBarVisual = Math.min(trailBarPct, 100);
 
@@ -286,7 +284,7 @@ export function ZoneExitPanel({ exitConditions, positionSide, dark = true, curre
 
       <div className="flex flex-col gap-1.5">
         {trail && (() => {
-          const trailActive = trailInProfit && trailBarPct > 0;
+          const trailActive = trailInProfit && (trailBarPct > 0 || trailTpImminent);
           const tpGlow = trailTpImminent || pendingTrail;
           const activeBg = tpGlow ? tpImminentBg : (trailActive ? sideBg : inactiveBg);
           const activeDot = tpGlow ? tpImminentDot : (trailActive
