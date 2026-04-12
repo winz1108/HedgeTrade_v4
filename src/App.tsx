@@ -13,7 +13,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
-  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('5m');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
 
   const liveCandles = useCallback(
     (
