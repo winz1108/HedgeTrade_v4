@@ -501,10 +501,7 @@ function FuturesDashboard() {
         </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2 lg:items-start">
-          <div
-            className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1 lg:overflow-hidden"
-            style={chartColHeight ? { height: chartColHeight } : undefined}
-          >
+          <div className="w-full lg:w-auto flex flex-col gap-1 order-2 lg:order-1">
             <KrakenMetricsPanel data={data} position="left" zbStatus={zbData.status} zbZones={zbData.zones} />
           </div>
           <div ref={chartColRef} className="w-full min-w-0 order-1 lg:order-2">
