@@ -78,8 +78,8 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
     }
 
     return (
-      <div className="flex flex-col gap-1.5 lg:h-full">
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
+      <div className="flex flex-col gap-1.5 lg:h-full lg:min-h-0">
+        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2 flex-shrink-0">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-white">Status</h3>
             <div className="flex items-center gap-1.5">
@@ -230,9 +230,11 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
           </div>
         </div>
 
-        <V2hEntryPanel v29={data.strategyStatus?.entryDetails?.v29} dark={true} />
+        <div className="flex-shrink-0">
+          <V2hEntryPanel v29={data.strategyStatus?.entryDetails?.v29} dark={true} />
+        </div>
 
-        <div className="lg:mt-auto">
+        <div className="flex-shrink-0">
         <GearExitPanel
           gearPanel={data.position?.exitConditions?.GEAR_PANEL ?? (data.strategyStatus as any)?.exitConditions?.GEAR_PANEL}
           dark={true}

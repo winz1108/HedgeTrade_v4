@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData, Candle } from '../types/dashboard';
 import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard } from '../services/oracleApi';
@@ -389,6 +389,25 @@ function FuturesDashboard() {
     };
   }, [data?.zoneBounce]);
 
+  const chartColRef = useRef<HTMLDivElement | null>(null);
+  const [chartColHeight, setChartColHeight] = useState<number | null>(null);
+  useEffect(() => {
+    const el = chartColRef.current;
+    if (!el) return;
+    const update = () => {
+      const h = el.getBoundingClientRect().height;
+      if (h > 0) setChartColHeight(Math.round(h));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener('resize', update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [data]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -482,13 +501,19 @@ function FuturesDashboard() {
         </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2 lg:items-start">
-          <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1">
+          <div
+            className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1 lg:overflow-hidden"
+            style={chartColHeight ? { height: chartColHeight } : undefined}
+          >
             <KrakenMetricsPanel data={data} position="left" zbStatus={zbData.status} zbZones={zbData.zones} />
           </div>
-          <div className="w-full min-w-0 order-1 lg:order-2">
+          <div ref={chartColRef} className="w-full min-w-0 order-1 lg:order-2">
             <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} />
           </div>
-          <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2 lg:h-[650px] lg:overflow-hidden">
+          <div
+            className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2 lg:overflow-hidden"
+            style={chartColHeight ? { height: chartColHeight } : undefined}
+          >
             <div className="w-full flex-shrink-0">
               <KrakenMetricsPanel data={data} position="right" />
             </div>
