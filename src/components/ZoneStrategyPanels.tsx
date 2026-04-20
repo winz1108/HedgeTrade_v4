@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Gauge, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Gauge, Activity, ShieldAlert } from 'lucide-react';
 import type {
   GearPanel,
   V29EntryDetails,
@@ -24,15 +24,9 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }
   const subText = dark ? 'text-slate-300' : 'text-slate-600';
   const dimText = dark ? 'text-slate-500' : 'text-stone-400';
 
+  // Hide panel entirely when no active position
   if (!gearPanel || !gearPanel.active) {
-    return (
-      <div className={`${panelBg} border rounded-lg shadow-sm p-2`}>
-        <h3 className={`text-[10px] font-bold tracking-wide uppercase mb-1.5 ${title}`}>Exit</h3>
-        <div className="text-center py-2">
-          <span className={`text-[10px] ${dimText}`}>No active position</span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const {
@@ -47,15 +41,98 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }
     mfe_pct,
     g1_min_mfe_pct,
     ride_trigger_pct,
-    description,
   } = gearPanel;
 
+  const isLong = (positionSide ?? '').toString().toUpperCase() === 'LONG';
+  const pnlPct =
+    left_price > 0
+      ? ((current_price - left_price) / left_price) * 100 * (isLong ? 1 : -1)
+      : 0;
+  const isLoss = pnlPct < 0;
+
+  const fmtPrice = (n: number): string =>
+    n >= 1000 ? n.toFixed(2) : n.toFixed(n < 1 ? 6 : 4);
+
+  const DirIcon = isLong ? TrendingUp : TrendingDown;
+
+  // Strip trailing "(+0.20%)" / "(-1.2%)" style suffixes from labels
+  const cleanLabel = (label: string): string =>
+    (label || '').replace(/\s*\(\s*[-+]?\d+(?:\.\d+)?\s*%?\s*\)\s*$/g, '').trim();
+
+  // ============ LOSS STATE: SL / LIQUIDATION PANEL ============
+  if (isLoss) {
+    // Visual scale: 0% → 0, -2% → full. Magnitude of P&L drives red bar.
+    const lossMagnitude = Math.min(100, Math.abs(pnlPct) * 50);
+    return (
+      <div className={`${panelBg} border rounded-lg shadow-sm p-2`}>
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5">
+            <ShieldAlert className={`w-3 h-3 ${dark ? 'text-rose-400' : 'text-rose-600'}`} />
+            <h3 className={`text-[10px] font-bold tracking-wide uppercase ${title}`}>Exit</h3>
+            {leverage != null && leverage > 1 && (
+              <span className={`text-[9px] font-bold ${dark ? 'text-amber-300' : 'text-amber-700'}`}>
+                {leverage}x
+              </span>
+            )}
+          </div>
+          <span
+            className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 border rounded ${
+              dark
+                ? 'bg-rose-500/25 text-rose-200 border-rose-400/60'
+                : 'bg-rose-100 text-rose-700 border-rose-400'
+            } shadow-[0_0_8px_rgba(244,63,94,0.45)]`}
+          >
+            SL · ACTIVE
+          </span>
+        </div>
+
+        {/* Red danger bar */}
+        <div
+          className={`relative ${
+            dark ? 'bg-slate-700/60 border-rose-500/30' : 'bg-rose-50 border-rose-300'
+          } border rounded h-5 overflow-hidden`}
+        >
+          <div
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-rose-500 via-red-500 to-red-400 transition-all duration-500 shadow-[0_0_8px_rgba(244,63,94,0.55)]"
+            style={{ width: `${lossMagnitude}%` }}
+          />
+        </div>
+
+        {/* Entry + P&L */}
+        <div className="flex justify-between items-center mt-1">
+          <div className="flex flex-col items-start">
+            <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>Entry</span>
+            <span className={`text-[10px] font-bold ${dark ? 'text-rose-300' : 'text-rose-700'}`}>
+              {fmtPrice(left_price)}
+            </span>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="flex items-center gap-1">
+              <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'}`} />
+              <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>P&amp;L</span>
+            </div>
+            <span className={`text-[10px] font-bold ${dark ? 'text-rose-300' : 'text-rose-700'}`}>
+              {pnlPct.toFixed(2)}%
+            </span>
+          </div>
+          <div className="flex flex-col items-end">
+            <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>MFE</span>
+            <span className={`text-[10px] font-bold ${subText}`}>
+              {mfe_pct >= 0 ? '+' : ''}
+              {mfe_pct.toFixed(2)}%
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============ PROFIT STATE: GEAR PANEL ============
   const clampedProgress = Math.max(0, Math.min(100, progress));
 
-  // Shape tone per stage
-  // gear0: grey (inactive)
-  // gear1: amber / gold (active safe)
-  // gear2: emerald gradient w/ glow (active ride, more vivid)
+  // Shape tone per stage. In profit, gear0 is "arming" (greyed/inactive look),
+  // gear1 active (amber), gear2 active (emerald with glow).
+  const isGearActive = stage === 'gear1' || stage === 'gear2';
   const shape = (() => {
     if (stage === 'gear2') {
       return {
@@ -83,27 +160,24 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }
         iconColor: dark ? 'text-amber-300' : 'text-amber-600',
       };
     }
+    // gear0 in profit → deactivated grey look
     return {
       badge: 'Gear 0 · ARMING',
       badgeCls: dark
-        ? 'bg-slate-700/70 text-slate-300 border-slate-500/60'
-        : 'bg-stone-100 text-slate-600 border-stone-300',
-      track: dark ? 'bg-slate-700/60 border-slate-600' : 'bg-stone-100 border-stone-300',
-      fill: dark ? 'bg-slate-500' : 'bg-stone-400',
+        ? 'bg-slate-700/70 text-slate-400 border-slate-600'
+        : 'bg-stone-100 text-stone-500 border-stone-300',
+      track: dark ? 'bg-slate-700/40 border-slate-700' : 'bg-stone-100 border-stone-200',
+      fill: dark ? 'bg-slate-600' : 'bg-stone-300',
       glow: '',
-      text: dark ? 'text-slate-400' : 'text-slate-500',
-      iconColor: dark ? 'text-slate-400' : 'text-slate-500',
+      text: dark ? 'text-slate-400' : 'text-stone-500',
+      iconColor: dark ? 'text-slate-500' : 'text-stone-400',
     };
   })();
 
-  const isLong = (positionSide ?? '').toString().toUpperCase() === 'LONG';
-  const DirIcon = isLong ? TrendingUp : TrendingDown;
-
-  const fmtPrice = (n: number): string =>
-    n >= 1000 ? n.toFixed(2) : n.toFixed(n < 1 ? 6 : 4);
+  const wrapperDim = isGearActive ? '' : 'opacity-60 grayscale-[30%]';
 
   return (
-    <div className={`${panelBg} border rounded-lg shadow-sm p-2`}>
+    <div className={`${panelBg} border rounded-lg shadow-sm p-2 ${wrapperDim}`}>
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5">
           <Gauge className={`w-3 h-3 ${shape.iconColor}`} />
@@ -133,21 +207,17 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }
         />
       </div>
 
-      {/* Left/Right price labels */}
+      {/* Left/Right price labels (current price removed — progress bar conveys it) */}
       <div className="flex justify-between items-center mt-1">
         <div className="flex flex-col items-start">
-          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>{left_label}</span>
+          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>{cleanLabel(left_label)}</span>
           <span className={`text-[10px] font-bold ${shape.text}`}>{fmtPrice(left_price)}</span>
         </div>
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1">
-            <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'}`} />
-            <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>Now</span>
-          </div>
-          <span className={`text-[10px] font-bold ${title}`}>{fmtPrice(current_price)}</span>
+        <div className="flex items-center gap-1">
+          <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'}`} />
         </div>
         <div className="flex flex-col items-end">
-          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>{right_label}</span>
+          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>{cleanLabel(right_label)}</span>
           <span className={`text-[10px] font-bold ${shape.text}`}>{fmtPrice(right_price)}</span>
         </div>
       </div>
@@ -170,16 +240,10 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }
         </div>
       </div>
 
-      {active_lock_price > 0 && (stage === 'gear1' || stage === 'gear2') && (
+      {active_lock_price > 0 && isGearActive && (
         <div className="mt-1.5 flex justify-between items-center">
           <span className={`text-[9px] uppercase tracking-wide ${dimText}`}>Floor</span>
           <span className={`text-[10px] font-bold ${shape.text}`}>{fmtPrice(active_lock_price)}</span>
-        </div>
-      )}
-
-      {description && (
-        <div className={`mt-1 text-[9px] leading-tight ${dimText}`} title={description}>
-          {description}
         </div>
       )}
     </div>

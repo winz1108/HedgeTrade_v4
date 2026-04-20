@@ -277,6 +277,15 @@ export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus }:
         SL: { ...merged.exitConditions?.SL, ...saExitCond?.SL },
         TRAIL: { ...merged.exitConditions?.TRAIL, ...saExitCond?.TRAIL },
         TIME: { ...merged.exitConditions?.TIME, ...saExitCond?.TIME },
+        GEAR_PANEL:
+          merged.exitConditions?.GEAR_PANEL
+          ?? saExitCond?.GEAR_PANEL
+          ?? data.position?.exitConditions?.GEAR_PANEL,
+      };
+    } else if (data.position?.exitConditions?.GEAR_PANEL) {
+      merged.exitConditions = {
+        ...merged.exitConditions,
+        GEAR_PANEL: merged.exitConditions?.GEAR_PANEL ?? data.position.exitConditions.GEAR_PANEL,
       };
     }
 

@@ -1764,98 +1764,119 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const entryColor = isLong ? '#06b6d4' : '#f97316';
               const entryColorRgba = isLong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(249, 115, 22, 0.5)';
 
+              const gearPanel = (v10Strategy as any)?.exitConditions?.GEAR_PANEL
+                ?? (v10Strategy as any)?.exit_conditions?.GEAR_PANEL
+                ?? null;
+
               const trailCond = v10Strategy?.exitConditions?.TRAIL as any;
-              const trailArmed = trailCond?.armed === true;
 
               const rawSl = v10Strategy?.exitConditions?.SL?.price
                 ?? v10Strategy?.exitPrices?.slPrice
                 ?? v10Strategy?.v32?.sl_price;
               const slPrice = (rawSl && rawSl > 0) ? rawSl : null;
 
-              const trailTriggerPrice = v10Strategy?.exitPrices?.trailTriggerPrice
-                ?? trailCond?.trigger_price
-                ?? null;
+              const sign = isLong ? 1 : -1;
+              const entry = data.holding.buyPrice;
 
-              const trailSlPrice = trailCond?.trail_sl
-                ?? trailCond?.trailStop
-                ?? v10Strategy?.exitPrices?.trailExitPrice
-                ?? null;
+              // Derive lines strictly from GEAR_PANEL when available.
+              // Stage semantics:
+              //   gear0 → SL (red) + next-gear trigger (green, = gear1 arm)
+              //   gear1 → floor (gold) + next-gear trigger (green, = gear2 arm)
+              //   gear2 → floor (gold) ONLY
+              let stage: 'gear0' | 'gear1' | 'gear2' = 'gear0';
+              let floorPrice: number | null = null;
+              let nextGearPrice: number | null = null;
 
-              const mfePrice = trailCond?.mfe_price
-                ?? trailCond?.extreme
-                ?? null;
+              if (gearPanel && gearPanel.active) {
+                stage = gearPanel.stage as typeof stage;
+                const lockPrice = gearPanel.active_lock_price > 0
+                  ? gearPanel.active_lock_price
+                  : (gearPanel.floor_price > 0 ? gearPanel.floor_price : null);
+
+                if (stage === 'gear0') {
+                  if (entry > 0 && typeof gearPanel.g1_min_mfe_pct === 'number') {
+                    nextGearPrice = entry * (1 + (gearPanel.g1_min_mfe_pct / 100) * sign);
+                  }
+                } else if (stage === 'gear1') {
+                  floorPrice = lockPrice;
+                  if (entry > 0 && typeof gearPanel.ride_trigger_pct === 'number') {
+                    nextGearPrice = entry * (1 + (gearPanel.ride_trigger_pct / 100) * sign);
+                  }
+                } else if (stage === 'gear2') {
+                  floorPrice = lockPrice;
+                }
+              } else {
+                // Fallback when GEAR_PANEL unavailable
+                const trailArmed = trailCond?.armed === true;
+                if (trailArmed) {
+                  stage = 'gear1';
+                  floorPrice = trailCond?.trail_sl ?? trailCond?.trailStop
+                    ?? v10Strategy?.exitPrices?.trailExitPrice ?? null;
+                } else {
+                  stage = 'gear0';
+                  nextGearPrice = v10Strategy?.exitPrices?.trailTriggerPrice
+                    ?? trailCond?.trigger_price ?? null;
+                }
+              }
 
               return (
                 <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 4 }}>
+                  {/* Entry (cyan/orange) */}
                   <line
                     x1="0"
-                    y1={priceToY(data.holding.buyPrice)}
+                    y1={priceToY(entry)}
                     x2="100%"
-                    y2={priceToY(data.holding.buyPrice)}
+                    y2={priceToY(entry)}
                     stroke={entryColor}
                     strokeWidth="0.8"
                     strokeDasharray="4 3"
-                    opacity="0.75"
+                    opacity="0.85"
                     filter={`drop-shadow(0 0 3px ${entryColorRgba})`}
                   />
-                  {trailArmed ? (
-                    <>
-                      {trailSlPrice && trailSlPrice > 0 && (
-                        <line
-                          x1="0"
-                          y1={priceToY(trailSlPrice)}
-                          x2="100%"
-                          y2={priceToY(trailSlPrice)}
-                          stroke="#ffd700"
-                          strokeWidth="0.8"
-                          strokeDasharray="4 3"
-                          opacity="0.85"
-                          filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.5))"
-                        />
-                      )}
-                      {mfePrice && mfePrice > 0 && (
-                        <line
-                          x1="0"
-                          y1={priceToY(mfePrice)}
-                          x2="100%"
-                          y2={priceToY(mfePrice)}
-                          stroke="#22c55e"
-                          strokeWidth="0.8"
-                          strokeDasharray="4 3"
-                          opacity="0.8"
-                          filter="drop-shadow(0 0 2px rgba(34, 197, 94, 0.4))"
-                        />
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      {slPrice && (
-                        <line
-                          x1="0"
-                          y1={priceToY(slPrice)}
-                          x2="100%"
-                          y2={priceToY(slPrice)}
-                          stroke="#f85149"
-                          strokeWidth="0.8"
-                          strokeDasharray="4 3"
-                          opacity="0.8"
-                          filter="drop-shadow(0 0 2px rgba(248, 81, 73, 0.4))"
-                        />
-                      )}
-                      {trailTriggerPrice && trailTriggerPrice > 0 && (
-                        <line
-                          x1="0"
-                          y1={priceToY(trailTriggerPrice)}
-                          x2="100%"
-                          y2={priceToY(trailTriggerPrice)}
-                          stroke="#ffd700"
-                          strokeWidth="0.8"
-                          strokeDasharray="4 3"
-                          opacity="0.8"
-                          filter="drop-shadow(0 0 2px rgba(255, 215, 0, 0.4))"
-                        />
-                      )}
-                    </>
+
+                  {/* SL — red, only in gear0 */}
+                  {stage === 'gear0' && slPrice && slPrice > 0 && (
+                    <line
+                      x1="0"
+                      y1={priceToY(slPrice)}
+                      x2="100%"
+                      y2={priceToY(slPrice)}
+                      stroke="#f85149"
+                      strokeWidth="0.8"
+                      strokeDasharray="4 3"
+                      opacity="0.9"
+                      filter="drop-shadow(0 0 3px rgba(248, 81, 73, 0.55))"
+                    />
+                  )}
+
+                  {/* Next-gear trigger — green, gear0 & gear1 only */}
+                  {stage !== 'gear2' && nextGearPrice && nextGearPrice > 0 && (
+                    <line
+                      x1="0"
+                      y1={priceToY(nextGearPrice)}
+                      x2="100%"
+                      y2={priceToY(nextGearPrice)}
+                      stroke="#22c55e"
+                      strokeWidth="0.8"
+                      strokeDasharray="4 3"
+                      opacity="0.9"
+                      filter="drop-shadow(0 0 3px rgba(34, 197, 94, 0.55))"
+                    />
+                  )}
+
+                  {/* Floor — gold, only when gear1 or gear2 active */}
+                  {(stage === 'gear1' || stage === 'gear2') && floorPrice && floorPrice > 0 && (
+                    <line
+                      x1="0"
+                      y1={priceToY(floorPrice)}
+                      x2="100%"
+                      y2={priceToY(floorPrice)}
+                      stroke="#ffd700"
+                      strokeWidth="0.8"
+                      strokeDasharray="4 3"
+                      opacity="0.9"
+                      filter="drop-shadow(0 0 3px rgba(255, 215, 0, 0.6))"
+                    />
                   )}
                 </svg>
               );
