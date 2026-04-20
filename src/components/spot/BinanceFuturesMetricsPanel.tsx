@@ -100,16 +100,31 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
           </div>
 
           <div className="space-y-1">
-            <div className={`rounded-lg p-1.5 border ${
-              hasPosition && leverage != null && leverage >= 2
-                ? (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'asset-panel-long-light' : 'asset-panel-short-light'
-                : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
-            }`}>
-              <div className="text-[10px] text-amber-700 font-medium mb-0.5">TOTAL ASSET</div>
+            {(() => {
+              const isLongPos = hasPosition && (positionSide === 'LONG' || zbPos?.dir === 'long');
+              const isShortPos = hasPosition && !isLongPos && (positionSide === 'SHORT' || zbPos?.dir === 'short');
+              const assetCardCls = isLongPos
+                ? 'asset-panel-long-light'
+                : isShortPos
+                  ? 'asset-panel-short-light'
+                  : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300';
+              const labelCls = isLongPos
+                ? 'text-cyan-700'
+                : isShortPos
+                  ? 'text-orange-700'
+                  : 'text-amber-700';
+              const innerBorderCls = isLongPos
+                ? 'border-cyan-400/60'
+                : isShortPos
+                  ? 'border-orange-400/60'
+                  : 'border-amber-300';
+              return (
+            <div className={`rounded-lg p-1.5 border ${assetCardCls}`}>
+              <div className={`text-[10px] ${labelCls} font-medium mb-0.5`}>TOTAL ASSET</div>
               <div className="text-2xl font-bold text-slate-900 mb-1">
                 {formatCurrency(data.account.totalAsset)}
               </div>
-              <div className="space-y-0.5 pt-1 border-t border-amber-300">
+              <div className={`space-y-0.5 pt-1 border-t ${innerBorderCls}`}>
                 {data.account.currencies && Object.entries(data.account.currencies).length > 0 ? (
                   <>
                     {(() => {
@@ -150,6 +165,8 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                 )}
               </div>
             </div>
+              );
+            })()}
 
             <div className="border-t border-stone-200 pt-1">
               <div className="text-[10px] text-slate-800 mb-0.5 font-medium">POSITION</div>
