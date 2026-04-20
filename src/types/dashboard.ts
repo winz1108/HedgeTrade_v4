@@ -142,6 +142,80 @@ export interface ExitConditions {
   SL?: ExitConditionSL;
   TIME?: ExitConditionTIME;
   V32TRAIL?: ExitConditionV32TRAIL;
+  GEAR_PANEL?: GearPanel;
+}
+
+export type GearStage = 'gear0' | 'gear1' | 'gear2';
+
+export interface GearPanel {
+  stage: GearStage;
+  gear: 1 | 2;
+  left_label: string;
+  left_price: number;
+  right_label: string;
+  right_price: number;
+  current_price: number;
+  progress: number;
+  active_lock: 'floor_g1' | 'floor_g2' | null;
+  active_lock_price: number;
+  mfe_pct: number;
+  g1_min_mfe_pct: number;
+  ride_trigger_pct: number;
+  floor_price: number;
+  best_hl_price: number;
+  active: boolean;
+  description: string;
+}
+
+export interface PriceLine {
+  price: number;
+  distance_pct: number;
+  label: string;
+  active: boolean;
+}
+
+export interface PositionPriceLines {
+  entry?: PriceLine;
+  max_sl?: PriceLine;
+  floor?: PriceLine;
+  best_hl?: PriceLine;
+}
+
+export interface Sim1y {
+  n: number;
+  wr: number;
+  cum_ret_pct: number;
+  mdd_pct: number;
+  avg_hold_h: number;
+}
+
+export interface V29NextEntry {
+  strat: string;
+  side: 'LONG' | 'SHORT';
+  tf: '15m' | '30m' | '1h' | '4h' | string;
+  score: number;
+  expected_entry_price: number;
+  sl_price: number;
+  sl_pct: number;
+  scanned_at_ms: number;
+  sim_1y: Sim1y | null;
+}
+
+export interface V29ActiveEntry {
+  strat: string;
+  side: 'LONG' | 'SHORT';
+  tf: string;
+  sim_1y: Sim1y | null;
+}
+
+export interface V29EntryDetails {
+  state: 'IDLE' | 'IN_POSITION' | 'PENDING_EXIT';
+  in_position: boolean;
+  price: number;
+  last_scan: { at_ms: number; tf: string; n_candidates: number };
+  next_entries: V29NextEntry[];
+  next_entry: V29NextEntry | null;
+  active_entry: V29ActiveEntry | null;
 }
 
 export interface V32EnvCondition {
@@ -242,6 +316,7 @@ export interface EntryDetails {
   EMA?: EntryDetailEMA;
   Range?: EntryDetailRange;
   VWAP?: EntryDetailVWAP;
+  v29?: V29EntryDetails;
   [key: string]: any;
 }
 
@@ -604,68 +679,6 @@ export interface DashboardData {
   v10Strategy?: V10StrategyStatus | null;
 }
 
-export interface ZoneInfo {
-  center: number;
-  top: number;
-  bot: number;
-  tests: number;
-  dist_pct: number;
-  strength: 'strong' | 'medium' | 'weak';
-}
-
-export interface ZoneExitSL {
-  armed: boolean;
-  price: number;
-  entry_price: number;
-  distance_pct: number;
-  current_pnl_pct: number;
-}
-
-export interface ZoneExitTrail {
-  armed: boolean;
-  trigger_price: number;
-  trigger_pct: number;
-  trail_sl: number;
-  extreme: number;
-  peak_pnl: number;
-  mfe_price?: number;
-}
-
-export interface ZoneExitTimeout {
-  armed: boolean;
-  max_bars: number;
-  bars_held: number;
-  pct: number;
-}
-
-export interface ZoneExitConditions {
-  SL?: ZoneExitSL;
-  TRAIL?: ZoneExitTrail;
-  TIMEOUT?: ZoneExitTimeout;
-}
-
-export interface SkippedSignal {
-  dir: 'long' | 'short';
-  atr: number;
-  sl_distance: number;
-  sl_atr_ratio: number;
-  min_required: number;
-  blocked: boolean;
-}
-
-export interface ZoneData {
-  nearestSupport: ZoneInfo | null;
-  nearestResistance: ZoneInfo | null;
-  allSupports: ZoneInfo[];
-  allResistances: ZoneInfo[];
-  barCount: number;
-  zoneCount: number;
-  atr: number;
-  sl_distance?: number;
-  signal: any | null;
-  skipped_signal?: SkippedSignal | null;
-}
-
 export interface KrakenStrategyA {
   name: string;
   in_position: boolean;
@@ -714,7 +727,7 @@ export interface KrakenStrategyA {
   entry_conditions_long?: Record<string, boolean>;
   entry_conditions_short?: Record<string, boolean>;
   entry_details?: EntryDetails;
-  exit_conditions?: ZoneExitConditions;
+  exit_conditions?: { GEAR_PANEL?: GearPanel };
   strategyParams?: Record<string, any>;
 }
 
@@ -768,6 +781,8 @@ export interface KrakenPosition {
   mode: string;
   symbol: string;
   exchange: string;
+  priceLines?: PositionPriceLines;
+  exitConditions?: { GEAR_PANEL?: GearPanel };
 }
 
 export interface KrakenBalance {
@@ -874,7 +889,6 @@ export interface KrakenDashboardData {
     '1d': Candle[];
   };
   strategyStatus?: V10StrategyStatus;
-  zoneData?: ZoneData;
   zoneBounce?: {
     status: any;
     zones: any;
@@ -931,6 +945,9 @@ export interface BFDashboardData {
       floor_pct?: number | null;
       sl_pct?: number | null;
     };
+    priceLines?: PositionPriceLines;
+    exitConditions?: { GEAR_PANEL?: GearPanel };
+    exit_conditions?: { GEAR_PANEL?: GearPanel };
   };
   strategy: {
     version: string;
@@ -942,11 +959,11 @@ export interface BFDashboardData {
     entry_details?: EntryDetails;
     indicators: Record<string, any>;
     pp_reversal_price: number | null;
-    exit_conditions?: ZoneExitConditions;
+    exit_conditions?: { GEAR_PANEL?: GearPanel };
     strategyParams?: Record<string, any>;
   };
   strategyA?: {
-    exit_conditions?: ZoneExitConditions;
+    exit_conditions?: { GEAR_PANEL?: GearPanel };
     strategyParams?: Record<string, any>;
     [key: string]: any;
   };
@@ -971,7 +988,6 @@ export interface BFDashboardData {
   recentTrades?: TradeEvent[];
   priceHistories: Record<string, any[]>;
   strategyStatus?: V10StrategyStatus;
-  zoneData?: ZoneData;
   zoneBounce?: {
     status: any;
     zones: any;

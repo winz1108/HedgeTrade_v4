@@ -1,444 +1,417 @@
-import { Clock, ShieldOff } from 'lucide-react';
-import type { ZoneData, ZoneExitConditions, SkippedSignal } from '../types/dashboard';
+import { TrendingUp, TrendingDown, Gauge, Activity } from 'lucide-react';
+import type {
+  GearPanel,
+  V29EntryDetails,
+  V29NextEntry,
+  V29ActiveEntry,
+  Sim1y,
+} from '../types/dashboard';
 
-interface EntryPanelProps {
-  zoneData: ZoneData | null | undefined;
-  currentPrice: number;
-  dark?: boolean;
-  inPosition?: boolean;
-  variant?: 'kraken' | 'binance';
-}
+/* ---------------------------------------------------------------------------
+ * GearExitPanel — single 3-shape progress panel (gear0 / gear1 / gear2)
+ * -------------------------------------------------------------------------*/
 
-interface ExitPanelProps {
-  exitConditions: ZoneExitConditions | null | undefined;
-  positionSide: 'LONG' | 'SHORT' | string | null | undefined;
+interface GearExitPanelProps {
+  gearPanel: GearPanel | null | undefined;
   dark?: boolean;
-  currentPrice?: number;
-  pendingExit?: boolean;
-  pendingExitReason?: string | null;
+  positionSide?: 'LONG' | 'SHORT' | string | null | undefined;
   leverage?: number | null;
 }
 
-export function ZoneEntryPanel({ zoneData, currentPrice, dark = true, inPosition = false, variant = 'kraken' }: EntryPanelProps) {
-  const support = zoneData?.nearestSupport;
-  const resistance = zoneData?.nearestResistance;
+export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }: GearExitPanelProps) {
+  const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
+  const title = dark ? 'text-slate-100' : 'text-slate-800';
+  const subText = dark ? 'text-slate-300' : 'text-slate-600';
+  const dimText = dark ? 'text-slate-500' : 'text-stone-400';
 
-  const supportPrice = support?.center ?? 0;
-  const resistancePrice = resistance?.center ?? 0;
-
-  const hasData = supportPrice > 0 && resistancePrice > 0 && currentPrice > 0;
-
-  let ratio = 0.5;
-  if (hasData) {
-    const range = resistancePrice - supportPrice;
-    if (range > 0) {
-      ratio = (currentPrice - supportPrice) / range;
-      ratio = Math.max(0, Math.min(1, ratio));
-    }
+  if (!gearPanel || !gearPanel.active) {
+    return (
+      <div className={`${panelBg} border rounded-lg shadow-sm p-2`}>
+        <h3 className={`text-[10px] font-bold tracking-wide uppercase mb-1.5 ${title}`}>Exit</h3>
+        <div className="text-center py-2">
+          <span className={`text-[10px] ${dimText}`}>No active position</span>
+        </div>
+      </div>
+    );
   }
 
-  const isLongBias = ratio < 0.5;
-  const isShortBias = ratio > 0.5;
-  const isCenter = Math.abs(ratio - 0.5) < 0.05;
+  const {
+    stage,
+    left_label,
+    left_price,
+    right_label,
+    right_price,
+    current_price,
+    progress,
+    active_lock_price,
+    mfe_pct,
+    g1_min_mfe_pct,
+    ride_trigger_pct,
+    description,
+  } = gearPanel;
 
-  const bg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
-  const dimTxt = dark ? 'text-slate-500' : 'text-stone-400';
-  const barBg = dark ? 'bg-slate-700' : 'bg-stone-100';
-  const barBorder = dark ? 'border-slate-600' : 'border-stone-200';
-  const separatorTxt = dark ? 'text-slate-600' : 'text-stone-300';
+  const clampedProgress = Math.max(0, Math.min(100, progress));
 
-  const inactiveFill = dark ? 'bg-slate-500' : 'bg-stone-400';
+  // Shape tone per stage
+  // gear0: grey (inactive)
+  // gear1: amber / gold (active safe)
+  // gear2: emerald gradient w/ glow (active ride, more vivid)
+  const shape = (() => {
+    if (stage === 'gear2') {
+      return {
+        badge: 'Gear 2 · RIDE',
+        badgeCls: dark
+          ? 'bg-emerald-500/30 text-emerald-200 border-emerald-400/60'
+          : 'bg-emerald-100 text-emerald-800 border-emerald-400',
+        track: dark ? 'bg-slate-700/80 border-emerald-500/40' : 'bg-emerald-50 border-emerald-300',
+        fill: 'bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300',
+        glow: 'shadow-[0_0_12px_rgba(16,185,129,0.55)]',
+        text: dark ? 'text-emerald-300' : 'text-emerald-700',
+        iconColor: dark ? 'text-emerald-300' : 'text-emerald-600',
+      };
+    }
+    if (stage === 'gear1') {
+      return {
+        badge: 'Gear 1 · SAFE',
+        badgeCls: dark
+          ? 'bg-amber-500/25 text-amber-200 border-amber-400/50'
+          : 'bg-amber-100 text-amber-800 border-amber-400',
+        track: dark ? 'bg-slate-700/80 border-amber-500/30' : 'bg-amber-50 border-amber-300',
+        fill: 'bg-gradient-to-r from-amber-500 to-yellow-400',
+        glow: 'shadow-[0_0_6px_rgba(251,191,36,0.35)]',
+        text: dark ? 'text-amber-300' : 'text-amber-700',
+        iconColor: dark ? 'text-amber-300' : 'text-amber-600',
+      };
+    }
+    return {
+      badge: 'Gear 0 · ARMING',
+      badgeCls: dark
+        ? 'bg-slate-700/70 text-slate-300 border-slate-500/60'
+        : 'bg-stone-100 text-slate-600 border-stone-300',
+      track: dark ? 'bg-slate-700/60 border-slate-600' : 'bg-stone-100 border-stone-300',
+      fill: dark ? 'bg-slate-500' : 'bg-stone-400',
+      glow: '',
+      text: dark ? 'text-slate-400' : 'text-slate-500',
+      iconColor: dark ? 'text-slate-400' : 'text-slate-500',
+    };
+  })();
 
-  const shortActiveTxt = inPosition ? dimTxt
-    : variant === 'kraken' ? 'text-orange-400' : 'text-orange-600';
-  const longActiveTxt = inPosition ? dimTxt
-    : variant === 'kraken' ? 'text-cyan-400' : 'text-cyan-500';
-  const shortBarGrad = variant === 'kraken'
-    ? 'bg-orange-400/80' : 'bg-orange-500/70';
-  const longBarGrad = variant === 'kraken'
-    ? 'bg-cyan-400/80' : 'bg-cyan-500/70';
-  const inactiveTxt = dimTxt;
+  const isLong = (positionSide ?? '').toString().toUpperCase() === 'LONG';
+  const DirIcon = isLong ? TrendingUp : TrendingDown;
 
-  const skipped = zoneData?.skipped_signal as SkippedSignal | null | undefined;
-
-  const longFillPct = (1 - ratio) * 100;
-  const shortFillPct = ratio * 100;
+  const fmtPrice = (n: number): string =>
+    n >= 1000 ? n.toFixed(2) : n.toFixed(n < 1 ? 6 : 4);
 
   return (
-    <div className={`${bg} border rounded-lg shadow-sm p-2`}>
+    <div className={`${panelBg} border rounded-lg shadow-sm p-2`}>
       <div className="flex items-center justify-between mb-1.5">
-        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${dark ? 'text-slate-200' : 'text-slate-700'}`}>
-          Entry
-        </h3>
-        {zoneData && (
-          <span className={`text-[8px] tabular-nums ${dark ? 'text-slate-400' : 'text-stone-500'}`}>
-            ATR {Math.round(zoneData.atr ?? 0)}
-            {zoneData.sl_distance != null ? ` | SL ${Math.round(zoneData.sl_distance)}` : ''}
-          </span>
-        )}
+        <div className="flex items-center gap-1.5">
+          <Gauge className={`w-3 h-3 ${shape.iconColor}`} />
+          <h3 className={`text-[10px] font-bold tracking-wide uppercase ${title}`}>Exit</h3>
+          {leverage != null && leverage > 1 && (
+            <span className={`text-[9px] font-bold ${dark ? 'text-amber-300' : 'text-amber-700'}`}>
+              {leverage}x
+            </span>
+          )}
+        </div>
+        <span
+          className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 border rounded ${shape.badgeCls} ${shape.glow}`}
+        >
+          {shape.badge}
+        </span>
       </div>
 
-      {skipped?.blocked && !inPosition && (
-        <div className={`flex items-center gap-1.5 mb-1.5 rounded px-1.5 py-1 ${
-          dark ? 'bg-rose-900/30 border border-rose-500/30' : 'bg-rose-50 border border-rose-200'
-        }`}>
-          <ShieldOff className={`w-3 h-3 flex-shrink-0 ${dark ? 'text-rose-400' : 'text-rose-500'}`} />
-          <span className={`text-[8px] font-medium ${dark ? 'text-rose-300' : 'text-rose-600'}`}>
-            {skipped.dir.toUpperCase()} blocked -- SL/ATR {skipped.sl_atr_ratio.toFixed(2)} &lt; {skipped.min_required.toFixed(1)}
+      {/* Progress bar */}
+      <div className={`relative ${shape.track} border rounded h-5 overflow-hidden`}>
+        <div
+          className={`absolute inset-y-0 left-0 ${shape.fill} transition-all duration-500 ${shape.glow}`}
+          style={{ width: `${clampedProgress}%` }}
+        />
+        <div
+          className="absolute inset-y-0 w-0.5 bg-white/90"
+          style={{ left: `${clampedProgress}%`, boxShadow: '0 0 4px rgba(255,255,255,0.8)' }}
+        />
+      </div>
+
+      {/* Left/Right price labels */}
+      <div className="flex justify-between items-center mt-1">
+        <div className="flex flex-col items-start">
+          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>{left_label}</span>
+          <span className={`text-[10px] font-bold ${shape.text}`}>{fmtPrice(left_price)}</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-1">
+            <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'}`} />
+            <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>Now</span>
+          </div>
+          <span className={`text-[10px] font-bold ${title}`}>{fmtPrice(current_price)}</span>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>{right_label}</span>
+          <span className={`text-[10px] font-bold ${shape.text}`}>{fmtPrice(right_price)}</span>
+        </div>
+      </div>
+
+      {/* Metrics row */}
+      <div className={`mt-1.5 grid grid-cols-3 gap-1 text-[9px] ${subText}`}>
+        <div className="flex flex-col items-center">
+          <span className={`${dimText} uppercase tracking-wide`}>MFE</span>
+          <span className={`font-bold ${mfe_pct >= 0 ? (dark ? 'text-emerald-400' : 'text-emerald-600') : (dark ? 'text-rose-400' : 'text-rose-600')}`}>
+            {mfe_pct >= 0 ? '+' : ''}{mfe_pct.toFixed(2)}%
           </span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className={`${dimText} uppercase tracking-wide`}>G1 Arm</span>
+          <span className="font-bold">{g1_min_mfe_pct.toFixed(2)}%</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className={`${dimText} uppercase tracking-wide`}>G2 Arm</span>
+          <span className="font-bold">{ride_trigger_pct.toFixed(2)}%</span>
+        </div>
+      </div>
+
+      {active_lock_price > 0 && (stage === 'gear1' || stage === 'gear2') && (
+        <div className="mt-1.5 flex justify-between items-center">
+          <span className={`text-[9px] uppercase tracking-wide ${dimText}`}>Floor</span>
+          <span className={`text-[10px] font-bold ${shape.text}`}>{fmtPrice(active_lock_price)}</span>
         </div>
       )}
 
-      {hasData ? (
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-[9px] mb-0.5">
-            <span className={`tabular-nums ${!inPosition && (isShortBias || isCenter) ? `${shortActiveTxt} font-bold` : inactiveTxt}`}>
-              ${supportPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </span>
-            <span className={`tabular-nums ${!inPosition && (isLongBias || isCenter) ? `${longActiveTxt} font-bold` : inactiveTxt}`}>
-              ${resistancePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </span>
-          </div>
-
-          <div className={`relative h-3 ${barBg} rounded-full overflow-hidden border ${barBorder}`}>
-            {inPosition ? (
-              isLongBias || isCenter ? (
-                <div
-                  className={`absolute right-0 top-0 h-full ${inactiveFill} rounded-full transition-all duration-500`}
-                  style={{ width: `${longFillPct}%` }}
-                />
-              ) : (
-                <div
-                  className={`absolute left-0 top-0 h-full ${inactiveFill} rounded-full transition-all duration-500`}
-                  style={{ width: `${shortFillPct}%` }}
-                />
-              )
-            ) : isLongBias || isCenter ? (
-              <div
-                className={`absolute right-0 top-0 h-full ${longBarGrad} rounded-full transition-all duration-500`}
-                style={{ width: `${longFillPct}%` }}
-              />
-            ) : (
-              <div
-                className={`absolute left-0 top-0 h-full ${shortBarGrad} rounded-full transition-all duration-500`}
-                style={{ width: `${shortFillPct}%` }}
-              />
-            )}
-          </div>
-
-          <div className="flex items-center justify-between text-[8px]">
-            <div className={`flex items-center gap-1 ${!inPosition && (isLongBias || isCenter) ? longActiveTxt : inactiveTxt}`}>
-              <span className="font-bold">LONG</span>
-              <span className={separatorTxt}>|</span>
-              <span>{(support?.dist_pct ?? 0).toFixed(2)}%</span>
-              <span className={separatorTxt}>|</span>
-              <span>{support?.tests ?? 0}x {support?.strength ?? 'weak'}</span>
-            </div>
-            <div className={`flex items-center gap-1 ${!inPosition && (isShortBias || isCenter) ? shortActiveTxt : inactiveTxt}`}>
-              <span>{resistance?.tests ?? 0}x {resistance?.strength ?? 'weak'}</span>
-              <span className={separatorTxt}>|</span>
-              <span>{(resistance?.dist_pct ?? 0).toFixed(2)}%</span>
-              <span className={separatorTxt}>|</span>
-              <span className="font-bold">SHORT</span>
-            </div>
-          </div>
-
-        </div>
-      ) : (
-        <div className="text-center py-2">
-          <span className={`text-[10px] ${dark ? 'text-slate-500' : 'text-stone-400'}`}>Waiting for zone data...</span>
+      {description && (
+        <div className={`mt-1 text-[9px] leading-tight ${dimText}`} title={description}>
+          {description}
         </div>
       )}
     </div>
   );
 }
 
-export function ZoneExitPanel({ exitConditions, positionSide, dark = true, currentPrice = 0, pendingExit = false, pendingExitReason, leverage }: ExitPanelProps) {
-  if (!exitConditions) return null;
+/* ---------------------------------------------------------------------------
+ * V2hEntryPanel — shows up to 3 next_entries OR 1 active_entry
+ * -------------------------------------------------------------------------*/
 
-  const sl = exitConditions.SL;
-  const trail = exitConditions.TRAIL;
-  const timeout = exitConditions.TIMEOUT;
+interface V2hEntryPanelProps {
+  v29: V29EntryDetails | null | undefined;
+  dark?: boolean;
+}
 
-  if (!sl && !trail && !timeout) return null;
-
-  const isShort = positionSide === 'SHORT' || positionSide === 'short';
-  const sideColor = dark
-    ? (isShort ? 'text-orange-400' : 'text-cyan-400')
-    : (isShort ? 'text-orange-600' : 'text-cyan-600');
-  const sideFill = isShort ? 'bg-orange-400' : 'bg-cyan-400';
-  const sideBg = dark
-    ? (isShort ? 'bg-orange-900/30 border-orange-500/40' : 'bg-cyan-900/30 border-cyan-500/40')
-    : (isShort ? 'bg-orange-50 border-orange-300' : 'bg-cyan-50 border-cyan-300');
-
-  const inactiveBg = dark ? 'bg-slate-700/20 border-slate-700/50' : 'bg-stone-50 border-stone-200';
-  const inactiveDot = dark ? 'bg-slate-600' : 'bg-stone-300';
-  const inactiveTxt = dark ? 'text-slate-300' : 'text-slate-600';
-  const inactiveNum = dark ? 'text-slate-500' : 'text-stone-400';
-  const barBg = dark ? 'bg-slate-700' : 'bg-stone-200';
-  const inactiveFill = dark ? 'bg-slate-500' : 'bg-stone-400';
-  const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
-  const headerTxt = dark ? 'text-slate-200' : 'text-slate-700';
-  const dangerBg = dark ? 'bg-rose-900/30 border-rose-500/50' : 'bg-rose-50 border-rose-300';
-  const dangerTxt = dark ? 'text-rose-400' : 'text-rose-600';
-  const dangerDot = dark
-    ? 'bg-rose-400 shadow-[0_0_4px_rgba(248,113,113,0.8)] animate-pulse'
-    : 'bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.8)] animate-pulse';
-
-  const tpImminentBg = dark
-    ? (isShort ? 'trail-tp-panel-short trail-tp-glow-short' : 'trail-tp-panel-long trail-tp-glow-long')
-    : (isShort ? 'trail-tp-panel-short-light trail-tp-glow-short' : 'trail-tp-panel-long-light trail-tp-glow-long');
-  const tpImminentTxt = dark ? 'text-green-300' : 'text-green-600';
-  const tpImminentDot = 'bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.9)] animate-pulse';
-  const tpImminentFill = 'bg-green-400';
-
-  const entryPrice = sl?.entry_price ?? 0;
-  const price = currentPrice || entryPrice;
-
-  const trailArmed = trail?.armed ?? false;
-  const mfePrice = trail?.mfe_price ?? trail?.extreme ?? 0;
-
-  const pendingTrail = pendingExit && (pendingExitReason === 'Trail' || pendingExitReason === 'EXIT_SW_TRAIL' || pendingExitReason === 'EXIT_R_TRAIL');
-  const pendingSL = pendingExit && (pendingExitReason === 'SL' || pendingExitReason === 'HARD_SL');
-
-  let trailBarPct = 0;
-  let trailInProfit = false;
-  if (trail && price && entryPrice) {
-    if (trailArmed) {
-      const trailSlPrice = trail.trail_sl;
-      if (isShort) {
-        const range = mfePrice > 0 && trailSlPrice > 0 ? trailSlPrice - mfePrice : 1;
-        trailBarPct = range > 0 ? Math.max(0, ((trailSlPrice - price) / range) * 100) : 0;
-      } else {
-        const range = mfePrice > 0 && trailSlPrice > 0 ? mfePrice - trailSlPrice : 1;
-        trailBarPct = range > 0 ? Math.max(0, ((price - trailSlPrice) / range) * 100) : 0;
-      }
-      trailInProfit = true;
-    } else {
-      const triggerPrice = trail.trigger_price;
-      if (isShort) {
-        const range = entryPrice - triggerPrice;
-        trailBarPct = range > 0 ? Math.max(0, ((entryPrice - price) / range) * 100) : 0;
-      } else {
-        const range = triggerPrice - entryPrice;
-        trailBarPct = range > 0 ? Math.max(0, ((price - entryPrice) / range) * 100) : 0;
-      }
-      trailInProfit = false;
-    }
+function tfToMs(tf: string): number {
+  switch (tf) {
+    case '15m':
+      return 15 * 60 * 1000;
+    case '30m':
+      return 30 * 60 * 1000;
+    case '1h':
+      return 60 * 60 * 1000;
+    case '4h':
+      return 4 * 60 * 60 * 1000;
+    case '1d':
+      return 24 * 60 * 60 * 1000;
+    default:
+      return 60 * 60 * 1000;
   }
-  let trailTpImminent = false;
-  if (trailArmed && trail && price && entryPrice) {
-    const trailSlPrice = trail.trail_sl;
-    if (trailSlPrice != null && trailSlPrice > 0) {
-      if (isShort && price >= trailSlPrice) {
-        trailTpImminent = true;
-      } else if (!isShort && price <= trailSlPrice) {
-        trailTpImminent = true;
-      }
-    }
-    if (!trailTpImminent && trailBarPct <= 0) {
-      trailTpImminent = true;
-    }
-  }
-  if (pendingTrail) {
-    trailInProfit = true;
-    trailTpImminent = true;
-  }
-  if (trailTpImminent) {
-    trailInProfit = true;
-  }
-  const trailBarVisual = Math.min(trailBarPct, 100);
+}
 
-  let slBarPct = 0;
-  let slInLoss = false;
-  if (sl && price && entryPrice) {
-    const slPrice = sl.price;
-    if (isShort) {
-      const range = slPrice - entryPrice;
-      slBarPct = range > 0 ? Math.max(0, ((price - entryPrice) / range) * 100) : 0;
-      slInLoss = price > entryPrice;
-    } else {
-      const range = entryPrice - slPrice;
-      slBarPct = range > 0 ? Math.max(0, ((entryPrice - price) / range) * 100) : 0;
-      slInLoss = price < entryPrice;
-    }
+function Sim1yCells({ sim, dark }: { sim: Sim1y | null; dark: boolean }) {
+  const dimText = dark ? 'text-slate-500' : 'text-stone-400';
+  const label = dark ? 'text-slate-300' : 'text-slate-600';
+  if (!sim) {
+    return <div className={`text-[9px] ${dimText}`}>시뮬 데이터 없음</div>;
   }
-  if (pendingSL) {
-    slInLoss = true;
-    slBarPct = Math.max(slBarPct, 100);
-  }
-  const slBarVisual = Math.min(slBarPct, 100);
-  const slDanger = (slInLoss && slBarPct >= 80) || pendingSL;
+  const goodBad = (v: number) =>
+    v >= 0 ? (dark ? 'text-emerald-400' : 'text-emerald-600') : dark ? 'text-rose-400' : 'text-rose-600';
+  return (
+    <div className="grid grid-cols-5 gap-1 mt-1">
+      <div className="flex flex-col items-center">
+        <span className={`text-[8px] uppercase ${dimText}`}>N</span>
+        <span className={`text-[10px] font-bold ${label}`}>{sim.n}</span>
+      </div>
+      <div className="flex flex-col items-center">
+        <span className={`text-[8px] uppercase ${dimText}`}>WR</span>
+        <span className={`text-[10px] font-bold ${label}`}>{sim.wr.toFixed(0)}%</span>
+      </div>
+      <div className="flex flex-col items-center">
+        <span className={`text-[8px] uppercase ${dimText}`}>Ret</span>
+        <span className={`text-[10px] font-bold ${goodBad(sim.cum_ret_pct)}`}>
+          {sim.cum_ret_pct >= 0 ? '+' : ''}
+          {sim.cum_ret_pct.toFixed(1)}%
+        </span>
+      </div>
+      <div className="flex flex-col items-center">
+        <span className={`text-[8px] uppercase ${dimText}`}>MDD</span>
+        <span className={`text-[10px] font-bold ${dark ? 'text-rose-400' : 'text-rose-600'}`}>
+          {sim.mdd_pct.toFixed(1)}%
+        </span>
+      </div>
+      <div className="flex flex-col items-center">
+        <span className={`text-[8px] uppercase ${dimText}`}>Hold</span>
+        <span className={`text-[10px] font-bold ${label}`}>{sim.avg_hold_h.toFixed(1)}h</span>
+      </div>
+    </div>
+  );
+}
 
-  const timePct = timeout?.pct ?? 0;
-  const timeDanger = trailArmed && timePct >= 80;
-  const maxBars = timeout?.max_bars ?? 864;
-  const barsHeld = timeout?.bars_held ?? 0;
-  const hoursLeft = Math.max(0, ((maxBars - barsHeld) * 5) / 60);
+function NextEntryCard({
+  entry,
+  dark,
+  rank,
+}: {
+  entry: V29NextEntry;
+  dark: boolean;
+  rank: number;
+}) {
+  const isLong = entry.side === 'LONG';
+  const sideCls = isLong
+    ? dark
+      ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-300'
+      : 'bg-cyan-50 border-cyan-300 text-cyan-700'
+    : dark
+      ? 'bg-orange-500/15 border-orange-500/50 text-orange-300'
+      : 'bg-orange-50 border-orange-300 text-orange-700';
+  const cardBg = dark ? 'bg-slate-900/60 border-slate-700' : 'bg-stone-50 border-stone-200';
+  const label = dark ? 'text-slate-300' : 'text-slate-700';
+  const dimText = dark ? 'text-slate-500' : 'text-stone-500';
+
+  const fmtPrice = (n: number) => (n >= 1000 ? n.toFixed(2) : n.toFixed(n < 1 ? 6 : 4));
 
   return (
-    <div className={`${panelBg} border rounded-lg shadow-sm p-2`}>
-      <div className="mb-1.5">
-        <div className={`text-[10px] font-bold tracking-wide uppercase ${headerTxt}`}>Exit</div>
+    <div className={`${cardBg} border rounded-lg p-1.5 space-y-1`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <span className={`text-[9px] font-bold ${dimText}`}>#{rank}</span>
+          <span className={`text-[10px] font-bold ${label} truncate`}>{entry.strat}</span>
+        </div>
+        <span
+          className={`text-[8px] font-bold px-1.5 py-0.5 border rounded tracking-wider ${sideCls}`}
+        >
+          {entry.side}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-1">
+        <div className="flex flex-col">
+          <span className={`text-[8px] uppercase ${dimText}`}>Entry</span>
+          <span className={`text-[10px] font-bold ${label}`}>{fmtPrice(entry.expected_entry_price)}</span>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className={`text-[8px] uppercase ${dimText}`}>SL</span>
+          <span className={`text-[10px] font-bold ${dark ? 'text-rose-400' : 'text-rose-600'}`}>
+            {fmtPrice(entry.sl_price)}
+            <span className={`ml-1 text-[8px] ${dimText}`}>({entry.sl_pct.toFixed(2)}%)</span>
+          </span>
+        </div>
+      </div>
+      <Sim1yCells sim={entry.sim_1y} dark={dark} />
+    </div>
+  );
+}
+
+function ActiveEntryCard({ active, dark }: { active: V29ActiveEntry; dark: boolean }) {
+  const isLong = active.side === 'LONG';
+  const sideCls = isLong
+    ? dark
+      ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-300'
+      : 'bg-cyan-50 border-cyan-300 text-cyan-700'
+    : dark
+      ? 'bg-orange-500/15 border-orange-500/50 text-orange-300'
+      : 'bg-orange-50 border-orange-300 text-orange-700';
+  const cardBg = dark ? 'bg-slate-900/60 border-slate-700' : 'bg-stone-50 border-stone-200';
+  const label = dark ? 'text-slate-300' : 'text-slate-700';
+
+  return (
+    <div className={`${cardBg} border rounded-lg p-1.5 space-y-1`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <Activity className={`w-2.5 h-2.5 ${dark ? 'text-cyan-300' : 'text-cyan-600'}`} />
+          <span className={`text-[10px] font-bold ${label} truncate`}>{active.strat}</span>
+        </div>
+        <span
+          className={`text-[8px] font-bold px-1.5 py-0.5 border rounded tracking-wider ${sideCls}`}
+        >
+          {active.side}
+        </span>
+      </div>
+      <Sim1yCells sim={active.sim_1y} dark={dark} />
+    </div>
+  );
+}
+
+export function V2hEntryPanel({ v29, dark = true }: V2hEntryPanelProps) {
+  const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
+  const title = dark ? 'text-slate-100' : 'text-slate-800';
+  const dimText = dark ? 'text-slate-500' : 'text-stone-400';
+  const trackBg = dark ? 'bg-slate-700' : 'bg-stone-200';
+
+  if (!v29) {
+    return (
+      <div className={`${panelBg} border rounded-lg shadow-sm p-2`}>
+        <h3 className={`text-[10px] font-bold tracking-wide uppercase mb-1.5 ${title}`}>Entry</h3>
+        <div className="text-center py-2">
+          <span className={`text-[10px] ${dimText}`}>Waiting for data…</span>
+        </div>
+      </div>
+    );
+  }
+
+  const inPosition = v29.in_position;
+
+  return (
+    <div className={`${panelBg} border rounded-lg shadow-sm p-2 space-y-1.5`}>
+      <div className="flex items-center justify-between">
+        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${title}`}>Entry</h3>
+        <span className={`text-[8px] uppercase tracking-wider ${dimText}`}>
+          {inPosition ? 'ACTIVE' : 'SCAN'}
+        </span>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        {trail && (() => {
-          const trailActive = trailInProfit && (trailBarPct > 0 || trailTpImminent);
-          const tpGlow = trailTpImminent || pendingTrail;
-          const activeBg = tpGlow ? tpImminentBg : (trailActive ? sideBg : inactiveBg);
-          const activeDot = tpGlow ? tpImminentDot : (trailActive
-            ? `${isShort ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.8)]' : 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]'}`
-            : inactiveDot);
-          const activeTxt = tpGlow ? tpImminentTxt : (trailActive ? sideColor : inactiveTxt);
-          const activeNum = tpGlow ? tpImminentTxt : (trailActive ? sideColor : inactiveNum);
-          const activeFill = tpGlow ? tpImminentFill : (trailActive ? sideFill : inactiveFill);
-
-          let leftVal: string, rightVal: string, headerRight: string;
-          let barDir: 'ltr' | 'rtl';
-
-          if (trailArmed) {
-            const trailSlPrice = trail.trail_sl;
-            if (isShort) {
-              leftVal = `$${mfePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-              rightVal = `$${trailSlPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-              barDir = 'rtl';
-            } else {
-              leftVal = `$${trailSlPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-              rightVal = `$${mfePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-              barDir = 'ltr';
-            }
-            headerRight = `MFE ${trail.peak_pnl.toFixed(2)}%`;
-          } else {
-            const triggerPrice = trail.trigger_price;
-            const achievePct = `${trailBarPct.toFixed(0)}%`;
-            if (isShort) {
-              leftVal = `$${triggerPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-              rightVal = `$${entryPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-              barDir = 'rtl';
-            } else {
-              leftVal = `$${entryPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-              rightVal = `$${triggerPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-              barDir = 'ltr';
-            }
-            headerRight = achievePct;
-          }
-
-          return (
-            <div className={`rounded-md border p-1.5 transition-all ${activeBg}`}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${activeDot}`} />
-                  <span className={`text-[10px] font-bold ${activeTxt}`}>TRAIL</span>
+      {inPosition ? (
+        v29.active_entry ? (
+          <ActiveEntryCard active={v29.active_entry} dark={dark} />
+        ) : (
+          <div className={`text-center py-2 text-[10px] ${dimText}`}>활성 전략 정보 없음</div>
+        )
+      ) : (
+        <>
+          {/* Time-to-next-bar progress bar */}
+          {v29.last_scan?.at_ms > 0 && (() => {
+            const span = tfToMs(v29.last_scan.tf || '1h');
+            const elapsed = Math.max(0, Date.now() - v29.last_scan.at_ms);
+            const pct = Math.max(0, Math.min(100, (elapsed / span) * 100));
+            return (
+              <div>
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className={`text-[9px] uppercase tracking-wide ${dimText}`}>
+                    Next {v29.last_scan.tf} close
+                  </span>
+                  <span className={`text-[9px] font-bold ${dimText}`}>{pct.toFixed(0)}%</span>
                 </div>
-                <span className={`text-[8px] font-bold tabular-nums ${activeNum}`}>
-                  {headerRight}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 justify-center">
-                <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${activeNum}`}>
-                  {leftVal}
-                </span>
-                <div className={`w-[calc(100%-100px)] ${barBg} rounded-full h-3 overflow-hidden relative`}>
-                  {trailBarVisual > 0 && (
-                    <div
-                      className={`absolute ${barDir === 'ltr' ? 'left-0' : 'right-0'} top-0 h-3 rounded-full transition-all duration-300 ${activeFill}`}
-                      style={{ width: `${trailBarVisual}%` }}
-                    />
-                  )}
+                <div className={`${trackBg} rounded h-1.5 overflow-hidden`}>
+                  <div
+                    className={`${dark ? 'bg-cyan-400' : 'bg-cyan-500'} h-full transition-all duration-500`}
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
-                <span className={`text-[8px] tabular-nums w-[42px] text-right flex-shrink-0 ${activeNum}`}>
-                  {rightVal}
-                </span>
               </div>
-            </div>
-          );
-        })()}
+            );
+          })()}
 
-        {sl && (() => {
-          const slActive = slInLoss && slBarPct > 0;
-          const slBgStyle = slDanger ? dangerBg : (slActive ? dangerBg : inactiveBg);
-          const slDotStyle = slDanger ? dangerDot : (slActive ? (dark ? 'bg-rose-400' : 'bg-rose-500') : inactiveDot);
-          const slTxtStyle = slDanger ? dangerTxt : (slActive ? dangerTxt : inactiveTxt);
-          const slNumStyle = slDanger ? dangerTxt : (slActive ? dangerTxt : inactiveNum);
-          const slFillColor = slDanger ? 'bg-rose-500' : (slActive ? 'bg-rose-400/60' : inactiveFill);
-
-          const slPriceFmt = `$${sl.price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-          const entryFmt = `$${sl.entry_price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-          const slLossPct = Math.abs(sl.distance_pct).toFixed(2);
-
-          let leftVal: string, rightVal: string;
-          let barDir: 'ltr' | 'rtl';
-
-          if (isShort) {
-            leftVal = entryFmt;
-            rightVal = slPriceFmt;
-            barDir = 'ltr';
-          } else {
-            leftVal = slPriceFmt;
-            rightVal = entryFmt;
-            barDir = 'rtl';
-          }
-
-          return (
-            <div className={`rounded-md border p-1.5 transition-all ${slBgStyle}`}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${slDotStyle}`} />
-                  <span className={`text-[10px] font-bold ${slTxtStyle}`}>SL</span>
-                </div>
-                <span className={`text-[8px] font-bold tabular-nums ${slNumStyle}`}>
-                  -{slLossPct}%
-                </span>
-              </div>
-              <div className="flex items-center gap-1 justify-center">
-                <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${slNumStyle}`}>
-                  {leftVal}
-                </span>
-                <div className={`w-[calc(100%-100px)] ${barBg} rounded-full h-3 overflow-hidden relative`}>
-                  {slBarVisual > 0 && (
-                    <div
-                      className={`absolute ${barDir === 'ltr' ? 'left-0' : 'right-0'} top-0 h-3 rounded-full transition-all duration-300 ${slFillColor}`}
-                      style={{ width: `${slBarVisual}%` }}
-                    />
-                  )}
-                </div>
-                <span className={`text-[8px] tabular-nums w-[42px] text-right flex-shrink-0 ${slNumStyle}`}>
-                  {rightVal}
-                </span>
-              </div>
-            </div>
-          );
-        })()}
-
-        {timeout && (
-          <div className={`rounded-md border p-1.5 transition-all ${timeDanger ? sideBg : inactiveBg}`}>
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <Clock className={`w-3 h-3 ${timeDanger ? sideColor : dark ? 'text-slate-600' : 'text-stone-400'}`} />
-                <span className={`text-[10px] font-bold ${timeDanger ? sideColor : inactiveTxt}`}>TIME</span>
-              </div>
-              <span className={`text-[8px] font-bold tabular-nums ${timeDanger ? sideColor : inactiveNum}`}>
-                {hoursLeft > 0 ? `${hoursLeft.toFixed(1)}h left` : 'Expired'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 justify-center">
-              <span className={`text-[8px] tabular-nums w-[42px] flex-shrink-0 ${timeDanger ? sideColor : inactiveNum}`}>
-                0h
-              </span>
-              <div className={`w-[calc(100%-100px)] ${barBg} rounded-full h-3 overflow-hidden`}>
-                <div
-                  className={`h-3 rounded-full transition-all duration-300 ${timeDanger ? sideFill : inactiveFill}`}
-                  style={{ width: `${timePct}%` }}
+          {v29.next_entries && v29.next_entries.length > 0 ? (
+            <div className="space-y-1">
+              {v29.next_entries.slice(0, 3).map((entry, idx) => (
+                <NextEntryCard
+                  key={`${entry.strat}-${entry.side}-${idx}`}
+                  entry={entry}
+                  dark={dark}
+                  rank={idx + 1}
                 />
-              </div>
-              <span className={`text-[8px] tabular-nums w-[42px] text-right flex-shrink-0 ${timeDanger ? sideColor : inactiveNum}`}>
-                72h
-              </span>
+              ))}
             </div>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className={`text-center py-2 text-[10px] ${dimText}`}>
+              직전 봉 close 시점 진입 후보 없음 — 다음 봉 close 대기
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
