@@ -75,7 +75,6 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
   //   LONG  → [Max SL] ──── [Signal SL] ──── [Entry]   (loss goes left)
   //   SHORT → [Entry] ──── [Signal SL] ──── [Max SL]   (loss goes right)
   // ====================================================================
-  const slActive = isLoss;
   const slValid = typeof slPrice === 'number' && slPrice > 0 && entryPrice > 0;
   const sigValid =
     typeof signalSlPrice === 'number' &&
@@ -83,6 +82,12 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     entryPrice > 0 &&
     slValid &&
     Math.abs((signalSlPrice as number) - entryPrice) < Math.abs((slPrice as number) - entryPrice);
+  const signalSlBreached =
+    isLoss &&
+    sigValid &&
+    typeof signalSlPrice === 'number' &&
+    Math.abs(livePrice - entryPrice) >= Math.abs(signalSlPrice - entryPrice);
+  const slActive = signalSlBreached;
 
   // Bar range = entry → max_sl.  Marker position = live price's distance from entry.
   let slProgress = 0;
