@@ -511,7 +511,7 @@ function FuturesDashboard() {
             <div className="w-full flex-shrink-0">
               <KrakenMetricsPanel data={data} position="right" />
             </div>
-            <div className="w-full flex-shrink-0 h-[480px] lg:h-[420px]">
+            <div className="w-full flex-shrink-0 h-[220px]">
               <KrakenMetricsPanel data={data} position="trades" />
             </div>
           </div>

@@ -1362,45 +1362,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     />
                   )}
 
-                  {/* Swing High/Low Markers */}
-                  {(() => {
-                    const s = 6;
-                    const offset = 7;
-
-                    return (
-                      <>
-                        {visibleCandles.map((candle, idx) => {
-                          const cx = idx * (candleWidth + candleGap) + candleWidth / 2;
-                          return (
-                            <g key={`swing-${idx}`}>
-                              {candle.swing_high && (
-                                <g transform={`translate(${cx}, ${Math.max(s + 2, priceToY(candle.high) - offset)})`}>
-                                  <path
-                                    d={`M 0 ${s} L ${-s} ${-s * 0.5} Q 0 ${-s * 0.15} ${s} ${-s * 0.5} Z`}
-                                    fill="#a16207"
-                                    stroke="#ca8a04"
-                                    strokeWidth="0.4"
-                                    opacity="0.45"
-                                  />
-                                </g>
-                              )}
-                              {candle.swing_low && (
-                                <g transform={`translate(${cx}, ${Math.min(priceChartHeight - s - 2, priceToY(candle.low) + offset)})`}>
-                                  <path
-                                    d={`M 0 ${-s} L ${s} ${s * 0.5} Q 0 ${s * 0.15} ${-s} ${s * 0.5} Z`}
-                                    fill="#0e7490"
-                                    stroke="#06b6d4"
-                                    strokeWidth="0.4"
-                                    opacity="0.45"
-                                  />
-                                </g>
-                              )}
-                            </g>
-                          );
-                        })}
-                      </>
-                    );
-                  })()}
                 </>
               );
             })()}

@@ -524,7 +524,7 @@ function App() {
             <div className="w-full flex-shrink-0">
               <BinanceFuturesMetricsPanel data={data} position="right" currentTime={currentTime} />
             </div>
-            <div className="w-full flex-shrink-0 h-[480px] lg:h-[420px]">
+            <div className="w-full flex-shrink-0 h-[220px]">
               <BinanceFuturesMetricsPanel data={data} position="trades" currentTime={currentTime} />
             </div>
           </div>

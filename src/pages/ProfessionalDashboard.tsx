@@ -410,7 +410,7 @@ function ProfessionalDashboard() {
             <div className="w-full flex-shrink-0">
               <ProfessionalMetricsPanel data={data} position="right" />
             </div>
-            <div className="w-full flex-shrink-0 h-[480px] lg:h-[420px]">
+            <div className="w-full flex-shrink-0 h-[220px]">
               <ProfessionalMetricsPanel data={data} position="trades" />
             </div>
           </div>
