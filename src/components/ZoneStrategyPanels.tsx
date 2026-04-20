@@ -296,12 +296,12 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     }
     if (stage === 'gear2') {
       return dark
-        ? 'bg-gradient-to-br from-emerald-950/50 via-slate-900/60 to-slate-900/60 border-emerald-500/45 shadow-[0_0_10px_rgba(16,185,129,0.20)]'
-        : 'bg-gradient-to-br from-emerald-50 via-stone-50 to-stone-50 border-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.18)]';
+        ? 'bg-gradient-to-br from-emerald-600/60 via-teal-700/55 to-cyan-600/50 border-emerald-400/80 shadow-[0_0_20px_rgba(16,185,129,0.55)]'
+        : 'bg-gradient-to-br from-emerald-200 via-teal-100 to-cyan-200 border-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.50)]';
     }
     return dark
-      ? 'bg-gradient-to-br from-amber-950/50 via-slate-900/60 to-slate-900/60 border-amber-500/40 shadow-[0_0_10px_rgba(251,191,36,0.20)]'
-      : 'bg-gradient-to-br from-amber-50 via-stone-50 to-stone-50 border-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.18)]';
+      ? 'bg-gradient-to-br from-amber-600/60 via-yellow-700/55 to-orange-600/50 border-amber-400/80 shadow-[0_0_20px_rgba(251,191,36,0.55)]'
+      : 'bg-gradient-to-br from-amber-200 via-yellow-100 to-orange-200 border-amber-500 shadow-[0_0_18px_rgba(251,191,36,0.50)]';
   })();
 
   const gearPanelNode = (
