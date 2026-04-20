@@ -520,14 +520,11 @@ function App() {
           <div ref={chartColRef} className="w-full min-w-0 order-1 lg:order-2">
             <BinanceFuturesPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} />
           </div>
-          <div
-            className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2 lg:overflow-hidden"
-            style={chartColHeight ? { height: chartColHeight } : undefined}
-          >
+          <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-1.5">
             <div className="w-full flex-shrink-0">
               <BinanceFuturesMetricsPanel data={data} position="right" currentTime={currentTime} />
             </div>
-            <div className="w-full flex-1 min-h-0">
+            <div className="w-full flex-shrink-0 h-[480px] lg:h-[420px]">
               <BinanceFuturesMetricsPanel data={data} position="trades" currentTime={currentTime} />
             </div>
           </div>
