@@ -232,6 +232,14 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
           dark={true}
           positionSide={data.position?.position_side ?? data.position?.side}
           leverage={leverage}
+          slPrice={
+            (data.strategyA as any)?.sl_price
+            ?? (data.strategyA as any)?.exit_prices?.sl_price
+            ?? (data.strategyA as any)?.exit_conditions?.SL?.price
+            ?? (data.strategyStatus as any)?.exitPrices?.slPrice
+            ?? (data.strategyStatus as any)?.exitConditions?.SL?.price
+            ?? null
+          }
         />
       </div>
     );

@@ -16,15 +16,16 @@ interface GearExitPanelProps {
   dark?: boolean;
   positionSide?: 'LONG' | 'SHORT' | string | null | undefined;
   leverage?: number | null;
+  slPrice?: number | null;
 }
 
-export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }: GearExitPanelProps) {
+export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, slPrice }: GearExitPanelProps) {
   const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
   const title = dark ? 'text-slate-100' : 'text-slate-800';
   const subText = dark ? 'text-slate-300' : 'text-slate-600';
   const dimText = dark ? 'text-slate-500' : 'text-stone-400';
 
-  // Hide panel entirely when no active position
+  // Hide both panels entirely when no active position
   if (!gearPanel || !gearPanel.active) {
     return null;
   }
@@ -44,9 +45,10 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }
   } = gearPanel;
 
   const isLong = (positionSide ?? '').toString().toUpperCase() === 'LONG';
+  const entryPrice = left_price;
   const pnlPct =
-    left_price > 0
-      ? ((current_price - left_price) / left_price) * 100 * (isLong ? 1 : -1)
+    entryPrice > 0
+      ? ((current_price - entryPrice) / entryPrice) * 100 * (isLong ? 1 : -1)
       : 0;
   const isLoss = pnlPct < 0;
 
@@ -59,75 +61,133 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }
   const cleanLabel = (label: string): string =>
     (label || '').replace(/\s*\(\s*[-+]?\d+(?:\.\d+)?\s*%?\s*\)\s*$/g, '').trim();
 
-  // ============ LOSS STATE: SL / LIQUIDATION PANEL ============
-  if (isLoss) {
-    // Visual scale: 0% → 0, -2% → full. Magnitude of P&L drives red bar.
-    const lossMagnitude = Math.min(100, Math.abs(pnlPct) * 50);
-    return (
-      <div className={`${panelBg} border rounded-lg shadow-sm p-2`}>
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-1.5">
-            <ShieldAlert className={`w-3 h-3 ${dark ? 'text-rose-400' : 'text-rose-600'}`} />
-            <h3 className={`text-[10px] font-bold tracking-wide uppercase ${title}`}>Exit</h3>
-            {leverage != null && leverage > 1 && (
-              <span className={`text-[9px] font-bold ${dark ? 'text-amber-300' : 'text-amber-700'}`}>
-                {leverage}x
-              </span>
-            )}
-          </div>
-          <span
-            className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 border rounded ${
-              dark
-                ? 'bg-rose-500/25 text-rose-200 border-rose-400/60'
-                : 'bg-rose-100 text-rose-700 border-rose-400'
-            } shadow-[0_0_8px_rgba(244,63,94,0.45)]`}
-          >
-            SL · ACTIVE
-          </span>
-        </div>
+  // ====================================================================
+  // SL PANEL (always rendered). Active ⇢ loss, Greyed ⇢ profit.
+  // Layout:
+  //   LONG  → [SL] ............ [Entry]   (price falls left toward SL)
+  //   SHORT → [Entry] ............ [SL]   (price rises right toward SL)
+  // ====================================================================
+  const slActive = isLoss;
+  const slValid = typeof slPrice === 'number' && slPrice > 0 && entryPrice > 0;
 
-        {/* Red danger bar */}
-        <div
-          className={`relative ${
-            dark ? 'bg-slate-700/60 border-rose-500/30' : 'bg-rose-50 border-rose-300'
-          } border rounded h-5 overflow-hidden`}
-        >
-          <div
-            className="absolute inset-y-0 left-0 bg-gradient-to-r from-rose-500 via-red-500 to-red-400 transition-all duration-500 shadow-[0_0_8px_rgba(244,63,94,0.55)]"
-            style={{ width: `${lossMagnitude}%` }}
-          />
-        </div>
-
-        {/* Entry + P&L */}
-        <div className="flex justify-between items-center mt-1">
-          <div className="flex flex-col items-start">
-            <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>Entry</span>
-            <span className={`text-[10px] font-bold ${dark ? 'text-rose-300' : 'text-rose-700'}`}>
-              {fmtPrice(left_price)}
-            </span>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-1">
-              <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'}`} />
-              <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>P&amp;L</span>
-            </div>
-            <span className={`text-[10px] font-bold ${dark ? 'text-rose-300' : 'text-rose-700'}`}>
-              {pnlPct.toFixed(2)}%
-            </span>
-          </div>
-          <div className="flex flex-col items-end">
-            <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>MFE</span>
-            <span className={`text-[10px] font-bold ${subText}`}>
-              {mfe_pct >= 0 ? '+' : ''}
-              {mfe_pct.toFixed(2)}%
-            </span>
-          </div>
-        </div>
-      </div>
-    );
+  // Progress inside SL bar = how far current price has moved toward SL (0→100%).
+  let slProgress = 0;
+  if (slValid && slPrice) {
+    const total = Math.abs(entryPrice - slPrice);
+    const travelled = isLoss ? Math.abs(current_price - entryPrice) : 0;
+    slProgress = total > 0 ? Math.min(100, Math.max(0, (travelled / total) * 100)) : 0;
+  } else if (isLoss) {
+    slProgress = Math.min(100, Math.abs(pnlPct) * 50);
   }
 
-  // ============ PROFIT STATE: GEAR PANEL ============
+  const slPanel = (
+    <div
+      className={`${panelBg} border rounded-lg shadow-sm p-2 ${
+        slActive ? '' : 'opacity-55 grayscale-[35%]'
+      }`}
+    >
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-1.5">
+          <ShieldAlert
+            className={`w-3 h-3 ${
+              slActive ? (dark ? 'text-rose-400' : 'text-rose-600') : dark ? 'text-slate-500' : 'text-stone-400'
+            }`}
+          />
+          <h3 className={`text-[10px] font-bold tracking-wide uppercase ${title}`}>SL</h3>
+          {leverage != null && leverage > 1 && (
+            <span className={`text-[9px] font-bold ${dark ? 'text-amber-300' : 'text-amber-700'}`}>
+              {leverage}x
+            </span>
+          )}
+        </div>
+        <span
+          className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 border rounded ${
+            slActive
+              ? dark
+                ? 'bg-rose-500/25 text-rose-200 border-rose-400/60 shadow-[0_0_8px_rgba(244,63,94,0.45)]'
+                : 'bg-rose-100 text-rose-700 border-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.35)]'
+              : dark
+                ? 'bg-slate-700/70 text-slate-400 border-slate-600'
+                : 'bg-stone-100 text-stone-500 border-stone-300'
+          }`}
+        >
+          {slActive ? 'SL · ACTIVE' : 'SL · STANDBY'}
+        </span>
+      </div>
+
+      {/* SL bar — fills from entry side toward SL side */}
+      <div
+        className={`relative ${
+          slActive
+            ? dark
+              ? 'bg-slate-700/60 border-rose-500/30'
+              : 'bg-rose-50 border-rose-300'
+            : dark
+              ? 'bg-slate-700/40 border-slate-700'
+              : 'bg-stone-100 border-stone-200'
+        } border rounded h-5 overflow-hidden`}
+      >
+        <div
+          className={`absolute inset-y-0 transition-all duration-500 ${
+            slActive
+              ? 'bg-gradient-to-r from-rose-500 via-red-500 to-red-400 shadow-[0_0_8px_rgba(244,63,94,0.55)]'
+              : dark ? 'bg-slate-600' : 'bg-stone-300'
+          }`}
+          style={
+            isLong
+              ? { right: 0, width: `${slProgress}%` }
+              : { left: 0, width: `${slProgress}%` }
+          }
+        />
+      </div>
+
+      {/* Left/Right price labels */}
+      <div className="flex justify-between items-center mt-1">
+        <div className="flex flex-col items-start">
+          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>
+            {isLong ? 'SL' : 'Entry'}
+          </span>
+          <span
+            className={`text-[10px] font-bold ${
+              isLong
+                ? slActive
+                  ? dark ? 'text-rose-300' : 'text-rose-700'
+                  : dimText
+                : subText
+            }`}
+          >
+            {isLong ? (slValid ? fmtPrice(slPrice as number) : '—') : fmtPrice(entryPrice)}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'}`} />
+          <span className={`text-[9px] font-bold ${slActive ? (dark ? 'text-rose-300' : 'text-rose-700') : dimText}`}>
+            {pnlPct.toFixed(2)}%
+          </span>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>
+            {isLong ? 'Entry' : 'SL'}
+          </span>
+          <span
+            className={`text-[10px] font-bold ${
+              isLong
+                ? subText
+                : slActive
+                  ? dark ? 'text-rose-300' : 'text-rose-700'
+                  : dimText
+            }`}
+          >
+            {isLong ? fmtPrice(entryPrice) : (slValid ? fmtPrice(slPrice as number) : '—')}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ====================================================================
+  // GEAR PANEL (always rendered). Active ⇢ gear1/gear2, Greyed otherwise.
+  // ====================================================================
   const clampedProgress = Math.max(0, Math.min(100, progress));
 
   // Shape tone per stage. In profit, gear0 is "arming" (greyed/inactive look),
@@ -174,9 +234,11 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }
     };
   })();
 
-  const wrapperDim = isGearActive ? '' : 'opacity-60 grayscale-[30%]';
+  // Gear panel is active only when in profit AND gear1/gear2
+  const gearActiveNow = !isLoss && isGearActive;
+  const wrapperDim = gearActiveNow ? '' : 'opacity-55 grayscale-[35%]';
 
-  return (
+  const gearPanelNode = (
     <div className={`${panelBg} border rounded-lg shadow-sm p-2 ${wrapperDim}`}>
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5">
@@ -245,6 +307,23 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage }
           <span className={`text-[9px] uppercase tracking-wide ${dimText}`}>Floor</span>
           <span className={`text-[10px] font-bold ${shape.text}`}>{fmtPrice(active_lock_price)}</span>
         </div>
+      )}
+    </div>
+  );
+
+  // Order: loss → SL first (emphasis), profit → Gear first.
+  return (
+    <div className="flex flex-col gap-1.5">
+      {isLoss ? (
+        <>
+          {slPanel}
+          {gearPanelNode}
+        </>
+      ) : (
+        <>
+          {gearPanelNode}
+          {slPanel}
+        </>
       )}
     </div>
   );
