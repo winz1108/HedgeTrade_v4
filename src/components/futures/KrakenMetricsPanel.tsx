@@ -250,6 +250,20 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
             ?? (data.strategyStatus as any)?.exitConditions?.SL?.price
             ?? null
           }
+          signalSlPrice={
+            (data.position as any)?.price_lines?.signal_sl?.price
+            ?? (data.position as any)?.priceLines?.signalSl?.price
+            ?? (data.position as any)?.exit_prices?.signal_sl_exit_price
+            ?? (data.position as any)?.exitPrices?.signalSlExitPrice
+            ?? (data.strategyA as any)?.exit_prices?.signal_sl_exit_price
+            ?? null
+          }
+          signalSlActive={
+            (data.position as any)?.price_lines?.signal_sl?.active
+            ?? (data.position as any)?.priceLines?.signalSl?.active
+            ?? (data.strategyA as any)?.v2h_metrics?.signal_sl_active
+            ?? true
+          }
           currentPrice={livePrice}
         />
       </div>

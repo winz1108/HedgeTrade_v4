@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData, Candle } from '../types/dashboard';
-import { fetchKrakenDashboard, fetchKrakenChartData } from '../services/oracleApi';
+import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard } from '../services/oracleApi';
 import { KrakenMetricsPanel } from '../components/futures/KrakenMetricsPanel';
 import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
 import { formatLocalTime } from '../utils/time';
@@ -64,11 +64,23 @@ function FuturesDashboard() {
   const loadData = async () => {
     try {
       setError(null);
-      const krakenData = await fetchKrakenDashboard();
+      const [krakenData, binanceData] = await Promise.all([
+        fetchKrakenDashboard(),
+        fetchBinanceFuturesDashboard().catch(() => null),
+      ]);
 
       if (!krakenData.priceHistory1m || krakenData.priceHistory1m.length === 0) {
         const chart1m = await fetchKrakenChartData('1m', 1000);
         krakenData.priceHistory1m = chart1m.candles;
+      }
+
+      // Unify signal info: use Binance's entryDetails for Kraken dashboard.
+      const binanceEntryDetails = (binanceData as any)?.strategyStatus?.entryDetails;
+      if (binanceEntryDetails) {
+        krakenData.strategyStatus = {
+          ...(krakenData.strategyStatus as any),
+          entryDetails: binanceEntryDetails,
+        } as any;
       }
 
       setData(prev => {

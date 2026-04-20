@@ -17,10 +17,12 @@ interface GearExitPanelProps {
   positionSide?: 'LONG' | 'SHORT' | string | null | undefined;
   leverage?: number | null;
   slPrice?: number | null;
+  signalSlPrice?: number | null;
+  signalSlActive?: boolean;
   currentPrice?: number | null;
 }
 
-export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, slPrice, currentPrice }: GearExitPanelProps) {
+export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, slPrice, signalSlPrice, signalSlActive = true, currentPrice }: GearExitPanelProps) {
   const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
   const title = dark ? 'text-slate-100' : 'text-slate-800';
   const subText = dark ? 'text-slate-300' : 'text-slate-600';
@@ -65,15 +67,21 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     (label || '').replace(/\s*\(\s*[-+]?\d+(?:\.\d+)?\s*%?\s*\)\s*$/g, '').trim();
 
   // ====================================================================
-  // SL PANEL (always rendered). Active ⇢ loss, Greyed ⇢ profit.
-  // Layout:
-  //   LONG  → [SL] ............ [Entry]   (price falls left toward SL)
-  //   SHORT → [Entry] ............ [SL]   (price rises right toward SL)
+  // SL PANEL: shows Signal SL (±0.8%, conditional) + Max SL (±3%, hard) on
+  // a single axis. Price bar fills from entry outward toward Max SL.
+  //   LONG  → [Max SL] ──── [Signal SL] ──── [Entry]   (loss goes left)
+  //   SHORT → [Entry] ──── [Signal SL] ──── [Max SL]   (loss goes right)
   // ====================================================================
   const slActive = isLoss;
   const slValid = typeof slPrice === 'number' && slPrice > 0 && entryPrice > 0;
+  const sigValid =
+    typeof signalSlPrice === 'number' &&
+    (signalSlPrice ?? 0) > 0 &&
+    entryPrice > 0 &&
+    slValid &&
+    Math.abs((signalSlPrice as number) - entryPrice) < Math.abs((slPrice as number) - entryPrice);
 
-  // Progress inside SL bar = how far current price has moved toward SL (0→100%).
+  // Bar range = entry → max_sl.  Marker position = live price's distance from entry.
   let slProgress = 0;
   if (slValid && slPrice) {
     const total = Math.abs(entryPrice - slPrice);
@@ -83,6 +91,14 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     slProgress = Math.min(100, Math.abs(pnlPct) * 50);
   }
 
+  // Signal SL tick position (percentage of entry→max_sl distance).
+  let sigTickPct: number | null = null;
+  if (sigValid && slPrice && signalSlPrice) {
+    const total = Math.abs(entryPrice - slPrice);
+    const sigDist = Math.abs(signalSlPrice - entryPrice);
+    sigTickPct = total > 0 ? Math.min(100, Math.max(0, (sigDist / total) * 100)) : null;
+  }
+
   const slPanelBg = slActive
     ? dark
       ? 'bg-gradient-to-br from-rose-950/60 via-slate-800/95 to-slate-800/95 border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.18)]'
@@ -90,6 +106,10 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     : dark
       ? 'bg-slate-800/95 border-slate-700'
       : 'bg-white border-stone-200';
+
+  const sigColorActive = dark ? 'text-amber-300' : 'text-amber-700';
+  const sigColorIdle = dark ? 'text-slate-500' : 'text-stone-400';
+  const maxColorActive = dark ? 'text-rose-300' : 'text-rose-700';
 
   const slPanel = (
     <div
@@ -111,26 +131,44 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
             </span>
           )}
         </div>
-        <span
-          className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 border rounded ${
-            slActive
-              ? dark
-                ? 'bg-rose-500/25 text-rose-200 border-rose-400/60 shadow-[0_0_8px_rgba(244,63,94,0.45)]'
-                : 'bg-rose-100 text-rose-700 border-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.35)]'
-              : dark
-                ? 'bg-slate-700/70 text-slate-400 border-slate-600'
-                : 'bg-stone-100 text-stone-500 border-stone-300'
-          }`}
-        >
-          {slActive ? 'SL · ACTIVE' : 'SL · STANDBY'}
-        </span>
+        <div className="flex items-center gap-1">
+          {sigValid && (
+            <span
+              className={`text-[8px] font-bold tracking-wider px-1 py-0.5 border rounded ${
+                signalSlActive
+                  ? dark
+                    ? 'bg-amber-500/20 text-amber-200 border-amber-400/50'
+                    : 'bg-amber-50 text-amber-700 border-amber-300'
+                  : dark
+                    ? 'bg-slate-700/60 text-slate-500 border-slate-600'
+                    : 'bg-stone-100 text-stone-400 border-stone-300'
+              }`}
+              title={signalSlActive ? 'Signal SL armed (MFE < 0.2%)' : 'Signal SL disarmed (floor took over)'}
+            >
+              SIG {signalSlActive ? 'ON' : 'OFF'}
+            </span>
+          )}
+          <span
+            className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 border rounded ${
+              slActive
+                ? dark
+                  ? 'bg-rose-500/25 text-rose-200 border-rose-400/60 shadow-[0_0_8px_rgba(244,63,94,0.45)]'
+                  : 'bg-rose-100 text-rose-700 border-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.35)]'
+                : dark
+                  ? 'bg-slate-700/70 text-slate-400 border-slate-600'
+                  : 'bg-stone-100 text-stone-500 border-stone-300'
+            }`}
+          >
+            {slActive ? 'SL · ACTIVE' : 'SL · STANDBY'}
+          </span>
+        </div>
       </div>
 
-      {/* Slim SL progress bar — subtle; panel tint conveys activation */}
+      {/* SL bar with Signal SL tick */}
       <div
         className={`relative ${
           dark ? 'bg-slate-700/40' : 'bg-stone-200/80'
-        } rounded-full h-1 overflow-hidden`}
+        } rounded-full h-1.5 overflow-hidden`}
       >
         <div
           className={`absolute inset-y-0 rounded-full transition-all duration-500 ${
@@ -144,40 +182,54 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
               : { left: 0, width: `${slProgress}%` }
           }
         />
+        {sigTickPct != null && (
+          <div
+            className={`absolute top-[-2px] bottom-[-2px] w-[2px] ${
+              signalSlActive
+                ? dark ? 'bg-amber-300' : 'bg-amber-500'
+                : dark ? 'bg-slate-500' : 'bg-stone-400'
+            } ${signalSlActive ? '' : 'opacity-50'}`}
+            style={isLong ? { right: `${sigTickPct}%` } : { left: `${sigTickPct}%` }}
+            title={`Signal SL ${fmtPrice(signalSlPrice as number)}`}
+          />
+        )}
       </div>
 
-      {/* Left/Right price labels */}
-      <div className="flex justify-between items-center mt-1">
-        <div className="flex flex-col items-start">
+      {/* 3-column labels: Max SL / Signal SL / Entry (mirrored for SHORT) */}
+      <div className="flex justify-between items-start mt-1">
+        <div className="flex flex-col items-start min-w-0">
           <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>
-            {isLong ? 'SL' : 'Entry'}
+            {isLong ? 'Max SL' : 'Entry'}
           </span>
           <span
-            className={`text-[10px] font-bold ${
+            className={`text-[10px] font-bold truncate ${
               isLong
-                ? slActive
-                  ? dark ? 'text-rose-300' : 'text-rose-700'
-                  : dimText
+                ? slActive ? maxColorActive : dimText
                 : subText
             }`}
           >
             {isLong ? (slValid ? fmtPrice(slPrice as number) : '—') : fmtPrice(entryPrice)}
           </span>
         </div>
-        <div className="flex items-center justify-center">
-          <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'} opacity-60`} />
-        </div>
-        <div className="flex flex-col items-end">
-          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>
-            {isLong ? 'Entry' : 'SL'}
-          </span>
+        <div className="flex flex-col items-center">
+          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>Signal SL</span>
           <span
             className={`text-[10px] font-bold ${
+              sigValid ? (signalSlActive ? sigColorActive : sigColorIdle) : dimText
+            }`}
+          >
+            {sigValid ? fmtPrice(signalSlPrice as number) : '—'}
+          </span>
+        </div>
+        <div className="flex flex-col items-end min-w-0">
+          <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>
+            {isLong ? 'Entry' : 'Max SL'}
+          </span>
+          <span
+            className={`text-[10px] font-bold truncate ${
               isLong
                 ? subText
-                : slActive
-                  ? dark ? 'text-rose-300' : 'text-rose-700'
-                  : dimText
+                : slActive ? maxColorActive : dimText
             }`}
           >
             {isLong ? fmtPrice(entryPrice) : (slValid ? fmtPrice(slPrice as number) : '—')}
