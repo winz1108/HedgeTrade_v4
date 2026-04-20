@@ -80,9 +80,17 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     slProgress = Math.min(100, Math.abs(pnlPct) * 50);
   }
 
+  const slPanelBg = slActive
+    ? dark
+      ? 'bg-gradient-to-br from-rose-950/60 via-slate-800/95 to-slate-800/95 border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.18)]'
+      : 'bg-gradient-to-br from-rose-50 via-white to-white border-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.15)]'
+    : dark
+      ? 'bg-slate-800/95 border-slate-700'
+      : 'bg-white border-stone-200';
+
   const slPanel = (
     <div
-      className={`${panelBg} border rounded-lg shadow-sm p-2 ${
+      className={`${slPanelBg} border rounded-lg shadow-sm p-2 ${
         slActive ? '' : 'opacity-55 grayscale-[35%]'
       }`}
     >
@@ -115,23 +123,17 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
         </span>
       </div>
 
-      {/* SL bar — fills from entry side toward SL side */}
+      {/* Slim SL progress bar — subtle; panel tint conveys activation */}
       <div
         className={`relative ${
-          slActive
-            ? dark
-              ? 'bg-slate-700/60 border-rose-500/30'
-              : 'bg-rose-50 border-rose-300'
-            : dark
-              ? 'bg-slate-700/40 border-slate-700'
-              : 'bg-stone-100 border-stone-200'
-        } border rounded h-5 overflow-hidden`}
+          dark ? 'bg-slate-700/40' : 'bg-stone-200/80'
+        } rounded-full h-1 overflow-hidden`}
       >
         <div
-          className={`absolute inset-y-0 transition-all duration-500 ${
+          className={`absolute inset-y-0 rounded-full transition-all duration-500 ${
             slActive
-              ? 'bg-gradient-to-r from-rose-500 via-red-500 to-red-400 shadow-[0_0_8px_rgba(244,63,94,0.55)]'
-              : dark ? 'bg-slate-600' : 'bg-stone-300'
+              ? dark ? 'bg-rose-400/90' : 'bg-rose-500'
+              : dark ? 'bg-slate-500/70' : 'bg-stone-400/70'
           }`}
           style={
             isLong
@@ -238,8 +240,20 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
   const gearActiveNow = !isLoss && isGearActive;
   const wrapperDim = gearActiveNow ? '' : 'opacity-55 grayscale-[35%]';
 
+  const gearActivePanelBg = (() => {
+    if (!gearActiveNow) return panelBg;
+    if (stage === 'gear2') {
+      return dark
+        ? 'bg-gradient-to-br from-emerald-950/60 via-slate-800/95 to-slate-800/95 border-emerald-500/45 shadow-[0_0_14px_rgba(16,185,129,0.22)]'
+        : 'bg-gradient-to-br from-emerald-50 via-white to-white border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.18)]';
+    }
+    return dark
+      ? 'bg-gradient-to-br from-amber-950/60 via-slate-800/95 to-slate-800/95 border-amber-500/40 shadow-[0_0_12px_rgba(251,191,36,0.20)]'
+      : 'bg-gradient-to-br from-amber-50 via-white to-white border-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.18)]';
+  })();
+
   const gearPanelNode = (
-    <div className={`${panelBg} border rounded-lg shadow-sm p-2 ${wrapperDim}`}>
+    <div className={`${gearActivePanelBg} border rounded-lg shadow-sm p-2 ${wrapperDim}`}>
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5">
           <Gauge className={`w-3 h-3 ${shape.iconColor}`} />
@@ -257,15 +271,17 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
         </span>
       </div>
 
-      {/* Progress bar */}
-      <div className={`relative ${shape.track} border rounded h-5 overflow-hidden`}>
+      {/* Slim progress bar — subtle; panel tint conveys activation */}
+      <div className={`relative ${dark ? 'bg-slate-700/40' : 'bg-stone-200/80'} rounded-full h-1 overflow-hidden`}>
         <div
-          className={`absolute inset-y-0 left-0 ${shape.fill} transition-all duration-500 ${shape.glow}`}
+          className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${
+            gearActiveNow
+              ? stage === 'gear2'
+                ? dark ? 'bg-emerald-400/90' : 'bg-emerald-500'
+                : dark ? 'bg-amber-400/90' : 'bg-amber-500'
+              : dark ? 'bg-slate-500/70' : 'bg-stone-400/70'
+          }`}
           style={{ width: `${clampedProgress}%` }}
-        />
-        <div
-          className="absolute inset-y-0 w-0.5 bg-white/90"
-          style={{ left: `${clampedProgress}%`, boxShadow: '0 0 4px rgba(255,255,255,0.8)' }}
         />
       </div>
 
@@ -311,20 +327,11 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     </div>
   );
 
-  // Order: loss → SL first (emphasis), profit → Gear first.
+  // Always: Gear (take-profit) on top, SL on bottom.
   return (
     <div className="flex flex-col gap-1.5">
-      {isLoss ? (
-        <>
-          {slPanel}
-          {gearPanelNode}
-        </>
-      ) : (
-        <>
-          {gearPanelNode}
-          {slPanel}
-        </>
-      )}
+      {gearPanelNode}
+      {slPanel}
     </div>
   );
 }
