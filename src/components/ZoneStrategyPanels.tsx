@@ -104,8 +104,8 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
 
   const slSubBg = slActive
     ? dark
-      ? 'bg-gradient-to-br from-rose-950/50 via-slate-900/60 to-slate-900/60 border-rose-500/40 shadow-[0_0_10px_rgba(244,63,94,0.18)]'
-      : 'bg-gradient-to-br from-rose-50 via-stone-50 to-stone-50 border-rose-300 shadow-[0_0_8px_rgba(244,63,94,0.15)]'
+      ? 'bg-gradient-to-br from-rose-600/60 via-red-700/55 to-pink-600/50 border-rose-400/80 shadow-[0_0_20px_rgba(244,63,94,0.55)]'
+      : 'bg-gradient-to-br from-rose-200 via-red-100 to-pink-200 border-rose-500 shadow-[0_0_18px_rgba(244,63,94,0.50)]'
     : dark
       ? 'bg-slate-900/40 border-slate-700/60'
       : 'bg-stone-50 border-stone-200';
