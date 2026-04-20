@@ -3,7 +3,7 @@ import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
 import type { BFDashboardData } from '../../types/dashboard';
 import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
-import { ZoneEntryPanel, ZoneExitPanel } from '../ZoneStrategyPanels';
+import { V2hEntryPanel, GearExitPanel } from '../ZoneStrategyPanels';
 
 interface Props {
   data: BFDashboardData;
@@ -37,149 +37,7 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
   return { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-300' };
 };
 
-function ZBEntryPanel({ zbStatus, zbZones, data }: { zbStatus?: ZBStatus | null; zbZones?: ZBZones | null; data: BFDashboardData }) {
-  const hasPosition = data.position?.in_position || data.position?.inPosition || !!zbStatus?.position;
-  const zoneData = data.zoneData;
-  if (zoneData) {
-    return <ZoneEntryPanel zoneData={zoneData} currentPrice={data.currentPrice} dark={false} inPosition={hasPosition} variant="binance" />;
-  }
-
-  const nearestSupport = zbZones?.supports?.[0];
-  const nearestResistance = zbZones?.resistances?.[0];
-  const price = zbStatus?.price ?? 0;
-  const supportPrice = nearestSupport?.center ?? 0;
-  const resistancePrice = nearestResistance?.center ?? 0;
-  const hasData = supportPrice > 0 && resistancePrice > 0 && price > 0;
-
-  if (!hasData) {
-    return (
-      <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
-        <h3 className="text-[10px] font-bold text-slate-700 tracking-wide uppercase mb-1.5">Entry</h3>
-        <div className="text-center py-2">
-          <span className="text-[10px] text-stone-400">Waiting for zone data...</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ZoneEntryPanel
-      zoneData={{
-        nearestSupport: nearestSupport ? { center: nearestSupport.center, top: nearestSupport.top, bot: nearestSupport.bot, tests: nearestSupport.tests, dist_pct: nearestSupport.dist_pct, strength: nearestSupport.strength } : null,
-        nearestResistance: nearestResistance ? { center: nearestResistance.center, top: nearestResistance.top, bot: nearestResistance.bot, tests: nearestResistance.tests, dist_pct: nearestResistance.dist_pct, strength: nearestResistance.strength } : null,
-        allSupports: [], allResistances: [],
-        barCount: zbStatus?.bar_count ?? 0, zoneCount: 0, atr: zbStatus?.atr ?? 0,
-        signal: zbStatus?.signal ?? null,
-      }}
-      currentPrice={price}
-      dark={false}
-      inPosition={hasPosition}
-      variant="binance"
-    />
-  );
-}
-
-function ZBExitPanel({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: BFDashboardData }) {
-  const exitConditions = data.strategyA?.exit_conditions
-    ?? data.strategy?.exit_conditions
-    ?? (data.position as any)?.exit_conditions
-    ?? (data.position as any)?.exitConditions
-    ?? (data.strategyStatus as any)?.exitConditions;
-  const positionSide = data.position?.side ?? data.position?.position_side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
-
-  const cp = data.currentPrice ?? zbStatus?.price ?? 0;
-  const hasPos = data.position?.inPosition || data.position?.in_position;
-  const rawLev = (data.position as any)?.entryLeverage ?? (data.position as any)?.entry_leverage ?? null;
-  const lev = hasPos ? (rawLev ?? 1) : null;
-
-  const pos = zbStatus?.position;
-  const isPendingExit = pos?.pending_exit ?? false;
-  const pendingReason = pos?.pending_exit_reason ?? null;
-
-  if (exitConditions) {
-    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={false} currentPrice={cp} pendingExit={isPendingExit} pendingExitReason={pendingReason} leverage={lev} />;
-  }
-
-  if (pos) {
-    const isShort = pos.dir === 'short';
-    return (
-      <ZoneExitPanel
-        exitConditions={{
-          SL: {
-            armed: true,
-            price: pos.current_sl,
-            entry_price: pos.entry_price,
-            distance_pct: isShort ? ((pos.current_sl - pos.entry_price) / pos.entry_price) * 100 : ((pos.entry_price - pos.current_sl) / pos.entry_price) * 100,
-            current_pnl_pct: pos.unrealized_pct,
-          },
-          TRAIL: {
-            armed: pos.trailing,
-            trigger_price: pos.rr_target,
-            trigger_pct: isShort ? ((pos.entry_price - pos.rr_target) / pos.entry_price) * 100 : ((pos.rr_target - pos.entry_price) / pos.entry_price) * 100,
-            trail_sl: pos.current_sl,
-            extreme: pos.extreme,
-            peak_pnl: 0,
-          },
-          TIMEOUT: {
-            armed: true,
-            max_bars: 864,
-            bars_held: pos.bars_held,
-            pct: Math.min(100, (pos.bars_held / 864) * 100),
-          },
-        }}
-        positionSide={positionSide}
-        dark={false}
-        currentPrice={cp}
-        pendingExit={isPendingExit}
-        pendingExitReason={pendingReason}
-        leverage={lev}
-      />
-    );
-  }
-
-  const hasPosition = data.position?.inPosition || data.position?.in_position;
-  if (!hasPosition) return null;
-
-  const entryPrice = data.position?.entryPrice ?? data.position?.entry_price ?? 0;
-  const exitPrices = data.position?.exit_prices ?? (data.strategyStatus as any)?.exitPrices;
-  const slPrice = data.position?.slPrice ?? exitPrices?.sl_price ?? exitPrices?.slPrice ?? 0;
-  const floorPrice = data.position?.floorPrice ?? exitPrices?.floor_price ?? exitPrices?.floorPrice ?? null;
-  const mfe = data.position?.mfe ?? 0;
-  const isShort = positionSide === 'SHORT';
-
-  const constructed: any = {};
-  if (slPrice && entryPrice) {
-    constructed.SL = {
-      armed: true,
-      price: slPrice,
-      entry_price: entryPrice,
-      distance_pct: isShort
-        ? ((slPrice - entryPrice) / entryPrice) * 100
-        : ((entryPrice - slPrice) / entryPrice) * 100,
-      current_pnl_pct: 0,
-    };
-  }
-  if (floorPrice && entryPrice) {
-    const ppActive = data.position?.ppActive ?? data.position?.ppActivated ?? false;
-    const peakPrice = data.position?.peakPrice ?? (isShort ? Math.min(entryPrice, cp) : Math.max(entryPrice, cp));
-    constructed.TRAIL = {
-      armed: ppActive,
-      trigger_price: floorPrice,
-      trigger_pct: isShort
-        ? ((entryPrice - floorPrice) / entryPrice) * 100
-        : ((floorPrice - entryPrice) / entryPrice) * 100,
-      trail_sl: slPrice || entryPrice,
-      extreme: peakPrice,
-      peak_pnl: mfe,
-    };
-  }
-
-  if (!constructed.SL && !constructed.TRAIL) return null;
-
-  return <ZoneExitPanel exitConditions={constructed} positionSide={positionSide} dark={false} currentPrice={cp} leverage={lev} />;
-}
-
-export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStatus, zbZones }: Props) {
+export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStatus, zbZones: _zbZones }: Props) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -376,9 +234,19 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
           </div>
         </div>
 
-        <ZBEntryPanel zbStatus={zbStatus} zbZones={zbZones} data={data} />
+        <V2hEntryPanel v29={(data.strategyStatus as any)?.entryDetails?.v29} dark={false} />
 
-        <ZBExitPanel zbStatus={zbStatus} data={data} />
+        <GearExitPanel
+          gearPanel={
+            (data.position as any)?.exitConditions?.GEAR_PANEL
+            ?? (data.strategyStatus as any)?.exitConditions?.GEAR_PANEL
+            ?? (data.strategy as any)?.exit_conditions?.GEAR_PANEL
+            ?? (data.strategyA as any)?.exit_conditions?.GEAR_PANEL
+          }
+          dark={false}
+          positionSide={data.position?.side ?? data.position?.position_side}
+          leverage={leverage}
+        />
       </div>
     );
   }

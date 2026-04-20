@@ -4,7 +4,7 @@ import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect } from 'react';
 import { ManualOrderPanel } from './ManualOrderPanel';
 import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
-import { ZoneEntryPanel, ZoneExitPanel } from '../ZoneStrategyPanels';
+import { V2hEntryPanel, GearExitPanel } from '../ZoneStrategyPanels';
 
 interface Props {
   data: KrakenDashboardData;
@@ -44,108 +44,7 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
   return { bg: 'bg-rose-900/30', text: 'text-rose-400', border: 'border-rose-700' };
 };
 
-function ZBEntryPanelDark({ zbStatus, zbZones, data }: { zbStatus?: ZBStatus | null; zbZones?: ZBZones | null; data: KrakenDashboardData }) {
-  const hasPosition = data.position?.in_position || !!zbStatus?.position;
-  const zoneData = data.zoneData;
-  if (zoneData) {
-    return <ZoneEntryPanel zoneData={zoneData} currentPrice={data.currentPrice} dark={true} inPosition={hasPosition} />;
-  }
-
-  const nearestSupport = zbZones?.supports?.[0];
-  const nearestResistance = zbZones?.resistances?.[0];
-  const price = zbStatus?.price ?? 0;
-  const supportPrice = nearestSupport?.center ?? 0;
-  const resistancePrice = nearestResistance?.center ?? 0;
-  const hasData = supportPrice > 0 && resistancePrice > 0 && price > 0;
-
-  if (!hasData) {
-    return (
-      <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2">
-        <h3 className="text-[10px] font-bold text-slate-200 tracking-wide uppercase mb-1.5">Entry</h3>
-        <div className="text-center py-2">
-          <span className="text-[10px] text-slate-500">Waiting for zone data...</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ZoneEntryPanel
-      zoneData={{
-        nearestSupport: nearestSupport ? { center: nearestSupport.center, top: nearestSupport.top, bot: nearestSupport.bot, tests: nearestSupport.tests, dist_pct: nearestSupport.dist_pct, strength: nearestSupport.strength } : null,
-        nearestResistance: nearestResistance ? { center: nearestResistance.center, top: nearestResistance.top, bot: nearestResistance.bot, tests: nearestResistance.tests, dist_pct: nearestResistance.dist_pct, strength: nearestResistance.strength } : null,
-        allSupports: [], allResistances: [],
-        barCount: zbStatus?.bar_count ?? 0, zoneCount: 0, atr: zbStatus?.atr ?? 0,
-        signal: zbStatus?.signal ?? null,
-      }}
-      currentPrice={price}
-      dark={true}
-      inPosition={hasPosition}
-    />
-  );
-}
-
-function ZBExitPanelDark({ zbStatus, data }: { zbStatus?: ZBStatus | null; data: KrakenDashboardData }) {
-  const exitConditions = data.strategyA?.exit_conditions ?? (data as any).strategy?.exit_conditions ?? (data.strategyStatus as any)?.exitConditions;
-  const positionSide = data.position?.position_side ?? data.position?.side ?? (zbStatus?.position?.dir === 'short' ? 'SHORT' : 'LONG');
-  const cp = data.currentPrice ?? zbStatus?.price ?? 0;
-  const hasPosition = data.position?.in_position;
-  const rawLev = (data.position as any)?.entryLeverage
-    ?? (data.position as any)?.entry_leverage
-    ?? data.strategyA?.entry_leverage
-    ?? (data.strategyStatus as any)?.entryLeverage
-    ?? (data.strategyStatus as any)?.entry_leverage
-    ?? null;
-  const lev = hasPosition ? (rawLev != null ? Number(rawLev) : 1) : null;
-
-  const pos = zbStatus?.position;
-  const isPendingExit = pos?.pending_exit ?? false;
-  const pendingReason = pos?.pending_exit_reason ?? null;
-
-  if (exitConditions) {
-    return <ZoneExitPanel exitConditions={exitConditions} positionSide={positionSide} dark={true} currentPrice={cp} pendingExit={isPendingExit} pendingExitReason={pendingReason} leverage={lev} />;
-  }
-
-  if (!pos) return null;
-
-  const isShort = pos.dir === 'short';
-
-  return (
-    <ZoneExitPanel
-      exitConditions={{
-        SL: {
-          armed: true,
-          price: pos.current_sl,
-          entry_price: pos.entry_price,
-          distance_pct: isShort ? ((pos.current_sl - pos.entry_price) / pos.entry_price) * 100 : ((pos.entry_price - pos.current_sl) / pos.entry_price) * 100,
-          current_pnl_pct: pos.unrealized_pct,
-        },
-        TRAIL: {
-          armed: pos.trailing,
-          trigger_price: pos.rr_target,
-          trigger_pct: isShort ? ((pos.entry_price - pos.rr_target) / pos.entry_price) * 100 : ((pos.rr_target - pos.entry_price) / pos.entry_price) * 100,
-          trail_sl: pos.current_sl,
-          extreme: pos.extreme,
-          peak_pnl: 0,
-        },
-        TIMEOUT: {
-          armed: true,
-          max_bars: 864,
-          bars_held: pos.bars_held,
-          pct: Math.min(100, (pos.bars_held / 864) * 100),
-        },
-      }}
-      positionSide={positionSide}
-      dark={true}
-      currentPrice={cp}
-      pendingExit={isPendingExit}
-      pendingExitReason={pendingReason}
-      leverage={lev}
-    />
-  );
-}
-
-export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: Props) {
+export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones: _zbZones }: Props) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -314,9 +213,14 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones }: 
           positionSide={positionSide}
         />
 
-        <ZBEntryPanelDark zbStatus={zbStatus} zbZones={zbZones} data={data} />
+        <V2hEntryPanel v29={data.strategyStatus?.entryDetails?.v29} dark={true} />
 
-        <ZBExitPanelDark zbStatus={zbStatus} data={data} />
+        <GearExitPanel
+          gearPanel={data.position?.exitConditions?.GEAR_PANEL ?? (data.strategyStatus as any)?.exitConditions?.GEAR_PANEL}
+          dark={true}
+          positionSide={data.position?.position_side ?? data.position?.side}
+          leverage={leverage}
+        />
       </div>
     );
   }
