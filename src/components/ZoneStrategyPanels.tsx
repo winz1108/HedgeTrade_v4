@@ -338,9 +338,6 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
           <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>{cleanLabel(left_label)}</span>
           <span className={`text-[10px] font-bold ${shape.text}`}>{fmtPrice(left_price)}</span>
         </div>
-        <div className="flex items-center gap-1">
-          <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'}`} />
-        </div>
         <div className="flex flex-col items-end">
           <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>{cleanLabel(right_label)}</span>
           <span className={`text-[10px] font-bold ${shape.text}`}>{fmtPrice(right_price)}</span>
@@ -357,11 +354,19 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
         </div>
         <div className="flex flex-col items-center">
           <span className={`${dimText} uppercase tracking-wide`}>G1 Arm</span>
-          <span className="font-bold">{g1_min_mfe_pct.toFixed(2)}%</span>
+          <span className="font-bold">
+            {entryPrice > 0
+              ? fmtPrice(entryPrice * (1 + (isLong ? 1 : -1) * g1_min_mfe_pct / 100))
+              : '—'}
+          </span>
         </div>
         <div className="flex flex-col items-center">
           <span className={`${dimText} uppercase tracking-wide`}>G2 Arm</span>
-          <span className="font-bold">{ride_trigger_pct.toFixed(2)}%</span>
+          <span className="font-bold">
+            {entryPrice > 0
+              ? fmtPrice(entryPrice * (1 + (isLong ? 1 : -1) * ride_trigger_pct / 100))
+              : '—'}
+          </span>
         </div>
       </div>
 
