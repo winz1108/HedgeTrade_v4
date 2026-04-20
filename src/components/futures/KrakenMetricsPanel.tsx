@@ -78,9 +78,9 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
     }
 
     return (
-      <div className="flex flex-col gap-1.5 lg:h-full lg:min-h-0">
-        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-2 flex-shrink-0">
-          <div className="flex items-center justify-between mb-1.5">
+      <div className="flex flex-col gap-1 lg:h-full lg:min-h-0">
+        <div className="bg-slate-800/95 border border-slate-700 rounded-lg shadow-sm p-1.5 flex-shrink-0">
+          <div className="flex items-center justify-between mb-1">
             <h3 className="text-[11px] font-bold text-white">Status</h3>
             <div className="flex items-center gap-1.5">
               {zbStatus && (
@@ -90,14 +90,14 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <div className={`rounded-lg p-2 border ${
+          <div className="space-y-1">
+            <div className={`rounded-lg p-1.5 border ${
               hasPosition && leverage != null && leverage >= 2
                 ? (positionSide === 'LONG' || zbPos?.dir === 'long') ? 'asset-panel-long' : 'asset-panel-short'
                 : 'bg-cyan-500/20 border-cyan-500/50'
             }`}>
               <div className="text-[10px] text-cyan-300 font-medium mb-0.5">TOTAL ASSET</div>
-              <div className="text-xl font-bold text-white mb-1">
+              <div className="text-2xl font-bold text-white mb-1">
                 {formatCurrency(data.balance.portfolioValue)}
               </div>
               <div className="space-y-0.5 pt-1 border-t border-cyan-500/50">
@@ -142,10 +142,10 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
               </div>
             </div>
 
-            <div className="border-t border-slate-700 pt-1.5">
-              <div className="text-[10px] text-white mb-1 font-medium">POSITION</div>
+            <div className="border-t border-slate-700 pt-1">
+              <div className="text-[10px] text-white mb-0.5 font-medium">POSITION</div>
               {(hasPosition && entryPrice) || zbPos ? (
-                <div className={`space-y-0.5 rounded-lg p-1.5 border transition-all duration-500 ${
+                <div className={`space-y-0 rounded-lg p-1 border transition-all duration-500 ${
                   (positionSide === 'LONG' || zbPos?.dir === 'long')
                     ? 'position-panel-long'
                     : 'position-panel-short'
