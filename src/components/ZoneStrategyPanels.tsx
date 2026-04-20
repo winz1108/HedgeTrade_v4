@@ -17,9 +17,10 @@ interface GearExitPanelProps {
   positionSide?: 'LONG' | 'SHORT' | string | null | undefined;
   leverage?: number | null;
   slPrice?: number | null;
+  currentPrice?: number | null;
 }
 
-export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, slPrice }: GearExitPanelProps) {
+export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, slPrice, currentPrice }: GearExitPanelProps) {
   const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
   const title = dark ? 'text-slate-100' : 'text-slate-800';
   const subText = dark ? 'text-slate-300' : 'text-slate-600';
@@ -46,9 +47,11 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
 
   const isLong = (positionSide ?? '').toString().toUpperCase() === 'LONG';
   const entryPrice = left_price;
+  // Prefer live websocket price for smooth realtime P&L; fall back to gear snapshot.
+  const livePrice = typeof currentPrice === 'number' && currentPrice > 0 ? currentPrice : current_price;
   const pnlPct =
     entryPrice > 0
-      ? ((current_price - entryPrice) / entryPrice) * 100 * (isLong ? 1 : -1)
+      ? ((livePrice - entryPrice) / entryPrice) * 100 * (isLong ? 1 : -1)
       : 0;
   const isLoss = pnlPct < 0;
 
@@ -74,7 +77,7 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
   let slProgress = 0;
   if (slValid && slPrice) {
     const total = Math.abs(entryPrice - slPrice);
-    const travelled = isLoss ? Math.abs(current_price - entryPrice) : 0;
+    const travelled = isLoss ? Math.abs(livePrice - entryPrice) : 0;
     slProgress = total > 0 ? Math.min(100, Math.max(0, (travelled / total) * 100)) : 0;
   } else if (isLoss) {
     slProgress = Math.min(100, Math.abs(pnlPct) * 50);
@@ -161,11 +164,8 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
             {isLong ? (slValid ? fmtPrice(slPrice as number) : '—') : fmtPrice(entryPrice)}
           </span>
         </div>
-        <div className="flex items-center gap-1">
-          <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'}`} />
-          <span className={`text-[9px] font-bold ${slActive ? (dark ? 'text-rose-300' : 'text-rose-700') : dimText}`}>
-            {pnlPct.toFixed(2)}%
-          </span>
+        <div className="flex items-center justify-center">
+          <DirIcon className={`w-2.5 h-2.5 ${isLong ? 'text-cyan-400' : 'text-orange-400'} opacity-60`} />
         </div>
         <div className="flex flex-col items-end">
           <span className={`text-[8px] uppercase tracking-wide ${dimText}`}>

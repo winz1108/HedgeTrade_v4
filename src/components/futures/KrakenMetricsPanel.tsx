@@ -60,7 +60,12 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
     const leverage = hasPosition ? (rawLeverage ?? 1) : null;
     const positionSide = data.position?.position_side;
     const entryPrice = data.strategyA?.entry_price;
-    const currentPnl = data.strategyA?.current_pnl;
+    const livePrice = (data as any)?.currentPrice as number | undefined;
+    const liveComputedPnl =
+      entryPrice && livePrice && entryPrice > 0
+        ? ((livePrice - entryPrice) / entryPrice) * 100 * (positionSide === 'SHORT' ? -1 : 1)
+        : undefined;
+    const currentPnl = liveComputedPnl ?? data.strategyA?.current_pnl;
     const zbPos = zbStatus?.position;
 
     let liquidationPrice: number | null = null;
@@ -233,13 +238,19 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
           positionSide={data.position?.position_side ?? data.position?.side}
           leverage={leverage}
           slPrice={
-            (data.strategyA as any)?.sl_price
+            (data.position as any)?.price_lines?.max_sl?.price
+            ?? (data.position as any)?.priceLines?.maxSl?.price
+            ?? (data.position as any)?.exit_prices?.sl_exit_price
+            ?? (data.position as any)?.exitPrices?.slExitPrice
+            ?? (data.strategyA as any)?.exit_prices?.sl_exit_price
+            ?? (data.strategyA as any)?.sl_price
             ?? (data.strategyA as any)?.exit_prices?.sl_price
             ?? (data.strategyA as any)?.exit_conditions?.SL?.price
             ?? (data.strategyStatus as any)?.exitPrices?.slPrice
             ?? (data.strategyStatus as any)?.exitConditions?.SL?.price
             ?? null
           }
+          currentPrice={livePrice}
         />
       </div>
     );

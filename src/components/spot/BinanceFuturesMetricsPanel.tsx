@@ -53,7 +53,12 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
     const leverage = hasPosition ? (rawLeverage ?? 1) : null;
     const positionSide = data.position.side;
     const entryPrice = data.position.entryPrice;
-    const currentPnl = data.position.currentPnl;
+    const livePrice = (data as any).currentPrice as number | undefined;
+    const liveComputedPnl =
+      entryPrice && livePrice && entryPrice > 0
+        ? ((livePrice - entryPrice) / entryPrice) * 100 * (positionSide === 'SHORT' ? -1 : 1)
+        : undefined;
+    const currentPnl = liveComputedPnl ?? data.position.currentPnl;
 
     const zbPos = zbStatus?.position;
 
@@ -247,13 +252,19 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
           positionSide={data.position?.side ?? data.position?.position_side}
           leverage={leverage}
           slPrice={
-            (data.strategyA as any)?.sl_price
+            (data.position as any)?.price_lines?.max_sl?.price
+            ?? (data.position as any)?.priceLines?.maxSl?.price
+            ?? (data.position as any)?.exit_prices?.sl_exit_price
+            ?? (data.position as any)?.exitPrices?.slExitPrice
+            ?? (data.strategyA as any)?.exit_prices?.sl_exit_price
+            ?? (data.strategyA as any)?.sl_price
             ?? (data.strategyA as any)?.exit_prices?.sl_price
             ?? (data.strategyA as any)?.exit_conditions?.SL?.price
             ?? (data.strategyStatus as any)?.exitPrices?.slPrice
             ?? (data.strategyStatus as any)?.exitConditions?.SL?.price
             ?? null
           }
+          currentPrice={livePrice}
         />
       </div>
     );
