@@ -106,10 +106,10 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
                 : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
             }`}>
               <div className="text-[10px] text-amber-700 font-medium mb-0.5">TOTAL ASSET</div>
-              <div className="text-lg font-bold text-slate-900 mb-0.5">
+              <div className="text-2xl font-bold text-slate-900 mb-1">
                 {formatCurrency(data.account.totalAsset)}
               </div>
-              <div className="space-y-0 pt-0.5 border-t border-amber-300">
+              <div className="space-y-0.5 pt-1 border-t border-amber-300">
                 {data.account.currencies && Object.entries(data.account.currencies).length > 0 ? (
                   <>
                     {(() => {
