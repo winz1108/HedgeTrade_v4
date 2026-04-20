@@ -87,7 +87,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
     }
 
     return (
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 lg:h-full">
         <div className="bg-white border border-stone-200 rounded-lg shadow-sm p-2">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-[11px] font-bold text-slate-800">Status</h3>
@@ -241,6 +241,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
 
         <V2hEntryPanel v29={(data.strategyStatus as any)?.entryDetails?.v29} dark={false} />
 
+        <div className="lg:mt-auto">
         <GearExitPanel
           gearPanel={
             (data.position as any)?.exitConditions?.GEAR_PANEL
@@ -280,6 +281,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
           }
           currentPrice={livePrice}
         />
+        </div>
       </div>
     );
   }

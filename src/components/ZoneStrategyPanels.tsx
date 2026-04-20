@@ -99,13 +99,13 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     sigTickPct = total > 0 ? Math.min(100, Math.max(0, (sigDist / total) * 100)) : null;
   }
 
-  const slPanelBg = slActive
+  const slSubBg = slActive
     ? dark
-      ? 'bg-gradient-to-br from-rose-950/60 via-slate-800/95 to-slate-800/95 border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.18)]'
-      : 'bg-gradient-to-br from-rose-50 via-white to-white border-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.15)]'
+      ? 'bg-gradient-to-br from-rose-950/50 via-slate-900/60 to-slate-900/60 border-rose-500/40 shadow-[0_0_10px_rgba(244,63,94,0.18)]'
+      : 'bg-gradient-to-br from-rose-50 via-stone-50 to-stone-50 border-rose-300 shadow-[0_0_8px_rgba(244,63,94,0.15)]'
     : dark
-      ? 'bg-slate-800/95 border-slate-700'
-      : 'bg-white border-stone-200';
+      ? 'bg-slate-900/40 border-slate-700/60'
+      : 'bg-stone-50 border-stone-200';
 
   const sigColorActive = dark ? 'text-amber-300' : 'text-amber-700';
   const sigColorIdle = dark ? 'text-slate-500' : 'text-stone-400';
@@ -113,7 +113,7 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
 
   const slPanel = (
     <div
-      className={`${slPanelBg} border rounded-lg shadow-sm p-2 ${
+      className={`${slSubBg} border rounded-md p-2 ${
         slActive ? '' : 'opacity-55 grayscale-[35%]'
       }`}
     >
@@ -125,11 +125,6 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
             }`}
           />
           <h3 className={`text-[10px] font-bold tracking-wide uppercase ${title}`}>SL</h3>
-          {leverage != null && leverage > 1 && (
-            <span className={`text-[9px] font-bold ${dark ? 'text-amber-300' : 'text-amber-700'}`}>
-              {leverage}x
-            </span>
-          )}
         </div>
         <div className="flex items-center gap-1">
           {sigValid && (
@@ -168,7 +163,7 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
       <div
         className={`relative ${
           dark ? 'bg-slate-700/40' : 'bg-stone-200/80'
-        } rounded-full h-1.5 overflow-hidden`}
+        } rounded-full h-2.5 overflow-hidden`}
       >
         <div
           className={`absolute inset-y-0 rounded-full transition-all duration-500 ${
@@ -292,29 +287,26 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
   const gearActiveNow = !isLoss && isGearActive;
   const wrapperDim = gearActiveNow ? '' : 'opacity-55 grayscale-[35%]';
 
-  const gearActivePanelBg = (() => {
-    if (!gearActiveNow) return panelBg;
+  const gearSubBg = (() => {
+    if (!gearActiveNow) {
+      return dark ? 'bg-slate-900/40 border-slate-700/60' : 'bg-stone-50 border-stone-200';
+    }
     if (stage === 'gear2') {
       return dark
-        ? 'bg-gradient-to-br from-emerald-950/60 via-slate-800/95 to-slate-800/95 border-emerald-500/45 shadow-[0_0_14px_rgba(16,185,129,0.22)]'
-        : 'bg-gradient-to-br from-emerald-50 via-white to-white border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.18)]';
+        ? 'bg-gradient-to-br from-emerald-950/50 via-slate-900/60 to-slate-900/60 border-emerald-500/45 shadow-[0_0_10px_rgba(16,185,129,0.20)]'
+        : 'bg-gradient-to-br from-emerald-50 via-stone-50 to-stone-50 border-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.18)]';
     }
     return dark
-      ? 'bg-gradient-to-br from-amber-950/60 via-slate-800/95 to-slate-800/95 border-amber-500/40 shadow-[0_0_12px_rgba(251,191,36,0.20)]'
-      : 'bg-gradient-to-br from-amber-50 via-white to-white border-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.18)]';
+      ? 'bg-gradient-to-br from-amber-950/50 via-slate-900/60 to-slate-900/60 border-amber-500/40 shadow-[0_0_10px_rgba(251,191,36,0.20)]'
+      : 'bg-gradient-to-br from-amber-50 via-stone-50 to-stone-50 border-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.18)]';
   })();
 
   const gearPanelNode = (
-    <div className={`${gearActivePanelBg} border rounded-lg shadow-sm p-2 ${wrapperDim}`}>
+    <div className={`${gearSubBg} border rounded-md p-2 ${wrapperDim}`}>
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5">
           <Gauge className={`w-3 h-3 ${shape.iconColor}`} />
-          <h3 className={`text-[10px] font-bold tracking-wide uppercase ${title}`}>Exit</h3>
-          {leverage != null && leverage > 1 && (
-            <span className={`text-[9px] font-bold ${dark ? 'text-amber-300' : 'text-amber-700'}`}>
-              {leverage}x
-            </span>
-          )}
+          <h3 className={`text-[10px] font-bold tracking-wide uppercase ${title}`}>Gear</h3>
         </div>
         <span
           className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 border rounded ${shape.badgeCls} ${shape.glow}`}
@@ -323,8 +315,8 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
         </span>
       </div>
 
-      {/* Slim progress bar — subtle; panel tint conveys activation */}
-      <div className={`relative ${dark ? 'bg-slate-700/40' : 'bg-stone-200/80'} rounded-full h-1 overflow-hidden`}>
+      {/* Progress bar — thicker to align with SL bar */}
+      <div className={`relative ${dark ? 'bg-slate-700/40' : 'bg-stone-200/80'} rounded-full h-2.5 overflow-hidden`}>
         <div
           className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${
             gearActiveNow
@@ -379,11 +371,28 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     </div>
   );
 
-  // Always: Gear (take-profit) on top, SL on bottom.
+  // Wrap Gear + SL inside a single EXIT panel (Gear on top, SL on bottom).
+  const exitWrapperBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
   return (
-    <div className="flex flex-col gap-1.5">
-      {gearPanelNode}
-      {slPanel}
+    <div className={`${exitWrapperBg} border rounded-lg shadow-sm p-2`}>
+      <div className="flex items-center justify-between mb-1.5">
+        <h3 className={`text-[11px] font-bold tracking-wider uppercase ${title}`}>Exit</h3>
+        {leverage != null && leverage > 1 && (
+          <span
+            className={`text-[9px] font-bold px-1.5 py-0.5 border rounded ${
+              dark
+                ? 'bg-amber-500/15 text-amber-300 border-amber-400/40'
+                : 'bg-amber-50 text-amber-700 border-amber-300'
+            }`}
+          >
+            {leverage}x
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        {gearPanelNode}
+        {slPanel}
+      </div>
     </div>
   );
 }

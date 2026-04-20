@@ -481,18 +481,18 @@ function FuturesDashboard() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2" style={{ alignItems: 'start' }}>
-          <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1">
+        <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2 lg:items-stretch">
+          <div className="w-full lg:w-auto flex flex-col gap-2 order-2 lg:order-1 lg:h-full">
             <KrakenMetricsPanel data={data} position="left" zbStatus={zbData.status} zbZones={zbData.zones} />
           </div>
           <div className="w-full min-w-0 order-1 lg:order-2">
             <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} />
           </div>
-          <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2">
+          <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-2 lg:h-full">
             <div className="w-full flex-shrink-0">
               <KrakenMetricsPanel data={data} position="right" />
             </div>
-            <div className="w-full" style={{ height: '220px' }}>
+            <div className="w-full flex-1 min-h-[220px] overflow-hidden">
               <KrakenMetricsPanel data={data} position="trades" />
             </div>
           </div>
