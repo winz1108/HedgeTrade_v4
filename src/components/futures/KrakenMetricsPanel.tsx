@@ -266,6 +266,7 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
             ?? true
           }
           currentPrice={livePrice}
+          entryPrice={entryPrice ?? (data.position as any)?.entry_price ?? null}
         />
         </div>
       </div>

@@ -20,9 +20,10 @@ interface GearExitPanelProps {
   signalSlPrice?: number | null;
   signalSlActive?: boolean;
   currentPrice?: number | null;
+  entryPrice?: number | null;
 }
 
-export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, slPrice, signalSlPrice, signalSlActive = true, currentPrice }: GearExitPanelProps) {
+export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, slPrice, signalSlPrice, signalSlActive = true, currentPrice, entryPrice: entryPriceProp }: GearExitPanelProps) {
   const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
   const title = dark ? 'text-slate-100' : 'text-slate-800';
   const subText = dark ? 'text-slate-300' : 'text-slate-600';
@@ -48,7 +49,9 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
   } = gearPanel;
 
   const isLong = (positionSide ?? '').toString().toUpperCase() === 'LONG';
-  const entryPrice = left_price;
+  // Real position entry price (from backend). Fallback to gear's left_price only if not provided.
+  const entryPrice =
+    typeof entryPriceProp === 'number' && entryPriceProp > 0 ? entryPriceProp : left_price;
   // Prefer live websocket price for smooth realtime P&L; fall back to gear snapshot.
   const livePrice = typeof currentPrice === 'number' && currentPrice > 0 ? currentPrice : current_price;
   const pnlPct =

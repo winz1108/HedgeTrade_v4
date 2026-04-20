@@ -280,6 +280,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
             ?? true
           }
           currentPrice={livePrice}
+          entryPrice={entryPrice ?? (data.position as any)?.entry_price ?? null}
         />
         </div>
       </div>

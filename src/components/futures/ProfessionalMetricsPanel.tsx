@@ -254,6 +254,7 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones: _z
             ?? true
           }
           currentPrice={livePrice}
+          entryPrice={entryPrice ?? (data.position as any)?.entry_price ?? null}
         />
         </div>
       </div>
