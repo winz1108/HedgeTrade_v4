@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { TrendingUp, TrendingDown, Gauge, Activity, ShieldAlert } from 'lucide-react';
 import type {
   GearPanel,
@@ -54,6 +55,27 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
     typeof entryPriceProp === 'number' && entryPriceProp > 0 ? entryPriceProp : left_price;
   // Prefer live websocket price for smooth realtime P&L; fall back to gear snapshot.
   const livePrice = typeof currentPrice === 'number' && currentPrice > 0 ? currentPrice : current_price;
+
+  // Client-side MFE fallback: track best favorable excursion since this entry was opened.
+  // Backend sometimes lags (e.g., shows +0.25% even after price moved 0.9% in favor),
+  // so we locally maintain the best price seen for the current position.
+  const bestPriceRef = useRef<{ entry: number; best: number } | null>(null);
+  useEffect(() => {
+    if (!entryPrice || entryPrice <= 0 || !livePrice || livePrice <= 0) return;
+    const prev = bestPriceRef.current;
+    if (!prev || prev.entry !== entryPrice) {
+      bestPriceRef.current = { entry: entryPrice, best: livePrice };
+      return;
+    }
+    const improved = isLong ? livePrice > prev.best : livePrice < prev.best;
+    if (improved) bestPriceRef.current = { entry: entryPrice, best: livePrice };
+  }, [entryPrice, livePrice, isLong]);
+
+  const clientMfePct =
+    bestPriceRef.current && entryPrice > 0
+      ? ((bestPriceRef.current.best - entryPrice) / entryPrice) * 100 * (isLong ? 1 : -1)
+      : 0;
+  const displayedMfePct = Math.max(mfe_pct, clientMfePct);
   const pnlPct =
     entryPrice > 0
       ? ((livePrice - entryPrice) / entryPrice) * 100 * (isLong ? 1 : -1)
@@ -353,8 +375,8 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
       <div className={`mt-1.5 grid grid-cols-3 gap-1 text-[9px] ${subText}`}>
         <div className="flex flex-col items-center">
           <span className={`${dimText} uppercase tracking-wide`}>MFE</span>
-          <span className={`font-bold ${mfe_pct >= 0 ? (dark ? 'text-emerald-400' : 'text-emerald-600') : (dark ? 'text-rose-400' : 'text-rose-600')}`}>
-            {mfe_pct >= 0 ? '+' : ''}{mfe_pct.toFixed(2)}%
+          <span className={`font-bold ${displayedMfePct >= 0 ? (dark ? 'text-emerald-400' : 'text-emerald-600') : (dark ? 'text-rose-400' : 'text-rose-600')}`}>
+            {displayedMfePct >= 0 ? '+' : ''}{displayedMfePct.toFixed(2)}%
           </span>
         </div>
         <div className="flex flex-col items-center">
