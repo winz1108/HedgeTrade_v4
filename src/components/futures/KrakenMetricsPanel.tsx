@@ -231,7 +231,11 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
         </div>
 
         <div className="flex-shrink-0">
-          <V2hEntryPanel v29={data.strategyStatus?.entryDetails?.v29} dark={true} />
+          <V2hEntryPanel
+            v29={data.strategyStatus?.entryDetails?.v29}
+            dark={true}
+            consensusGate={(data.strategyStatus as any)?.consensusGate}
+          />
         </div>
 
         <div className="flex-shrink-0">

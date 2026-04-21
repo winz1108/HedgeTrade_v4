@@ -257,7 +257,11 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
         </div>
 
         <div className="flex-shrink-0">
-          <V2hEntryPanel v29={(data.strategyStatus as any)?.entryDetails?.v29} dark={false} />
+          <V2hEntryPanel
+            v29={(data.strategyStatus as any)?.entryDetails?.v29}
+            dark={false}
+            consensusGate={(data.strategyStatus as any)?.consensusGate}
+          />
         </div>
 
         <div className="flex-shrink-0">

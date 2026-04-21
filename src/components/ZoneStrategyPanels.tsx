@@ -436,9 +436,20 @@ export function GearExitPanel({ gearPanel, dark = true, positionSide, leverage, 
  * V2hEntryPanel — shows up to 3 next_entries OR 1 active_entry
  * -------------------------------------------------------------------------*/
 
+export type ConsensusGate = {
+  k_min?: number;
+  long_n?: number;
+  short_n?: number;
+  total_n?: number;
+  direction?: 'LONG' | 'SHORT' | null;
+  passed?: boolean;
+  reject_reason?: 'below_k_min' | 'mixed_dir' | 'no_candidates' | null;
+};
+
 interface V2hEntryPanelProps {
   v29: V29EntryDetails | null | undefined;
   dark?: boolean;
+  consensusGate?: ConsensusGate | null;
 }
 
 function tfToMs(tf: string): number {
@@ -581,16 +592,118 @@ function ActiveEntryCard({ active, dark }: { active: V29ActiveEntry; dark: boole
   );
 }
 
-export function V2hEntryPanel({ v29, dark = true }: V2hEntryPanelProps) {
+export function V2hEntryPanel({ v29, dark = true, consensusGate }: V2hEntryPanelProps) {
   const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
   const title = dark ? 'text-slate-100' : 'text-slate-800';
   const dimText = dark ? 'text-slate-500' : 'text-stone-400';
   const trackBg = dark ? 'bg-slate-700' : 'bg-stone-200';
 
+  const consensusNode = (() => {
+    if (!consensusGate || typeof consensusGate !== 'object') return null;
+    const hasAny =
+      'passed' in consensusGate ||
+      'total_n' in consensusGate ||
+      'long_n' in consensusGate ||
+      'short_n' in consensusGate;
+    if (!hasAny) return null;
+
+    const k = Number(consensusGate.k_min ?? 0) || 0;
+    const longN = Number(consensusGate.long_n ?? 0) || 0;
+    const shortN = Number(consensusGate.short_n ?? 0) || 0;
+    const totalN = Number(consensusGate.total_n ?? longN + shortN) || 0;
+    const passed = consensusGate.passed === true;
+    const dir = consensusGate.direction;
+    const dominant = Math.max(longN, shortN);
+
+    let state: 'pass' | 'reject' | 'empty';
+    if (passed) state = 'pass';
+    else if (totalN > 0) state = 'reject';
+    else state = 'empty';
+
+    const statusLabel =
+      state === 'pass' ? 'CONSENSUS' : state === 'reject' ? 'REJECTED' : 'IDLE';
+
+    const dotCls =
+      state === 'pass'
+        ? dark ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.65)]' : 'bg-emerald-500'
+        : state === 'reject'
+          ? dark ? 'bg-rose-400' : 'bg-rose-500'
+          : dark ? 'bg-slate-500' : 'bg-stone-400';
+
+    const statusTextCls =
+      state === 'pass'
+        ? dark ? 'text-emerald-300' : 'text-emerald-700'
+        : state === 'reject'
+          ? dark ? 'text-rose-300' : 'text-rose-700'
+          : dark ? 'text-slate-400' : 'text-stone-500';
+
+    const pct = k > 0 ? Math.max(0, Math.min(100, (dominant / k) * 100)) : 0;
+
+    const barFillCls =
+      state === 'pass'
+        ? dark ? 'bg-emerald-400' : 'bg-emerald-500'
+        : state === 'reject'
+          ? dark ? 'bg-rose-400/80' : 'bg-rose-500/80'
+          : dark ? 'bg-slate-600' : 'bg-stone-300';
+
+    const longTextCls = dark ? 'text-cyan-300' : 'text-cyan-700';
+    const shortTextCls = dark ? 'text-orange-300' : 'text-orange-700';
+
+    return (
+      <div
+        className={`rounded-md border px-1.5 py-1 ${
+          dark ? 'bg-slate-900/40 border-slate-700/70' : 'bg-stone-50 border-stone-200'
+        }`}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-1.5">
+            <span className={`w-1.5 h-1.5 rounded-full ${dotCls}`} />
+            <span className={`text-[9px] font-bold tracking-wider uppercase ${statusTextCls}`}>
+              {statusLabel}
+            </span>
+            {state === 'pass' && dir && (
+              <span
+                className={`text-[8px] font-bold px-1 py-[1px] rounded border tracking-wider ${
+                  dir === 'LONG'
+                    ? dark
+                      ? 'text-cyan-300 border-cyan-400/50 bg-cyan-500/10'
+                      : 'text-cyan-700 border-cyan-400 bg-cyan-50'
+                    : dark
+                      ? 'text-orange-300 border-orange-400/50 bg-orange-500/10'
+                      : 'text-orange-700 border-orange-400 bg-orange-50'
+                }`}
+              >
+                {dir}
+              </span>
+            )}
+          </div>
+          <span className={`text-[9px] tabular-nums ${dimText}`}>
+            <span className={longTextCls}>L {longN}</span>
+            <span className="mx-1 opacity-60">/</span>
+            <span className={shortTextCls}>S {shortN}</span>
+            {k > 0 && (
+              <>
+                <span className="mx-1 opacity-60">·</span>
+                <span className="font-semibold">k≥{k}</span>
+              </>
+            )}
+          </span>
+        </div>
+        <div className={`${trackBg} rounded-full h-1 overflow-hidden`}>
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${barFillCls}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+    );
+  })();
+
   if (!v29) {
     return (
-      <div className={`${panelBg} border rounded-lg shadow-sm p-2`}>
-        <h3 className={`text-[10px] font-bold tracking-wide uppercase mb-1.5 ${title}`}>Entry</h3>
+      <div className={`${panelBg} border rounded-lg shadow-sm p-2 space-y-1.5`}>
+        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${title}`}>Entry</h3>
+        {consensusNode}
         <div className="text-center py-2">
           <span className={`text-[10px] ${dimText}`}>Waiting for data…</span>
         </div>
@@ -608,6 +721,8 @@ export function V2hEntryPanel({ v29, dark = true }: V2hEntryPanelProps) {
           {inPosition ? 'ACTIVE' : 'SCAN'}
         </span>
       </div>
+
+      {consensusNode}
 
       {inPosition ? (
         v29.active_entry ? (
