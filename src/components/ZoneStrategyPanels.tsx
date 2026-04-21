@@ -595,40 +595,41 @@ export function V2hEntryPanel({ v29, dark = true }: V2hEntryPanelProps) {
         )
       ) : (
         <>
-          {/* Time-to-next-bar progress bar */}
-          {v29.last_scan?.at_ms > 0 && (() => {
-            const span = tfToMs(v29.last_scan.tf || '1h');
-            const elapsed = Math.max(0, Date.now() - v29.last_scan.at_ms);
-            const pct = Math.max(0, Math.min(100, (elapsed / span) * 100));
-            return (
-              <div>
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className={`text-[9px] uppercase tracking-wide ${dimText}`}>
-                    Next {v29.last_scan.tf} close
-                  </span>
-                  <span className={`text-[9px] font-bold ${dimText}`}>{pct.toFixed(0)}%</span>
-                </div>
-                <div className={`${trackBg} rounded h-1.5 overflow-hidden`}>
-                  <div
-                    className={`${dark ? 'bg-cyan-400' : 'bg-cyan-500'} h-full transition-all duration-500`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })()}
-
           {v29.next_entries && v29.next_entries.length > 0 ? (
-            <div className="space-y-1">
-              {v29.next_entries.slice(0, 3).map((entry, idx) => (
-                <NextEntryCard
-                  key={`${entry.strat}-${entry.side}-${idx}`}
-                  entry={entry}
-                  dark={dark}
-                  rank={idx + 1}
-                />
-              ))}
-            </div>
+            <>
+              {v29.last_scan?.at_ms > 0 && (() => {
+                const span = tfToMs(v29.last_scan.tf || '1h');
+                const elapsed = Math.max(0, Date.now() - v29.last_scan.at_ms);
+                const pct = Math.max(0, Math.min(100, (elapsed / span) * 100));
+                return (
+                  <div>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className={`text-[9px] uppercase tracking-wide ${dimText}`}>
+                        Next {v29.last_scan.tf} close
+                      </span>
+                      <span className={`text-[9px] font-bold ${dimText}`}>{pct.toFixed(0)}%</span>
+                    </div>
+                    <div className={`${trackBg} rounded h-1.5 overflow-hidden`}>
+                      <div
+                        className={`${dark ? 'bg-cyan-400' : 'bg-cyan-500'} h-full transition-all duration-500`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div className="space-y-1">
+                {v29.next_entries.slice(0, 3).map((entry, idx) => (
+                  <NextEntryCard
+                    key={`${entry.strat}-${entry.side}-${idx}`}
+                    entry={entry}
+                    dark={dark}
+                    rank={idx + 1}
+                  />
+                ))}
+              </div>
+            </>
           ) : (
             <div className={`text-center py-2 text-[10px] ${dimText}`}>
               직전 봉 close 시점 진입 후보 없음 — 다음 봉 close 대기
