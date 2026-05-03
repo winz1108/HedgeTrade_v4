@@ -1,0 +1,1006 @@
+export interface Candle {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  isComplete?: boolean;
+  isPrediction?: boolean;
+  ema_short?: number;
+  ema_long?: number;
+  ema3?: number;
+  ema8?: number;
+  ema13?: number;
+  ema20?: number;
+  ema50?: number;
+  ema200?: number;
+  bb_upper?: number;
+  bb_mid?: number;
+  bb_lower?: number;
+  bbw?: number;
+  adx?: number;
+  macd?: number;
+  signal?: number;
+  histogram?: number;
+  macd_line?: number;
+  macd_signal?: number;
+  macd_hist?: number;
+  rsi?: number;
+  swing_high?: boolean;
+  swing_low?: boolean;
+}
+
+export interface TradeEvent {
+  timestamp: number;
+  type: 'buy' | 'sell';
+  price: number;
+  profit?: number;
+  pairId?: string;
+  quantity?: number;
+  exitReason?: string;
+  pnl?: number;
+  buyCost?: number;
+  sellRevenue?: number;
+  buyQty?: number;
+  sellQty?: number;
+  buyCommission?: number;
+  sellCommission?: number;
+  entryPrice?: number;
+  entryTime?: number;
+  profitNoCommission?: number;
+  pnlWithCommission?: number;
+  side?: 'LONG' | 'SHORT'; // 포지션 방향
+  exchange?: 'binance_spot' | 'kraken_futures'; // 거래소 구분
+  confirmed?: boolean; // kraken_futures: 거래소 체결 확인
+}
+
+export interface HoldingInfo {
+  isHolding: boolean;
+  buyPrice?: number;
+  buyTime?: number;
+  currentProfit?: number;
+  tpPrice?: number;
+  initialTakeProfitProb?: number;
+  v5MoeTakeProfitProb?: number;
+  latestPrediction?: {
+    takeProfitProb: number;
+    stopLossProb: number;
+  };
+  positionSide?: 'LONG' | 'SHORT';
+}
+
+export interface ExitConditionCUT {
+  armed: boolean;
+  maeOk: boolean;
+  maeCurrent: number;
+  maeThreshold: number;
+  consecutiveCuts: number;
+  pnlOk: boolean;
+  emaReversed: boolean;
+}
+
+export interface ExitConditionVWAP {
+  armed: boolean;
+  vwapTarget?: number;
+  entryVwap?: number;
+  distanceToVwap?: number;
+}
+
+export interface ExitConditionRTRAIL {
+  armed: boolean;
+  mfePct: number;
+  trailTarget: number;
+  trailPct: number;
+  targetReached: boolean;
+  trailStop: number;
+  currentPnl: number;
+}
+
+export interface VwapBandSeries {
+  timestamps: number[];
+  vwap: (number | null)[];
+  upper: (number | null)[];
+  lower: (number | null)[];
+}
+
+export interface ExitConditionTRAIL {
+  armed: boolean;
+  mfePct: number;
+  trailTarget: number;
+  trailPct: number;
+  targetReached: boolean;
+  trailStop: number;
+  currentPnl: number;
+}
+
+export interface ExitConditionSL {
+  armed: boolean;
+  slPrice?: number;
+  distance?: number;
+}
+
+export interface ExitConditionV32TRAIL {
+  armed: boolean;
+  peakPnl?: number;
+  trailDrop?: number;
+  currentLevel?: number;
+}
+
+export interface ExitConditionTIME {
+  armed: boolean;
+  barsHeld?: number;
+  maxBars?: number;
+  progress?: number;
+}
+
+export interface ExitConditions {
+  CUT?: ExitConditionCUT;
+  VWAP?: ExitConditionVWAP;
+  RTRAIL?: ExitConditionRTRAIL;
+  TRAIL?: ExitConditionTRAIL;
+  SL?: ExitConditionSL;
+  TIME?: ExitConditionTIME;
+  V32TRAIL?: ExitConditionV32TRAIL;
+  GEAR_PANEL?: GearPanel;
+}
+
+export type GearStage = 'gear0' | 'gear1' | 'gear2';
+
+export interface GearPanel {
+  stage: GearStage;
+  gear: 1 | 2;
+  left_label: string;
+  left_price: number;
+  right_label: string;
+  right_price: number;
+  current_price: number;
+  progress: number;
+  active_lock: 'floor_g1' | 'floor_g2' | null;
+  active_lock_price: number;
+  mfe_pct: number;
+  g1_min_mfe_pct: number;
+  ride_trigger_pct: number;
+  floor_price: number;
+  best_hl_price: number;
+  active: boolean;
+  description: string;
+}
+
+export interface PriceLine {
+  price: number;
+  distance_pct: number;
+  label: string;
+  active: boolean;
+}
+
+export interface PositionPriceLines {
+  entry?: PriceLine;
+  max_sl?: PriceLine;
+  floor?: PriceLine;
+  best_hl?: PriceLine;
+}
+
+export interface Sim1y {
+  n: number;
+  wr: number;
+  cum_ret_pct: number;
+  mdd_pct: number;
+  avg_hold_h: number;
+}
+
+export interface V29NextEntry {
+  strat: string;
+  side: 'LONG' | 'SHORT';
+  tf: '15m' | '30m' | '1h' | '4h' | string;
+  score: number;
+  expected_entry_price: number;
+  sl_price: number;
+  sl_pct: number;
+  scanned_at_ms: number;
+  sim_1y: Sim1y | null;
+}
+
+export interface V29ActiveEntry {
+  strat: string;
+  side: 'LONG' | 'SHORT';
+  tf: string;
+  sim_1y: Sim1y | null;
+}
+
+export interface V29EntryDetails {
+  state: 'IDLE' | 'IN_POSITION' | 'PENDING_EXIT';
+  in_position: boolean;
+  price: number;
+  last_scan: { at_ms: number; tf: string; n_candidates: number };
+  next_entries: V29NextEntry[];
+  next_entry: V29NextEntry | null;
+  active_entry: V29ActiveEntry | null;
+}
+
+export interface V32EnvCondition {
+  value: number | boolean;
+  slope_pct?: number;
+  ema200_price?: number;
+  distance_pct?: number;
+  ema50_4h_price?: number;
+  ema20_distance_pct?: number;
+  ema50_distance_pct?: number;
+  ema20_price?: number;
+  ema50_price?: number;
+  threshold?: number;
+}
+
+export interface V32EnvStatus {
+  ema200_trend?: V32EnvCondition;
+  htf_align?: V32EnvCondition;
+  value_zone?: V32EnvCondition;
+}
+
+export interface V32PatternInfo {
+  ready: boolean;
+  dir?: number;
+  proximity: number;
+  detail?: string;
+}
+
+export interface V32PatternProximity {
+  '382'?: V32PatternInfo;
+  ENG?: V32PatternInfo;
+  REV?: V32PatternInfo;
+  DBL?: V32PatternInfo;
+  FLAG?: V32PatternInfo;
+  RSI_DIV?: V32PatternInfo;
+  [key: string]: V32PatternInfo | undefined;
+}
+
+export interface V32Data {
+  ema20?: number;
+  ema50?: number;
+  ema200?: number;
+  atr?: number;
+  rsi?: number;
+  htf_ema50?: number;
+  htf_alignment?: number;
+  ema200_direction?: number;
+  in_value_zone?: boolean;
+  sl_price?: number;
+  trail_price?: number;
+  peak_pnl?: number;
+  bars_held?: number;
+  max_bars?: number;
+  entry_pattern?: string;
+  entry_atr?: number;
+  env_status?: V32EnvStatus;
+  pattern_proximity?: V32PatternProximity;
+}
+
+export interface EntryDetailADX {
+  current: number;
+  threshold: number;
+}
+
+export interface EntryDetailEMA {
+  price: number;
+  bd: number;
+  bu: number;
+  long_met?: boolean;
+  short_met?: boolean;
+  long_distance_pct?: number;
+  short_distance_pct?: number;
+}
+
+export interface EntryDetailRange {
+  position_pct: number;
+  long_max: number;
+  short_min: number;
+  long_pct?: number;
+  short_pct?: number;
+}
+
+export interface EntryDetailVWAP {
+  price: number;
+  vwap: number;
+  upper: number;
+  lower: number;
+  std: number;
+  sigma: number;
+  long_met: boolean;
+  short_met: boolean;
+  long_distance_pct: number;
+  short_distance_pct: number;
+}
+
+export interface EntryDetails {
+  ADX?: EntryDetailADX;
+  EMA?: EntryDetailEMA;
+  Range?: EntryDetailRange;
+  VWAP?: EntryDetailVWAP;
+  v29?: V29EntryDetails;
+  [key: string]: any;
+}
+
+export interface V10StrategyStatus {
+  strategyVersion?: string;
+  strategy_version?: string;
+  inPosition: boolean;
+  entryMode?: 'SW' | 'RIDE';
+  consecCutCount?: number;
+  consecCutDir?: number;
+  rideMfePct?: number;
+  strategyParams?: {
+    vregVolMult?: number;
+    vregMinPnl?: number;
+    vregRegN?: number;
+    mgmtTf?: string;
+    cutProgSteps?: number[];
+    cutMae?: number;
+    entryTf?: string;
+    entryMode?: string;
+    vwapPeriod?: number;
+    vwapSigma?: number;
+    rideEnabled?: boolean;
+    rideConsecN?: number;
+    rideCut?: number;
+    rideTarget?: number;
+    rideTrailPct?: number;
+    swTrailEnabled?: boolean;
+    swTrailTarget?: number;
+    swTrailPct?: number;
+    [key: string]: any;
+  };
+  positionSide?: 'LONG' | 'SHORT' | null;
+  side?: 'LONG' | 'SHORT' | null;
+  entryPrice?: number;
+  entryTime?: number;
+  currentPnl?: number;
+  mfe?: number;
+  mae?: number;
+  holdHours?: number;
+  healthScore?: number;
+  currentPrice?: number;
+  updatedAt?: string;
+  allBuyMet?: boolean;
+  buyConditionsMet?: number;
+  buyConditionsTotal?: number;
+  buyConditions?: {
+    '1h_ema_bu'?: boolean;
+    '1h_ema_bd'?: boolean;
+    '1h_adx_20'?: boolean;
+    [key: string]: boolean | undefined;
+  };
+  exitPrices?: {
+    vwapTarget?: number;
+    cutThresholdMae?: number;
+    rideTrailPrice?: number;
+    trailPrice?: number;
+    slPrice?: number;
+    trailTriggerPrice?: number;
+    trailExitPrice?: number;
+  };
+  exitConditions?: ExitConditions;
+  entryDetails?: EntryDetails;
+  vwapBandSeries?: VwapBandSeries;
+  vwap?: number;
+  vwap_upper?: number;
+  vwap_lower?: number;
+  entry_vwap?: number;
+  indicators?: {
+    '5m'?: { bd?: number; bu?: number; [key: string]: any };
+    '15m'?: { ema8?: number; ema13?: number; bd?: number; bu?: number; [key: string]: any };
+    '1h'?: { ema8?: number; ema13?: number; ema20?: number; ema50?: number; ema200?: number; atr?: number; adx?: number; [key: string]: any };
+    [key: string]: any;
+  };
+  v32?: V32Data;
+}
+
+export interface BosLevel {
+  timestamp: number;
+  price: number;
+  type: 'high' | 'low';
+}
+
+export interface MarketState {
+  BULL?: number;
+  BEAR?: number;
+  activeState: string;
+  bullDiv?: number;
+  bullConv?: number;
+  bearDiv?: number;
+  bearConv?: number;
+  sideways?: number;
+  state?: 'BULL_CONV' | 'BULL_DIV' | 'BEAR_CONV' | 'BEAR_DIV' | 'SIDEWAYS';
+  detail?: {
+    ema20: number;
+    ema50: number;
+    ema100: number;
+    ema20_rising: boolean;
+  };
+}
+
+export interface BuyConditions {
+  '1m_golden_cross': boolean;
+  '5m_above': boolean;
+  '15m_ema38_above': boolean;
+  '30m_slope_up': boolean;
+  '15m_bbw': boolean;
+  '30m_gap': boolean;
+  '30m_adx': boolean;
+  // Display-only 필드 (진입 판단에 미사용)
+  '5m_bbw'?: boolean;
+  '1h_adx'?: boolean;
+}
+
+export interface EarlyExitConditions {
+  '30m_golden_maintained': boolean;
+  '30m_ema5_falling': boolean;
+  '30m_ema13_falling': boolean;
+  '1d_downtrend': boolean;
+}
+
+export interface SellConditions {
+  dead_cross: {
+    met: boolean;
+    label: string;
+    ema5?: number;
+    ema13?: number;
+    above?: boolean;
+  };
+  smart_trail?: {
+    met: boolean;
+    active: boolean;
+    label: string;
+    regime: string;
+    score: number;
+    entry_price: number;
+    peak_price: number;
+    '15m_ema3': number;
+    '15m_ema8': number;
+    '15m_above': boolean;
+    min_profit: number;
+  };
+  early_exit: {
+    met: boolean;
+    label: string;
+    conditions: EarlyExitConditions;
+    conditions_met: number;
+    conditions_total: number;
+  };
+  any_sell: boolean;
+  in_position?: boolean;
+}
+
+export interface StrategyTimeframe {
+  ema5: number;
+  ema13: number;
+  above: boolean;
+  golden?: boolean;
+  bbw?: number;
+  gap?: number;
+  slope?: number;
+  dead?: boolean;
+}
+
+export interface StrategyStatus {
+  buyConditions: BuyConditions;
+  buyConditionsMet: number;
+  buyConditionsTotal: number;
+  allBuyMet: boolean;
+  sellSignal: string | null;
+  sellConditions?: SellConditions;
+  inPosition: boolean;
+  updatedAt?: string;
+  mfe?: number;
+  pp_stop?: number | null;
+  pp_activated?: boolean;
+  strategy?: {
+    '1m'?: StrategyTimeframe;
+    '5m'?: StrategyTimeframe;
+    '15m'?: StrategyTimeframe;
+    '30m'?: StrategyTimeframe;
+    '1h'?: StrategyTimeframe;
+    '1d'?: StrategyTimeframe;
+    in_position?: boolean;
+    smart_trail?: {
+      regime: string;
+      score: number;
+      entry_price: number;
+      peak_price: number;
+      '15m_ema3': number;
+      '15m_ema8': number;
+      '15m_above': boolean;
+      exit_type: string;
+      min_profit: number;
+    };
+  };
+}
+
+export interface AccountAsset {
+  currentAsset: number;
+  initialAsset: number;
+  currentBTC: number;
+  currentCash: number;
+  btcQuantity: number;
+  usdcFree: number;
+  usdcLocked: number;
+}
+
+export interface AccountHolding {
+  hasPosition: boolean;
+  entryPrice?: number;
+  quantity?: number;
+  currentPrice?: number;
+  unrealizedPnl?: number;
+  unrealizedPnlPct?: number;
+  tpPrice?: number;
+  slPrice?: number;
+  entryTime?: number;
+  initialTakeProfitProb?: number;
+}
+
+export interface AccountTrade {
+  entryPrice: number;
+  exitPrice: number;
+  quantity: number;
+  entryTime: number;
+  exitTime: number;
+  pnl: number;
+  pnlPct: number;
+  profit: number;
+  exitReason: 'TP' | 'SL';
+  completed: boolean;
+}
+
+export interface AccountMetrics {
+  portfolioReturn: number;
+  portfolioReturnWithCommission?: number;
+  actualReturn?: number;
+  totalTrades: number;
+  completedTrades?: number;
+  winningTrades: number;
+  winRate: number;
+  totalPnl?: number;
+  avgPnl?: number;
+  totalBalance?: number;
+  takeProfitCount?: number;
+  stopLossCount?: number;
+}
+
+export interface AccountData {
+  accountId: string;
+  accountName?: string;
+  asset: AccountAsset;
+  holding: AccountHolding;
+  trades: AccountTrade[];
+  metrics: AccountMetrics;
+  tradeStats?: {
+    takeProfitExits: number;
+    stopLossExits: number;
+    winRate: number;
+  };
+}
+
+export interface ApiResponse {
+  version: string;
+  cacheStatus?: string;
+  currentTime: number;
+  currentPrice: number;
+  priceHistory1m: Candle[];
+  priceHistory5m?: Candle[];
+  priceHistory15m?: Candle[];
+  priceHistory30m?: Candle[];
+  priceHistory1h?: Candle[];
+  priceHistory4h?: Candle[];
+  priceHistory1d?: Candle[];
+  prediction?: {
+    market_mood?: 'BULL' | 'BEAR';
+    threshold_v8?: number;
+    bb_touch?: boolean;
+    takeProfitProb?: number;
+  };
+  currentPrediction: {
+    v5MoeTakeProfitProb: number;
+    v5MoeStopLossProb: number;
+    takeProfitProb: number;
+    stopLossProb: number;
+    lastUpdateTime: number;
+    predictionTargetTimestampMs?: number;
+    marketState?: MarketState;
+    gateWeights?: number[];
+  };
+  lastPredictionUpdateTime: number;
+  marketState: MarketState;
+  gateWeights: number[];
+  accounts: AccountData[];
+  metrics: {
+    portfolioReturn: number;
+    totalTrades: number;
+    winningTrades: number;
+    winRate: number;
+    marketReturn?: number;
+  };
+  strategyStatus?: StrategyStatus;
+}
+
+export interface DashboardData {
+  version?: string;
+  currentAsset: number;
+  currentBTC?: number;
+  currentCash?: number;
+  initialAsset: number;
+  currentTime: number;
+  currentPrice: number;
+  priceHistory1m: Candle[];
+  priceHistory5m?: Candle[];
+  priceHistory15m?: Candle[];
+  priceHistory30m?: Candle[];
+  priceHistory1h?: Candle[];
+  priceHistory4h?: Candle[];
+  priceHistory1d?: Candle[];
+  pricePredictions: Candle[];
+  trades: TradeEvent[];
+  holding: HoldingInfo;
+  prediction?: {
+    market_mood?: 'BULL' | 'BEAR';
+    threshold_v8?: number;
+    bb_touch?: boolean;
+    takeProfitProb?: number;
+  };
+  currentPrediction?: {
+    takeProfitProb: number;
+    stopLossProb: number;
+    v5MoeTakeProfitProb?: number;
+    predictionDataTimestamp?: number;
+    predictionCalculatedAt?: number;
+    v2UpdateCount?: number;
+    v2LastUsed5minTimestamp?: number;
+    threshold_v8?: number;
+    bb_touch?: boolean;
+  };
+  lastPredictionUpdateTime?: number;
+  marketState?: MarketState;
+  gateWeights?: number[];
+  strategyStatus?: StrategyStatus | null;
+  metrics: {
+    portfolioReturn: number;
+    portfolioReturnWithCommission?: number;
+    actualReturn?: number;
+    marketReturn: number;
+    avgTradeReturn: number;
+    takeProfitCount: number;
+    stopLossCount: number;
+    totalTrades?: number;
+    winningTrades?: number;
+    winRate?: number;
+    totalPnl?: number;
+  };
+  tradingConfig?: {
+    takeProfitPercent: number;
+    stopLossPercent: number;
+  };
+  accountId?: string;
+  accountName?: string;
+  availableAccounts?: Array<{ id: string; name: string }>;
+  _updateTimestamp?: number;
+  v10Strategy?: V10StrategyStatus | null;
+  bosLevels?: BosLevel[];
+}
+
+export interface KrakenStrategyA {
+  name: string;
+  in_position: boolean;
+  side?: 'LONG' | 'SHORT';
+  entry_mode?: 'SW' | 'RIDE';
+  entry_leverage?: number;
+  entry_price?: number;
+  current_pnl?: number;
+  mfe?: number;
+  mae?: number;
+  health_score?: number;
+  pp_stop?: number | null;
+  pp_activated?: boolean;
+  pp_reversal_price?: number | null;
+  hard_sl: number;
+  vanished?: number;
+  vanish_threshold: number;
+  total_conditions: number;
+  elapsed_min?: number;
+  timeout_min: number;
+  '1h_adx'?: number;
+  '1h_ema5_slope'?: number;
+  entry_time?: number;
+  pp_active?: boolean;
+  floor_pct?: number | null;
+  floor_price?: number | null;
+  current_sl_pct?: number;
+  sl_price?: number | null;
+  exit_prices?: {
+    floor_price?: number | null;
+    sl_price?: number | null;
+    floor_pct?: number | null;
+    sl_pct?: number | null;
+  };
+  entry_conditions_live?: {
+    '1m_golden_cross'?: boolean | { long: boolean; short: boolean };
+    '5m_above'?: boolean | { long: boolean; short: boolean };
+    '15m_above'?: boolean | { long: boolean; short: boolean };
+    '30m_slope_up'?: boolean | { long: boolean; short: boolean };
+    '5m_bbw'?: boolean | { long: boolean; short: boolean };
+    '15m_bbw'?: boolean | { long: boolean; short: boolean };
+    '30m_gap'?: boolean | { long: boolean; short: boolean };
+    '30m_adx'?: boolean | { long: boolean; short: boolean };
+    '1h_adx'?: boolean | { long: boolean; short: boolean };
+  };
+  entry_conditions_long?: Record<string, boolean>;
+  entry_conditions_short?: Record<string, boolean>;
+  entry_details?: EntryDetails;
+  exit_conditions?: { GEAR_PANEL?: GearPanel };
+  strategyParams?: Record<string, any>;
+}
+
+export interface KrakenSellConditions {
+  hard_sl: {
+    label: string;
+    active: boolean;
+    threshold: number;
+  };
+  pp: {
+    label: string;
+    active: boolean;
+    mfe?: number;
+    stop_level?: number | null;
+    '1h_slope'?: number;
+  };
+  vanish: {
+    label: string;
+    current: number;
+    threshold: number;
+    met: boolean;
+  };
+  timeout: {
+    label: string;
+    elapsed: number;
+    remaining: number;
+    met: boolean;
+  };
+}
+
+export interface KrakenPosition {
+  in_position: boolean;
+  position_side?: 'LONG' | 'SHORT';
+  inPosition?: boolean;
+  side?: 'LONG' | 'SHORT';
+  entry_mode?: 'SW' | 'RIDE';
+  entry_price?: number;
+  entryPrice?: number;
+  entry_quantity?: number;
+  entry_time?: string;
+  entryTime?: number;
+  currentPrice?: number;
+  unrealizedPnlPct?: number;
+  currentPnl?: number;
+  mfe?: number;
+  mae?: number;
+  holdHours?: number;
+  healthScore?: number;
+  entryLeverage?: number;
+  entry_leverage?: number;
+  mode: string;
+  symbol: string;
+  exchange: string;
+  priceLines?: PositionPriceLines;
+  exitConditions?: { GEAR_PANEL?: GearPanel };
+}
+
+export interface KrakenBalance {
+  available: number;
+  portfolioValue: number;
+  currency: string;
+  currencies?: {
+    [currencyCode: string]: {
+      quantity: number;
+      valueUsd: number;
+    };
+  };
+}
+
+export interface KrakenFeeRate {
+  maker: number;
+  taker: number;
+  roundTrip: number;
+  description: string;
+  breakevenLinePct: number;
+}
+
+export interface KrakenMetrics {
+  portfolioReturn?: number;
+  portfolioReturnWithCommission?: number;
+  marketReturn?: number;
+  avgTradeReturn?: number;
+  takeProfitCount?: number;
+  stopLossCount?: number;
+  totalTrades?: number;
+  winRate?: number;
+  totalPnl?: number;
+}
+
+export interface KrakenTimeframeIndicators {
+  ema_short: number;
+  ema_long: number;
+  above: boolean;
+  golden_cross: boolean;
+  dead_cross: boolean;
+  bbw: number;
+  adx: number;
+  ema_gap_pct: number;
+  ema_slope: number;
+}
+
+export interface Kraken15mIndicators extends KrakenTimeframeIndicators {
+  ema3: number;
+  ema8: number;
+  ema3_8_above: boolean;
+}
+
+export interface Kraken4hIndicators {
+  macd_line: number;
+  macd_signal: number;
+  macd_hist: number;
+  macd_hist_prev: number;
+}
+
+export interface KrakenIndicators {
+  '1m': KrakenTimeframeIndicators;
+  '5m': KrakenTimeframeIndicators;
+  '15m': Kraken15mIndicators;
+  '30m': KrakenTimeframeIndicators;
+  '1h': KrakenTimeframeIndicators;
+  '4h': Kraken4hIndicators;
+  '1d': KrakenTimeframeIndicators;
+  market_regime: 'U' | 'S' | 'D';
+  trend_health_score: number;
+}
+
+export interface KrakenDashboardData {
+  exchange: string;
+  accountId: string;
+  accountName: string;
+  mode: string;
+  symbol: string;
+  version: string;
+  currentPrice: number;
+  currentTime: number;
+  balance: KrakenBalance;
+  position: KrakenPosition;
+  strategyA: KrakenStrategyA;
+  sellConditions: KrakenSellConditions;
+  recentTrades: TradeEvent[];
+  feeRate: KrakenFeeRate;
+  systemStatus: string;
+  metrics?: KrakenMetrics;
+  indicators?: KrakenIndicators;
+  priceHistory1m?: Candle[];
+  priceHistory5m?: Candle[];
+  priceHistory15m?: Candle[];
+  priceHistory30m?: Candle[];
+  priceHistory1h?: Candle[];
+  priceHistory4h?: Candle[];
+  priceHistory1d?: Candle[];
+  priceHistories?: {
+    '1m': Candle[];
+    '5m': Candle[];
+    '15m': Candle[];
+    '30m': Candle[];
+    '1h': Candle[];
+    '4h': Candle[];
+    '1d': Candle[];
+  };
+  strategyStatus?: V10StrategyStatus;
+  zoneBounce?: {
+    status: any;
+    zones: any;
+    trades: any;
+    slippage: any;
+    params: any;
+  };
+  bosLevels?: BosLevel[];
+}
+
+export interface BFDashboardData {
+  currentPrice: number;
+  serverTime: number;
+  wsHealthy: boolean;
+  exchange: string;
+  symbol: string;
+  account: {
+    id: string;
+    name: string;
+    mode: string;
+    totalAsset: number;
+    initialAsset: number;
+    currencies: Record<string, { quantity: number; valueUsd: number }>;
+    returnPct: number;
+  };
+  position: {
+    inPosition: boolean;
+    side: 'LONG' | 'SHORT' | null;
+    entryPrice: number | null;
+    entryTime: number | null;
+    currentPnl: number;
+    mfe: number;
+    mae?: number;
+    health_score?: number;
+    ppActivated: boolean;
+    ppStop: number | null;
+    ppReversalPrice: number | null;
+    peakPrice: number | null;
+    ppActive?: boolean;
+    floorPct?: number | null;
+    floorPrice?: number | null;
+    currentSlPct?: number;
+    slPrice?: number | null;
+    entryLeverage?: number;
+    entry_leverage?: number;
+    entry_mode?: 'SW' | 'RIDE';
+    in_position?: boolean;
+    position_side?: 'LONG' | 'SHORT';
+    entry_price?: number;
+    entry_time?: number;
+    current_pnl?: number;
+    exit_prices?: {
+      floor_price?: number | null;
+      sl_price?: number | null;
+      floor_pct?: number | null;
+      sl_pct?: number | null;
+    };
+    priceLines?: PositionPriceLines;
+    exitConditions?: { GEAR_PANEL?: GearPanel };
+    exit_conditions?: { GEAR_PANEL?: GearPanel };
+  };
+  strategy: {
+    version: string;
+    entryConditionsLong: Record<string, boolean>;
+    entryConditionsShort: Record<string, boolean>;
+    entry_conditions_long?: Record<string, boolean>;
+    entry_conditions_short?: Record<string, boolean>;
+    entryDetails?: EntryDetails;
+    entry_details?: EntryDetails;
+    indicators: Record<string, any>;
+    pp_reversal_price: number | null;
+    exit_conditions?: { GEAR_PANEL?: GearPanel };
+    strategyParams?: Record<string, any>;
+  };
+  strategyA?: {
+    exit_conditions?: { GEAR_PANEL?: GearPanel };
+    strategyParams?: Record<string, any>;
+    [key: string]: any;
+  };
+  metrics: {
+    totalTrades: number;
+    winRate: number;
+    avgPnl: number;
+    totalPnl: number;
+    marketReturn: number;
+  };
+  trades: Array<{
+    timestamp: number;
+    type: string;
+    side: string;
+    entryPrice: number;
+    exitPrice: number;
+    quantity: number;
+    pnlPercent: number;
+    reason: string;
+    holdSeconds: number;
+  }>;
+  recentTrades?: TradeEvent[];
+  priceHistories: Record<string, any[]>;
+  strategyStatus?: V10StrategyStatus;
+  zoneBounce?: {
+    status: any;
+    zones: any;
+    trades: any;
+    slippage: any;
+    params: any;
+  };
+}
