@@ -127,12 +127,14 @@ function ProgressBar({
   const currentGlow = active ? glowColors[color] : '';
   const currentText = active ? textColors[color] : inactiveText;
 
-  // Centered mode: fill from center (50%) outward
+  // Centered mode: bar starts from center and covers it
   const centerPct = 50;
   const fillWidth = centered ? Math.abs(pct - centerPct) : 0;
   const fillLeft = centered ? (pct >= centerPct ? centerPct : pct) : 0;
 
-  const thLineCls = active ? (dark ? 'bg-white/60' : 'bg-slate-700/60') : (dark ? 'bg-slate-600/30' : 'bg-stone-400/30');
+  const thDotCls = active
+    ? (dark ? 'bg-slate-300/70' : 'bg-slate-500/70')
+    : (dark ? 'bg-slate-600/30' : 'bg-stone-400/30');
 
   return (
     <div className="space-y-1">
@@ -141,34 +143,27 @@ function ProgressBar({
         <span className={`text-[9px] tabular-nums ${active ? 'font-bold' : 'font-normal'} ${currentText}`}>{valueDisplay}</span>
       </div>
       <div className={`relative ${active ? trackBg : inactiveTrackBg} rounded-full h-3 overflow-hidden`}>
-        {/* Center line for centered mode */}
-        {centered && (
-          <div
-            className={`absolute top-0 h-full w-[1.5px] ${dark ? 'bg-slate-400/40' : 'bg-stone-400/50'} z-10`}
-            style={{ left: '50%' }}
-          />
-        )}
-        {/* Fill */}
+        {/* Fill - in centered mode, starts from center covering it */}
         <div
           className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${currentFill} ${currentGlow}`}
           style={centered
-            ? { left: `${fillLeft}%`, width: `${Math.max(fillWidth, 1)}%` }
+            ? { left: `${fillLeft}%`, width: `${Math.max(fillWidth, 0.5)}%` }
             : reverse
               ? { right: 0, width: `${100 - pct}%` }
               : { left: 0, width: `${pct}%` }
           }
         />
-        {/* Threshold lines */}
+        {/* Threshold markers - subtle small dots at top */}
         {thPct != null && (
           <div
-            className={`absolute top-0 h-full w-[1.5px] ${thLineCls} z-10`}
-            style={{ left: `${thPct}%` }}
+            className={`absolute top-[2px] w-[3px] h-[3px] rounded-full ${thDotCls} z-10`}
+            style={{ left: `${thPct}%`, transform: 'translateX(-50%)' }}
           />
         )}
         {th2Pct != null && (
           <div
-            className={`absolute top-0 h-full w-[1.5px] ${thLineCls} z-10`}
-            style={{ left: `${th2Pct}%` }}
+            className={`absolute top-[2px] w-[3px] h-[3px] rounded-full ${thDotCls} z-10`}
+            style={{ left: `${th2Pct}%`, transform: 'translateX(-50%)' }}
           />
         )}
       </div>
