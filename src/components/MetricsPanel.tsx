@@ -18,8 +18,16 @@ const BUY_CONDITIONS: { key: keyof BuyConditions; label: string }[] = [
   { key: '30m_adx',         label: '30m ADX>15' },
 ];
 
+const normalizeToMs = (ts: number): number => {
+  // If timestamp is in seconds (10 digits), convert to ms
+  return ts < 1e12 ? ts * 1000 : ts;
+};
+
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
-  const diffMs = currentTime - entryTime;
+  const entryMs = normalizeToMs(entryTime);
+  const currentMs = normalizeToMs(currentTime);
+  const diffMs = currentMs - entryMs;
+  if (diffMs < 0) return '0m';
   const minutes = Math.floor(diffMs / 60000);
   const hours = Math.floor(minutes / 60);
   const remainMinutes = minutes % 60;

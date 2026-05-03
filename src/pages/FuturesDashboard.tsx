@@ -32,25 +32,22 @@ function FuturesDashboard() {
         const newLast = newArr[newArr.length - 1];
         const prevTs = getTs(prevLast);
         const newTs = getTs(newLast);
-        const newLastIsFinal = newLast.is_final !== false;
 
         if (prevTs > newTs) {
           merged[tf] = prevArr;
         } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
           const preserved = [...newArr];
-          const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
-          preserved[preserved.length - 1] = {
+          const mergedLast = {
             ...newLast,
-            ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
+            high: Math.max(newLast.high, prevLast.high),
+            low: Math.min(newLast.low, prevLast.low),
+            volume: Math.max(newLast.volume ?? 0, prevLast.volume ?? 0),
           };
-          merged[tf] = preserved;
-        } else if (!newLastIsFinal) {
-          const preserved = [...newArr];
           const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
-          preserved[preserved.length - 1] = {
-            ...newLast,
-            ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
-          };
+          if (liveIndicators) {
+            mergedLast.indicators = { ...newLast.indicators, ...liveIndicators };
+          }
+          preserved[preserved.length - 1] = mergedLast;
           merged[tf] = preserved;
         } else {
           merged[tf] = newArr;

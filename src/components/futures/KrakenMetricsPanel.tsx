@@ -12,8 +12,11 @@ interface Props {
   zbZones?: ZBZones | null;
 }
 
+const normalizeToMs = (ts: number): number => ts < 1e12 ? ts * 1000 : ts;
+
 const formatHoldingDuration = (entryTime: number, currentTime: number): string => {
-  const diffMs = currentTime - entryTime;
+  const diffMs = normalizeToMs(currentTime) - normalizeToMs(entryTime);
+  if (diffMs < 0) return '0m';
   const minutes = Math.floor(diffMs / 60000);
   const hours = Math.floor(minutes / 60);
   const remainMinutes = minutes % 60;
