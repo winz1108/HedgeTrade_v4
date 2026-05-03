@@ -96,14 +96,21 @@ function ProgressBar({
   const thPct = threshold != null ? ((Math.max(min, Math.min(max, threshold)) - min) / range) * 100 : null;
   const th2Pct = threshold2 != null ? ((Math.max(min, Math.min(max, threshold2)) - min) / range) * 100 : null;
 
-  const trackBg = dark ? 'bg-slate-700/40' : 'bg-stone-200/60';
+  const trackBg = dark ? 'bg-slate-700/50' : 'bg-stone-200/70';
   const inactiveTrackBg = dark ? 'bg-slate-800/40' : 'bg-stone-100/60';
 
   const fillColors: Record<BarColor, string> = {
-    cyan: dark ? 'bg-cyan-400' : 'bg-cyan-500',
-    orange: dark ? 'bg-orange-400' : 'bg-orange-500',
-    emerald: dark ? 'bg-emerald-400' : 'bg-emerald-500',
-    rose: dark ? 'bg-rose-400' : 'bg-rose-500',
+    cyan: dark ? 'bg-gradient-to-r from-cyan-500 to-cyan-400' : 'bg-gradient-to-r from-cyan-500 to-cyan-400',
+    orange: dark ? 'bg-gradient-to-r from-orange-500 to-orange-400' : 'bg-gradient-to-r from-orange-500 to-orange-400',
+    emerald: dark ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-emerald-500 to-emerald-400',
+    rose: dark ? 'bg-gradient-to-r from-rose-500 to-rose-400' : 'bg-gradient-to-r from-rose-500 to-rose-400',
+  };
+
+  const glowColors: Record<BarColor, string> = {
+    cyan: 'shadow-[0_0_8px_rgba(34,211,238,0.4)]',
+    orange: 'shadow-[0_0_8px_rgba(251,146,60,0.4)]',
+    emerald: 'shadow-[0_0_8px_rgba(52,211,153,0.4)]',
+    rose: 'shadow-[0_0_8px_rgba(251,113,133,0.4)]',
   };
 
   const textColors: Record<BarColor, string> = {
@@ -117,6 +124,7 @@ function ProgressBar({
   const inactiveText = dark ? 'text-slate-600' : 'text-stone-400';
 
   const currentFill = active ? fillColors[color] : inactiveFill;
+  const currentGlow = active ? glowColors[color] : '';
   const currentText = active ? textColors[color] : inactiveText;
 
   // Centered mode: fill from center (50%) outward
@@ -124,27 +132,27 @@ function ProgressBar({
   const fillWidth = centered ? Math.abs(pct - centerPct) : 0;
   const fillLeft = centered ? (pct >= centerPct ? centerPct : pct) : 0;
 
-  const thLineCls = active ? (dark ? 'bg-white/50' : 'bg-slate-600/50') : (dark ? 'bg-slate-600/30' : 'bg-stone-400/30');
+  const thLineCls = active ? (dark ? 'bg-white/60' : 'bg-slate-700/60') : (dark ? 'bg-slate-600/30' : 'bg-stone-400/30');
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-1">
       <div className="flex items-center justify-between">
         <span className={`text-[9px] ${active ? 'font-semibold' : 'font-normal'} ${currentText}`}>{label}</span>
         <span className={`text-[9px] tabular-nums ${active ? 'font-bold' : 'font-normal'} ${currentText}`}>{valueDisplay}</span>
       </div>
-      <div className={`relative ${active ? trackBg : inactiveTrackBg} rounded-full h-2 overflow-hidden`}>
+      <div className={`relative ${active ? trackBg : inactiveTrackBg} rounded-full h-3 overflow-hidden`}>
         {/* Center line for centered mode */}
         {centered && (
           <div
-            className={`absolute top-0 h-full w-[1px] ${dark ? 'bg-slate-500/60' : 'bg-stone-400/60'}`}
+            className={`absolute top-0 h-full w-[1.5px] ${dark ? 'bg-slate-400/40' : 'bg-stone-400/50'} z-10`}
             style={{ left: '50%' }}
           />
         )}
         {/* Fill */}
         <div
-          className={`absolute top-0 h-full rounded-full transition-all duration-500 ${currentFill}`}
+          className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${currentFill} ${currentGlow}`}
           style={centered
-            ? { left: `${fillLeft}%`, width: `${fillWidth}%` }
+            ? { left: `${fillLeft}%`, width: `${Math.max(fillWidth, 1)}%` }
             : reverse
               ? { right: 0, width: `${100 - pct}%` }
               : { left: 0, width: `${pct}%` }
@@ -153,13 +161,13 @@ function ProgressBar({
         {/* Threshold lines */}
         {thPct != null && (
           <div
-            className={`absolute top-0 h-full w-[2px] ${thLineCls} rounded-full`}
+            className={`absolute top-0 h-full w-[1.5px] ${thLineCls} z-10`}
             style={{ left: `${thPct}%` }}
           />
         )}
         {th2Pct != null && (
           <div
-            className={`absolute top-0 h-full w-[2px] ${thLineCls} rounded-full`}
+            className={`absolute top-0 h-full w-[1.5px] ${thLineCls} z-10`}
             style={{ left: `${th2Pct}%` }}
           />
         )}
