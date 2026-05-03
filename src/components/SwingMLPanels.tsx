@@ -127,10 +127,14 @@ function ProgressBar({
   const currentGlow = active ? glowColors[color] : '';
   const currentText = active ? textColors[color] : inactiveText;
 
-  // Centered mode: bar starts from center and covers it
+  // Centered mode: bar extends past center so the rounded end covers the center line
   const centerPct = 50;
-  const fillWidth = centered ? Math.abs(pct - centerPct) : 0;
-  const fillLeft = centered ? (pct >= centerPct ? centerPct : pct) : 0;
+  const overflowPct = 2; // extra % to push rounded end past center line
+  const rawFillWidth = centered ? Math.abs(pct - centerPct) : 0;
+  const fillWidth = centered ? rawFillWidth + overflowPct : 0;
+  const fillLeft = centered
+    ? (pct >= centerPct ? centerPct - overflowPct : pct)
+    : 0;
 
   const thLineCls = active
     ? (dark ? 'bg-slate-500/30' : 'bg-stone-400/30')
