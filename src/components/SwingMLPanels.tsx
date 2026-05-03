@@ -132,9 +132,9 @@ function ProgressBar({
   const fillWidth = centered ? Math.abs(pct - centerPct) : 0;
   const fillLeft = centered ? (pct >= centerPct ? centerPct : pct) : 0;
 
-  const thDotCls = active
-    ? (dark ? 'bg-slate-300/70' : 'bg-slate-500/70')
-    : (dark ? 'bg-slate-600/30' : 'bg-stone-400/30');
+  const thLineCls = active
+    ? (dark ? 'bg-slate-500/30' : 'bg-stone-400/30')
+    : (dark ? 'bg-slate-600/20' : 'bg-stone-300/20');
 
   return (
     <div className="space-y-1">
@@ -143,7 +143,14 @@ function ProgressBar({
         <span className={`text-[9px] tabular-nums ${active ? 'font-bold' : 'font-normal'} ${currentText}`}>{valueDisplay}</span>
       </div>
       <div className={`relative ${active ? trackBg : inactiveTrackBg} rounded-full h-3 overflow-hidden`}>
-        {/* Fill - in centered mode, starts from center covering it */}
+        {/* Center line for centered mode */}
+        {centered && (
+          <div
+            className={`absolute top-0 h-full w-[1px] ${dark ? 'bg-slate-500/30' : 'bg-stone-400/30'} z-10`}
+            style={{ left: '50%' }}
+          />
+        )}
+        {/* Fill */}
         <div
           className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${currentFill} ${currentGlow}`}
           style={centered
@@ -153,17 +160,17 @@ function ProgressBar({
               : { left: 0, width: `${pct}%` }
           }
         />
-        {/* Threshold markers - subtle small dots at top */}
+        {/* Threshold lines */}
         {thPct != null && (
           <div
-            className={`absolute top-[2px] w-[3px] h-[3px] rounded-full ${thDotCls} z-10`}
-            style={{ left: `${thPct}%`, transform: 'translateX(-50%)' }}
+            className={`absolute top-0 h-full w-[1px] ${thLineCls} z-10`}
+            style={{ left: `${thPct}%` }}
           />
         )}
         {th2Pct != null && (
           <div
-            className={`absolute top-[2px] w-[3px] h-[3px] rounded-full ${thDotCls} z-10`}
-            style={{ left: `${th2Pct}%`, transform: 'translateX(-50%)' }}
+            className={`absolute top-0 h-full w-[1px] ${thLineCls} z-10`}
+            style={{ left: `${th2Pct}%` }}
           />
         )}
       </div>
