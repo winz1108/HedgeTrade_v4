@@ -187,12 +187,10 @@ export function EntryMLPanel({ swingMl, dark = true }: SwingMLPanelsProps) {
     );
   }
 
-  // Swing Score: current_pred (-1 to 1), active at <= -0.5 (long near) or >= +0.5 (short near)
+  // Swing Score: always active, positive = orange, negative = cyan
   const swingVal = currentPred;
-  const swingLong = swingVal <= -0.5;
-  const swingShort = swingVal >= 0.5;
-  const swingActive = swingLong || swingShort;
-  const swingColor: BarColor = swingLong ? 'cyan' : 'orange';
+  const swingActive = true;
+  const swingColor: BarColor = swingVal >= 0 ? 'orange' : 'cyan';
 
   return (
     <div className={`${panelBg} border rounded-lg shadow-sm p-2.5 space-y-1.5`}>
