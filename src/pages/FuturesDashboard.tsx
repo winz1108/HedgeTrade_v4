@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData, Candle } from '../types/dashboard';
-import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard } from '../services/oracleApi';
+import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard, fetchCvbChartData } from '../services/oracleApi';
 import { KrakenMetricsPanel } from '../components/futures/KrakenMetricsPanel';
 import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
 import { formatLocalTime } from '../utils/time';
@@ -21,7 +21,7 @@ function FuturesDashboard() {
     ): Record<string, any[]> | undefined => {
       if (!prevHistories || !newHistories) return newHistories;
       const merged: Record<string, any[]> = {};
-      const tfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
+      const tfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'];
       const getTs = (c: any) => c.open_time_ms ?? c.timestamp ?? (c.time ? c.time * 1000 : 0);
       tfs.forEach(tf => {
         const newArr = newHistories[tf];
@@ -61,14 +61,22 @@ function FuturesDashboard() {
   const loadData = async () => {
     try {
       setError(null);
-      const [krakenData, binanceData] = await Promise.all([
+      const [krakenData, binanceData, cvbData] = await Promise.all([
         fetchKrakenDashboard(),
         fetchBinanceFuturesDashboard().catch(() => null),
+        fetchCvbChartData(200).catch(() => null),
       ]);
 
       if (!krakenData.priceHistory1m || krakenData.priceHistory1m.length === 0) {
         const chart1m = await fetchKrakenChartData('1m', 1000);
         krakenData.priceHistory1m = chart1m.candles;
+      }
+
+      if (cvbData && cvbData.candles.length > 0) {
+        krakenData.priceHistoryCvb = cvbData.candles;
+        if (krakenData.priceHistories) {
+          krakenData.priceHistories = { ...krakenData.priceHistories, cvb: cvbData.candles };
+        }
       }
 
       // Unify signal info: use Binance's entryDetails for Kraken dashboard.

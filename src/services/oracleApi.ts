@@ -587,6 +587,44 @@ export const fetchKrakenChartData = async (timeframe: string, limit: number = 10
   }
 };
 
+export const fetchCvbChartData = async (limit: number = 200) => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/cvb/chart/${limit}`;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch CVB chart data: ${response.status} ${response.statusText}`);
+    }
+
+    const chartResponse = await response.json();
+
+    if (!chartResponse.success) {
+      throw new Error(chartResponse.error || 'Failed to load CVB chart data');
+    }
+
+    const mapCandles = (candles: any[]): Candle[] => candles?.map(c => ({
+      timestamp: c.open_time_ms ?? c.time * 1000,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+      ema20: c.ema20,
+      isComplete: c.is_forming !== true,
+    })) || [];
+
+    return {
+      timeframe: 'cvb',
+      candles: mapCandles(chartResponse.candles),
+      count: chartResponse.count,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const fetchBinanceFuturesDashboard = async (): Promise<any> => {
   const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/binance-futures/dashboard?_=${Date.now()}`;

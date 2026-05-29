@@ -50,6 +50,7 @@ export function BinanceFuturesPriceChart({ data, onTimeframeChange, zbZones, zbS
     const priceHistory1h = getCandles('1h');
     const priceHistory4h = getCandles('4h');
     const priceHistory1d = getCandles('1d');
+    const priceHistoryCvb = getCandles('cvb');
 
     if (priceHistory1m.length === 0) return null;
 
@@ -74,6 +75,7 @@ export function BinanceFuturesPriceChart({ data, onTimeframeChange, zbZones, zbS
       priceHistory1h,
       priceHistory4h,
       priceHistory1d,
+      priceHistoryCvb,
       pricePredictions: [],
       trades,
       holding: {

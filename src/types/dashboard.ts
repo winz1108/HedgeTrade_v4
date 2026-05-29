@@ -637,6 +637,7 @@ export interface DashboardData {
   priceHistory1h?: Candle[];
   priceHistory4h?: Candle[];
   priceHistory1d?: Candle[];
+  priceHistoryCvb?: Candle[];
   pricePredictions: Candle[];
   trades: TradeEvent[];
   holding: HoldingInfo;
@@ -886,6 +887,7 @@ export interface KrakenDashboardData {
   priceHistory1h?: Candle[];
   priceHistory4h?: Candle[];
   priceHistory1d?: Candle[];
+  priceHistoryCvb?: Candle[];
   priceHistories?: {
     '1m': Candle[];
     '5m': Candle[];
@@ -894,6 +896,7 @@ export interface KrakenDashboardData {
     '1h': Candle[];
     '4h': Candle[];
     '1d': Candle[];
+    'cvb'?: Candle[];
   };
   strategyStatus?: V10StrategyStatus;
   zoneBounce?: {

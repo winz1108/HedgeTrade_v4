@@ -17,13 +17,13 @@ export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus }:
       return v < 1e12 ? v * 1000 : v;
     };
 
-    const getCandles = (timeframe: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'): any[] => {
+    const getCandles = (timeframe: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d' | 'cvb'): any[] => {
       let candles: any[] = [];
 
       if (data.priceHistories && data.priceHistories[timeframe]) {
         candles = data.priceHistories[timeframe];
       } else {
-        const key = `priceHistory${timeframe}` as keyof typeof data;
+        const key = `priceHistory${timeframe === 'cvb' ? 'Cvb' : timeframe}` as keyof typeof data;
         candles = (data[key] as any[]) || [];
       }
 
@@ -74,6 +74,7 @@ export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus }:
     const priceHistory1h = getCandles('1h');
     const priceHistory4h = getCandles('4h');
     const priceHistory1d = getCandles('1d');
+    const priceHistoryCvb = getCandles('cvb');
 
     if (priceHistory1m.length === 0) {
       return null;
@@ -141,6 +142,7 @@ export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus }:
       priceHistory1h,
       priceHistory4h,
       priceHistory1d,
+      priceHistoryCvb,
       pricePredictions: [],
       trades,
       holding: {

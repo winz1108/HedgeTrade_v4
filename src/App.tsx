@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { fetchBinanceFuturesDashboard } from './services/oracleApi';
+import { fetchBinanceFuturesDashboard, fetchCvbChartData } from './services/oracleApi';
 import { BinanceFuturesMetricsPanel } from './components/spot/BinanceFuturesMetricsPanel';
 import { BinanceFuturesPriceChart } from './components/spot/BinanceFuturesPriceChart';
 import { formatLocalTime } from './utils/time';
@@ -22,7 +22,7 @@ function App() {
     ): Record<string, any[]> | undefined => {
       if (!prevHistories || !newHistories) return newHistories;
       const merged: Record<string, any[]> = {};
-      const tfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
+      const tfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'];
       const getTs = (c: any) => c.open_time_ms ?? c.timestamp ?? (c.time ? c.time * 1000 : 0);
       tfs.forEach(tf => {
         const newArr = newHistories[tf];
@@ -87,10 +87,16 @@ function App() {
   const loadData = async () => {
     try {
       setError(null);
-      const resp = await fetchBinanceFuturesDashboard();
+      const [resp, cvbData] = await Promise.all([
+        fetchBinanceFuturesDashboard(),
+        fetchCvbChartData(200).catch(() => null),
+      ]);
       if (resp?.data) {
         setData(prev => {
           const incoming = resp.data;
+          if (cvbData && cvbData.candles.length > 0 && incoming.priceHistories) {
+            incoming.priceHistories = { ...incoming.priceHistories, cvb: cvbData.candles };
+          }
           if (!prev) return incoming;
           const livePrice = prev.currentPrice;
           const restPrice = incoming.currentPrice;

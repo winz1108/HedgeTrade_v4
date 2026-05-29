@@ -19,7 +19,7 @@ interface PriceChartProps {
   bosLevels?: BosLevel[] | null;
 }
 
-type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
+type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d' | 'cvb';
 
 function normalizeTimestamp(ts: number): number {
   if (!ts) return 0;
@@ -184,7 +184,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     const validPredictions = Array.isArray(data.pricePredictions) ? data.pricePredictions : [];
     const base1m = deduplicateCandles([...validHistory1m, ...validPredictions]);
 
-    const result = {
+    const result: Record<Timeframe, Candle[]> = {
       '1m': base1m,
       '5m': data.priceHistory5m ? deduplicateCandles([...data.priceHistory5m]) : aggregateCandlesToTimeframe(base1m, 5),
       '15m': data.priceHistory15m ? deduplicateCandles([...data.priceHistory15m]) : aggregateCandlesToTimeframe(base1m, 15),
@@ -192,10 +192,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       '1h': data.priceHistory1h ? deduplicateCandles([...data.priceHistory1h]) : aggregateCandlesToTimeframe(base1m, 60),
       '4h': data.priceHistory4h ? deduplicateCandles([...data.priceHistory4h]) : aggregateCandlesToTimeframe(base1m, 240),
       '1d': data.priceHistory1d ? deduplicateCandles([...data.priceHistory1d]) : aggregateCandlesToTimeframe(base1m, 1440),
+      'cvb': data.priceHistoryCvb ? deduplicateCandles([...data.priceHistoryCvb]) : [],
     };
 
     return result;
-  }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory30m, data.priceHistory1h, data.priceHistory4h, data.priceHistory1d, data.pricePredictions]);
+  }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory30m, data.priceHistory1h, data.priceHistory4h, data.priceHistory1d, data.priceHistoryCvb, data.pricePredictions]);
 
   const selectedCandles = candlesByTimeframe[timeframe];
 
@@ -773,7 +774,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           </div>
           <div className="hidden sm:flex items-center gap-1.5">
             <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5`}>
-              {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
+              {(['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'] as const).map((tf) => {
                 const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
                 const isLoading = !hasData && tf !== timeframe;
                 return (
@@ -796,7 +797,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         : `${colors.textSecondary} ${darkMode ? 'hover:text-slate-200 hover:bg-slate-600/60' : 'hover:text-stone-900 hover:bg-stone-300/60'}`
                     }`}
                   >
-                    {tf}
+                    {tf === 'cvb' ? 'CVB' : tf}
                     {isLoading && <span className="ml-1 text-[8px] opacity-50">•••</span>}
                   </button>
                 );
@@ -859,7 +860,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
         </div>
         <div className="flex sm:hidden items-center gap-1.5 mt-1.5">
           <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5`}>
-            {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
+            {(['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'] as const).map((tf) => {
               const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
               const isLoading = !hasData && tf !== timeframe;
               return (
@@ -882,7 +883,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       : `${colors.textSecondary} ${darkMode ? 'hover:text-slate-200 hover:bg-slate-600/60' : 'hover:text-stone-900 hover:bg-stone-300/60'}`
                   }`}
                 >
-                  {tf}
+                  {tf === 'cvb' ? 'CVB' : tf}
                   {isLoading && <span className="ml-1 text-[8px] opacity-50">•••</span>}
                 </button>
               );
