@@ -5,6 +5,7 @@ export interface Candle {
   low: number;
   close: number;
   volume: number;
+  duration?: number;
   isComplete?: boolean;
   isPrediction?: boolean;
   ema_short?: number;

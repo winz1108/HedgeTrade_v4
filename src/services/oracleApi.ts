@@ -612,6 +612,7 @@ export const fetchCvbChartData = async (limit: number = 200) => {
       low: c.low,
       close: c.close,
       volume: c.volume,
+      duration: c.duration,
       ema20: c.ema20,
       ema50: c.ema50,
       ema200: c.ema200,

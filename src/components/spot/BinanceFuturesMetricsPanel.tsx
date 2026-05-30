@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import type { BFDashboardData } from '../../types/dashboard';
 import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
 import { CvbEntryPanel, CvbExitPanel } from '../CvbPanels';
-import { fetchBinanceStrategyStatus } from '../../services/oracleApi';
+import { fetchCvbStrategyStatus, fetchBinanceStrategyStatus } from '../../services/oracleApi';
 
 interface Props {
   data: BFDashboardData;
@@ -43,14 +43,19 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
 
 export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStatus, zbZones: _zbZones }: Props) {
   const [cvbStatus, setCvbStatus] = useState<any>(null);
+  const [binanceStatus, setBinanceStatus] = useState<any>(null);
 
   useEffect(() => {
-    const loadCvb = async () => {
-      const status = await fetchBinanceStrategyStatus();
-      if (status) setCvbStatus(status);
+    const load = async () => {
+      const [cvb, binance] = await Promise.all([
+        fetchCvbStrategyStatus(),
+        fetchBinanceStrategyStatus(),
+      ]);
+      if (cvb) setCvbStatus(cvb);
+      if (binance) setBinanceStatus(binance);
     };
-    loadCvb();
-    const interval = setInterval(loadCvb, 5000);
+    load();
+    const interval = setInterval(load, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -281,7 +286,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
 
         <div className="flex-shrink-0">
           <CvbExitPanel
-            exitPanel={cvbStatus?.exit_panel}
+            exitPanel={binanceStatus?.exit_panel}
             dark={false}
           />
         </div>

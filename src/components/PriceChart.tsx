@@ -173,7 +173,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       : 590;
 
   const macdChartHeight = Math.floor(baseHeight * 0.16);
-  const adxChartHeight = Math.floor(baseHeight * 0.16);
+  const adxChartHeight = 0;
   const volumeChartHeight = volumeHeight;
   const fixedHeight = macdChartHeight + adxChartHeight + 32;
   const priceChartHeight = Math.floor(baseHeight - fixedHeight - volumeChartHeight);
@@ -2103,11 +2103,12 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           >
             <div className="absolute left-0 flex pointer-events-none overflow-hidden" style={{ top: 0, height: '100%', width: '100%' }}>
               {visibleCandles.map((candle, idx) => {
-                const volumes = visibleCandles.map(c => c.volume || 0);
-                const maxVolume = Math.max(...volumes, 0.001);
+                const isCvb = timeframe === 'cvb';
+                const barValues = visibleCandles.map(c => isCvb ? (c.duration || 0) : (c.volume || 0));
+                const maxVal = Math.max(...barValues, 0.001);
                 const topPadding = Math.max(5, volumeChartHeight * 0.15);
-                const candleVolume = candle.volume || 0;
-                const barHeight = (candleVolume / maxVolume) * (volumeChartHeight - topPadding - 10);
+                const candleVal = isCvb ? (candle.duration || 0) : (candle.volume || 0);
+                const barHeight = (candleVal / maxVal) * (volumeChartHeight - topPadding - 10);
                 const isGreen = candle.close >= candle.open;
 
                 return (
@@ -2324,61 +2325,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             })()}
           </div>
 
-          {/* SwingML Pred History Chart Background */}
-          <div
-            className="absolute left-0 rounded pointer-events-none"
-            style={{
-              top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
-              height: `${adxChartHeight}px`,
-              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-              zIndex: -1,
-              backgroundColor: darkMode ? 'rgba(30, 41, 59, 0.35)' : 'rgba(248, 250, 252, 0.5)',
-            }}
-          />
-
-          {/* Separator Line Above Pred */}
-          <div
-            className="absolute left-0 pointer-events-none"
-            style={{
-              top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 42}px`,
-              height: '2px',
-              width: '100%',
-              backgroundColor: 'rgba(156, 163, 175, 0.3)',
-            }}
-          />
-
-          <div
-            className="absolute left-0"
-            style={{
-              top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`,
-              height: `${adxChartHeight}px`,
-              width: `${visibleCandles.length * (candleWidth + candleGap)}px`,
-              zIndex: 1,
-            }}
-          >
-            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
-              {/* Zero line */}
-              <line
-                x1="0" y1={adxToY(0)} x2="100%" y2={adxToY(0)}
-                stroke={darkMode ? 'rgba(148, 163, 184, 0.25)' : 'rgba(100, 116, 139, 0.2)'}
-                strokeWidth="0.8"
-              />
-              {/* +0.58 threshold (short entry) */}
-              <line
-                x1="0" y1={adxToY(0.58)} x2="100%" y2={adxToY(0.58)}
-                stroke="rgba(251, 146, 60, 0.3)"
-                strokeWidth="0.8"
-                strokeDasharray="4 3"
-              />
-              {/* -0.58 threshold (long entry) */}
-              <line
-                x1="0" y1={adxToY(-0.58)} x2="100%" y2={adxToY(-0.58)}
-                stroke="rgba(34, 211, 238, 0.3)"
-                strokeWidth="0.8"
-                strokeDasharray="4 3"
-              />
-
-            </svg>
           </div>
 
         </div>
@@ -2436,10 +2382,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
         {/* Volume Y-Axis */}
         <div className="absolute" style={{ top: `${priceChartHeight + 28}px`, height: `${volumeChartHeight}px`, width: '100%' }}>
           {(() => {
-            const maxVolume = Math.max(...visibleCandles.map(c => c.volume));
+            const isCvb = timeframe === 'cvb';
+            const maxVal = Math.max(...visibleCandles.map(c => isCvb ? (c.duration || 0) : c.volume));
             const steps = 4;
             return Array.from({ length: steps }).map((_, i) => {
-              const volume = (maxVolume / (steps - 1)) * (steps - 1 - i);
+              const val = (maxVal / (steps - 1)) * (steps - 1 - i);
               const percentage = i / (steps - 1);
               const topPadding = Math.max(5, volumeChartHeight * 0.15);
               const y = topPadding + (volumeChartHeight - topPadding - 10) * percentage;
@@ -2449,7 +2396,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
                   style={{ top: `${y - 6}px` }}
                 >
-                  {volume >= 1000 ? `${(volume / 1000).toFixed(1)}K` : volume.toFixed(0)}
+                  {isCvb ? `${val.toFixed(0)}m` : (val >= 1000 ? `${(val / 1000).toFixed(1)}K` : val.toFixed(0))}
                 </div>
               );
             });
@@ -2473,23 +2420,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           })}
         </div>
 
-        {/* Pred Y-Axis */}
-        <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + macdChartHeight + 44}px`, height: `${adxChartHeight}px`, width: '100%' }}>
-          {[0.58, 0, -0.58].map((value) => {
-            const y = adxToY(value);
-            return (
-              <div
-                key={value}
-                className={`absolute right-0 w-full text-left pl-1 ${colors.textPrimary} text-[9px] tabular-nums`}
-                style={{ top: `${y - 6}px` }}
-              >
-                {value > 0 ? '+' : ''}{value.toFixed(1)}
-              </div>
-            );
-          })}
-        </div>
       </div>
-    </div>
     </div>
   );
 
