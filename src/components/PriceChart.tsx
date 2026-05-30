@@ -2223,12 +2223,16 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const candle = visibleCandles[hoveredCandleIndex];
               if (!candle) return null;
               const isGreen = candle.close >= candle.open;
+              const isCvb = timeframe === 'cvb';
+              const displayValue = isCvb
+                ? `${(candle.duration || 0).toFixed(0)}m`
+                : candle.volume.toLocaleString(undefined, { maximumFractionDigits: 3 });
               return (
                 <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-2 py-1 rounded-md flex items-center gap-2 pointer-events-none border ${darkMode ? 'border-slate-700/60' : 'border-stone-200'}`}>
                   <span className={`${colors.textSecondary} font-mono text-[10px]`}>{formatChartTime(candle.timestamp)}</span>
-                  <span className={`${colors.textSecondary} font-semibold text-[10px]`}>Vol</span>
+                  <span className={`${colors.textSecondary} font-semibold text-[10px]`}>{isCvb ? 'Dur' : 'Vol'}</span>
                   <span className={`font-bold tabular-nums ${isGreen ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {candle.volume.toLocaleString(undefined, { maximumFractionDigits: 3 })}
+                    {displayValue}
                   </span>
                 </div>
               );
