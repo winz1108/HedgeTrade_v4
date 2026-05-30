@@ -46,37 +46,13 @@ function App() {
           const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
           preserved[preserved.length - 1] = {
             ...newLast,
-            close: prevLast.close,
             high: Math.max(newLast.high, prevLast.high),
             low: Math.min(newLast.low, prevLast.low),
             ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
           };
           merged[tf] = preserved;
         } else {
-          const prevLastTs = getTs(prevLast);
-          const liveIsCompleted = prevLast.is_final === true;
-          const preserved = [...newArr];
-          const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
-
-          if (!liveIsCompleted) {
-            preserved[preserved.length - 1] = {
-              ...newLast,
-              close: prevLast.close,
-              high: Math.max(newLast.high, prevLast.high),
-              low: Math.min(newLast.low, prevLast.low),
-              ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
-            };
-          }
-
-          const prevLastInNew = newArr.findIndex((c: any) => Math.floor(getTs(c) / 1000) === Math.floor(prevLastTs / 1000));
-          if (prevLastInNew !== -1 && prevLastInNew !== newArr.length - 1) {
-            preserved[prevLastInNew] = {
-              ...preserved[prevLastInNew],
-              ...(liveIndicators ? { indicators: { ...preserved[prevLastInNew].indicators, ...liveIndicators } } : {}),
-            };
-          }
-
-          merged[tf] = preserved;
+          merged[tf] = newArr;
         }
       });
       return merged;
@@ -127,7 +103,7 @@ function App() {
       const updated = { ...prev, currentPrice: price };
       if (prev.priceHistories) {
         const updatedHistories = { ...prev.priceHistories };
-        const timeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
+        const timeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'];
         timeframes.forEach(tf => {
           const candles = updatedHistories[tf];
           if (candles && candles.length > 0) {
@@ -162,7 +138,7 @@ function App() {
           updated.currentPrice = livePrice;
           if (prev.priceHistories) {
             const updatedHistories = { ...prev.priceHistories };
-            ['1m', '5m', '15m', '30m', '1h', '4h', '1d'].forEach(tf => {
+            ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'].forEach(tf => {
               const candles = updatedHistories[tf];
               if (candles && candles.length > 0) {
                 const updatedCandles = [...candles];
@@ -317,7 +293,7 @@ function App() {
         }
         if (prev.priceHistories) {
           const updatedHistories = { ...prev.priceHistories };
-          ['1m', '5m', '15m', '30m', '1h', '4h', '1d'].forEach(tf => {
+          ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'].forEach(tf => {
             const candles = updatedHistories[tf];
             if (candles && candles.length > 0) {
               const updatedCandles = [...candles];
@@ -395,8 +371,23 @@ function App() {
     websocketService.on('bf_live_status', handleLiveStatus);
     websocketService.on('bf_price_tick', handlePriceTick);
 
+    // CVB candle polling every 3 seconds for forming bar updates
+    const cvbPollInterval = setInterval(async () => {
+      try {
+        const cvbData = await fetchCvbChartData(200);
+        if (cvbData && cvbData.candles.length > 0) {
+          setData(prev => {
+            if (!prev) return prev;
+            if (!prev.priceHistories) return prev;
+            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbData.candles } };
+          });
+        }
+      } catch {}
+    }, 3000);
+
     return () => {
       clearInterval(interval);
+      clearInterval(cvbPollInterval);
       websocketService.off('realtime_candle_update', handleRealtimeCandle);
       websocketService.off('bf_live_status', handleLiveStatus);
       websocketService.off('bf_price_tick', handlePriceTick);
