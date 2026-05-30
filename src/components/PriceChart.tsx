@@ -191,7 +191,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       '1h': data.priceHistory1h ? deduplicateCandles([...data.priceHistory1h]) : aggregateCandlesToTimeframe(base1m, 60),
       '4h': data.priceHistory4h ? deduplicateCandles([...data.priceHistory4h]) : aggregateCandlesToTimeframe(base1m, 240),
       '1d': data.priceHistory1d ? deduplicateCandles([...data.priceHistory1d]) : aggregateCandlesToTimeframe(base1m, 1440),
-      'cvb': data.priceHistoryCvb ? deduplicateCandles([...data.priceHistoryCvb]) : [],
+      'cvb': data.priceHistoryCvb ? data.priceHistoryCvb.map(c => {
+        const ts = normalizeTimestamp(c.timestamp);
+        return ts !== c.timestamp ? { ...c, timestamp: ts } : c;
+      }) : [],
     };
 
     return result;
