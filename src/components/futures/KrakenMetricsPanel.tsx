@@ -248,7 +248,14 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
 
         <div className="flex-shrink-0">
           <CvbEntryPanel
-            entryPanel={cvbStatus?.entry_panel}
+            entryPanel={cvbStatus?.entry_panel ? {
+              ...cvbStatus.entry_panel,
+              ema20: { value: (() => {
+                const candles = data.priceHistoryCvb || data.priceHistories?.['cvb'];
+                const last = candles?.[candles.length - 1];
+                return last?.ema20 ?? cvbStatus.entry_panel.ema20?.value;
+              })() }
+            } : undefined}
             dark={true}
           />
         </div>
