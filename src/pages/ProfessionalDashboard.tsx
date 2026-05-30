@@ -366,8 +366,8 @@ function ProfessionalDashboard() {
                 <h1 className="text-lg lg:text-2xl font-bold text-slate-100">HedgeTrade</h1>
                 <span className="text-[11px] font-semibold text-cyan-400 tracking-wide">Professional</span>
               </div>
-              {data.version && (
-                <span className="text-[10px] text-cyan-400 font-mono">{data.version}</span>
+              {(data.version || true) && (
+                <span className="text-[10px] text-cyan-400 font-mono">CVB v1.0</span>
               )}
               {data.position.in_position && (
                 <div className={`relative px-4 py-2 backdrop-blur-sm rounded-lg border overflow-hidden ${
