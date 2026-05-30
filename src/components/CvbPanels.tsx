@@ -80,144 +80,64 @@ function CvbProgressBar({
 }
 
 function ExitBar({
-  value,
-  min,
-  max,
+  pct,
   label,
+  valueDisplay,
   leftLabel,
   rightLabel,
-  fillFromRight,
   variant,
   dark,
 }: {
-  value: number;
-  min: number;
-  max: number;
+  pct: number;
   label: string;
+  valueDisplay: string;
   leftLabel: string;
   rightLabel: string;
-  fillFromRight?: boolean;
-  variant: 'danger' | 'profit' | 'hold-long' | 'hold-short' | 'dim';
+  variant: 'danger' | 'long' | 'short' | 'dim';
   dark: boolean;
 }) {
-  const range = max - min;
-  const clamped = Math.max(min, Math.min(max, value));
-  const pct = range > 0 ? ((clamped - min) / range) * 100 : 0;
-
   const trackBg = variant === 'dim'
     ? (dark ? 'bg-slate-800/40' : 'bg-stone-100/60')
     : (dark ? 'bg-slate-700/50' : 'bg-stone-200/70');
 
-  const fills: Record<typeof variant, string> = {
+  const fills = {
     danger: 'bg-gradient-to-r from-rose-500 to-rose-400',
-    profit: 'bg-gradient-to-r from-emerald-500 to-emerald-400',
-    'hold-long': 'bg-gradient-to-r from-cyan-500 to-cyan-400',
-    'hold-short': 'bg-gradient-to-r from-orange-500 to-orange-400',
+    long: 'bg-gradient-to-r from-cyan-500 to-cyan-400',
+    short: 'bg-gradient-to-r from-orange-500 to-orange-400',
     dim: dark ? 'bg-slate-600/30' : 'bg-stone-300/40',
   };
 
-  const glows: Record<typeof variant, string> = {
+  const glows = {
     danger: 'shadow-[0_0_6px_rgba(251,113,133,0.4)]',
-    profit: 'shadow-[0_0_6px_rgba(52,211,153,0.4)]',
-    'hold-long': 'shadow-[0_0_6px_rgba(34,211,238,0.3)]',
-    'hold-short': 'shadow-[0_0_6px_rgba(251,146,60,0.3)]',
+    long: 'shadow-[0_0_6px_rgba(34,211,238,0.3)]',
+    short: 'shadow-[0_0_6px_rgba(251,146,60,0.3)]',
     dim: '',
   };
 
-  const labelColors: Record<typeof variant, string> = {
+  const labelColors = {
     danger: dark ? 'text-rose-300' : 'text-rose-700',
-    profit: dark ? 'text-emerald-300' : 'text-emerald-700',
-    'hold-long': dark ? 'text-cyan-300' : 'text-cyan-700',
-    'hold-short': dark ? 'text-orange-300' : 'text-orange-700',
+    long: dark ? 'text-cyan-300' : 'text-cyan-700',
+    short: dark ? 'text-orange-300' : 'text-orange-700',
     dim: dark ? 'text-slate-500' : 'text-stone-400',
   };
 
-  const fillPct = fillFromRight ? (100 - pct) : pct;
-  const fillStyle = fillFromRight
-    ? { right: 0, width: `${100 - pct}%` }
-    : { left: 0, width: `${pct}%` };
+  const clampedPct = Math.max(0, Math.min(100, pct));
 
   return (
     <div className="space-y-0.5">
       <div className="flex items-center justify-between">
         <span className={`text-[9px] font-semibold ${labelColors[variant]}`}>{label}</span>
-        <span className={`text-[9px] tabular-nums font-bold ${labelColors[variant]}`}>
-          ${clamped.toFixed(0)}
-        </span>
+        <span className={`text-[9px] tabular-nums font-bold ${labelColors[variant]}`}>{valueDisplay}</span>
       </div>
       <div className={`relative ${trackBg} rounded-full h-2.5 overflow-hidden`}>
         <div
           className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${fills[variant]} ${glows[variant]}`}
-          style={fillStyle}
+          style={{ left: 0, width: `${clampedPct}%` }}
         />
       </div>
       <div className={`flex justify-between text-[8px] ${dark ? 'text-slate-600' : 'text-stone-400'}`}>
         <span>{leftLabel}</span>
         <span>{rightLabel}</span>
-      </div>
-    </div>
-  );
-}
-
-function BeBar({
-  value,
-  max,
-  label,
-  activated,
-  variant,
-  dark,
-}: {
-  value: number;
-  max: number;
-  label: string;
-  activated: boolean;
-  variant: 'hold-long' | 'hold-short' | 'profit' | 'dim';
-  dark: boolean;
-}) {
-  const pct = max > 0 ? (Math.min(value, max) / max) * 100 : 0;
-
-  const trackBg = variant === 'dim'
-    ? (dark ? 'bg-slate-800/40' : 'bg-stone-100/60')
-    : (dark ? 'bg-slate-700/50' : 'bg-stone-200/70');
-
-  const fills: Record<typeof variant, string> = {
-    profit: 'bg-gradient-to-r from-emerald-500 to-emerald-400',
-    'hold-long': 'bg-gradient-to-r from-cyan-500 to-cyan-400',
-    'hold-short': 'bg-gradient-to-r from-orange-500 to-orange-400',
-    dim: dark ? 'bg-slate-600/30' : 'bg-stone-300/40',
-  };
-
-  const glows: Record<typeof variant, string> = {
-    profit: 'shadow-[0_0_6px_rgba(52,211,153,0.4)]',
-    'hold-long': 'shadow-[0_0_6px_rgba(34,211,238,0.3)]',
-    'hold-short': 'shadow-[0_0_6px_rgba(251,146,60,0.3)]',
-    dim: '',
-  };
-
-  const labelColors: Record<typeof variant, string> = {
-    profit: dark ? 'text-emerald-300' : 'text-emerald-700',
-    'hold-long': dark ? 'text-cyan-300' : 'text-cyan-700',
-    'hold-short': dark ? 'text-orange-300' : 'text-orange-700',
-    dim: dark ? 'text-slate-500' : 'text-stone-400',
-  };
-
-  return (
-    <div className="space-y-0.5">
-      <div className="flex items-center justify-between">
-        <span className={`text-[9px] font-semibold ${labelColors[variant]}`}>{label}</span>
-        <span className={`text-[9px] tabular-nums font-bold ${labelColors[variant]}`}>
-          {activated ? 'Active' : `${value.toFixed(2)}%`}
-        </span>
-      </div>
-      <div className={`relative ${trackBg} rounded-full h-2.5 overflow-hidden`}>
-        <div
-          className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${fills[variant]} ${glows[variant]}`}
-          style={{ left: 0, width: `${pct}%` }}
-        />
-      </div>
-      <div className={`flex justify-between text-[8px] ${dark ? 'text-slate-600' : 'text-stone-400'}`}>
-        <span>0%</span>
-        <span>{max.toFixed(2)}%</span>
       </div>
     </div>
   );
@@ -304,53 +224,82 @@ export function CvbExitPanel({ exitPanel, dark = true }: CvbExitPanelProps) {
   const tp = exitPanel.tp;
   const be = exitPanel.be;
   const emaExit = exitPanel.ema_exit;
-  const currentPrice = exitPanel.pnl?.current_price ?? emaExit?.current_close ?? exitPanel.entry_price ?? 0;
   const entryPrice = exitPanel.entry_price ?? 0;
   const pnlPct = exitPanel.pnl?.current ?? 0;
   const isLong = exitPanel.direction === 'LONG';
   const isProfit = pnlPct >= 0;
-  const dirColor = isLong ? (dark ? 'text-cyan-400' : 'text-cyan-600') : (dark ? 'text-orange-400' : 'text-orange-600');
-  const holdVariant = isLong ? 'hold-long' as const : 'hold-short' as const;
 
+  // Current price: use ema_exit.current_close, or derive from entry + pnl
+  const currentPrice = emaExit?.current_close
+    ?? (entryPrice > 0 ? entryPrice * (1 + (isLong ? pnlPct : -pnlPct) / 100 / (exitPanel.leverage || 1)) : 0);
+
+  const slPrice = sl?.price ?? 0;
+  const tpPrice = tp?.price ?? 0;
+  const ema20Price = emaExit?.ema20 ?? 0;
   const beActivated = be?.activated === true;
   const beThreshold = be?.threshold ?? be?.max ?? 2.01;
   const bePeak = be?.current ?? be?.peak ?? 0;
 
-  // Highlighting: loss=SL, profit<BE=BE, profit>=BE=TP+EMA
-  const slHighlighted = !isProfit;
-  const beHighlighted = isProfit && !beActivated;
-  const tpHighlighted = isProfit && beActivated;
+  // Direction-based variant for non-SL bars
+  const holdVariant = isLong ? 'long' as const : 'short' as const;
 
-  // SL bar
-  const slPrice = sl?.price ?? 0;
-  const tpPrice = tp?.price ?? 0;
-  const ema20Price = emaExit?.ema20 ?? 0;
+  // Which condition is highlighted
+  const slActive = sl?.active !== false;
+  const tpActive = tp?.active !== false;
+  const beActive = be?.active !== false;
 
-  // Determine SL bar params based on direction
-  let slMin: number, slMax: number, slFillFromRight: boolean;
+  const slHighlighted = !isProfit && slActive;
+  const tpHighlighted = isProfit && beActivated && tpActive;
+  const beHighlighted = isProfit && !beActivated && beActive;
+
+  // --- SL bar ---
+  // LONG: min=SL($71528), max=Entry($73500), current=price. Fill right->left (closer to SL = more filled)
+  // SHORT: min=Entry($73500), max=SL($75472), current=price. Fill left->right (closer to SL = more filled)
+  let slPct: number;
   if (isLong) {
-    slMin = slPrice; slMax = entryPrice; slFillFromRight = true;
+    // pct=100% means at entry (safe), pct=0% means at SL (danger). We want danger = filled. So fill = 100 - pct
+    const range = entryPrice - slPrice;
+    const pos = range > 0 ? (currentPrice - slPrice) / range : 1;
+    slPct = (1 - Math.max(0, Math.min(1, pos))) * 100;
   } else {
-    slMin = entryPrice; slMax = slPrice; slFillFromRight = false;
+    // pct=0% means at entry (safe), pct=100% means at SL (danger). Fill directly.
+    const range = slPrice - entryPrice;
+    const pos = range > 0 ? (currentPrice - entryPrice) / range : 0;
+    slPct = Math.max(0, Math.min(1, pos)) * 100;
   }
 
-  // TP bar params
-  let tpMin: number, tpMax: number, tpFillFromRight: boolean;
+  // --- TP bar ---
+  // LONG: min=Entry($73500), max=TP($75472), current=price. Fill left->right (closer to TP = more filled)
+  // SHORT: min=TP($71528), max=Entry($73500), current=price. Fill right->left (closer to TP = more filled)
+  let tpPct: number;
   if (isLong) {
-    tpMin = entryPrice; tpMax = tpPrice; tpFillFromRight = false;
+    const range = tpPrice - entryPrice;
+    const pos = range > 0 ? (currentPrice - entryPrice) / range : 0;
+    tpPct = Math.max(0, Math.min(1, pos)) * 100;
   } else {
-    tpMin = tpPrice; tpMax = entryPrice; tpFillFromRight = true;
+    const range = entryPrice - tpPrice;
+    const pos = range > 0 ? (entryPrice - currentPrice) / range : 0;
+    tpPct = Math.max(0, Math.min(1, pos)) * 100;
   }
 
-  // EMA bar params (only shown when BE activated)
-  let emaMin: number, emaMax: number, emaFillFromRight: boolean;
+  // --- EMA bar ---
+  // LONG: min=EMA20($74201), max=TP($75472), current=price. Fill left->right. met when current < min
+  // SHORT: min=TP($71528), max=EMA20($74201), current=price. Fill right->left. met when current > max
+  let emaPct: number;
   if (isLong) {
-    emaMin = ema20Price; emaMax = tpPrice; emaFillFromRight = false;
+    const range = tpPrice - ema20Price;
+    const pos = range > 0 ? (currentPrice - ema20Price) / range : 0;
+    emaPct = Math.max(0, Math.min(1, pos)) * 100;
   } else {
-    emaMin = tpPrice; emaMax = ema20Price; emaFillFromRight = true;
+    const range = ema20Price - tpPrice;
+    const pos = range > 0 ? (ema20Price - currentPrice) / range : 0;
+    emaPct = Math.max(0, Math.min(1, pos)) * 100;
   }
 
-  // Panel bg on critical
+  // --- BE bar ---
+  const bePct = beThreshold > 0 ? (Math.min(bePeak, beThreshold) / beThreshold) * 100 : 0;
+
+  // Panel bg
   let activeBg = panelBg;
   if (sl?.met) {
     activeBg = dark ? 'bg-rose-900/40 border-rose-500/60' : 'bg-rose-50 border-rose-400';
@@ -358,31 +307,7 @@ export function CvbExitPanel({ exitPanel, dark = true }: CvbExitPanelProps) {
     activeBg = dark ? 'bg-emerald-900/30 border-emerald-500/50' : 'bg-emerald-50 border-emerald-400';
   }
 
-  // Determine variants
-  const slVariant = (): 'danger' | 'profit' | 'hold-long' | 'hold-short' | 'dim' => {
-    if (sl?.active === false) return 'dim';
-    if (sl?.met || slHighlighted) return 'danger';
-    return 'dim';
-  };
-
-  const tpVariant = (): 'danger' | 'profit' | 'hold-long' | 'hold-short' | 'dim' => {
-    if (tp?.active === false) return 'dim';
-    if (tp?.met || tpHighlighted) return 'profit';
-    return 'dim';
-  };
-
-  const beVariant = (): 'hold-long' | 'hold-short' | 'profit' | 'dim' => {
-    if (be?.active === false) return 'dim';
-    if (beActivated) return 'profit';
-    if (beHighlighted) return holdVariant;
-    return 'dim';
-  };
-
-  const emaVariant = (): 'danger' | 'profit' | 'hold-long' | 'hold-short' | 'dim' => {
-    if (emaExit?.active === false) return 'dim';
-    if (emaExit?.met) return 'danger';
-    return holdVariant;
-  };
+  const dirColor = isLong ? (dark ? 'text-cyan-400' : 'text-cyan-600') : (dark ? 'text-orange-400' : 'text-orange-600');
 
   return (
     <div className={`${activeBg} border rounded-lg shadow-sm p-2.5 space-y-2 transition-colors duration-300`}>
@@ -400,52 +325,47 @@ export function CvbExitPanel({ exitPanel, dark = true }: CvbExitPanelProps) {
         </div>
       </div>
 
-      {/* Bar 1: SL */}
+      {/* Bar 1: SL (always red when active) */}
       <ExitBar
-        value={currentPrice}
-        min={slMin}
-        max={slMax}
+        pct={slPct}
         label="Stop Loss"
+        valueDisplay={slPrice > 0 ? `$${slPrice.toFixed(0)}` : `${(sl?.level ?? 0).toFixed(1)}%`}
         leftLabel={isLong ? `$${slPrice.toFixed(0)}` : `$${entryPrice.toFixed(0)}`}
         rightLabel={isLong ? `$${entryPrice.toFixed(0)}` : `$${slPrice.toFixed(0)}`}
-        fillFromRight={slFillFromRight}
-        variant={slVariant()}
+        variant={slActive ? (slHighlighted || sl?.met ? 'danger' : 'dim') : 'dim'}
         dark={dark}
       />
 
-      {/* Bar 2: TP */}
+      {/* Bar 2: TP (cyan/orange when active) */}
       <ExitBar
-        value={currentPrice}
-        min={tpMin}
-        max={tpMax}
+        pct={tpPct}
         label="Take Profit"
+        valueDisplay={tpPrice > 0 ? `$${tpPrice.toFixed(0)}` : `+${(tp?.level ?? 0).toFixed(1)}%`}
         leftLabel={isLong ? `$${entryPrice.toFixed(0)}` : `$${tpPrice.toFixed(0)}`}
         rightLabel={isLong ? `$${tpPrice.toFixed(0)}` : `$${entryPrice.toFixed(0)}`}
-        fillFromRight={tpFillFromRight}
-        variant={tpVariant()}
+        variant={tpActive ? (tpHighlighted || tp?.met ? holdVariant : 'dim') : 'dim'}
         dark={dark}
       />
 
       {/* Bar 3: BE or EMA Exit */}
       {beActivated && emaExit ? (
         <ExitBar
-          value={currentPrice}
-          min={emaMin}
-          max={emaMax}
+          pct={emaPct}
           label="EMA20 Exit"
+          valueDisplay={`$${ema20Price.toFixed(0)}`}
           leftLabel={isLong ? `$${ema20Price.toFixed(0)}` : `$${tpPrice.toFixed(0)}`}
           rightLabel={isLong ? `$${tpPrice.toFixed(0)}` : `$${ema20Price.toFixed(0)}`}
-          fillFromRight={emaFillFromRight}
-          variant={emaVariant()}
+          variant={emaExit.active !== false ? (emaExit.met ? 'danger' : holdVariant) : 'dim'}
           dark={dark}
         />
       ) : (
-        <BeBar
-          value={bePeak}
-          max={beThreshold}
+        <ExitBar
+          pct={bePct}
           label="Break-Even"
-          activated={beActivated}
-          variant={beVariant()}
+          valueDisplay={beActivated ? 'Active' : `${bePeak.toFixed(2)}%`}
+          leftLabel="0%"
+          rightLabel={`${beThreshold.toFixed(2)}%`}
+          variant={beActive ? (beHighlighted ? holdVariant : (beActivated ? holdVariant : 'dim')) : 'dim'}
           dark={dark}
         />
       )}
