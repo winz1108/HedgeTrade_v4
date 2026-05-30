@@ -95,7 +95,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const [scrollOffset, setScrollOffset] = useState(0);
   const [resetScroll, setResetScroll] = useState(0);
   const [candleWidth, setCandleWidth] = useState(4);
-  const [timeframe, setTimeframe] = useState<Timeframe>('5m');
+  const [timeframe, setTimeframe] = useState<Timeframe>('cvb');
   const [volumeHeight, setVolumeHeight] = useState(60);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number; trade: TradeEvent; hasPairedSell: boolean; pairedTrade?: TradeEvent } | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -763,7 +763,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           </div>
           <div className="hidden sm:flex items-center gap-1.5">
             <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5`}>
-              {(['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'] as const).map((tf) => {
+              {(['cvb', '1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
                 const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
                 const isLoading = !hasData && tf !== timeframe;
                 return (
