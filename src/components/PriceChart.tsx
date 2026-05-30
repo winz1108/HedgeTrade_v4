@@ -932,15 +932,109 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
         </div>
       </div>
 
-      <div className={`flex ${darkMode ? 'bg-gradient-to-br from-slate-800 via-slate-800/90 to-slate-800' : 'bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50'} overflow-hidden`} style={{ height: `${chartHeight}px` }}>
+      <div className={`relative ${darkMode ? 'bg-gradient-to-br from-slate-800 via-slate-800/90 to-slate-800' : 'bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50'}`} style={{ height: `${chartHeight}px` }}>
+      {/* Y-Axis - absolutely positioned on the right */}
+      <div className={`absolute top-0 right-0 w-16 ${colors.headerBg} border-l ${colors.headerBorder}`} style={{ height: `${chartHeight}px`, zIndex: 20 }}>
+        <div className="relative" style={{ height: `${priceChartHeight}px` }}>
+          {Array.from({ length: 6 }).map((_, i) => {
+            if (i === 0 || i === 5) return null;
+            const price = minPrice + ((maxPrice - minPrice) / 5) * i;
+            const y = priceToY(price);
+            return (
+              <div
+                key={i}
+                className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[11px]`}
+                style={{ top: `${y - 6}px` }}
+              >
+                {price.toFixed(2)}
+              </div>
+            );
+          })}
+
+          {/* Current Price Box */}
+          {displayPrice != null && (
+            <div
+              className={`absolute left-0 right-0 flex items-center justify-center`}
+              style={{ top: `${priceToY(displayPrice) - 10}px` }}
+            >
+              <div
+                className={`px-1.5 py-0.5 rounded text-white text-[11px] font-bold ${
+                  trueLatestCandle && displayPrice >= trueLatestCandle.open
+                    ? 'bg-[#0ecb81]'
+                    : 'bg-[#f6465d]'
+                }`}
+              >
+                {displayPrice.toFixed(2)}
+              </div>
+            </div>
+          )}
+
+          {/* Hovered Price Box */}
+          {crosshairPosition && crosshairPosition.y <= priceChartHeight && (
+            <div
+              className="absolute left-0 right-0 flex items-center justify-center z-50"
+              style={{ top: `${crosshairPosition.y - 10}px` }}
+            >
+              <div className={`px-1.5 py-0.5 rounded ${colors.textPrimary} text-[11px] font-bold ${darkMode ? 'bg-slate-800/95 border-slate-600' : 'bg-white/95 border-stone-300'} border shadow-md`}>
+                {yToPrice(crosshairPosition.y).toFixed(2)}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Volume Y-Axis */}
+        <div className="absolute" style={{ top: `${priceChartHeight + 28}px`, height: `${volumeChartHeight}px`, width: '100%' }}>
+          {(() => {
+            const isCvb = timeframe === 'cvb';
+            const maxVal = Math.max(...visibleCandles.map(c => isCvb ? (c.duration || 0) : c.volume));
+            const steps = 4;
+            return Array.from({ length: steps }).map((_, i) => {
+              const val = (maxVal / (steps - 1)) * (steps - 1 - i);
+              const percentage = i / (steps - 1);
+              const topPadding = Math.max(5, volumeChartHeight * 0.15);
+              const y = topPadding + (volumeChartHeight - topPadding - 10) * percentage;
+              return (
+                <div
+                  key={i}
+                  className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
+                  style={{ top: `${y - 6}px` }}
+                >
+                  {isCvb ? `${val.toFixed(0)}m` : (val >= 1000 ? `${(val / 1000).toFixed(1)}K` : val.toFixed(0))}
+                </div>
+              );
+            });
+          })()}
+        </div>
+
+        {/* MACD Y-Axis */}
+        <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + 36}px`, height: `${macdChartHeight}px`, width: '100%' }}>
+          {[macdData.max, 0, macdData.min].map((value, i) => {
+            const y = macdToY(value);
+            const displayValue = value === 0 ? 0 : Math.floor(value / 100) * 100;
+            return (
+              <div
+                key={i}
+                className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
+                style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
+              >
+                {displayValue}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Chart content area */}
       <div
         ref={containerRef}
-        className="relative select-none flex-1 min-w-0"
+        className="relative select-none"
         style={{
           overflow: 'hidden',
           touchAction: 'pan-x pan-y',
           overscrollBehavior: 'contain',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          marginRight: '64px',
+          height: `${chartHeight}px`,
         }}
         onMouseMove={handleContainerMouseMove}
         onMouseUp={handleMouseUp}
@@ -2319,97 +2413,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
         </div>
       </div>
 
-      {/* Y-Axis */}
-      <div className={`w-16 flex-shrink-0 ${colors.headerBg} relative border-l ${colors.headerBorder}`} style={{ height: `${chartHeight}px`, zIndex: 10 }}>
-        <div className="relative" style={{ height: `${priceChartHeight}px` }}>
-          {Array.from({ length: 6 }).map((_, i) => {
-            if (i === 0 || i === 5) return null;
-            const price = minPrice + ((maxPrice - minPrice) / 5) * i;
-            const y = priceToY(price);
-            return (
-              <div
-                key={i}
-                className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[11px]`}
-                style={{ top: `${y - 6}px` }}
-              >
-                {price.toFixed(2)}
-              </div>
-            );
-          })}
-
-          {/* Current Price Box */}
-          {displayPrice != null && (
-            <div
-              className={`absolute left-0 right-0 flex items-center justify-center`}
-              style={{ top: `${priceToY(displayPrice) - 10}px` }}
-            >
-              <div
-                className={`px-1.5 py-0.5 rounded text-white text-[11px] font-bold ${
-                  trueLatestCandle && displayPrice >= trueLatestCandle.open
-                    ? 'bg-[#0ecb81]'
-                    : 'bg-[#f6465d]'
-                }`}
-              >
-                {displayPrice.toFixed(2)}
-              </div>
-            </div>
-          )}
-
-          {/* Hovered Price Box - only show in price chart area */}
-          {crosshairPosition && crosshairPosition.y <= priceChartHeight && (
-            <div
-              className="absolute left-0 right-0 flex items-center justify-center z-50"
-              style={{ top: `${crosshairPosition.y - 10}px` }}
-            >
-              <div className={`px-1.5 py-0.5 rounded ${colors.textPrimary} text-[11px] font-bold ${darkMode ? 'bg-slate-800/95 border-slate-600' : 'bg-white/95 border-stone-300'} border shadow-md`}>
-                {yToPrice(crosshairPosition.y).toFixed(2)}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Volume Y-Axis */}
-        <div className="absolute" style={{ top: `${priceChartHeight + 28}px`, height: `${volumeChartHeight}px`, width: '100%' }}>
-          {(() => {
-            const isCvb = timeframe === 'cvb';
-            const maxVal = Math.max(...visibleCandles.map(c => isCvb ? (c.duration || 0) : c.volume));
-            const steps = 4;
-            return Array.from({ length: steps }).map((_, i) => {
-              const val = (maxVal / (steps - 1)) * (steps - 1 - i);
-              const percentage = i / (steps - 1);
-              const topPadding = Math.max(5, volumeChartHeight * 0.15);
-              const y = topPadding + (volumeChartHeight - topPadding - 10) * percentage;
-              return (
-                <div
-                  key={i}
-                  className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
-                  style={{ top: `${y - 6}px` }}
-                >
-                  {isCvb ? `${val.toFixed(0)}m` : (val >= 1000 ? `${(val / 1000).toFixed(1)}K` : val.toFixed(0))}
-                </div>
-              );
-            });
-          })()}
-        </div>
-
-        {/* MACD Y-Axis */}
-        <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + 36}px`, height: `${macdChartHeight}px`, width: '100%' }}>
-          {[macdData.max, 0, macdData.min].map((value, i) => {
-            const y = macdToY(value);
-            const displayValue = value === 0 ? 0 : Math.floor(value / 100) * 100;
-            return (
-              <div
-                key={i}
-                className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
-                style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
-              >
-                {displayValue}
-              </div>
-            );
-          })}
-        </div>
-
-      </div>
     </div>
   );
 

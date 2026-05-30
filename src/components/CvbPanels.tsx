@@ -81,6 +81,7 @@ function CvbProgressBar({
 
 function ExitBar({
   pct,
+  fillFromRight,
   label,
   valueDisplay,
   leftLabel,
@@ -89,6 +90,7 @@ function ExitBar({
   dark,
 }: {
   pct: number;
+  fillFromRight?: boolean;
   label: string;
   valueDisplay: string;
   leftLabel: string;
@@ -104,6 +106,13 @@ function ExitBar({
     danger: 'bg-gradient-to-r from-rose-500 to-rose-400',
     long: 'bg-gradient-to-r from-cyan-500 to-cyan-400',
     short: 'bg-gradient-to-r from-orange-500 to-orange-400',
+    dim: dark ? 'bg-slate-600/30' : 'bg-stone-300/40',
+  };
+
+  const fillsReverse = {
+    danger: 'bg-gradient-to-l from-rose-500 to-rose-400',
+    long: 'bg-gradient-to-l from-cyan-500 to-cyan-400',
+    short: 'bg-gradient-to-l from-orange-500 to-orange-400',
     dim: dark ? 'bg-slate-600/30' : 'bg-stone-300/40',
   };
 
@@ -123,6 +132,12 @@ function ExitBar({
 
   const clampedPct = Math.max(0, Math.min(100, pct));
 
+  const barStyle = fillFromRight
+    ? { right: 0, width: `${clampedPct}%` }
+    : { left: 0, width: `${clampedPct}%` };
+
+  const barFill = fillFromRight ? fillsReverse[variant] : fills[variant];
+
   return (
     <div className="space-y-0.5">
       <div className="flex items-center justify-between">
@@ -131,8 +146,8 @@ function ExitBar({
       </div>
       <div className={`relative ${trackBg} rounded-full h-2.5 overflow-hidden`}>
         <div
-          className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${fills[variant]} ${glows[variant]}`}
-          style={{ left: 0, width: `${clampedPct}%` }}
+          className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${barFill} ${glows[variant]}`}
+          style={barStyle}
         />
       </div>
       <div className={`flex justify-between text-[8px] ${dark ? 'text-slate-600' : 'text-stone-400'}`}>
@@ -228,78 +243,76 @@ export function CvbExitPanel({ exitPanel, dark = true }: CvbExitPanelProps) {
   const pnlPct = exitPanel.pnl?.current ?? 0;
   const isLong = exitPanel.direction === 'LONG';
   const isProfit = pnlPct >= 0;
+  const leverage = exitPanel.leverage || 1;
 
-  // Current price: use ema_exit.current_close, or derive from entry + pnl
+  // Current price: prefer ema_exit.current_close, then derive from entry + pnl
   const currentPrice = emaExit?.current_close
-    ?? (entryPrice > 0 ? entryPrice * (1 + (isLong ? pnlPct : -pnlPct) / 100 / (exitPanel.leverage || 1)) : 0);
+    ?? (entryPrice > 0 ? entryPrice * (1 + (isLong ? 1 : -1) * pnlPct / 100 / leverage) : 0);
 
-  const slPrice = sl?.price ?? 0;
-  const tpPrice = tp?.price ?? 0;
+  // Calculate SL/TP prices from level if not provided
+  const slPrice = sl?.price ?? (entryPrice > 0 && sl?.level
+    ? entryPrice * (1 + (isLong ? -1 : 1) * Math.abs(sl.level) / 100 / leverage)
+    : 0);
+  const tpPrice = tp?.price ?? (entryPrice > 0 && tp?.level
+    ? entryPrice * (1 + (isLong ? 1 : -1) * Math.abs(tp.level) / 100 / leverage)
+    : 0);
   const ema20Price = emaExit?.ema20 ?? 0;
   const beActivated = be?.activated === true;
   const beThreshold = be?.threshold ?? be?.max ?? 2.01;
-  const bePeak = be?.current ?? be?.peak ?? 0;
+  const bePeak = be?.current ?? be?.peak ?? be?.progress ?? 0;
 
-  // Direction-based variant for non-SL bars
+  // Direction color
   const holdVariant = isLong ? 'long' as const : 'short' as const;
 
-  // Which condition is highlighted
-  const slActive = sl?.active !== false;
-  const tpActive = tp?.active !== false;
-  const beActive = be?.active !== false;
+  // Activation logic:
+  // Loss -> SL only active
+  // Profit & BE not activated -> BE only active
+  // BE activated -> TP + EMA active (BE bar becomes EMA)
+  const slIsActive = !isProfit;
+  const tpIsActive = isProfit && beActivated;
+  const beIsActive = isProfit && !beActivated;
 
-  const slHighlighted = !isProfit && slActive;
-  const tpHighlighted = isProfit && beActivated && tpActive;
-  const beHighlighted = isProfit && !beActivated && beActive;
-
-  // --- SL bar ---
-  // LONG: min=SL($71528), max=Entry($73500), current=price. Fill right->left (closer to SL = more filled)
-  // SHORT: min=Entry($73500), max=SL($75472), current=price. Fill left->right (closer to SL = more filled)
+  // --- SL bar percentage ---
+  // How close is price to SL? 0% = at entry (safe), 100% = at SL (danger)
   let slPct: number;
   if (isLong) {
-    // pct=100% means at entry (safe), pct=0% means at SL (danger). We want danger = filled. So fill = 100 - pct
     const range = entryPrice - slPrice;
-    const pos = range > 0 ? (currentPrice - slPrice) / range : 1;
-    slPct = (1 - Math.max(0, Math.min(1, pos))) * 100;
+    slPct = range > 0 ? ((entryPrice - currentPrice) / range) * 100 : 0;
   } else {
-    // pct=0% means at entry (safe), pct=100% means at SL (danger). Fill directly.
     const range = slPrice - entryPrice;
-    const pos = range > 0 ? (currentPrice - entryPrice) / range : 0;
-    slPct = Math.max(0, Math.min(1, pos)) * 100;
+    slPct = range > 0 ? ((currentPrice - entryPrice) / range) * 100 : 0;
   }
+  slPct = Math.max(0, Math.min(100, slPct));
 
-  // --- TP bar ---
-  // LONG: min=Entry($73500), max=TP($75472), current=price. Fill left->right (closer to TP = more filled)
-  // SHORT: min=TP($71528), max=Entry($73500), current=price. Fill right->left (closer to TP = more filled)
+  // --- TP bar percentage ---
+  // How close is price to TP? 0% = at entry, 100% = at TP
   let tpPct: number;
   if (isLong) {
     const range = tpPrice - entryPrice;
-    const pos = range > 0 ? (currentPrice - entryPrice) / range : 0;
-    tpPct = Math.max(0, Math.min(1, pos)) * 100;
+    tpPct = range > 0 ? ((currentPrice - entryPrice) / range) * 100 : 0;
   } else {
     const range = entryPrice - tpPrice;
-    const pos = range > 0 ? (entryPrice - currentPrice) / range : 0;
-    tpPct = Math.max(0, Math.min(1, pos)) * 100;
+    tpPct = range > 0 ? ((entryPrice - currentPrice) / range) * 100 : 0;
   }
+  tpPct = Math.max(0, Math.min(100, tpPct));
 
-  // --- EMA bar ---
-  // LONG: min=EMA20($74201), max=TP($75472), current=price. Fill left->right. met when current < min
-  // SHORT: min=TP($71528), max=EMA20($74201), current=price. Fill right->left. met when current > max
+  // --- EMA bar percentage ---
+  // LONG: EMA20 is lower bound, TP is upper. currentPrice in [EMA20, TP]
+  // SHORT: TP is lower, EMA20 is upper. currentPrice in [TP, EMA20]
   let emaPct: number;
   if (isLong) {
     const range = tpPrice - ema20Price;
-    const pos = range > 0 ? (currentPrice - ema20Price) / range : 0;
-    emaPct = Math.max(0, Math.min(1, pos)) * 100;
+    emaPct = range > 0 ? ((currentPrice - ema20Price) / range) * 100 : 0;
   } else {
     const range = ema20Price - tpPrice;
-    const pos = range > 0 ? (ema20Price - currentPrice) / range : 0;
-    emaPct = Math.max(0, Math.min(1, pos)) * 100;
+    emaPct = range > 0 ? ((ema20Price - currentPrice) / range) * 100 : 0;
   }
+  emaPct = Math.max(0, Math.min(100, emaPct));
 
-  // --- BE bar ---
+  // --- BE bar percentage ---
   const bePct = beThreshold > 0 ? (Math.min(bePeak, beThreshold) / beThreshold) * 100 : 0;
 
-  // Panel bg
+  // Panel bg on critical state
   let activeBg = panelBg;
   if (sl?.met) {
     activeBg = dark ? 'bg-rose-900/40 border-rose-500/60' : 'bg-rose-50 border-rose-400';
@@ -325,47 +338,50 @@ export function CvbExitPanel({ exitPanel, dark = true }: CvbExitPanelProps) {
         </div>
       </div>
 
-      {/* Bar 1: SL (always red when active) */}
+      {/* Bar 1: SL - fills from right for LONG, from left for SHORT */}
       <ExitBar
         pct={slPct}
+        fillFromRight={isLong}
         label="Stop Loss"
         valueDisplay={slPrice > 0 ? `$${slPrice.toFixed(0)}` : `${(sl?.level ?? 0).toFixed(1)}%`}
         leftLabel={isLong ? `$${slPrice.toFixed(0)}` : `$${entryPrice.toFixed(0)}`}
         rightLabel={isLong ? `$${entryPrice.toFixed(0)}` : `$${slPrice.toFixed(0)}`}
-        variant={slActive ? (slHighlighted || sl?.met ? 'danger' : 'dim') : 'dim'}
+        variant={slIsActive || sl?.met ? 'danger' : 'dim'}
         dark={dark}
       />
 
-      {/* Bar 2: TP (cyan/orange when active) */}
+      {/* Bar 2: TP - fills from left for LONG, from right for SHORT */}
       <ExitBar
         pct={tpPct}
+        fillFromRight={!isLong}
         label="Take Profit"
         valueDisplay={tpPrice > 0 ? `$${tpPrice.toFixed(0)}` : `+${(tp?.level ?? 0).toFixed(1)}%`}
         leftLabel={isLong ? `$${entryPrice.toFixed(0)}` : `$${tpPrice.toFixed(0)}`}
         rightLabel={isLong ? `$${tpPrice.toFixed(0)}` : `$${entryPrice.toFixed(0)}`}
-        variant={tpActive ? (tpHighlighted || tp?.met ? holdVariant : 'dim') : 'dim'}
+        variant={tpIsActive || tp?.met ? holdVariant : 'dim'}
         dark={dark}
       />
 
-      {/* Bar 3: BE or EMA Exit */}
+      {/* Bar 3: BE or EMA Exit (transitions when BE activated) */}
       {beActivated && emaExit ? (
         <ExitBar
           pct={emaPct}
+          fillFromRight={!isLong}
           label="EMA20 Exit"
           valueDisplay={`$${ema20Price.toFixed(0)}`}
           leftLabel={isLong ? `$${ema20Price.toFixed(0)}` : `$${tpPrice.toFixed(0)}`}
           rightLabel={isLong ? `$${tpPrice.toFixed(0)}` : `$${ema20Price.toFixed(0)}`}
-          variant={emaExit.active !== false ? (emaExit.met ? 'danger' : holdVariant) : 'dim'}
+          variant={tpIsActive ? holdVariant : 'dim'}
           dark={dark}
         />
       ) : (
         <ExitBar
           pct={bePct}
           label="Break-Even"
-          valueDisplay={beActivated ? 'Active' : `${bePeak.toFixed(2)}%`}
+          valueDisplay={`${bePeak.toFixed(2)}%`}
           leftLabel="0%"
           rightLabel={`${beThreshold.toFixed(2)}%`}
-          variant={beActive ? (beHighlighted ? holdVariant : (beActivated ? holdVariant : 'dim')) : 'dim'}
+          variant={beIsActive ? holdVariant : 'dim'}
           dark={dark}
         />
       )}
