@@ -848,7 +848,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
         </div>
         <div className="flex sm:hidden items-center gap-1.5 mt-1.5">
           <div className={`flex items-center gap-0.5 ${colors.buttonBg} rounded p-0.5`}>
-            {(['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'] as const).map((tf) => {
+            {(['cvb', '1m', '5m', '15m', '30m', '1h', '4h', '1d'] as const).map((tf) => {
               const hasData = candlesByTimeframe[tf] && candlesByTimeframe[tf].length > 0;
               const isLoading = !hasData && tf !== timeframe;
               return (
@@ -871,7 +871,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       : `${colors.textSecondary} ${darkMode ? 'hover:text-slate-200 hover:bg-slate-600/60' : 'hover:text-stone-900 hover:bg-stone-300/60'}`
                   }`}
                 >
-                  {tf === 'cvb' ? 'cvb' : tf}
+                  {tf === 'cvb' ? 'CVB' : tf}
                 </button>
               );
             })}

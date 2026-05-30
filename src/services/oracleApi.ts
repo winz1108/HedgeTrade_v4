@@ -620,6 +620,7 @@ export const fetchCvbChartData = async (limit: number = 200) => {
       bb_mid: c.bb_mid,
       bb_lower: c.bb_lower,
       macd: c.macd,
+      signal: c.signal ?? c.macd_signal,
       histogram: c.histogram,
       adx: c.adx,
       isComplete: c.is_forming !== true,
