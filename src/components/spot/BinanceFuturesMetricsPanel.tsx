@@ -1,9 +1,10 @@
 import { DollarSign, Activity, Target, History } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import type { BFDashboardData } from '../../types/dashboard';
 import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
-import { EntryMLPanel, ExitMLPanel } from '../SwingMLPanels';
+import { CvbEntryPanel, CvbExitPanel } from '../CvbPanels';
+import { fetchCvbStrategyStatus } from '../../services/oracleApi';
 
 interface Props {
   data: BFDashboardData;
@@ -41,6 +42,18 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
 };
 
 export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStatus, zbZones: _zbZones }: Props) {
+  const [cvbStatus, setCvbStatus] = useState<any>(null);
+
+  useEffect(() => {
+    const loadCvb = async () => {
+      const status = await fetchCvbStrategyStatus();
+      if (status) setCvbStatus(status);
+    };
+    loadCvb();
+    const interval = setInterval(loadCvb, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -260,20 +273,15 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
         </div>
 
         <div className="flex-shrink-0">
-          <EntryMLPanel
-            swingMl={(data as any).swing_ml ?? null}
-            inPosition={data.position?.inPosition ?? (data.position as any)?.in_position ?? false}
-            positionSide={data.position?.side ?? data.position?.position_side}
+          <CvbEntryPanel
+            entryPanel={cvbStatus?.entry_panel}
             dark={false}
           />
         </div>
 
         <div className="flex-shrink-0">
-          <ExitMLPanel
-            swingMl={(data as any).swing_ml ?? null}
-            inPosition={data.position?.inPosition ?? (data.position as any)?.in_position ?? false}
-            positionSide={data.position?.side ?? data.position?.position_side}
-            currentPnl={(data.position as any)?.currentPnl ?? (data.position as any)?.current_pnl ?? null}
+          <CvbExitPanel
+            exitPanel={cvbStatus?.exit_panel}
             dark={false}
           />
         </div>

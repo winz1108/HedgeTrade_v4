@@ -797,8 +797,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         : `${colors.textSecondary} ${darkMode ? 'hover:text-slate-200 hover:bg-slate-600/60' : 'hover:text-stone-900 hover:bg-stone-300/60'}`
                     }`}
                   >
-                    {tf === 'cvb' ? 'CVB' : tf}
-                    {isLoading && <span className="ml-1 text-[8px] opacity-50">•••</span>}
+                    {tf === 'cvb' ? 'cvb' : tf}
                   </button>
                 );
               })}
@@ -883,8 +882,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       : `${colors.textSecondary} ${darkMode ? 'hover:text-slate-200 hover:bg-slate-600/60' : 'hover:text-stone-900 hover:bg-stone-300/60'}`
                   }`}
                 >
-                  {tf === 'cvb' ? 'CVB' : tf}
-                  {isLoading && <span className="ml-1 text-[8px] opacity-50">•••</span>}
+                  {tf === 'cvb' ? 'cvb' : tf}
                 </button>
               );
             })}

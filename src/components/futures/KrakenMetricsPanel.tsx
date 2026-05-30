@@ -1,9 +1,10 @@
 import { KrakenDashboardData } from '../../types/dashboard';
 import { DollarSign, Activity, Target, History } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
-import { EntryMLPanel, ExitMLPanel } from '../SwingMLPanels';
+import { CvbEntryPanel, CvbExitPanel } from '../CvbPanels';
+import { fetchCvbStrategyStatus } from '../../services/oracleApi';
 
 interface Props {
   data: KrakenDashboardData;
@@ -48,6 +49,18 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
 };
 
 export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones }: Props) {
+  const [cvbStatus, setCvbStatus] = useState<any>(null);
+
+  useEffect(() => {
+    const loadCvb = async () => {
+      const status = await fetchCvbStrategyStatus();
+      if (status) setCvbStatus(status);
+    };
+    loadCvb();
+    const interval = setInterval(loadCvb, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -234,20 +247,15 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
         </div>
 
         <div className="flex-shrink-0">
-          <EntryMLPanel
-            swingMl={(data as any).swing_ml ?? null}
-            inPosition={data.position?.in_position ?? false}
-            positionSide={data.position?.position_side ?? data.position?.side}
+          <CvbEntryPanel
+            entryPanel={cvbStatus?.entry_panel}
             dark={true}
           />
         </div>
 
         <div className="flex-shrink-0">
-          <ExitMLPanel
-            swingMl={(data as any).swing_ml ?? null}
-            inPosition={data.position?.in_position ?? false}
-            positionSide={data.position?.position_side ?? data.position?.side}
-            currentPnl={data.strategyA?.current_pnl ?? (data.position as any)?.currentPnl ?? null}
+          <CvbExitPanel
+            exitPanel={cvbStatus?.exit_panel}
             dark={true}
           />
         </div>

@@ -600,12 +600,13 @@ export const fetchCvbChartData = async (limit: number = 200) => {
 
     const chartResponse = await response.json();
 
-    if (!chartResponse.success) {
-      throw new Error(chartResponse.error || 'Failed to load CVB chart data');
+    const candles = chartResponse.candles || chartResponse;
+    if (!Array.isArray(candles)) {
+      throw new Error('Invalid CVB chart response format');
     }
 
-    const mapCandles = (candles: any[]): Candle[] => candles?.map(c => ({
-      timestamp: c.open_time_ms ?? c.time * 1000,
+    const mapCandles = (raw: any[]): Candle[] => raw.map(c => ({
+      timestamp: c.open_time_ms ?? (c.time ? c.time * 1000 : 0),
       open: c.open,
       high: c.high,
       low: c.low,
@@ -613,15 +614,28 @@ export const fetchCvbChartData = async (limit: number = 200) => {
       volume: c.volume,
       ema20: c.ema20,
       isComplete: c.is_forming !== true,
-    })) || [];
+    }));
 
     return {
       timeframe: 'cvb',
-      candles: mapCandles(chartResponse.candles),
-      count: chartResponse.count,
+      candles: mapCandles(candles),
+      count: candles.length,
     };
   } catch (error) {
     throw error;
+  }
+};
+
+export const fetchCvbStrategyStatus = async (): Promise<any> => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/cvb/strategy-status`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
   }
 };
 
