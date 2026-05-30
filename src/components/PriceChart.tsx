@@ -173,11 +173,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       : 590;
 
   const macdChartHeight = Math.floor(baseHeight * 0.16);
-  const adxChartHeight = 0;
   const volumeChartHeight = volumeHeight;
-  const fixedHeight = macdChartHeight + adxChartHeight + 32;
+  const fixedHeight = macdChartHeight + 32;
   const priceChartHeight = Math.floor(baseHeight - fixedHeight - volumeChartHeight);
-  const chartHeight = baseHeight;
+  const chartHeight = priceChartHeight + volumeChartHeight + macdChartHeight + 44;
 
   const candlesByTimeframe = useMemo(() => {
     const validHistory1m = Array.isArray(data.priceHistory1m) ? data.priceHistory1m : [];
@@ -400,21 +399,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     };
   }, [visibleCandles]);
 
-  const adxData = useMemo(() => {
-    return { min: -1, max: 1 };
-  }, []);
-
   const macdPadding = 12;
-  const adxPadding = 16;
 
   const macdToY = (value: number) => {
     const plotHeight = macdChartHeight - (macdPadding * 2);
     return macdPadding + ((macdData.max - value) / (macdData.max - macdData.min)) * plotHeight;
-  };
-
-  const adxToY = (value: number) => {
-    const plotHeight = adxChartHeight - (adxPadding * 2);
-    return adxPadding + ((adxData.max - value) / (adxData.max - adxData.min)) * plotHeight;
   };
 
   const handleZoomIn = () => {

@@ -42,28 +42,28 @@ function CvbProgressBar({
   const fillColor = met
     ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
     : active
-      ? 'bg-gradient-to-r from-amber-500 to-yellow-400'
+      ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
       : dark ? 'bg-slate-600/30' : 'bg-stone-300/40';
 
   const glow = met
     ? 'shadow-[0_0_8px_rgba(52,211,153,0.4)]'
     : active
-      ? 'shadow-[0_0_8px_rgba(251,191,36,0.3)]'
+      ? 'shadow-[0_0_6px_rgba(34,211,238,0.3)]'
       : '';
 
   const textColor = met
     ? (dark ? 'text-emerald-300' : 'text-emerald-700')
     : active
-      ? (dark ? 'text-amber-300' : 'text-amber-700')
+      ? (dark ? 'text-cyan-300' : 'text-cyan-700')
       : (dark ? 'text-slate-500' : 'text-stone-400');
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       <div className="flex items-center justify-between">
         <span className={`text-[9px] font-semibold ${textColor}`}>{label}</span>
         <span className={`text-[9px] tabular-nums font-bold ${textColor}`}>{valueDisplay}</span>
       </div>
-      <div className={`relative ${active ? trackBg : inactiveTrackBg} rounded-full h-3 overflow-hidden`}>
+      <div className={`relative ${active ? trackBg : inactiveTrackBg} rounded-full h-2.5 overflow-hidden`}>
         <div
           className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${fillColor} ${glow}`}
           style={{ left: 0, width: `${pct}%` }}
@@ -74,6 +74,68 @@ function CvbProgressBar({
             style={{ left: `${thPct}%` }}
           />
         )}
+      </div>
+    </div>
+  );
+}
+
+function ExitConditionBar({
+  value,
+  min,
+  max,
+  label,
+  valueDisplay,
+  variant,
+  dark,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  label: string;
+  valueDisplay: string;
+  variant: 'danger' | 'profit' | 'active' | 'dim';
+  dark: boolean;
+}) {
+  const range = max - min;
+  const clamped = Math.max(min, Math.min(max, value));
+  const pct = range > 0 ? ((clamped - min) / range) * 100 : 0;
+
+  const trackBg = variant === 'dim'
+    ? (dark ? 'bg-slate-800/40' : 'bg-stone-100/60')
+    : (dark ? 'bg-slate-700/50' : 'bg-stone-200/70');
+
+  const fills = {
+    danger: 'bg-gradient-to-r from-rose-500 to-rose-400',
+    profit: 'bg-gradient-to-r from-emerald-500 to-emerald-400',
+    active: 'bg-gradient-to-r from-cyan-500 to-cyan-400',
+    dim: dark ? 'bg-slate-600/30' : 'bg-stone-300/40',
+  };
+
+  const glows = {
+    danger: 'shadow-[0_0_6px_rgba(251,113,133,0.4)]',
+    profit: 'shadow-[0_0_6px_rgba(52,211,153,0.4)]',
+    active: 'shadow-[0_0_6px_rgba(34,211,238,0.3)]',
+    dim: '',
+  };
+
+  const texts = {
+    danger: dark ? 'text-rose-300' : 'text-rose-700',
+    profit: dark ? 'text-emerald-300' : 'text-emerald-700',
+    active: dark ? 'text-cyan-300' : 'text-cyan-700',
+    dim: dark ? 'text-slate-500' : 'text-stone-400',
+  };
+
+  return (
+    <div className="space-y-0.5">
+      <div className="flex items-center justify-between">
+        <span className={`text-[9px] font-semibold ${texts[variant]}`}>{label}</span>
+        <span className={`text-[9px] tabular-nums font-bold ${texts[variant]}`}>{valueDisplay}</span>
+      </div>
+      <div className={`relative ${trackBg} rounded-full h-2.5 overflow-hidden`}>
+        <div
+          className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${fills[variant]} ${glows[variant]}`}
+          style={{ left: 0, width: `${pct}%` }}
+        />
       </div>
     </div>
   );
@@ -112,20 +174,18 @@ function PnlBar({
   const fillWidth = Math.abs(pct - zeroPct);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       <div className="flex items-center justify-between">
         <span className={`text-[9px] font-semibold ${dark ? 'text-slate-300' : 'text-stone-600'}`}>PnL</span>
         <span className={`text-[9px] tabular-nums font-bold ${textColor}`}>
           {current >= 0 ? '+' : ''}{current.toFixed(2)}%
         </span>
       </div>
-      <div className={`relative ${dark ? 'bg-slate-700/50' : 'bg-stone-200/70'} rounded-full h-3 overflow-hidden`}>
-        {/* Zero line */}
+      <div className={`relative ${dark ? 'bg-slate-700/50' : 'bg-stone-200/70'} rounded-full h-2.5 overflow-hidden`}>
         <div
           className={`absolute top-0 h-full w-[1px] z-10 ${dark ? 'bg-slate-400/40' : 'bg-stone-400/40'}`}
           style={{ left: `${zeroPct}%` }}
         />
-        {/* Fill */}
         <div
           className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${fillColor} ${glow}`}
           style={{ left: `${fillLeft}%`, width: `${Math.max(fillWidth, 0.5)}%` }}
@@ -222,75 +282,138 @@ export function CvbExitPanel({ exitPanel, dark = true }: CvbExitPanelProps) {
   const be = exitPanel.be;
   const emaExit = exitPanel.ema_exit;
 
+  const currentPnl = pnl?.current ?? 0;
+  const isProfit = currentPnl >= 0;
   const isLong = exitPanel.direction === 'LONG';
   const dirColor = isLong ? (dark ? 'text-cyan-400' : 'text-cyan-600') : (dark ? 'text-orange-400' : 'text-orange-600');
 
+  const beActivated = be?.activated === true;
+
+  // Highlighting logic:
+  // Loss -> SL highlighted (red)
+  // Profit & not past BE -> BE highlighted (cyan/orange based on direction)
+  // Profit & past BE -> TP and EMA highlighted
+  const slHighlighted = !isProfit;
+  const tpHighlighted = isProfit && beActivated;
+
+  // SL bar: how close to stop loss (uses PnL percentage distance to SL)
+  const slMin = sl?.min ?? sl?.level ?? -8;
+  const slMax = sl?.max ?? 0;
+  const slCurrent = sl?.current ?? (isProfit ? 0 : currentPnl);
+  const slVariant = (): 'danger' | 'profit' | 'active' | 'dim' => {
+    if (sl?.active === false) return 'dim';
+    if (sl?.met) return 'danger';
+    if (slHighlighted) return 'danger';
+    return 'dim';
+  };
+
+  // TP bar: how close to take profit
+  const tpMin = tp?.min ?? 0;
+  const tpMax = tp?.max ?? tp?.level ?? 8;
+  const tpCurrent = tp?.current ?? (isProfit ? currentPnl : 0);
+  const tpVariant = (): 'danger' | 'profit' | 'active' | 'dim' => {
+    if (tp?.active === false) return 'dim';
+    if (tp?.met) return 'profit';
+    if (tpHighlighted) return 'profit';
+    return 'dim';
+  };
+
+  // Third bar: BE or EMA Exit (transitions when BE activated)
+  // BE: min=0, max=threshold(%), current=peak profit(%)
+  // EMA: min=lower bound($), max=EMA20($), current=close($)
+  const showEma = beActivated && emaExit;
+  const thirdBarLabel = showEma
+    ? (emaExit.label || 'EMA20 Exit')
+    : (be?.label || 'Break-Even');
+
+  const thirdMin = showEma
+    ? (emaExit.min ?? (emaExit.ema20 ? emaExit.ema20 * 0.995 : 0))
+    : (be?.min ?? 0);
+  const thirdMax = showEma
+    ? (emaExit.max ?? emaExit.ema20 ?? 100)
+    : (be?.max ?? be?.threshold ?? 2.01);
+  const thirdCurrent = showEma
+    ? (emaExit.current ?? emaExit.current_close ?? 0)
+    : (be?.current ?? be?.peak ?? 0);
+  const thirdDisplay = showEma
+    ? (emaExit.met ? '$' + (emaExit.current_close ?? emaExit.current ?? 0).toFixed(0) : '$' + (emaExit.ema20 ?? 0).toFixed(0))
+    : `${(be?.progress ?? 0).toFixed(0)}%`;
+
+  const thirdVariant = (): 'danger' | 'profit' | 'active' | 'dim' => {
+    if (showEma) {
+      if (emaExit.active === false) return 'dim';
+      if (emaExit.met && emaExit.profit_met) return 'danger';
+      if (beActivated) return 'active';
+      return 'dim';
+    }
+    if (be?.active === false) return 'dim';
+    if (beActivated) return 'profit';
+    if (isProfit && !beActivated) return 'active';
+    return 'dim';
+  };
+
+  // Panel background on critical state
   let activeBg = panelBg;
   if (sl?.met) {
-    activeBg = dark ? 'bg-rose-900/50 border-rose-500/70' : 'bg-rose-50 border-rose-400';
+    activeBg = dark ? 'bg-rose-900/40 border-rose-500/60' : 'bg-rose-50 border-rose-400';
   } else if (tp?.met) {
-    activeBg = dark ? 'bg-emerald-900/40 border-emerald-500/60' : 'bg-emerald-50 border-emerald-400';
-  } else if (emaExit?.met && emaExit?.profit_met) {
-    activeBg = dark ? 'bg-amber-900/30 border-amber-500/50' : 'bg-amber-50 border-amber-300';
+    activeBg = dark ? 'bg-emerald-900/30 border-emerald-500/50' : 'bg-emerald-50 border-emerald-400';
   }
 
   return (
-    <div className={`${activeBg} border rounded-lg shadow-sm p-2.5 space-y-2 transition-colors duration-300`}>
+    <div className={`${activeBg} border rounded-lg shadow-sm p-2.5 space-y-1.5 transition-colors duration-300`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>CVB Exit</h3>
+        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>Exit</h3>
         <div className="flex items-center gap-1.5">
           <span className={`text-[9px] font-bold ${dirColor}`}>{exitPanel.direction}</span>
-          {exitPanel.leverage && (
+          {exitPanel.leverage > 0 && (
             <span className={`text-[9px] ${dimText}`}>{exitPanel.leverage}x</span>
           )}
         </div>
       </div>
 
-      {/* Status indicators */}
-      {sl?.met && (
-        <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.6)]" />
-          <span className={`text-[9px] font-bold tracking-wider uppercase ${dark ? 'text-rose-300' : 'text-rose-700'}`}>STOP LOSS</span>
-        </div>
-      )}
-      {tp?.met && (
-        <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
-          <span className={`text-[9px] font-bold tracking-wider uppercase ${dark ? 'text-emerald-300' : 'text-emerald-700'}`}>TAKE PROFIT</span>
-        </div>
-      )}
-
-      {/* PnL bar */}
+      {/* PnL overview bar */}
       {pnl && (
         <PnlBar
-          current={pnl.current ?? 0}
+          current={currentPnl}
           slLevel={sl?.level ?? pnl.min ?? -8}
           tpLevel={tp?.level ?? pnl.max ?? 8}
           dark={dark}
         />
       )}
 
-      {/* BE progress */}
-      {be && (
-        <CvbProgressBar
-          value={be.progress ?? 0}
-          min={0}
-          max={100}
-          label={be.activated ? 'BE Active' : 'BE Progress'}
-          valueDisplay={`${(be.progress ?? 0).toFixed(0)}%`}
-          met={be.activated}
-          active={!be.activated && (be.progress ?? 0) > 30}
-          dark={dark}
-        />
-      )}
+      {/* Bar 1: SL */}
+      <ExitConditionBar
+        value={Math.abs(slCurrent - slMin)}
+        min={0}
+        max={Math.abs(slMax - slMin)}
+        label={sl?.label || 'Stop Loss'}
+        valueDisplay={sl?.price ? `$${sl.price.toFixed(0)}` : `${(sl?.level ?? slMin).toFixed(1)}%`}
+        variant={slVariant()}
+        dark={dark}
+      />
 
-      {/* EMA exit condition */}
-      {emaExit && (
-        <div className={`flex items-center justify-between text-[9px] ${emaExit.met && emaExit.profit_met ? (dark ? 'text-amber-300' : 'text-amber-700') : dimText}`}>
-          <span>EMA20 Exit</span>
-          <span className="font-bold">{emaExit.met ? (emaExit.profit_met ? 'TRIGGERED' : 'wait profit') : 'inactive'}</span>
-        </div>
-      )}
+      {/* Bar 2: TP */}
+      <ExitConditionBar
+        value={tpCurrent}
+        min={tpMin}
+        max={tpMax}
+        label={tp?.label || 'Take Profit'}
+        valueDisplay={tp?.price ? `$${tp.price.toFixed(0)}` : `+${(tp?.level ?? tpMax).toFixed(1)}%`}
+        variant={tpVariant()}
+        dark={dark}
+      />
+
+      {/* Bar 3: BE or EMA Exit */}
+      <ExitConditionBar
+        value={thirdCurrent}
+        min={thirdMin}
+        max={thirdMax}
+        label={thirdBarLabel}
+        valueDisplay={thirdDisplay}
+        variant={thirdVariant()}
+        dark={dark}
+      />
 
       {/* Hold info */}
       {(exitPanel.bars_held != null || exitPanel.hold_minutes != null || exitPanel.hold_hours != null) && (
