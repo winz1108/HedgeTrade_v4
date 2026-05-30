@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import type { BFDashboardData } from '../../types/dashboard';
 import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
 import { CvbEntryPanel, CvbExitPanel } from '../CvbPanels';
-import { fetchCvbStrategyStatus } from '../../services/oracleApi';
+import { fetchBinanceStrategyStatus } from '../../services/oracleApi';
 
 interface Props {
   data: BFDashboardData;
@@ -46,7 +46,7 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
 
   useEffect(() => {
     const loadCvb = async () => {
-      const status = await fetchCvbStrategyStatus();
+      const status = await fetchBinanceStrategyStatus();
       if (status) setCvbStatus(status);
     };
     loadCvb();

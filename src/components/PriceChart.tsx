@@ -797,7 +797,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         : `${colors.textSecondary} ${darkMode ? 'hover:text-slate-200 hover:bg-slate-600/60' : 'hover:text-stone-900 hover:bg-stone-300/60'}`
                     }`}
                   >
-                    {tf === 'cvb' ? 'cvb' : tf}
+                    {tf === 'cvb' ? 'CVB' : tf}
                   </button>
                 );
               })}
@@ -1538,95 +1538,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               );
             })()}
 
-            {/* 15m BOS Levels - markers on all TFs */}
-            {bosLevels && bosLevels.length > 0 && visibleCandles.length > 0 && (() => {
-              const timeframeMinutes = getTimeframeMinutes(timeframe);
-              const timeframeMs = timeframeMinutes * 60000;
-
-              return bosLevels.map((bos, bosIdx) => {
-                const bosTs = bos.timestamp < 1e12 ? bos.timestamp * 1000 : bos.timestamp;
-
-                // Find the candle whose bucket contains this BOS timestamp
-                let candleIndex = -1;
-                const bosBucket = Math.floor(bosTs / timeframeMs) * timeframeMs;
-                for (let i = 0; i < visibleCandles.length; i++) {
-                  const cBucket = Math.floor(visibleCandles[i].timestamp / timeframeMs) * timeframeMs;
-                  if (cBucket === bosBucket) {
-                    candleIndex = i;
-                    break;
-                  }
-                }
-
-                // Fallback: find closest candle by timestamp proximity
-                if (candleIndex === -1) {
-                  let minDiff = Infinity;
-                  for (let i = 0; i < visibleCandles.length; i++) {
-                    const diff = Math.abs(visibleCandles[i].timestamp - bosTs);
-                    if (diff < minDiff && diff < timeframeMs) {
-                      minDiff = diff;
-                      candleIndex = i;
-                    }
-                  }
-                }
-
-                if (candleIndex === -1) return null;
-
-                const x = candleIndex * (candleWidth + candleGap) + candleWidth / 2;
-                const y = priceToY(bos.price);
-                const size = Math.max(8, Math.min(11, candleWidth * 1.5));
-
-                const arrowColor = darkMode ? 'rgba(255,255,255,0.45)' : 'rgba(180,180,180,0.35)';
-                const strokeColor = darkMode ? 'rgba(255,255,255,0.25)' : 'rgba(160,160,160,0.2)';
-
-                if (bos.type === 'high') {
-                  return (
-                    <svg
-                      key={`bos-high-${bosIdx}`}
-                      className="absolute"
-                      style={{
-                        left: `${x - size / 2}px`,
-                        top: `${y - size - 1}px`,
-                        width: `${size}px`,
-                        height: `${size}px`,
-                        pointerEvents: 'none',
-                        zIndex: 100,
-                      }}
-                      viewBox="0 0 100 100"
-                    >
-                      <path
-                        d="M50 95 L5 20 Q50 45 95 20 Z"
-                        fill={arrowColor}
-                        stroke={strokeColor}
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  );
-                } else {
-                  return (
-                    <svg
-                      key={`bos-low-${bosIdx}`}
-                      className="absolute"
-                      style={{
-                        left: `${x - size / 2}px`,
-                        top: `${y + 1}px`,
-                        width: `${size}px`,
-                        height: `${size}px`,
-                        pointerEvents: 'none',
-                        zIndex: 100,
-                      }}
-                      viewBox="0 0 100 100"
-                    >
-                      <path
-                        d="M50 5 L95 80 Q50 55 5 80 Z"
-                        fill={arrowColor}
-                        stroke={strokeColor}
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  );
-                }
-              });
-            })()}
+            {/* BOS Levels removed */}
 
           </div>
 
@@ -2466,113 +2378,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 strokeDasharray="4 3"
               />
 
-              {/* Pred history line */}
-              {(() => {
-                const hist = predHistory;
-                if (!hist || hist.length < 2) return null;
-
-                const totalBars = visibleCandles.length;
-                const histLen = hist.length;
-                const totalCandles = selectedCandles.length;
-                const offset = totalCandles - histLen;
-                const sliceStart = Math.max(0, visibleStartIndex - offset);
-                const sliceEnd = Math.min(histLen, sliceStart + totalBars);
-                const slice = hist.slice(sliceStart, sliceEnd);
-
-                const positivePoints: string[] = [];
-                const negativePoints: string[] = [];
-                const allPoints: string[] = [];
-
-                slice.forEach((val, idx) => {
-                  const x = idx * (candleWidth + candleGap) + candleWidth / 2;
-                  const y = adxToY(val);
-                  allPoints.push(`${x},${y}`);
-                  if (val >= 0) positivePoints.push(`${x},${y}`);
-                  if (val < 0) negativePoints.push(`${x},${y}`);
-                });
-
-                const zeroY = adxToY(0);
-                const areaAbove: string[] = [];
-                const areaBelow: string[] = [];
-                slice.forEach((val, idx) => {
-                  const x = idx * (candleWidth + candleGap) + candleWidth / 2;
-                  const y = adxToY(Math.max(0, val));
-                  areaAbove.push(`${x},${y}`);
-                });
-                slice.forEach((val, idx) => {
-                  const x = idx * (candleWidth + candleGap) + candleWidth / 2;
-                  const y = adxToY(Math.min(0, val));
-                  areaBelow.push(`${x},${y}`);
-                });
-
-                const firstX = 0 * (candleWidth + candleGap) + candleWidth / 2;
-                const lastX = (slice.length - 1) * (candleWidth + candleGap) + candleWidth / 2;
-
-                return (
-                  <>
-                    {/* Positive area fill (short zone - orange) */}
-                    {areaAbove.length > 1 && (
-                      <polygon
-                        points={`${firstX},${zeroY} ${areaAbove.join(' ')} ${lastX},${zeroY}`}
-                        fill="rgba(251, 146, 60, 0.08)"
-                      />
-                    )}
-                    {/* Negative area fill (long zone - cyan) */}
-                    {areaBelow.length > 1 && (
-                      <polygon
-                        points={`${firstX},${zeroY} ${areaBelow.join(' ')} ${lastX},${zeroY}`}
-                        fill="rgba(34, 211, 238, 0.08)"
-                      />
-                    )}
-                    {/* Main line */}
-                    {allPoints.length > 1 && (
-                      <polyline
-                        points={allPoints.join(' ')}
-                        fill="none"
-                        stroke={darkMode ? 'rgba(168, 162, 255, 0.9)' : 'rgba(99, 102, 241, 0.85)'}
-                        strokeWidth="1.5"
-                        strokeLinejoin="round"
-                      />
-                    )}
-                  </>
-                );
-              })()}
             </svg>
-            {/* Pred label / hover tooltip */}
-            {hoveredCandleIndex !== null && predHistory && predHistory.length > 0 ? (() => {
-              const totalCandles = selectedCandles.length;
-              const offset = totalCandles - predHistory.length;
-              const predIdx = visibleStartIndex + hoveredCandleIndex - offset;
-              const val = predIdx >= 0 && predIdx < predHistory.length ? predHistory[predIdx] : null;
-              if (val === null) return null;
-              const candle = visibleCandles[hoveredCandleIndex];
-              return (
-                <div className={`absolute left-2 top-1 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-2 py-1 rounded-md flex items-center gap-2 pointer-events-none border ${darkMode ? 'border-slate-700/60' : 'border-stone-200'}`}>
-                  {candle && <span className={`${colors.textSecondary} font-mono text-[10px]`}>{formatChartTime(candle.timestamp)}</span>}
-                  <span className={`${colors.textSecondary} font-semibold text-[10px]`}>Swing Score</span>
-                  <span className={`font-bold tabular-nums ${
-                    val <= -0.58 ? (darkMode ? 'text-cyan-300' : 'text-cyan-600') :
-                    val >= 0.58 ? (darkMode ? 'text-orange-300' : 'text-orange-600') :
-                    darkMode ? 'text-slate-300' : 'text-slate-600'
-                  }`}>
-                    {val >= 0 ? '+' : ''}{val.toFixed(3)}
-                  </span>
-                </div>
-              );
-            })() : (
-              <div className={`absolute left-2 top-1 text-[9px] font-semibold pointer-events-none ${darkMode ? 'text-slate-400' : 'text-stone-500'}`}>
-                Swing Score
-                {predHistory && predHistory.length > 0 && (
-                  <span className={`ml-1.5 font-bold tabular-nums ${
-                    predHistory[predHistory.length - 1] <= -0.58 ? (darkMode ? 'text-cyan-300' : 'text-cyan-600') :
-                    predHistory[predHistory.length - 1] >= 0.58 ? (darkMode ? 'text-orange-300' : 'text-orange-600') :
-                    darkMode ? 'text-slate-300' : 'text-slate-600'
-                  }`}>
-                    {predHistory[predHistory.length - 1] >= 0 ? '+' : ''}{predHistory[predHistory.length - 1].toFixed(2)}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
 
         </div>

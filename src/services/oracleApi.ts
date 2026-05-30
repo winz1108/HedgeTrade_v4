@@ -613,6 +613,14 @@ export const fetchCvbChartData = async (limit: number = 200) => {
       close: c.close,
       volume: c.volume,
       ema20: c.ema20,
+      ema50: c.ema50,
+      ema200: c.ema200,
+      bb_upper: c.bb_upper,
+      bb_mid: c.bb_mid,
+      bb_lower: c.bb_lower,
+      macd: c.macd,
+      histogram: c.histogram,
+      adx: c.adx,
       isComplete: c.is_forming !== true,
     }));
 
@@ -629,6 +637,19 @@ export const fetchCvbChartData = async (limit: number = 200) => {
 export const fetchCvbStrategyStatus = async (): Promise<any> => {
   const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/cvb/strategy-status`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+};
+
+export const fetchBinanceStrategyStatus = async (): Promise<any> => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/binance/strategy-status`;
 
   try {
     const response = await fetch(url);

@@ -155,6 +155,17 @@ export function CvbEntryPanel({ entryPanel, dark = true }: CvbEntryPanelProps) {
     );
   }
 
+  if (entryPanel.ml_disabled) {
+    return (
+      <div className={`${panelBg} border rounded-lg shadow-sm p-2.5`}>
+        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>Entry</h3>
+        <div className="py-1">
+          <span className={`text-[9px] ${dimText}`}>{entryPanel.strategy || 'ML disabled'}</span>
+        </div>
+      </div>
+    );
+  }
+
   const re = entryPanel.range_expansion;
   const forming = entryPanel.forming_bar;
 
@@ -282,10 +293,13 @@ export function CvbExitPanel({ exitPanel, dark = true }: CvbExitPanelProps) {
       )}
 
       {/* Hold info */}
-      {(exitPanel.bars_held != null || exitPanel.hold_minutes != null) && (
+      {(exitPanel.bars_held != null || exitPanel.hold_minutes != null || exitPanel.hold_hours != null) && (
         <div className={`flex items-center gap-3 text-[9px] ${dimText} border-t ${dark ? 'border-slate-700/50' : 'border-stone-200'} pt-1`}>
           {exitPanel.bars_held != null && <span>Hold: <span className={dark ? 'text-slate-300' : 'text-slate-600'}>{exitPanel.bars_held} bars</span></span>}
-          {exitPanel.hold_minutes != null && <span>{Math.floor(exitPanel.hold_minutes / 60)}h {Math.round(exitPanel.hold_minutes % 60)}m</span>}
+          {exitPanel.hold_hours != null && <span>Hold: <span className={dark ? 'text-slate-300' : 'text-slate-600'}>{(exitPanel.hold_hours / 24).toFixed(1)}d</span></span>}
+          {exitPanel.hold_minutes != null && !exitPanel.hold_hours && <span>{Math.floor(exitPanel.hold_minutes / 60)}h {Math.round(exitPanel.hold_minutes % 60)}m</span>}
+          {exitPanel.mfe != null && <span>MFE: <span className={dark ? 'text-emerald-400' : 'text-emerald-600'}>+{exitPanel.mfe.toFixed(2)}%</span></span>}
+          {exitPanel.mae != null && <span>MAE: <span className={dark ? 'text-rose-400' : 'text-rose-600'}>{exitPanel.mae.toFixed(2)}%</span></span>}
         </div>
       )}
     </div>
