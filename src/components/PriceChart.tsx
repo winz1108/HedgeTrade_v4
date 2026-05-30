@@ -2123,7 +2123,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
                 const hoverLabel = timeframe === '1d'
                   ? `${month}-${day}`
-                  : timeframe === '4h'
+                  : (timeframe === '4h' || timeframe === 'cvb')
                   ? `${month}-${day} ${hours}:${minutes}`
                   : `${hours}:${minutes}`;
 
