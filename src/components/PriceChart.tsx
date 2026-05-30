@@ -935,7 +935,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       <div className={`flex ${darkMode ? 'bg-gradient-to-br from-slate-800 via-slate-800/90 to-slate-800' : 'bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50'} overflow-hidden`} style={{ height: `${chartHeight}px` }}>
       <div
         ref={containerRef}
-        className="relative select-none flex-shrink-0 flex-1"
+        className="relative select-none flex-1 min-w-0"
         style={{
           overflow: 'hidden',
           touchAction: 'pan-x pan-y',
@@ -2320,7 +2320,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       </div>
 
       {/* Y-Axis */}
-      <div className={`w-16 ${colors.headerBg} relative border-l ${colors.headerBorder}`} style={{ height: `${chartHeight}px`, zIndex: 10 }}>
+      <div className={`w-16 flex-shrink-0 ${colors.headerBg} relative border-l ${colors.headerBorder}`} style={{ height: `${chartHeight}px`, zIndex: 10 }}>
         <div className="relative" style={{ height: `${priceChartHeight}px` }}>
           {Array.from({ length: 6 }).map((_, i) => {
             if (i === 0 || i === 5) return null;
