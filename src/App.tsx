@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { fetchBinanceFuturesDashboard, fetchCvbChartData, fetchBinanceFuturesChartData } from './services/oracleApi';
 import { BinanceFuturesMetricsPanel } from './components/spot/BinanceFuturesMetricsPanel';
@@ -259,17 +259,47 @@ function App() {
       lastWsMessage = Date.now();
 
       const tf = candleData.timeframe as string;
+      const isFinal: boolean = candleData.is_final ?? candleData.isFinal ?? false;
+
+      if (tf === 'cvb') {
+        // CVB: timestamp changes every tick, always overwrite last candle
+        setData(prev => {
+          if (!prev || !prev.priceHistories) return prev;
+          const candles = prev.priceHistories[tf];
+          if (!candles || candles.length === 0) return prev;
+
+          if (isFinal) {
+            fetchCvbChartData(200).then(result => {
+              const freshCandles = result?.candles;
+              if (!freshCandles || freshCandles.length === 0) return;
+              setData(p => {
+                if (!p || !p.priceHistories) return p;
+                return { ...p, priceHistories: { ...p.priceHistories, cvb: freshCandles } };
+              });
+            }).catch(() => {});
+            return prev;
+          }
+
+          const updatedCandles = [...candles];
+          const lastCandle = updatedCandles[updatedCandles.length - 1];
+          updatedCandles[updatedCandles.length - 1] = {
+            ...lastCandle,
+            high: Math.max(lastCandle.high, candleData.high),
+            low: Math.min(lastCandle.low, candleData.low),
+            close: candleData.close,
+          };
+          return { ...prev, priceHistories: { ...prev.priceHistories, cvb: updatedCandles } };
+        });
+        return;
+      }
+
       const openTimeMs: number =
         candleData.open_time_ms ??
         (typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime || '0'));
-      const isFinal: boolean = candleData.is_final ?? candleData.isFinal ?? false;
 
       if (isFinal) {
         // Candle completed -> fetch fresh data from REST
-        const fetchFn = tf === 'cvb'
-          ? () => fetchCvbChartData(200)
-          : () => fetchBinanceFuturesChartData(tf, 200);
-        fetchFn().then(result => {
+        fetchBinanceFuturesChartData(tf, 200).then(result => {
           const candles = result?.candles;
           if (!candles || candles.length === 0) return;
           setData(prev => {

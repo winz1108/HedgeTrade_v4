@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData } from '../types/dashboard';
 import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard, fetchKrakenCvbChartData } from '../services/oracleApi';
@@ -195,6 +195,41 @@ function FuturesDashboard() {
       lastWsMessage = Date.now();
 
       const tf = candleData.timeframe as string;
+
+      if (tf === 'cvb') {
+        // CVB: always overwrite last candle (timestamp changes every tick)
+        setData(prevData => {
+          if (!prevData || !prevData.priceHistories) return prevData;
+          const candles = prevData.priceHistories[tf];
+          if (!candles || candles.length === 0) return prevData;
+          const updatedCandles = [...candles];
+          const lastCandle = updatedCandles[updatedCandles.length - 1];
+
+          if (candleData.is_final === true) {
+            // CVB candle completed -> fetch fresh REST data
+            fetchKrakenCvbChartData(200).then(result => {
+              const freshCandles = result?.candles;
+              if (!freshCandles || freshCandles.length === 0) return;
+              setData(prev => {
+                if (!prev || !prev.priceHistories) return prev;
+                return { ...prev, priceHistories: { ...prev.priceHistories, cvb: freshCandles } };
+              });
+            }).catch(() => {});
+            return prevData;
+          }
+
+          // Forming CVB candle: update OHLC on last candle
+          updatedCandles[updatedCandles.length - 1] = {
+            ...lastCandle,
+            high: Math.max(lastCandle.high, candleData.high),
+            low: Math.min(lastCandle.low, candleData.low),
+            close: candleData.close,
+          };
+          return { ...prevData, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
+        });
+        return;
+      }
+
       const openTimeMs: number =
         candleData.open_time_ms ??
         (typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime || '0'));

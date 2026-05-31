@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData } from '../types/dashboard';
 import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard, fetchKrakenCvbChartData } from '../services/oracleApi';
@@ -197,6 +197,38 @@ function ProfessionalDashboard() {
       if (!candleData) return;
       lastWsMessage = Date.now();
       const tf = candleData.timeframe as string;
+
+      if (tf === 'cvb') {
+        setData(prevData => {
+          if (!prevData || !prevData.priceHistories) return prevData;
+          const candles = prevData.priceHistories[tf];
+          if (!candles || candles.length === 0) return prevData;
+          const updatedCandles = [...candles];
+          const lastCandle = updatedCandles[updatedCandles.length - 1];
+
+          if (candleData.is_final === true) {
+            fetchKrakenCvbChartData(200).then(result => {
+              const freshCandles = result?.candles;
+              if (!freshCandles || freshCandles.length === 0) return;
+              setData(prev => {
+                if (!prev || !prev.priceHistories) return prev;
+                return { ...prev, priceHistories: { ...prev.priceHistories, cvb: freshCandles } };
+              });
+            }).catch(() => {});
+            return prevData;
+          }
+
+          updatedCandles[updatedCandles.length - 1] = {
+            ...lastCandle,
+            high: Math.max(lastCandle.high, candleData.high),
+            low: Math.min(lastCandle.low, candleData.low),
+            close: candleData.close,
+          };
+          return { ...prevData, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
+        });
+        return;
+      }
+
       const openTimeMs: number = candleData.open_time_ms ?? (typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime || '0'));
       const isFinal: boolean = candleData.is_final ?? candleData.isFinal ?? false;
 
@@ -252,22 +284,8 @@ function ProfessionalDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
-    const cvbPollInterval = setInterval(async () => {
-      try {
-        const cvbData = await fetchKrakenCvbChartData(200);
-        if (cvbData && cvbData.candles.length > 0) {
-          setData(prev => {
-            if (!prev) return prev;
-            if (!prev.priceHistories) return prev;
-            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbData.candles } };
-          });
-        }
-      } catch {}
-    }, 3000);
-
     return () => {
       clearInterval(wsHealthCheck);
-      clearInterval(cvbPollInterval);
       stopFallback();
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
