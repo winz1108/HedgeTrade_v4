@@ -602,6 +602,55 @@ export const fetchKrakenChartData = async (timeframe: string, limit: number = 10
   }
 };
 
+export const fetchKrakenCvbChartData = async (limit: number = 200) => {
+  const baseUrl = getApiUrl();
+  const url = `${baseUrl}/api/kraken/chart/cvb?limit=${limit}`;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Kraken CVB chart data: ${response.status} ${response.statusText}`);
+    }
+
+    const chartResponse = await response.json();
+
+    const candles = chartResponse.candles || chartResponse;
+    if (!Array.isArray(candles)) {
+      throw new Error('Invalid Kraken CVB chart response format');
+    }
+
+    const mapCandles = (raw: any[]): Candle[] => raw.map(c => ({
+      timestamp: c.open_time_ms ?? (c.time ? c.time * 1000 : 0),
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+      duration: c.duration,
+      ema20: c.ema20,
+      ema50: c.ema50,
+      ema200: c.ema200,
+      bb_upper: c.bb_upper,
+      bb_mid: c.bb_mid,
+      bb_lower: c.bb_lower,
+      macd: c.macd,
+      signal: c.signal ?? c.macd_signal,
+      histogram: c.histogram,
+      adx: c.adx,
+      isComplete: c.is_forming !== true,
+    }));
+
+    return {
+      timeframe: 'cvb',
+      candles: mapCandles(candles),
+      count: candles.length,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const fetchCvbChartData = async (limit: number = 200) => {
   const baseUrl = getApiUrl();
   const url = `${baseUrl}/api/cvb/chart/${limit}`;

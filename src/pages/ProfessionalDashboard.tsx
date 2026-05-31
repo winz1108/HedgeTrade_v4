@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData, Candle } from '../types/dashboard';
-import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard } from '../services/oracleApi';
+import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard, fetchKrakenCvbChartData } from '../services/oracleApi';
 import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
 import { formatLocalTime } from '../utils/time';
 import { websocketService } from '../services/websocket';
@@ -71,6 +71,18 @@ function ProfessionalDashboard() {
       if (!krakenData.priceHistory1m || krakenData.priceHistory1m.length === 0) {
         const chart1m = await fetchKrakenChartData('1m', 1000);
         krakenData.priceHistory1m = chart1m.candles;
+      }
+
+      if (!krakenData.priceHistoryCvb || krakenData.priceHistoryCvb.length < 50) {
+        try {
+          const cvbData = await fetchKrakenCvbChartData(200);
+          if (cvbData && cvbData.candles.length > 0) {
+            krakenData.priceHistoryCvb = cvbData.candles;
+            if (krakenData.priceHistories) {
+              krakenData.priceHistories = { ...krakenData.priceHistories, cvb: cvbData.candles };
+            }
+          }
+        } catch {}
       }
 
       const binanceEntryDetails = (binanceData as any)?.strategyStatus?.entryDetails;
