@@ -273,6 +273,9 @@ function ProfessionalDashboard() {
 
     const handleKrakenCandleUpdate = (candleData: any) => {
       if (!candleData) return;
+      const tf = candleData.timeframe as string;
+      if (tf === 'cvb') return;
+
       const openTimeMs: number = candleData.open_time_ms ?? (typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime || '0'));
       const isFinal: boolean = candleData.is_final ?? candleData.isFinal ?? false;
       setData(prevData => {
@@ -280,14 +283,12 @@ function ProfessionalDashboard() {
         const updatedData = { ...prevData };
         if (prevData.priceHistories) {
           const updatedHistories = { ...prevData.priceHistories };
-          const tf = candleData.timeframe as string;
           const candles = updatedHistories[tf];
           if (candles && candles.length > 0) {
             const updatedCandles = [...candles];
             const lastCandle = updatedCandles[updatedCandles.length - 1];
             const lastTs: number = lastCandle.open_time_ms ?? lastCandle.timestamp ?? (lastCandle.time ? lastCandle.time * 1000 : 0);
             const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
-            const isCvbTf = tf === 'cvb';
 
             if (isFinal) {
               const targetIdx = updatedCandles.findIndex(c => {
@@ -299,41 +300,10 @@ function ProfessionalDashboard() {
                   ...updatedCandles[targetIdx],
                   open: candleData.open, high: candleData.high, low: candleData.low, close: candleData.close,
                   volume: candleData.volume ?? updatedCandles[targetIdx].volume,
-                  duration: candleData.duration ?? updatedCandles[targetIdx].duration,
-                  is_final: true, isComplete: true,
+                  is_final: true,
                   ...(wsIndicators ? { indicators: { ...updatedCandles[targetIdx].indicators, ...wsIndicators } } : {}),
                 };
-              } else if (isCvbTf) {
-                const lastIdx = updatedCandles.length - 1;
-                if (lastCandle.isComplete === false) {
-                  updatedCandles[lastIdx] = {
-                    ...lastCandle,
-                    open_time_ms: openTimeMs, timestamp: openTimeMs,
-                    open: candleData.open, high: candleData.high, low: candleData.low, close: candleData.close,
-                    volume: candleData.volume ?? lastCandle.volume,
-                    duration: candleData.duration ?? lastCandle.duration,
-                    is_final: true, isComplete: true,
-                    ...(wsIndicators ? { indicators: wsIndicators } : {}),
-                  };
-                } else {
-                  updatedCandles.push({
-                    open_time_ms: openTimeMs, timestamp: openTimeMs,
-                    open: candleData.open, high: candleData.high, low: candleData.low, close: candleData.close,
-                    volume: candleData.volume || 0, duration: candleData.duration || 0,
-                    is_final: true, isComplete: true,
-                    ...(wsIndicators ? { indicators: wsIndicators } : {}),
-                  } as any);
-                }
               }
-            } else if (isCvbTf && lastCandle.isComplete === false) {
-              updatedCandles[updatedCandles.length - 1] = {
-                ...lastCandle,
-                open_time_ms: openTimeMs, timestamp: openTimeMs,
-                high: Math.max(lastCandle.high, candleData.high), low: Math.min(lastCandle.low, candleData.low),
-                close: candleData.close, volume: candleData.volume ?? lastCandle.volume,
-                duration: candleData.duration ?? lastCandle.duration,
-                ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
-              };
             } else if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
                 ...lastCandle,
@@ -346,7 +316,6 @@ function ProfessionalDashboard() {
                 open_time_ms: openTimeMs, timestamp: openTimeMs, time: Math.floor(openTimeMs / 1000),
                 open: candleData.open ?? lastCandle.close, high: candleData.high, low: candleData.low,
                 close: candleData.close, volume: candleData.volume || 0,
-                duration: candleData.duration || 0, isComplete: false,
                 ...(wsIndicators ? { indicators: wsIndicators } : {}),
               } as any);
             }
@@ -362,8 +331,22 @@ function ProfessionalDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
+    const cvbPollInterval = setInterval(async () => {
+      try {
+        const cvbData = await fetchKrakenCvbChartData(200);
+        if (cvbData && cvbData.candles.length > 0) {
+          setData(prev => {
+            if (!prev) return prev;
+            if (!prev.priceHistories) return prev;
+            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbData.candles } };
+          });
+        }
+      } catch {}
+    }, 3000);
+
     return () => {
       clearInterval(interval);
+      clearInterval(cvbPollInterval);
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);

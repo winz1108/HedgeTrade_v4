@@ -191,18 +191,6 @@ function FuturesDashboard() {
         }
       });
 
-      // Also update priceHistoryCvb
-      const cvbDirect = prevData.priceHistoryCvb as Candle[] | undefined;
-      if (cvbDirect && cvbDirect.length > 0) {
-        const updatedCvb = [...cvbDirect];
-        const last = { ...updatedCvb[updatedCvb.length - 1] };
-        last.close = price;
-        last.high = Math.max(last.high, price);
-        last.low = Math.min(last.low, price);
-        updatedCvb[updatedCvb.length - 1] = last;
-        (updatedData as any).priceHistoryCvb = updatedCvb;
-      }
-
       return updatedData;
     });
   }, []);
@@ -254,7 +242,7 @@ function FuturesDashboard() {
             updatedHistories[tf] = updatedCandles;
           }
         });
-        // CVB forming candle: update with kraken live price
+        // CVB forming candle
         const cvbCandles = updatedHistories['cvb'];
         if (cvbCandles && cvbCandles.length > 0) {
           const updatedCvb = [...cvbCandles];
@@ -280,17 +268,6 @@ function FuturesDashboard() {
           (updated as any)[key] = updatedCandles;
         }
       });
-      // Also update priceHistoryCvb
-      const cvbDirect = prevData.priceHistoryCvb as Candle[] | undefined;
-      if (cvbDirect && cvbDirect.length > 0) {
-        const updatedCvb = [...cvbDirect];
-        const last = { ...updatedCvb[updatedCvb.length - 1] };
-        last.close = price;
-        last.high = Math.max(last.high, price);
-        last.low = Math.min(last.low, price);
-        updatedCvb[updatedCvb.length - 1] = last;
-        (updated as any).priceHistoryCvb = updatedCvb;
-      }
       return updated;
     };
 
@@ -395,6 +372,10 @@ function FuturesDashboard() {
       if (!candleData) return;
       lastWsMessage = Date.now();
 
+      const tf = candleData.timeframe as string;
+      // CVB candles are handled by dedicated polling - skip WS updates to avoid duplication
+      if (tf === 'cvb') return;
+
       const openTimeMs: number =
         candleData.open_time_ms ??
         (typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime || '0'));
@@ -406,7 +387,6 @@ function FuturesDashboard() {
 
         if (prevData.priceHistories) {
           const updatedHistories = { ...prevData.priceHistories };
-          const tf = candleData.timeframe as string;
           const candles = updatedHistories[tf];
           if (candles && candles.length > 0) {
             const updatedCandles = [...candles];
@@ -417,7 +397,6 @@ function FuturesDashboard() {
               (lastCandle.time ? lastCandle.time * 1000 : 0);
 
             const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
-            const isCvbTf = tf === 'cvb';
 
             if (isFinal) {
               const targetIdx = updatedCandles.findIndex(c => {
@@ -432,58 +411,10 @@ function FuturesDashboard() {
                   low: candleData.low,
                   close: candleData.close,
                   volume: candleData.volume ?? updatedCandles[targetIdx].volume,
-                  duration: candleData.duration ?? updatedCandles[targetIdx].duration,
                   is_final: true,
-                  isComplete: true,
                   ...(wsIndicators ? { indicators: { ...updatedCandles[targetIdx].indicators, ...wsIndicators } } : {}),
                 };
-              } else if (isCvbTf) {
-                // CVB final candle: update last forming candle and push new one
-                const lastIdx = updatedCandles.length - 1;
-                if (lastCandle.isComplete === false) {
-                  updatedCandles[lastIdx] = {
-                    ...lastCandle,
-                    open_time_ms: openTimeMs,
-                    timestamp: openTimeMs,
-                    open: candleData.open,
-                    high: candleData.high,
-                    low: candleData.low,
-                    close: candleData.close,
-                    volume: candleData.volume ?? lastCandle.volume,
-                    duration: candleData.duration ?? lastCandle.duration,
-                    is_final: true,
-                    isComplete: true,
-                    ...(wsIndicators ? { indicators: wsIndicators } : {}),
-                  };
-                } else {
-                  updatedCandles.push({
-                    open_time_ms: openTimeMs,
-                    timestamp: openTimeMs,
-                    open: candleData.open,
-                    high: candleData.high,
-                    low: candleData.low,
-                    close: candleData.close,
-                    volume: candleData.volume || 0,
-                    duration: candleData.duration || 0,
-                    is_final: true,
-                    isComplete: true,
-                    ...(wsIndicators ? { indicators: wsIndicators } : {}),
-                  } as any);
-                }
               }
-            } else if (isCvbTf && lastCandle.isComplete === false) {
-              // CVB forming: always update the last forming candle regardless of timestamp
-              updatedCandles[updatedCandles.length - 1] = {
-                ...lastCandle,
-                open_time_ms: openTimeMs,
-                timestamp: openTimeMs,
-                high: Math.max(lastCandle.high, candleData.high),
-                low: Math.min(lastCandle.low, candleData.low),
-                close: candleData.close,
-                volume: candleData.volume ?? lastCandle.volume,
-                duration: candleData.duration ?? lastCandle.duration,
-                ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
-              };
             } else if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
                 ...lastCandle,
@@ -503,8 +434,6 @@ function FuturesDashboard() {
                 low: candleData.low,
                 close: candleData.close,
                 volume: candleData.volume || 0,
-                duration: candleData.duration || 0,
-                isComplete: false,
                 ...(wsIndicators ? { indicators: wsIndicators } : {}),
               } as any);
             }
@@ -521,8 +450,23 @@ function FuturesDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
+    // CVB candle polling every 3 seconds (same as Binance)
+    const cvbPollInterval = setInterval(async () => {
+      try {
+        const cvbData = await fetchKrakenCvbChartData(200);
+        if (cvbData && cvbData.candles.length > 0) {
+          setData(prev => {
+            if (!prev) return prev;
+            if (!prev.priceHistories) return prev;
+            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbData.candles } };
+          });
+        }
+      } catch {}
+    }, 3000);
+
     return () => {
       clearInterval(wsHealthCheck);
+      clearInterval(cvbPollInterval);
       stopFallback();
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
