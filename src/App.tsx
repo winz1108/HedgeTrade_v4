@@ -292,7 +292,18 @@ function App() {
         }
         const positionUpdate: any = { ...updated.position };
         let positionChanged = false;
-        if (priceData.currentPnl !== undefined) { positionUpdate.currentPnl = priceData.currentPnl; positionChanged = true; }
+        if (priceData.currentPnl !== undefined) {
+          positionUpdate.currentPnl = priceData.currentPnl;
+          positionChanged = true;
+          // If backend doesn't send portfolioValue, compute asset from price change on position
+          if (priceData.portfolioValue === undefined && updated.account?.totalAsset && positionUpdate.entryPrice && positionUpdate.inPosition) {
+            const prevPnl = prev.position?.currentPnl ?? 0;
+            const pnlDelta = priceData.currentPnl - prevPnl;
+            if (pnlDelta !== 0) {
+              updated.account = { ...updated.account, totalAsset: prev.account.totalAsset + pnlDelta };
+            }
+          }
+        }
         if (priceData.mfe !== undefined) { positionUpdate.mfe = priceData.mfe; positionChanged = true; }
         if (priceData.mae !== undefined) { positionUpdate.mae = priceData.mae; positionChanged = true; }
         if (priceData.in_position !== undefined) {
