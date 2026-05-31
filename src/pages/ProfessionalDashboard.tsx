@@ -30,22 +30,7 @@ function ProfessionalDashboard() {
         if (!prevArr || prevArr.length === 0) { merged[tf] = newArr; return; }
 
         if (tf === 'cvb') {
-          const preserved = [...newArr];
-          const prevLast = prevArr[prevArr.length - 1];
-          const newLast = preserved[preserved.length - 1];
-          if (prevLast && newLast) {
-            const prevLastTs = getTs(prevLast);
-            const newLastTs = getTs(newLast);
-            if (prevLastTs === newLastTs || Math.floor(prevLastTs / 1000) === Math.floor(newLastTs / 1000)) {
-              preserved[preserved.length - 1] = {
-                ...newLast,
-                close: prevLast.close,
-                high: Math.max(newLast.high, prevLast.high),
-                low: Math.min(newLast.low, prevLast.low),
-              };
-            }
-          }
-          merged[tf] = preserved;
+          merged[tf] = newArr;
           return;
         }
 
@@ -58,17 +43,11 @@ function ProfessionalDashboard() {
           merged[tf] = prevArr;
         } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
           const preserved = [...newArr];
-          const mergedLast = {
+          preserved[preserved.length - 1] = {
             ...newLast,
             high: Math.max(newLast.high, prevLast.high),
             low: Math.min(newLast.low, prevLast.low),
-            volume: Math.max(newLast.volume ?? 0, prevLast.volume ?? 0),
           };
-          const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
-          if (liveIndicators) {
-            mergedLast.indicators = { ...newLast.indicators, ...liveIndicators };
-          }
-          preserved[preserved.length - 1] = mergedLast;
           merged[tf] = preserved;
         } else {
           merged[tf] = newArr;
@@ -131,10 +110,10 @@ function ProfessionalDashboard() {
 
     const applyPriceToCandles = (prevData: KrakenDashboardData, price: number): KrakenDashboardData => {
       const updated = { ...prevData, currentPrice: price };
-      const tfs: Array<'1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'> = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
       if (prevData.priceHistories) {
         const updatedHistories = { ...prevData.priceHistories };
-        tfs.forEach(tf => {
+        const allTfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'];
+        allTfs.forEach(tf => {
           const candles = updatedHistories[tf];
           if (candles && candles.length > 0) {
             const updatedCandles = [...candles];
@@ -146,42 +125,7 @@ function ProfessionalDashboard() {
             updatedHistories[tf] = updatedCandles;
           }
         });
-        // CVB forming candle: update with kraken live price
-        const cvbCandles = updatedHistories['cvb'];
-        if (cvbCandles && cvbCandles.length > 0) {
-          const updatedCvb = [...cvbCandles];
-          const last = { ...updatedCvb[updatedCvb.length - 1] };
-          last.close = price;
-          last.high = Math.max(last.high, price);
-          last.low = Math.min(last.low, price);
-          updatedCvb[updatedCvb.length - 1] = last;
-          updatedHistories['cvb'] = updatedCvb;
-        }
         updated.priceHistories = updatedHistories;
-      }
-      tfs.forEach(tf => {
-        const key = `priceHistory${tf}` as keyof KrakenDashboardData;
-        const candles = prevData[key] as Candle[] | undefined;
-        if (candles && candles.length > 0) {
-          const updatedCandles = [...candles];
-          const last = { ...updatedCandles[updatedCandles.length - 1] };
-          last.close = price;
-          last.high = Math.max(last.high, price);
-          last.low = Math.min(last.low, price);
-          updatedCandles[updatedCandles.length - 1] = last;
-          (updated as any)[key] = updatedCandles;
-        }
-      });
-      // Also update priceHistoryCvb
-      const cvbDirect = prevData.priceHistoryCvb as Candle[] | undefined;
-      if (cvbDirect && cvbDirect.length > 0) {
-        const updatedCvb = [...cvbDirect];
-        const last = { ...updatedCvb[updatedCvb.length - 1] };
-        last.close = price;
-        last.high = Math.max(last.high, price);
-        last.low = Math.min(last.low, price);
-        updatedCvb[updatedCvb.length - 1] = last;
-        (updated as any).priceHistoryCvb = updatedCvb;
       }
       return updated;
     };
