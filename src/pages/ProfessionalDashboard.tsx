@@ -117,6 +117,17 @@ function ProfessionalDashboard() {
             updatedHistories[tf] = updatedCandles;
           }
         });
+        // CVB forming candle: update with kraken live price
+        const cvbCandles = updatedHistories['cvb'];
+        if (cvbCandles && cvbCandles.length > 0) {
+          const updatedCvb = [...cvbCandles];
+          const last = { ...updatedCvb[updatedCvb.length - 1] };
+          last.close = price;
+          last.high = Math.max(last.high, price);
+          last.low = Math.min(last.low, price);
+          updatedCvb[updatedCvb.length - 1] = last;
+          updatedHistories['cvb'] = updatedCvb;
+        }
         updated.priceHistories = updatedHistories;
       }
       tfs.forEach(tf => {
@@ -132,6 +143,17 @@ function ProfessionalDashboard() {
           (updated as any)[key] = updatedCandles;
         }
       });
+      // Also update priceHistoryCvb
+      const cvbDirect = prevData.priceHistoryCvb as Candle[] | undefined;
+      if (cvbDirect && cvbDirect.length > 0) {
+        const updatedCvb = [...cvbDirect];
+        const last = { ...updatedCvb[updatedCvb.length - 1] };
+        last.close = price;
+        last.high = Math.max(last.high, price);
+        last.low = Math.min(last.low, price);
+        updatedCvb[updatedCvb.length - 1] = last;
+        (updated as any).priceHistoryCvb = updatedCvb;
+      }
       return updated;
     };
 
@@ -229,7 +251,7 @@ function ProfessionalDashboard() {
         const updatedData = { ...prevData };
         if (prevData.priceHistories) {
           const updatedHistories = { ...prevData.priceHistories };
-          const tf = candleData.timeframe as '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
+          const tf = candleData.timeframe as string;
           const candles = updatedHistories[tf];
           if (candles && candles.length > 0) {
             const updatedCandles = [...candles];
