@@ -74,13 +74,29 @@ function App() {
             incoming.priceHistories = { ...incoming.priceHistories, cvb: cvbData.candles };
           }
           if (!prev) return incoming;
-          // Only update chart data and structural fields from REST; WS handles real-time fields
+          const mergedHistories = liveCandles(prev.priceHistories, incoming.priceHistories);
+          // Stamp last candle close with live price to prevent REST stale close flicker
+          const livePrice = prev.currentPrice;
+          if (mergedHistories && livePrice) {
+            Object.keys(mergedHistories).forEach(tf => {
+              const candles = mergedHistories[tf];
+              if (candles && candles.length > 0) {
+                const last = candles[candles.length - 1];
+                candles[candles.length - 1] = {
+                  ...last,
+                  close: livePrice,
+                  high: Math.max(last.high, livePrice),
+                  low: Math.min(last.low, livePrice),
+                };
+              }
+            });
+          }
           return {
             ...prev,
             recentTrades: incoming.recentTrades,
             metrics: incoming.metrics,
             zoneBounce: incoming.zoneBounce,
-            priceHistories: liveCandles(prev.priceHistories, incoming.priceHistories),
+            priceHistories: mergedHistories,
           };
         });
       } else {
@@ -404,7 +420,17 @@ function App() {
           setData(prev => {
             if (!prev) return prev;
             if (!prev.priceHistories) return prev;
-            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbData.candles } };
+            const cvbCandles = [...cvbData.candles];
+            if (cvbCandles.length > 0 && prev.currentPrice) {
+              const last = cvbCandles[cvbCandles.length - 1];
+              cvbCandles[cvbCandles.length - 1] = {
+                ...last,
+                close: prev.currentPrice,
+                high: Math.max(last.high, prev.currentPrice),
+                low: Math.min(last.low, prev.currentPrice),
+              };
+            }
+            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbCandles } };
           });
         }
       } catch {}

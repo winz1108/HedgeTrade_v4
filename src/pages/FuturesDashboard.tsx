@@ -93,13 +93,29 @@ function FuturesDashboard() {
 
       setData(prev => {
         if (!prev) return krakenData;
-        // Only update chart data and structural fields from REST; WS handles real-time fields
+        const mergedHistories = mergePreservingLive(prev.priceHistories, krakenData.priceHistories);
+        // After REST merge, stamp last candle close with live price to prevent flicker
+        const livePrice = prev.currentPrice;
+        if (mergedHistories && livePrice) {
+          Object.keys(mergedHistories).forEach(tf => {
+            const candles = mergedHistories[tf];
+            if (candles && candles.length > 0) {
+              const last = candles[candles.length - 1];
+              candles[candles.length - 1] = {
+                ...last,
+                close: livePrice,
+                high: Math.max(last.high, livePrice),
+                low: Math.min(last.low, livePrice),
+              };
+            }
+          });
+        }
         return {
           ...prev,
           recentTrades: krakenData.recentTrades,
           metrics: krakenData.metrics,
           zoneBounce: krakenData.zoneBounce,
-          priceHistories: mergePreservingLive(prev.priceHistories, krakenData.priceHistories),
+          priceHistories: mergedHistories,
         };
       });
       setLoading(false);
@@ -338,6 +354,13 @@ function FuturesDashboard() {
                   is_final: true,
                   ...(wsIndicators ? { indicators: { ...updatedCandles[targetIdx].indicators, ...wsIndicators } } : {}),
                 };
+                // Ensure next candle's open matches this candle's close
+                if (targetIdx + 1 < updatedCandles.length) {
+                  updatedCandles[targetIdx + 1] = {
+                    ...updatedCandles[targetIdx + 1],
+                    open: candleData.close,
+                  };
+                }
               }
             } else if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
@@ -382,7 +405,17 @@ function FuturesDashboard() {
           setData(prev => {
             if (!prev) return prev;
             if (!prev.priceHistories) return prev;
-            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbData.candles } };
+            const cvbCandles = [...cvbData.candles];
+            if (cvbCandles.length > 0 && prev.currentPrice) {
+              const last = cvbCandles[cvbCandles.length - 1];
+              cvbCandles[cvbCandles.length - 1] = {
+                ...last,
+                close: prev.currentPrice,
+                high: Math.max(last.high, prev.currentPrice),
+                low: Math.min(last.low, prev.currentPrice),
+              };
+            }
+            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbCandles } };
           });
         }
       } catch {}

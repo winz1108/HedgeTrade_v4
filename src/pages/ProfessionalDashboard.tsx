@@ -91,9 +91,26 @@ function ProfessionalDashboard() {
 
       setData(prev => {
         if (!prev) return krakenData;
+        const mergedHistories = mergePreservingLive(prev.priceHistories, krakenData.priceHistories);
+        const livePrice = prev.currentPrice;
+        if (mergedHistories && livePrice) {
+          Object.keys(mergedHistories).forEach(tf => {
+            const candles = mergedHistories[tf];
+            if (candles && candles.length > 0) {
+              const last = candles[candles.length - 1];
+              candles[candles.length - 1] = {
+                ...last,
+                close: livePrice,
+                high: Math.max(last.high, livePrice),
+                low: Math.min(last.low, livePrice),
+              };
+            }
+          });
+        }
         return {
           ...krakenData,
-          priceHistories: mergePreservingLive(prev.priceHistories, krakenData.priceHistories),
+          currentPrice: prev.currentPrice,
+          priceHistories: mergedHistories,
         };
       });
       setLoading(false);
@@ -105,8 +122,30 @@ function ProfessionalDashboard() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000);
     websocketService.connect();
+
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+    let lastWsMessage = Date.now();
+
+    const startFallback = () => {
+      if (!fallbackInterval) {
+        fallbackInterval = setInterval(loadData, 10000);
+      }
+    };
+    const stopFallback = () => {
+      if (fallbackInterval) {
+        clearInterval(fallbackInterval);
+        fallbackInterval = null;
+      }
+    };
+
+    const wsHealthCheck = setInterval(() => {
+      if (Date.now() - lastWsMessage > 15000) {
+        startFallback();
+      } else {
+        stopFallback();
+      }
+    }, 5000);
 
     const applyPriceToCandles = (prevData: KrakenDashboardData, price: number): KrakenDashboardData => {
       const updated = { ...prevData, currentPrice: price };
@@ -131,6 +170,7 @@ function ProfessionalDashboard() {
     };
 
     const handleStatusUpdate = (statusData: any) => {
+      lastWsMessage = Date.now();
       setData(prevData => {
         if (!prevData) return prevData;
         let updated = { ...prevData };
@@ -149,6 +189,7 @@ function ProfessionalDashboard() {
 
     const handleKrakenPriceUpdate = (priceData: any) => {
       if (!priceData) return;
+      lastWsMessage = Date.now();
       if (priceData.price != null) {
         const krakenPrice = Number(priceData.price);
         if (isNaN(krakenPrice) || krakenPrice <= 0) return;
@@ -247,6 +288,12 @@ function ProfessionalDashboard() {
                   is_final: true,
                   ...(wsIndicators ? { indicators: { ...updatedCandles[targetIdx].indicators, ...wsIndicators } } : {}),
                 };
+                if (targetIdx + 1 < updatedCandles.length) {
+                  updatedCandles[targetIdx + 1] = {
+                    ...updatedCandles[targetIdx + 1],
+                    open: candleData.close,
+                  };
+                }
               }
             } else if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
@@ -282,15 +329,26 @@ function ProfessionalDashboard() {
           setData(prev => {
             if (!prev) return prev;
             if (!prev.priceHistories) return prev;
-            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbData.candles } };
+            const cvbCandles = [...cvbData.candles];
+            if (cvbCandles.length > 0 && prev.currentPrice) {
+              const last = cvbCandles[cvbCandles.length - 1];
+              cvbCandles[cvbCandles.length - 1] = {
+                ...last,
+                close: prev.currentPrice,
+                high: Math.max(last.high, prev.currentPrice),
+                low: Math.min(last.low, prev.currentPrice),
+              };
+            }
+            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbCandles } };
           });
         }
       } catch {}
     }, 3000);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(wsHealthCheck);
       clearInterval(cvbPollInterval);
+      stopFallback();
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);
