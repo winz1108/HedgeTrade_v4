@@ -136,18 +136,6 @@ function FuturesDashboard() {
           }
         });
 
-        // CVB forming candle
-        const cvbCandles = updatedHistories['cvb'];
-        if (cvbCandles && cvbCandles.length > 0) {
-          const updatedCvb = [...cvbCandles];
-          const last = { ...updatedCvb[updatedCvb.length - 1] };
-          last.close = price;
-          last.high = Math.max(last.high, price);
-          last.low = Math.min(last.low, price);
-          updatedCvb[updatedCvb.length - 1] = last;
-          updatedHistories['cvb'] = updatedCvb;
-        }
-
         updatedData.priceHistories = updatedHistories;
       }
 
@@ -167,18 +155,6 @@ function FuturesDashboard() {
           (updatedData as any)[key] = updatedCandles;
         }
       });
-
-      // Also update priceHistoryCvb
-      const cvbDirect = prevData.priceHistoryCvb as Candle[] | undefined;
-      if (cvbDirect && cvbDirect.length > 0) {
-        const updatedCvb = [...cvbDirect];
-        const last = { ...updatedCvb[updatedCvb.length - 1] };
-        last.close = price;
-        last.high = Math.max(last.high, price);
-        last.low = Math.min(last.low, price);
-        updatedCvb[updatedCvb.length - 1] = last;
-        (updatedData as any).priceHistoryCvb = updatedCvb;
-      }
 
       return updatedData;
     });
@@ -231,17 +207,6 @@ function FuturesDashboard() {
             updatedHistories[tf] = updatedCandles;
           }
         });
-        // CVB forming candle: update close/high/low with live price
-        const cvbCandles = updatedHistories['cvb'];
-        if (cvbCandles && cvbCandles.length > 0) {
-          const updatedCvb = [...cvbCandles];
-          const last = { ...updatedCvb[updatedCvb.length - 1] };
-          last.close = price;
-          last.high = Math.max(last.high, price);
-          last.low = Math.min(last.low, price);
-          updatedCvb[updatedCvb.length - 1] = last;
-          updatedHistories['cvb'] = updatedCvb;
-        }
         updated.priceHistories = updatedHistories;
       }
       tfs.forEach(tf => {
@@ -257,17 +222,6 @@ function FuturesDashboard() {
           (updated as any)[key] = updatedCandles;
         }
       });
-      // Also update priceHistoryCvb
-      const cvbDirect = prevData.priceHistoryCvb as Candle[] | undefined;
-      if (cvbDirect && cvbDirect.length > 0) {
-        const updatedCvb = [...cvbDirect];
-        const last = { ...updatedCvb[updatedCvb.length - 1] };
-        last.close = price;
-        last.high = Math.max(last.high, price);
-        last.low = Math.min(last.low, price);
-        updatedCvb[updatedCvb.length - 1] = last;
-        (updated as any).priceHistoryCvb = updatedCvb;
-      }
       return updated;
     };
 
