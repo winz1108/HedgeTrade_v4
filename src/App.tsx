@@ -79,11 +79,64 @@ function App() {
           const usePrice = (livePrice && livePrice > 0 && Math.abs(livePrice - restPrice) / restPrice < 0.02)
             ? livePrice
             : restPrice;
-          return {
+
+          const merged: BFDashboardData = {
             ...incoming,
             currentPrice: usePrice,
             priceHistories: liveCandles(prev.priceHistories, incoming.priceHistories),
           };
+
+          // Preserve WS-driven real-time fields that are more recent than REST
+          if (prev.serverTime && incoming.serverTime && prev.serverTime > incoming.serverTime) {
+            merged.serverTime = prev.serverTime;
+          }
+          if (prev.wsHealthy !== undefined) {
+            merged.wsHealthy = prev.wsHealthy;
+          }
+
+          // Preserve live account data (portfolioValue, currencies updated by WS ticks)
+          if (prev.account) {
+            const prevAsset = prev.account.totalAsset;
+            const incomingAsset = incoming.account?.totalAsset;
+            if (prevAsset && prevAsset > 0 && incomingAsset && Math.abs(prevAsset - incomingAsset) / incomingAsset < 0.05) {
+              merged.account = { ...incoming.account, totalAsset: prevAsset };
+            }
+            if (prev.account.currencies) {
+              merged.account = { ...merged.account, currencies: prev.account.currencies };
+            }
+          }
+
+          // Preserve live position fields (PnL, MFE, MAE updated every second by WS)
+          if (prev.position) {
+            merged.position = {
+              ...incoming.position,
+              currentPnl: prev.position.currentPnl ?? incoming.position?.currentPnl,
+              mfe: prev.position.mfe ?? incoming.position?.mfe,
+              mae: (prev.position as any).mae ?? (incoming.position as any)?.mae,
+              exit_conditions: (prev.position as any).exit_conditions ?? (incoming.position as any)?.exit_conditions,
+              exit_prices: (prev.position as any).exit_prices ?? (incoming.position as any)?.exit_prices,
+            } as any;
+          }
+
+          // Preserve live strategyStatus (v32, exitConditions, indicators, entryDetails, vwapBandSeries)
+          if (prev.strategyStatus) {
+            merged.strategyStatus = {
+              ...incoming.strategyStatus,
+              ...prev.strategyStatus,
+            };
+          }
+
+          // Preserve live strategy exit_conditions
+          if (prev.strategy?.exit_conditions) {
+            merged.strategy = { ...merged.strategy, exit_conditions: prev.strategy.exit_conditions };
+          }
+
+          // Preserve live zoneData if present
+          if (prev.zoneData && !incoming.zoneData) {
+            merged.zoneData = prev.zoneData;
+          }
+
+          return merged;
         });
       } else {
         throw new Error('No data in API response');
