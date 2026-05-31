@@ -28,6 +28,28 @@ function FuturesDashboard() {
         const prevArr = prevHistories[tf];
         if (!newArr) { merged[tf] = prevArr || []; return; }
         if (!prevArr || prevArr.length === 0) { merged[tf] = newArr; return; }
+
+        // CVB: always take new REST data, just preserve live close on last candle
+        if (tf === 'cvb') {
+          const preserved = [...newArr];
+          const prevLast = prevArr[prevArr.length - 1];
+          const newLast = preserved[preserved.length - 1];
+          if (prevLast && newLast) {
+            const prevLastTs = getTs(prevLast);
+            const newLastTs = getTs(newLast);
+            if (prevLastTs === newLastTs || Math.floor(prevLastTs / 1000) === Math.floor(newLastTs / 1000)) {
+              preserved[preserved.length - 1] = {
+                ...newLast,
+                close: prevLast.close,
+                high: Math.max(newLast.high, prevLast.high),
+                low: Math.min(newLast.low, prevLast.low),
+              };
+            }
+          }
+          merged[tf] = preserved;
+          return;
+        }
+
         const prevLast = prevArr[prevArr.length - 1];
         const newLast = newArr[newArr.length - 1];
         const prevTs = getTs(prevLast);
@@ -37,7 +59,6 @@ function FuturesDashboard() {
           merged[tf] = prevArr;
         } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
           const preserved = [...newArr];
-          // Keep live WS close price (more recent) over REST close price (stale)
           const mergedLast = {
             ...newLast,
             close: prevLast.close,
@@ -79,6 +100,8 @@ function FuturesDashboard() {
           krakenData.priceHistoryCvb = cvbData.candles;
           krakenData.priceHistories = { ...(krakenData.priceHistories || {}), cvb: cvbData.candles };
         }
+      } else {
+        krakenData.priceHistories = { ...(krakenData.priceHistories || {}), cvb: krakenData.priceHistoryCvb };
       }
 
       // Unify signal info: use Binance's entryDetails for Kraken dashboard.

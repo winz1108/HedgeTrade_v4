@@ -28,6 +28,27 @@ function ProfessionalDashboard() {
         const prevArr = prevHistories[tf];
         if (!newArr) { merged[tf] = prevArr || []; return; }
         if (!prevArr || prevArr.length === 0) { merged[tf] = newArr; return; }
+
+        if (tf === 'cvb') {
+          const preserved = [...newArr];
+          const prevLast = prevArr[prevArr.length - 1];
+          const newLast = preserved[preserved.length - 1];
+          if (prevLast && newLast) {
+            const prevLastTs = getTs(prevLast);
+            const newLastTs = getTs(newLast);
+            if (prevLastTs === newLastTs || Math.floor(prevLastTs / 1000) === Math.floor(newLastTs / 1000)) {
+              preserved[preserved.length - 1] = {
+                ...newLast,
+                close: prevLast.close,
+                high: Math.max(newLast.high, prevLast.high),
+                low: Math.min(newLast.low, prevLast.low),
+              };
+            }
+          }
+          merged[tf] = preserved;
+          return;
+        }
+
         const prevLast = prevArr[prevArr.length - 1];
         const newLast = newArr[newArr.length - 1];
         const prevTs = getTs(prevLast);
@@ -36,7 +57,6 @@ function ProfessionalDashboard() {
         if (prevTs > newTs) {
           merged[tf] = prevArr;
         } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
-          // Same candle: preserve WS-accumulated high/low/volume and indicators
           const preserved = [...newArr];
           const mergedLast = {
             ...newLast,
@@ -51,7 +71,6 @@ function ProfessionalDashboard() {
           preserved[preserved.length - 1] = mergedLast;
           merged[tf] = preserved;
         } else {
-          // New candle arrived from REST - use REST data but keep prev indicators for non-final
           merged[tf] = newArr;
         }
       });
@@ -79,6 +98,8 @@ function ProfessionalDashboard() {
           krakenData.priceHistoryCvb = cvbData.candles;
           krakenData.priceHistories = { ...(krakenData.priceHistories || {}), cvb: cvbData.candles };
         }
+      } else {
+        krakenData.priceHistories = { ...(krakenData.priceHistories || {}), cvb: krakenData.priceHistoryCvb };
       }
 
       const binanceEntryDetails = (binanceData as any)?.strategyStatus?.entryDetails;
