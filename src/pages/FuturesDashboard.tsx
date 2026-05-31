@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData, Candle } from '../types/dashboard';
-import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard, fetchKrakenCvbChartData, fetchCvbChartData } from '../services/oracleApi';
+import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard, fetchKrakenCvbChartData } from '../services/oracleApi';
 import { KrakenMetricsPanel } from '../components/futures/KrakenMetricsPanel';
 import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
 import { formatLocalTime } from '../utils/time';
@@ -75,10 +75,9 @@ function FuturesDashboard() {
       }
 
       if (!krakenData.priceHistoryCvb || krakenData.priceHistoryCvb.length < 50) {
-        const finalCvb = cvbData || await fetchCvbChartData(200).catch(() => null);
-        if (finalCvb && finalCvb.candles.length > 0) {
-          krakenData.priceHistoryCvb = finalCvb.candles;
-          krakenData.priceHistories = { ...(krakenData.priceHistories || {}), cvb: finalCvb.candles };
+        if (cvbData && cvbData.candles.length > 0) {
+          krakenData.priceHistoryCvb = cvbData.candles;
+          krakenData.priceHistories = { ...(krakenData.priceHistories || {}), cvb: cvbData.candles };
         }
       }
 

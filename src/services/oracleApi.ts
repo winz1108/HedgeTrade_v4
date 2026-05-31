@@ -557,7 +557,7 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
 
 export const fetchKrakenChartData = async (timeframe: string, limit: number = 1000) => {
   const baseUrl = getApiUrl();
-  const url = `${baseUrl}/api/kraken/chart/${timeframe}?limit=${limit}`;
+  const url = `${baseUrl}/api/kraken/chart/${timeframe}/${limit}`;
 
   try {
     const response = await fetch(url);
@@ -568,12 +568,13 @@ export const fetchKrakenChartData = async (timeframe: string, limit: number = 10
 
     const chartResponse = await response.json();
 
-    if (!chartResponse.success) {
-      throw new Error(chartResponse.error || 'Failed to load chart data');
+    const rawCandles = chartResponse.candles || chartResponse;
+    if (!Array.isArray(rawCandles)) {
+      throw new Error('Invalid chart response format');
     }
 
     const mapCandles = (candles: any[]): Candle[] => candles?.map(c => ({
-      timestamp: c.timestamp,
+      timestamp: c.timestamp ?? (c.time ? c.time * 1000 : c.open_time_ms ?? 0),
       open: c.open,
       high: c.high,
       low: c.low,
@@ -600,10 +601,10 @@ export const fetchKrakenChartData = async (timeframe: string, limit: number = 10
       isComplete: c.isComplete !== undefined ? c.isComplete : true,
     })) || [];
 
-    const mappedCandles = mapCandles(chartResponse.candles);
+    const mappedCandles = mapCandles(rawCandles);
 
     return {
-      timeframe: chartResponse.timeframe,
+      timeframe: chartResponse.timeframe || timeframe,
       candles: mappedCandles,
       count: chartResponse.count,
       source: chartResponse.source,
@@ -615,7 +616,7 @@ export const fetchKrakenChartData = async (timeframe: string, limit: number = 10
 
 export const fetchKrakenCvbChartData = async (limit: number = 200) => {
   const baseUrl = getApiUrl();
-  const url = `${baseUrl}/api/kraken/chart/cvb?limit=${limit}`;
+  const url = `${baseUrl}/api/kraken/chart/cvb/${limit}`;
 
   try {
     const response = await fetch(url);
