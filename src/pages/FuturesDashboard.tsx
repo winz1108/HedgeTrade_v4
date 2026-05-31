@@ -37,8 +37,10 @@ function FuturesDashboard() {
           merged[tf] = prevArr;
         } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
           const preserved = [...newArr];
+          // Keep live WS close price (more recent) over REST close price (stale)
           const mergedLast = {
             ...newLast,
+            close: prevLast.close,
             high: Math.max(newLast.high, prevLast.high),
             low: Math.min(newLast.low, prevLast.low),
             volume: Math.max(newLast.volume ?? 0, prevLast.volume ?? 0),
