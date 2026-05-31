@@ -275,13 +275,6 @@ function FuturesDashboard() {
         if (!prevData) return prevData;
         let updated = { ...prevData };
 
-        if (statusData.current_price) {
-          const p = Number(statusData.current_price);
-          if (!isNaN(p) && p > 0) {
-            updated = applyPriceToCandles(updated, p);
-          }
-        }
-
         if (statusData.pp_reversal_price !== undefined) {
           updated.strategyA = { ...updated.strategyA, pp_reversal_price: statusData.pp_reversal_price };
         }
