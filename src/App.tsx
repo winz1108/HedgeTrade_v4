@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { fetchBinanceFuturesDashboard, fetchCvbChartData } from './services/oracleApi';
+import { fetchBinanceFuturesDashboard, fetchCvbChartData, fetchBinanceFuturesChartData } from './services/oracleApi';
 import { BinanceFuturesMetricsPanel } from './components/spot/BinanceFuturesMetricsPanel';
 import { BinanceFuturesPriceChart } from './components/spot/BinanceFuturesPriceChart';
 import { formatLocalTime } from './utils/time';
@@ -15,51 +15,6 @@ function App() {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
 
-  const liveCandles = useCallback(
-    (
-      prevHistories: Record<string, any[]> | undefined,
-      newHistories: Record<string, any[]> | undefined
-    ): Record<string, any[]> | undefined => {
-      if (!prevHistories || !newHistories) return newHistories;
-      const merged: Record<string, any[]> = {};
-      const tfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'];
-      const getTs = (c: any) => c.open_time_ms ?? c.timestamp ?? (c.time ? c.time * 1000 : 0);
-      tfs.forEach(tf => {
-        const newArr = newHistories[tf];
-        const prevArr = prevHistories[tf];
-        if (!newArr) { merged[tf] = prevArr || []; return; }
-        if (!prevArr || prevArr.length === 0) { merged[tf] = newArr; return; }
-        const prevLast = prevArr[prevArr.length - 1];
-        const newLast = newArr[newArr.length - 1];
-        const prevTs = getTs(prevLast);
-        const newTs = getTs(newLast);
-
-        if (prevTs > newTs) {
-          merged[tf] = prevArr;
-          return;
-        }
-
-        const sameLastCandle = Math.floor(prevTs / 1000) === Math.floor(newTs / 1000);
-
-        if (sameLastCandle) {
-          const preserved = [...newArr];
-          const liveIndicators = prevLast.indicators && Object.keys(prevLast.indicators).length > 0 ? prevLast.indicators : undefined;
-          preserved[preserved.length - 1] = {
-            ...newLast,
-            high: Math.max(newLast.high, prevLast.high),
-            low: Math.min(newLast.low, prevLast.low),
-            ...(liveIndicators ? { indicators: { ...newLast.indicators, ...liveIndicators } } : {}),
-          };
-          merged[tf] = preserved;
-        } else {
-          merged[tf] = newArr;
-        }
-      });
-      return merged;
-    },
-    []
-  );
-
   const loadData = async () => {
     try {
       setError(null);
@@ -68,37 +23,11 @@ function App() {
         fetchCvbChartData(200).catch(() => null),
       ]);
       if (resp?.data) {
-        setData(prev => {
-          const incoming = resp.data;
-          if (cvbData && cvbData.candles.length > 0 && incoming.priceHistories) {
-            incoming.priceHistories = { ...incoming.priceHistories, cvb: cvbData.candles };
-          }
-          if (!prev) return incoming;
-          const mergedHistories = liveCandles(prev.priceHistories, incoming.priceHistories);
-          // Stamp last candle close with live price to prevent REST stale close flicker
-          const livePrice = prev.currentPrice;
-          if (mergedHistories && livePrice) {
-            Object.keys(mergedHistories).forEach(tf => {
-              const candles = mergedHistories[tf];
-              if (candles && candles.length > 0) {
-                const last = candles[candles.length - 1];
-                candles[candles.length - 1] = {
-                  ...last,
-                  close: livePrice,
-                  high: Math.max(last.high, livePrice),
-                  low: Math.min(last.low, livePrice),
-                };
-              }
-            });
-          }
-          return {
-            ...prev,
-            recentTrades: incoming.recentTrades,
-            metrics: incoming.metrics,
-            zoneBounce: incoming.zoneBounce,
-            priceHistories: mergedHistories,
-          };
-        });
+        const incoming = resp.data;
+        if (cvbData && cvbData.candles.length > 0 && incoming.priceHistories) {
+          incoming.priceHistories = { ...incoming.priceHistories, cvb: cvbData.candles };
+        }
+        setData(incoming);
       } else {
         throw new Error('No data in API response');
       }
@@ -110,43 +39,17 @@ function App() {
     }
   };
 
-  const updateLiveCandle = useCallback((price: number) => {
-    if (!price) return;
-    setData(prev => {
-      if (!prev) return prev;
-      const updated = { ...prev, currentPrice: price };
-      if (prev.priceHistories) {
-        const updatedHistories = { ...prev.priceHistories };
-        const timeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'];
-        timeframes.forEach(tf => {
-          const candles = updatedHistories[tf];
-          if (candles && candles.length > 0) {
-            const updatedCandles = [...candles];
-            const lastCandle = { ...updatedCandles[updatedCandles.length - 1] };
-            lastCandle.close = price;
-            lastCandle.high = Math.max(lastCandle.high, price);
-            lastCandle.low = Math.min(lastCandle.low, price);
-            updatedCandles[updatedCandles.length - 1] = lastCandle;
-            updatedHistories[tf] = updatedCandles;
-          }
-        });
-        updated.priceHistories = updatedHistories;
-      }
-      return updated;
-    });
-  }, []);
-
   useEffect(() => {
     loadData();
     websocketService.connect();
 
-    // REST fallback: only poll when WS is not delivering data
+    // REST fallback: only when WS dead for 15+ seconds
     let fallbackInterval: ReturnType<typeof setInterval> | null = null;
     let lastWsMessage = Date.now();
 
     const startFallback = () => {
       if (!fallbackInterval) {
-        fallbackInterval = setInterval(loadData, 10000);
+        fallbackInterval = setInterval(loadData, 30000);
       }
     };
     const stopFallback = () => {
@@ -157,8 +60,7 @@ function App() {
     };
 
     const wsHealthCheck = setInterval(() => {
-      const elapsed = Date.now() - lastWsMessage;
-      if (elapsed > 15000) {
+      if (Date.now() - lastWsMessage > 15000) {
         startFallback();
       } else {
         stopFallback();
@@ -331,6 +233,7 @@ function App() {
         if (priceData.zoneData) {
           updated.zoneData = priceData.zoneData;
         }
+        // Update forming candle close
         if (prev.priceHistories) {
           const updatedHistories = { ...prev.priceHistories };
           ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'].forEach(tf => {
@@ -355,56 +258,70 @@ function App() {
       if (!candleData) return;
       lastWsMessage = Date.now();
 
+      const tf = candleData.timeframe as string;
       const openTimeMs: number =
         candleData.open_time_ms ??
         (typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime || '0'));
       const isFinal: boolean = candleData.is_final ?? candleData.isFinal ?? false;
 
-      setData(prev => {
-        if (!prev) return prev;
-        const updated = { ...prev };
-        if (prev.priceHistories) {
-          const updatedHistories = { ...prev.priceHistories };
-          const tf = candleData.timeframe as string;
-          const candles = updatedHistories[tf];
-          if (candles && candles.length > 0) {
-            const updatedCandles = [...candles];
-            const lastCandle = updatedCandles[updatedCandles.length - 1];
-            const lastTs: number =
-              lastCandle.open_time_ms ??
-              lastCandle.timestamp ??
-              (lastCandle.time ? lastCandle.time * 1000 : 0);
+      if (isFinal) {
+        // Candle completed -> fetch fresh data from REST
+        const fetchFn = tf === 'cvb'
+          ? () => fetchCvbChartData(200)
+          : () => fetchBinanceFuturesChartData(tf, 200);
+        fetchFn().then(result => {
+          const candles = result?.candles;
+          if (!candles || candles.length === 0) return;
+          setData(prev => {
+            if (!prev || !prev.priceHistories) return prev;
+            return { ...prev, priceHistories: { ...prev.priceHistories, [tf]: candles } };
+          });
+        }).catch(() => {});
+        return;
+      }
 
-            const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
-            if (isFinal) {
-              // completed candle - trust REST API
-            } else if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
-              updatedCandles[updatedCandles.length - 1] = {
-                ...lastCandle,
-                high: Math.max(lastCandle.high, candleData.high),
-                low: Math.min(lastCandle.low, candleData.low),
-                close: candleData.close,
-                volume: candleData.volume ?? lastCandle.volume,
-                ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
-              };
-            } else if (openTimeMs > lastTs) {
-              updatedCandles.push({
-                open_time_ms: openTimeMs,
-                timestamp: openTimeMs,
-                time: Math.floor(openTimeMs / 1000),
-                open: candleData.open ?? lastCandle.close,
-                high: candleData.high,
-                low: candleData.low,
-                close: candleData.close,
-                volume: candleData.volume || 0,
-                ...(wsIndicators ? { indicators: wsIndicators } : {}),
-              });
-            }
-            updatedHistories[tf] = updatedCandles;
-            updated.priceHistories = updatedHistories;
-          }
+      // Forming candle update via WS
+      setData(prev => {
+        if (!prev || !prev.priceHistories) return prev;
+        const updatedHistories = { ...prev.priceHistories };
+        const candles = updatedHistories[tf];
+        if (!candles || candles.length === 0) return prev;
+
+        const updatedCandles = [...candles];
+        const lastCandle = updatedCandles[updatedCandles.length - 1];
+        const lastTs: number =
+          lastCandle.open_time_ms ??
+          lastCandle.timestamp ??
+          (lastCandle.time ? lastCandle.time * 1000 : 0);
+
+        const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
+
+        if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
+          updatedCandles[updatedCandles.length - 1] = {
+            ...lastCandle,
+            high: Math.max(lastCandle.high, candleData.high),
+            low: Math.min(lastCandle.low, candleData.low),
+            close: candleData.close,
+            volume: candleData.volume ?? lastCandle.volume,
+            ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
+          };
+        } else if (openTimeMs > lastTs) {
+          updatedCandles.push({
+            open_time_ms: openTimeMs,
+            timestamp: openTimeMs,
+            time: Math.floor(openTimeMs / 1000),
+            open: lastCandle.close,
+            high: candleData.high,
+            low: candleData.low,
+            close: candleData.close,
+            volume: candleData.volume || 0,
+            ...(wsIndicators ? { indicators: wsIndicators } : {}),
+          });
+          if (updatedCandles.length > 200) updatedCandles.shift();
         }
-        return updated;
+
+        updatedHistories[tf] = updatedCandles;
+        return { ...prev, priceHistories: updatedHistories };
       });
     };
 
@@ -412,39 +329,14 @@ function App() {
     websocketService.on('bf_live_status', handleLiveStatus);
     websocketService.on('bf_price_tick', handlePriceTick);
 
-    // CVB candle polling every 3 seconds for forming bar updates
-    const cvbPollInterval = setInterval(async () => {
-      try {
-        const cvbData = await fetchCvbChartData(200);
-        if (cvbData && cvbData.candles.length > 0) {
-          setData(prev => {
-            if (!prev) return prev;
-            if (!prev.priceHistories) return prev;
-            const cvbCandles = [...cvbData.candles];
-            if (cvbCandles.length > 0 && prev.currentPrice) {
-              const last = cvbCandles[cvbCandles.length - 1];
-              cvbCandles[cvbCandles.length - 1] = {
-                ...last,
-                close: prev.currentPrice,
-                high: Math.max(last.high, prev.currentPrice),
-                low: Math.min(last.low, prev.currentPrice),
-              };
-            }
-            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbCandles } };
-          });
-        }
-      } catch {}
-    }, 3000);
-
     return () => {
       clearInterval(wsHealthCheck);
       stopFallback();
-      clearInterval(cvbPollInterval);
       websocketService.off('realtime_candle_update', handleRealtimeCandle);
       websocketService.off('bf_live_status', handleLiveStatus);
       websocketService.off('bf_price_tick', handlePriceTick);
     };
-  }, [updateLiveCandle, selectedTimeframe]);
+  }, [selectedTimeframe]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(Date.now()), 1000);

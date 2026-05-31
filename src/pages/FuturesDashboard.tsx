@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { KrakenDashboardData, Candle } from '../types/dashboard';
+import { KrakenDashboardData } from '../types/dashboard';
 import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard, fetchKrakenCvbChartData } from '../services/oracleApi';
 import { KrakenMetricsPanel } from '../components/futures/KrakenMetricsPanel';
 import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
@@ -13,51 +13,6 @@ function FuturesDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
-
-  const mergePreservingLive = useCallback(
-    (
-      prevHistories: Record<string, any[]> | undefined,
-      newHistories: Record<string, any[]> | undefined
-    ): Record<string, any[]> | undefined => {
-      if (!prevHistories || !newHistories) return newHistories;
-      const merged: Record<string, any[]> = {};
-      const tfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'];
-      const getTs = (c: any) => c.open_time_ms ?? c.timestamp ?? (c.time ? c.time * 1000 : 0);
-      tfs.forEach(tf => {
-        const newArr = newHistories[tf];
-        const prevArr = prevHistories[tf];
-        if (!newArr) { merged[tf] = prevArr || []; return; }
-        if (!prevArr || prevArr.length === 0) { merged[tf] = newArr; return; }
-
-        if (tf === 'cvb') {
-          merged[tf] = newArr;
-          return;
-        }
-
-        const prevLast = prevArr[prevArr.length - 1];
-        const newLast = newArr[newArr.length - 1];
-        const prevTs = getTs(prevLast);
-        const newTs = getTs(newLast);
-
-        if (prevTs > newTs) {
-          merged[tf] = prevArr;
-        } else if (Math.floor(prevTs / 1000) === Math.floor(newTs / 1000)) {
-          // Same forming candle: take REST data but preserve WS-accumulated high/low
-          const preserved = [...newArr];
-          preserved[preserved.length - 1] = {
-            ...newLast,
-            high: Math.max(newLast.high, prevLast.high),
-            low: Math.min(newLast.low, prevLast.low),
-          };
-          merged[tf] = preserved;
-        } else {
-          merged[tf] = newArr;
-        }
-      });
-      return merged;
-    },
-    []
-  );
 
   const loadData = async () => {
     try {
@@ -82,7 +37,6 @@ function FuturesDashboard() {
         krakenData.priceHistories = { ...(krakenData.priceHistories || {}), cvb: krakenData.priceHistoryCvb };
       }
 
-      // Unify signal info: use Binance's entryDetails for Kraken dashboard.
       const binanceEntryDetails = (binanceData as any)?.strategyStatus?.entryDetails;
       if (binanceEntryDetails) {
         krakenData.strategyStatus = {
@@ -91,33 +45,7 @@ function FuturesDashboard() {
         } as any;
       }
 
-      setData(prev => {
-        if (!prev) return krakenData;
-        const mergedHistories = mergePreservingLive(prev.priceHistories, krakenData.priceHistories);
-        // After REST merge, stamp last candle close with live price to prevent flicker
-        const livePrice = prev.currentPrice;
-        if (mergedHistories && livePrice) {
-          Object.keys(mergedHistories).forEach(tf => {
-            const candles = mergedHistories[tf];
-            if (candles && candles.length > 0) {
-              const last = candles[candles.length - 1];
-              candles[candles.length - 1] = {
-                ...last,
-                close: livePrice,
-                high: Math.max(last.high, livePrice),
-                low: Math.min(last.low, livePrice),
-              };
-            }
-          });
-        }
-        return {
-          ...prev,
-          recentTrades: krakenData.recentTrades,
-          metrics: krakenData.metrics,
-          zoneBounce: krakenData.zoneBounce,
-          priceHistories: mergedHistories,
-        };
-      });
+      setData(krakenData);
       setLoading(false);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to fetch Kraken data');
@@ -125,52 +53,17 @@ function FuturesDashboard() {
     }
   };
 
-  const updateLiveCandle = useCallback((price: number) => {
-    if (!price) return;
-
-    setData(prevData => {
-      if (!prevData) return prevData;
-
-      const updatedData = { ...prevData, currentPrice: price };
-
-      if (prevData.priceHistories) {
-        const updatedHistories = { ...prevData.priceHistories };
-        const allTfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'];
-
-        allTfs.forEach(tf => {
-          const candles = updatedHistories[tf];
-          if (candles && candles.length > 0) {
-            const updatedCandles = [...candles];
-            const lastCandle = { ...updatedCandles[updatedCandles.length - 1] };
-
-            lastCandle.close = price;
-            lastCandle.high = Math.max(lastCandle.high, price);
-            lastCandle.low = Math.min(lastCandle.low, price);
-
-            updatedCandles[updatedCandles.length - 1] = lastCandle;
-            updatedHistories[tf] = updatedCandles;
-          }
-        });
-
-        updatedData.priceHistories = updatedHistories;
-      }
-
-      return updatedData;
-    });
-  }, []);
-
   useEffect(() => {
     loadData();
-
     websocketService.connect();
 
-    // REST fallback: only poll when WS is not delivering data
+    // REST fallback: only when WS is dead for 15+ seconds
     let fallbackInterval: ReturnType<typeof setInterval> | null = null;
     let lastWsMessage = Date.now();
 
     const startFallback = () => {
       if (!fallbackInterval) {
-        fallbackInterval = setInterval(loadData, 10000);
+        fallbackInterval = setInterval(loadData, 30000);
       }
     };
     const stopFallback = () => {
@@ -181,35 +74,12 @@ function FuturesDashboard() {
     };
 
     const wsHealthCheck = setInterval(() => {
-      const elapsed = Date.now() - lastWsMessage;
-      if (elapsed > 15000) {
+      if (Date.now() - lastWsMessage > 15000) {
         startFallback();
       } else {
         stopFallback();
       }
     }, 5000);
-
-    const applyPriceToCandles = (prevData: KrakenDashboardData, price: number): KrakenDashboardData => {
-      const updated = { ...prevData, currentPrice: price };
-      if (prevData.priceHistories) {
-        const updatedHistories = { ...prevData.priceHistories };
-        const allTfs = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'];
-        allTfs.forEach(tf => {
-          const candles = updatedHistories[tf];
-          if (candles && candles.length > 0) {
-            const updatedCandles = [...candles];
-            const last = { ...updatedCandles[updatedCandles.length - 1] };
-            last.close = price;
-            last.high = Math.max(last.high, price);
-            last.low = Math.min(last.low, price);
-            updatedCandles[updatedCandles.length - 1] = last;
-            updatedHistories[tf] = updatedCandles;
-          }
-        });
-        updated.priceHistories = updatedHistories;
-      }
-      return updated;
-    };
 
     const handleStatusUpdate = (statusData: any) => {
       lastWsMessage = Date.now();
@@ -228,11 +98,6 @@ function FuturesDashboard() {
       if (!priceData) return;
       lastWsMessage = Date.now();
 
-      if (priceData.price != null) {
-        const krakenPrice = Number(priceData.price);
-        if (isNaN(krakenPrice) || krakenPrice <= 0) return;
-      }
-
       setData(prevData => {
         if (!prevData) return prevData;
         let updated = { ...prevData };
@@ -240,7 +105,24 @@ function FuturesDashboard() {
         if (priceData.price != null) {
           const p = Number(priceData.price);
           if (!isNaN(p) && p > 0) {
-            updated = applyPriceToCandles(updated, p);
+            updated.currentPrice = p;
+            // Update forming candle close on all timeframes
+            if (updated.priceHistories) {
+              const updatedHistories = { ...updated.priceHistories };
+              ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'].forEach(tf => {
+                const candles = updatedHistories[tf];
+                if (candles && candles.length > 0) {
+                  const updatedCandles = [...candles];
+                  const last = { ...updatedCandles[updatedCandles.length - 1] };
+                  last.close = p;
+                  last.high = Math.max(last.high, p);
+                  last.low = Math.min(last.low, p);
+                  updatedCandles[updatedCandles.length - 1] = last;
+                  updatedHistories[tf] = updatedCandles;
+                }
+              });
+              updated.priceHistories = updatedHistories;
+            }
           }
         }
 
@@ -313,83 +195,72 @@ function FuturesDashboard() {
       lastWsMessage = Date.now();
 
       const tf = candleData.timeframe as string;
-      // CVB candles are handled by dedicated polling - skip WS updates to avoid duplication
-      if (tf === 'cvb') return;
-
       const openTimeMs: number =
         candleData.open_time_ms ??
         (typeof candleData.openTime === 'number' ? candleData.openTime : parseInt(candleData.openTime || '0'));
       const isFinal: boolean = candleData.is_final ?? candleData.isFinal ?? false;
 
+      if (isFinal) {
+        // Candle completed -> fetch fresh data from REST for this timeframe
+        const fetchFn = tf === 'cvb'
+          ? () => fetchKrakenCvbChartData(200)
+          : () => fetchKrakenChartData(tf, 200);
+        fetchFn().then(result => {
+          const candles = result?.candles;
+          if (!candles || candles.length === 0) return;
+          setData(prev => {
+            if (!prev || !prev.priceHistories) return prev;
+            return { ...prev, priceHistories: { ...prev.priceHistories, [tf]: candles } };
+          });
+        }).catch(() => {});
+        return;
+      }
+
+      // Forming candle update via WS
       setData(prevData => {
-        if (!prevData) return prevData;
-        const updatedData = { ...prevData };
+        if (!prevData || !prevData.priceHistories) return prevData;
+        const updatedHistories = { ...prevData.priceHistories };
+        const candles = updatedHistories[tf];
+        if (!candles || candles.length === 0) return prevData;
 
-        if (prevData.priceHistories) {
-          const updatedHistories = { ...prevData.priceHistories };
-          const candles = updatedHistories[tf];
-          if (candles && candles.length > 0) {
-            const updatedCandles = [...candles];
-            const lastCandle = updatedCandles[updatedCandles.length - 1];
-            const lastTs: number =
-              lastCandle.open_time_ms ??
-              lastCandle.timestamp ??
-              (lastCandle.time ? lastCandle.time * 1000 : 0);
+        const updatedCandles = [...candles];
+        const lastCandle = updatedCandles[updatedCandles.length - 1];
+        const lastTs: number =
+          lastCandle.open_time_ms ??
+          lastCandle.timestamp ??
+          (lastCandle.time ? lastCandle.time * 1000 : 0);
 
-            const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
+        const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
 
-            if (isFinal) {
-              const targetIdx = updatedCandles.findIndex(c => {
-                const ts = c.open_time_ms ?? c.timestamp ?? (c.time ? c.time * 1000 : 0);
-                return ts === openTimeMs || Math.floor(ts / 1000) === Math.floor(openTimeMs / 1000);
-              });
-              if (targetIdx !== -1) {
-                updatedCandles[targetIdx] = {
-                  ...updatedCandles[targetIdx],
-                  open: candleData.open,
-                  high: candleData.high,
-                  low: candleData.low,
-                  close: candleData.close,
-                  volume: candleData.volume ?? updatedCandles[targetIdx].volume,
-                  is_final: true,
-                  ...(wsIndicators ? { indicators: { ...updatedCandles[targetIdx].indicators, ...wsIndicators } } : {}),
-                };
-                // Ensure next candle's open matches this candle's close
-                if (targetIdx + 1 < updatedCandles.length) {
-                  updatedCandles[targetIdx + 1] = {
-                    ...updatedCandles[targetIdx + 1],
-                    open: candleData.close,
-                  };
-                }
-              }
-            } else if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
-              updatedCandles[updatedCandles.length - 1] = {
-                ...lastCandle,
-                high: Math.max(lastCandle.high, candleData.high),
-                low: Math.min(lastCandle.low, candleData.low),
-                close: candleData.close,
-                volume: candleData.volume ?? lastCandle.volume,
-                ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
-              };
-            } else if (openTimeMs > lastTs) {
-              updatedCandles.push({
-                open_time_ms: openTimeMs,
-                timestamp: openTimeMs,
-                time: Math.floor(openTimeMs / 1000),
-                open: candleData.open ?? lastCandle.close,
-                high: candleData.high,
-                low: candleData.low,
-                close: candleData.close,
-                volume: candleData.volume || 0,
-                ...(wsIndicators ? { indicators: wsIndicators } : {}),
-              } as any);
-            }
-            updatedHistories[tf] = updatedCandles;
-            updatedData.priceHistories = updatedHistories;
-          }
+        if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
+          // Update existing forming candle
+          updatedCandles[updatedCandles.length - 1] = {
+            ...lastCandle,
+            high: Math.max(lastCandle.high, candleData.high),
+            low: Math.min(lastCandle.low, candleData.low),
+            close: candleData.close,
+            volume: candleData.volume ?? lastCandle.volume,
+            ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
+          };
+        } else if (openTimeMs > lastTs) {
+          // New forming candle started
+          updatedCandles.push({
+            open_time_ms: openTimeMs,
+            timestamp: openTimeMs,
+            time: Math.floor(openTimeMs / 1000),
+            open: lastCandle.close,
+            high: candleData.high,
+            low: candleData.low,
+            close: candleData.close,
+            volume: candleData.volume || 0,
+            ...(wsIndicators ? { indicators: wsIndicators } : {}),
+          } as any);
+          // Trim to max 200 candles
+          if (updatedCandles.length > 200) updatedCandles.shift();
         }
 
-        return updatedData;
+        updatedHistories[tf] = updatedCandles;
+        return { ...prevData, priceHistories: updatedHistories };
       });
     };
 
@@ -397,33 +268,8 @@ function FuturesDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
-    // CVB candle polling every 3 seconds (same as Binance)
-    const cvbPollInterval = setInterval(async () => {
-      try {
-        const cvbData = await fetchKrakenCvbChartData(200);
-        if (cvbData && cvbData.candles.length > 0) {
-          setData(prev => {
-            if (!prev) return prev;
-            if (!prev.priceHistories) return prev;
-            const cvbCandles = [...cvbData.candles];
-            if (cvbCandles.length > 0 && prev.currentPrice) {
-              const last = cvbCandles[cvbCandles.length - 1];
-              cvbCandles[cvbCandles.length - 1] = {
-                ...last,
-                close: prev.currentPrice,
-                high: Math.max(last.high, prev.currentPrice),
-                low: Math.min(last.low, prev.currentPrice),
-              };
-            }
-            return { ...prev, priceHistories: { ...prev.priceHistories, cvb: cvbCandles } };
-          });
-        }
-      } catch {}
-    }, 3000);
-
     return () => {
       clearInterval(wsHealthCheck);
-      clearInterval(cvbPollInterval);
       stopFallback();
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
