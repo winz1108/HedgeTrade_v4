@@ -632,26 +632,30 @@ export const fetchKrakenCvbChartData = async (limit: number = 200) => {
       throw new Error('Invalid Kraken CVB chart response format');
     }
 
-    const mapCandles = (raw: any[]): Candle[] => raw.map(c => ({
-      timestamp: c.open_time_ms ?? (c.time ? c.time * 1000 : 0),
-      open: c.open,
-      high: c.high,
-      low: c.low,
-      close: c.close,
-      volume: c.volume,
-      duration: c.duration,
-      ema20: c.ema20,
-      ema50: c.ema50,
-      ema200: c.ema200,
-      bb_upper: c.bb_upper,
-      bb_mid: c.bb_mid,
-      bb_lower: c.bb_lower,
-      macd: c.macd,
-      signal: c.signal ?? c.macd_signal,
-      histogram: c.histogram,
-      adx: c.adx,
-      isComplete: c.is_forming !== true,
-    }));
+    const mapCandles = (raw: any[]): Candle[] => raw.map(c => {
+      const ts = c.open_time_ms ?? (c.time ? c.time * 1000 : 0);
+      return {
+        open_time_ms: ts,
+        timestamp: ts,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+        volume: c.volume,
+        duration: c.duration,
+        ema20: c.ema20,
+        ema50: c.ema50,
+        ema200: c.ema200,
+        bb_upper: c.bb_upper,
+        bb_mid: c.bb_mid,
+        bb_lower: c.bb_lower,
+        macd: c.macd,
+        signal: c.signal ?? c.macd_signal,
+        histogram: c.histogram,
+        adx: c.adx,
+        isComplete: c.is_forming !== true,
+      } as any;
+    });
 
     return {
       timeframe: 'cvb',

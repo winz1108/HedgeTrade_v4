@@ -266,6 +266,8 @@ function ProfessionalDashboard() {
             const lastCandle = updatedCandles[updatedCandles.length - 1];
             const lastTs: number = lastCandle.open_time_ms ?? lastCandle.timestamp ?? (lastCandle.time ? lastCandle.time * 1000 : 0);
             const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
+            const isCvbTf = tf === 'cvb';
+
             if (isFinal) {
               const targetIdx = updatedCandles.findIndex(c => {
                 const ts = c.open_time_ms ?? c.timestamp ?? (c.time ? c.time * 1000 : 0);
@@ -275,10 +277,42 @@ function ProfessionalDashboard() {
                 updatedCandles[targetIdx] = {
                   ...updatedCandles[targetIdx],
                   open: candleData.open, high: candleData.high, low: candleData.low, close: candleData.close,
-                  volume: candleData.volume ?? updatedCandles[targetIdx].volume, is_final: true,
+                  volume: candleData.volume ?? updatedCandles[targetIdx].volume,
+                  duration: candleData.duration ?? updatedCandles[targetIdx].duration,
+                  is_final: true, isComplete: true,
                   ...(wsIndicators ? { indicators: { ...updatedCandles[targetIdx].indicators, ...wsIndicators } } : {}),
                 };
+              } else if (isCvbTf) {
+                const lastIdx = updatedCandles.length - 1;
+                if (lastCandle.isComplete === false) {
+                  updatedCandles[lastIdx] = {
+                    ...lastCandle,
+                    open_time_ms: openTimeMs, timestamp: openTimeMs,
+                    open: candleData.open, high: candleData.high, low: candleData.low, close: candleData.close,
+                    volume: candleData.volume ?? lastCandle.volume,
+                    duration: candleData.duration ?? lastCandle.duration,
+                    is_final: true, isComplete: true,
+                    ...(wsIndicators ? { indicators: wsIndicators } : {}),
+                  };
+                } else {
+                  updatedCandles.push({
+                    open_time_ms: openTimeMs, timestamp: openTimeMs,
+                    open: candleData.open, high: candleData.high, low: candleData.low, close: candleData.close,
+                    volume: candleData.volume || 0, duration: candleData.duration || 0,
+                    is_final: true, isComplete: true,
+                    ...(wsIndicators ? { indicators: wsIndicators } : {}),
+                  } as any);
+                }
               }
+            } else if (isCvbTf && lastCandle.isComplete === false) {
+              updatedCandles[updatedCandles.length - 1] = {
+                ...lastCandle,
+                open_time_ms: openTimeMs, timestamp: openTimeMs,
+                high: Math.max(lastCandle.high, candleData.high), low: Math.min(lastCandle.low, candleData.low),
+                close: candleData.close, volume: candleData.volume ?? lastCandle.volume,
+                duration: candleData.duration ?? lastCandle.duration,
+                ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
+              };
             } else if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
               updatedCandles[updatedCandles.length - 1] = {
                 ...lastCandle,
@@ -291,6 +325,7 @@ function ProfessionalDashboard() {
                 open_time_ms: openTimeMs, timestamp: openTimeMs, time: Math.floor(openTimeMs / 1000),
                 open: candleData.open ?? lastCandle.close, high: candleData.high, low: candleData.low,
                 close: candleData.close, volume: candleData.volume || 0,
+                duration: candleData.duration || 0, isComplete: false,
                 ...(wsIndicators ? { indicators: wsIndicators } : {}),
               } as any);
             }
