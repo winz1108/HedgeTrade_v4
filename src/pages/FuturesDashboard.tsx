@@ -90,8 +90,12 @@ function FuturesDashboard() {
 
       setData(prev => {
         if (!prev) return krakenData;
+        // Only update chart data and structural fields from REST; WS handles real-time fields
         return {
-          ...krakenData,
+          ...prev,
+          recentTrades: krakenData.recentTrades,
+          metrics: krakenData.metrics,
+          zoneBounce: krakenData.zoneBounce,
           priceHistories: mergePreservingLive(prev.priceHistories, krakenData.priceHistories),
         };
       });
@@ -180,9 +184,33 @@ function FuturesDashboard() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000);
 
     websocketService.connect();
+
+    // REST fallback: only poll when WS is not delivering data
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+    let lastWsMessage = Date.now();
+
+    const startFallback = () => {
+      if (!fallbackInterval) {
+        fallbackInterval = setInterval(loadData, 10000);
+      }
+    };
+    const stopFallback = () => {
+      if (fallbackInterval) {
+        clearInterval(fallbackInterval);
+        fallbackInterval = null;
+      }
+    };
+
+    const wsHealthCheck = setInterval(() => {
+      const elapsed = Date.now() - lastWsMessage;
+      if (elapsed > 15000) {
+        startFallback();
+      } else {
+        stopFallback();
+      }
+    }, 5000);
 
     const applyPriceToCandles = (prevData: KrakenDashboardData, price: number): KrakenDashboardData => {
       const updated = { ...prevData, currentPrice: price };
@@ -242,6 +270,7 @@ function FuturesDashboard() {
     };
 
     const handleStatusUpdate = (statusData: any) => {
+      lastWsMessage = Date.now();
       setData(prevData => {
         if (!prevData) return prevData;
         let updated = { ...prevData };
@@ -262,6 +291,7 @@ function FuturesDashboard() {
 
     const handleKrakenPriceUpdate = (priceData: any) => {
       if (!priceData) return;
+      lastWsMessage = Date.now();
 
       if (priceData.price != null) {
         const krakenPrice = Number(priceData.price);
@@ -345,6 +375,7 @@ function FuturesDashboard() {
 
     const handleKrakenCandleUpdate = (candleData: any) => {
       if (!candleData) return;
+      lastWsMessage = Date.now();
 
       const openTimeMs: number =
         candleData.open_time_ms ??
@@ -462,7 +493,8 @@ function FuturesDashboard() {
     }, 3000);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(wsHealthCheck);
+      stopFallback();
       clearInterval(cvbPollInterval);
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);

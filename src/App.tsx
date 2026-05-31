@@ -74,69 +74,14 @@ function App() {
             incoming.priceHistories = { ...incoming.priceHistories, cvb: cvbData.candles };
           }
           if (!prev) return incoming;
-          const livePrice = prev.currentPrice;
-          const restPrice = incoming.currentPrice;
-          const usePrice = (livePrice && livePrice > 0 && Math.abs(livePrice - restPrice) / restPrice < 0.02)
-            ? livePrice
-            : restPrice;
-
-          const merged: BFDashboardData = {
-            ...incoming,
-            currentPrice: usePrice,
+          // Only update chart data and structural fields from REST; WS handles real-time fields
+          return {
+            ...prev,
+            recentTrades: incoming.recentTrades,
+            metrics: incoming.metrics,
+            zoneBounce: incoming.zoneBounce,
             priceHistories: liveCandles(prev.priceHistories, incoming.priceHistories),
           };
-
-          // Preserve WS-driven real-time fields that are more recent than REST
-          if (prev.serverTime && incoming.serverTime && prev.serverTime > incoming.serverTime) {
-            merged.serverTime = prev.serverTime;
-          }
-          if (prev.wsHealthy !== undefined) {
-            merged.wsHealthy = prev.wsHealthy;
-          }
-
-          // Preserve live account data (portfolioValue, currencies updated by WS ticks)
-          if (prev.account) {
-            const prevAsset = prev.account.totalAsset;
-            const incomingAsset = incoming.account?.totalAsset;
-            if (prevAsset && prevAsset > 0 && incomingAsset && Math.abs(prevAsset - incomingAsset) / incomingAsset < 0.05) {
-              merged.account = { ...incoming.account, totalAsset: prevAsset };
-            }
-            if (prev.account.currencies) {
-              merged.account = { ...merged.account, currencies: prev.account.currencies };
-            }
-          }
-
-          // Preserve live position fields (PnL, MFE, MAE updated every second by WS)
-          if (prev.position) {
-            merged.position = {
-              ...incoming.position,
-              currentPnl: prev.position.currentPnl ?? incoming.position?.currentPnl,
-              mfe: prev.position.mfe ?? incoming.position?.mfe,
-              mae: (prev.position as any).mae ?? (incoming.position as any)?.mae,
-              exit_conditions: (prev.position as any).exit_conditions ?? (incoming.position as any)?.exit_conditions,
-              exit_prices: (prev.position as any).exit_prices ?? (incoming.position as any)?.exit_prices,
-            } as any;
-          }
-
-          // Preserve live strategyStatus (v32, exitConditions, indicators, entryDetails, vwapBandSeries)
-          if (prev.strategyStatus) {
-            merged.strategyStatus = {
-              ...incoming.strategyStatus,
-              ...prev.strategyStatus,
-            };
-          }
-
-          // Preserve live strategy exit_conditions
-          if (prev.strategy?.exit_conditions) {
-            merged.strategy = { ...merged.strategy, exit_conditions: prev.strategy.exit_conditions };
-          }
-
-          // Preserve live zoneData if present
-          if (prev.zoneData && !incoming.zoneData) {
-            merged.zoneData = prev.zoneData;
-          }
-
-          return merged;
         });
       } else {
         throw new Error('No data in API response');
@@ -177,12 +122,37 @@ function App() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000);
     websocketService.connect();
+
+    // REST fallback: only poll when WS is not delivering data
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+    let lastWsMessage = Date.now();
+
+    const startFallback = () => {
+      if (!fallbackInterval) {
+        fallbackInterval = setInterval(loadData, 10000);
+      }
+    };
+    const stopFallback = () => {
+      if (fallbackInterval) {
+        clearInterval(fallbackInterval);
+        fallbackInterval = null;
+      }
+    };
+
+    const wsHealthCheck = setInterval(() => {
+      const elapsed = Date.now() - lastWsMessage;
+      if (elapsed > 15000) {
+        startFallback();
+      } else {
+        stopFallback();
+      }
+    }, 5000);
 
     const handleLiveStatus = (statusData: any) => {
       if (!statusData) return;
       if (statusData.exchange && statusData.exchange !== 'binance_futures') return;
+      lastWsMessage = Date.now();
       setData(prev => {
         if (!prev) return prev;
         const updated = { ...prev };
@@ -278,6 +248,7 @@ function App() {
 
     const handlePriceTick = (priceData: any) => {
       if (!priceData?.price) return;
+      lastWsMessage = Date.now();
       const price = Number(priceData.price);
       setData(prev => {
         if (!prev) return prev;
@@ -292,18 +263,7 @@ function App() {
         }
         const positionUpdate: any = { ...updated.position };
         let positionChanged = false;
-        if (priceData.currentPnl !== undefined) {
-          positionUpdate.currentPnl = priceData.currentPnl;
-          positionChanged = true;
-          // If backend doesn't send portfolioValue, compute asset from price change on position
-          if (priceData.portfolioValue === undefined && updated.account?.totalAsset && positionUpdate.entryPrice && positionUpdate.inPosition) {
-            const prevPnl = prev.position?.currentPnl ?? 0;
-            const pnlDelta = priceData.currentPnl - prevPnl;
-            if (pnlDelta !== 0) {
-              updated.account = { ...updated.account, totalAsset: prev.account.totalAsset + pnlDelta };
-            }
-          }
-        }
+        if (priceData.currentPnl !== undefined) { positionUpdate.currentPnl = priceData.currentPnl; positionChanged = true; }
         if (priceData.mfe !== undefined) { positionUpdate.mfe = priceData.mfe; positionChanged = true; }
         if (priceData.mae !== undefined) { positionUpdate.mae = priceData.mae; positionChanged = true; }
         if (priceData.in_position !== undefined) {
@@ -377,6 +337,7 @@ function App() {
 
     const handleRealtimeCandle = (candleData: any) => {
       if (!candleData) return;
+      lastWsMessage = Date.now();
 
       const openTimeMs: number =
         candleData.open_time_ms ??
@@ -450,7 +411,8 @@ function App() {
     }, 3000);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(wsHealthCheck);
+      stopFallback();
       clearInterval(cvbPollInterval);
       websocketService.off('realtime_candle_update', handleRealtimeCandle);
       websocketService.off('bf_live_status', handleLiveStatus);
