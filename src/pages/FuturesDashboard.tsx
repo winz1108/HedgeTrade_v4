@@ -451,30 +451,6 @@ function FuturesDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
-    // Subscribe to price_update for real-time price (same source as 1m chart)
-    const handlePriceUpdate = (priceData: any) => {
-      if (!priceData?.currentPrice) return;
-      const price = Number(priceData.currentPrice);
-      if (isNaN(price) || price <= 0) return;
-      setData(prev => {
-        if (!prev) return prev;
-        return applyPriceToCandles(prev, price);
-      });
-    };
-    websocketService.on('price_update', handlePriceUpdate);
-
-    // Also subscribe to bf_price_tick (same price, different event name)
-    const handleBfPriceTick = (priceData: any) => {
-      if (!priceData?.price) return;
-      const price = Number(priceData.price);
-      if (isNaN(price) || price <= 0) return;
-      setData(prev => {
-        if (!prev) return prev;
-        return applyPriceToCandles(prev, price);
-      });
-    };
-    websocketService.on('bf_price_tick', handleBfPriceTick);
-
     // CVB candle polling every 3 seconds for forming bar updates
     const cvbPollInterval = setInterval(async () => {
       try {
@@ -499,8 +475,6 @@ function FuturesDashboard() {
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);
-      websocketService.off('price_update', handlePriceUpdate);
-      websocketService.off('bf_price_tick', handleBfPriceTick);
     };
   }, [selectedTimeframe]);
 
