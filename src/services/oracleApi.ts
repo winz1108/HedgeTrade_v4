@@ -536,6 +536,17 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
         '1d': data.priceHistory1d,
         'cvb': data.priceHistoryCvb,
       };
+    } else {
+      data.priceHistories = {
+        '1m': data.priceHistory1m,
+        '5m': data.priceHistory5m,
+        '15m': data.priceHistory15m,
+        '30m': data.priceHistory30m,
+        '1h': data.priceHistory1h,
+        '4h': data.priceHistory4h,
+        '1d': data.priceHistory1d,
+        'cvb': data.priceHistoryCvb,
+      };
     }
 
     return data;

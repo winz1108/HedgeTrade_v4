@@ -200,7 +200,16 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
     return result;
   }, [data.priceHistory1m, data.priceHistory5m, data.priceHistory15m, data.priceHistory30m, data.priceHistory1h, data.priceHistory4h, data.priceHistory1d, data.priceHistoryCvb, data.pricePredictions]);
 
-  const selectedCandles = candlesByTimeframe[timeframe];
+  const selectedCandles = useMemo(() => {
+    const candles = candlesByTimeframe[timeframe];
+    if (candles && candles.length > 0) return candles;
+    // Fallback: if selected timeframe (e.g. cvb) is empty, try 15m then 1m
+    if (timeframe === 'cvb') {
+      if (candlesByTimeframe['15m']?.length > 0) return candlesByTimeframe['15m'];
+      if (candlesByTimeframe['1m']?.length > 0) return candlesByTimeframe['1m'];
+    }
+    return candles;
+  }, [candlesByTimeframe, timeframe]);
 
   const { minPrice, maxPrice, visibleCandles, visibleStartIndex, maxScroll } = useMemo(() => {
     if (selectedCandles.length === 0) {
