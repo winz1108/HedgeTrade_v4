@@ -521,7 +521,22 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
       priceHistory1h: normalizeKrakenCandles(rawData.priceHistories?.['1h'] || rawData.priceHistory1h || []),
       priceHistory4h: normalizeKrakenCandles(rawData.priceHistories?.['4h'] || rawData.priceHistory4h || []),
       priceHistory1d: normalizeKrakenCandles(rawData.priceHistories?.['1d'] || rawData.priceHistory1d || []),
+      priceHistoryCvb: normalizeKrakenCandles(rawData.priceHistories?.['cvb'] || rawData.priceHistoryCvb || []),
     };
+
+    if (rawData.priceHistories) {
+      data.priceHistories = {
+        ...rawData.priceHistories,
+        '1m': data.priceHistory1m,
+        '5m': data.priceHistory5m,
+        '15m': data.priceHistory15m,
+        '30m': data.priceHistory30m,
+        '1h': data.priceHistory1h,
+        '4h': data.priceHistory4h,
+        '1d': data.priceHistory1d,
+        'cvb': data.priceHistoryCvb,
+      };
+    }
 
     return data;
   } catch (error) {

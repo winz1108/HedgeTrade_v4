@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData, Candle } from '../types/dashboard';
-import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard, fetchCvbChartData } from '../services/oracleApi';
+import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard } from '../services/oracleApi';
 import { KrakenMetricsPanel } from '../components/futures/KrakenMetricsPanel';
 import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
 import { formatLocalTime } from '../utils/time';
@@ -63,22 +63,14 @@ function FuturesDashboard() {
   const loadData = async () => {
     try {
       setError(null);
-      const [krakenData, binanceData, cvbData] = await Promise.all([
+      const [krakenData, binanceData] = await Promise.all([
         fetchKrakenDashboard(),
         fetchBinanceFuturesDashboard().catch(() => null),
-        fetchCvbChartData(200).catch(() => null),
       ]);
 
       if (!krakenData.priceHistory1m || krakenData.priceHistory1m.length === 0) {
         const chart1m = await fetchKrakenChartData('1m', 1000);
         krakenData.priceHistory1m = chart1m.candles;
-      }
-
-      if (cvbData && cvbData.candles.length > 0) {
-        krakenData.priceHistoryCvb = cvbData.candles;
-        if (krakenData.priceHistories) {
-          krakenData.priceHistories = { ...krakenData.priceHistories, cvb: cvbData.candles };
-        }
       }
 
       // Unify signal info: use Binance's entryDetails for Kraken dashboard.
@@ -400,27 +392,9 @@ function FuturesDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
-    // CVB candle polling every 3 seconds for forming bar updates
-    const cvbPollInterval = setInterval(async () => {
-      try {
-        const cvbData = await fetchCvbChartData(200);
-        if (cvbData && cvbData.candles.length > 0) {
-          setData(prev => {
-            if (!prev) return prev;
-            const updated = { ...prev, priceHistoryCvb: cvbData.candles };
-            if (prev.priceHistories) {
-              updated.priceHistories = { ...prev.priceHistories, cvb: cvbData.candles };
-            }
-            return updated;
-          });
-        }
-      } catch {}
-    }, 3000);
-
     return () => {
       clearInterval(wsHealthCheck);
       stopFallback();
-      clearInterval(cvbPollInterval);
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);

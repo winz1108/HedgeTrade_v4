@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { KrakenDashboardData, Candle } from '../types/dashboard';
-import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard, fetchCvbChartData } from '../services/oracleApi';
+import { fetchKrakenDashboard, fetchKrakenChartData, fetchBinanceFuturesDashboard } from '../services/oracleApi';
 import { KrakenPriceChart } from '../components/futures/KrakenPriceChart';
 import { formatLocalTime } from '../utils/time';
 import { websocketService } from '../services/websocket';
@@ -63,22 +63,14 @@ function ProfessionalDashboard() {
   const loadData = async () => {
     try {
       setError(null);
-      const [krakenData, binanceData, cvbData] = await Promise.all([
+      const [krakenData, binanceData] = await Promise.all([
         fetchKrakenDashboard(),
         fetchBinanceFuturesDashboard().catch(() => null),
-        fetchCvbChartData(200).catch(() => null),
       ]);
 
       if (!krakenData.priceHistory1m || krakenData.priceHistory1m.length === 0) {
         const chart1m = await fetchKrakenChartData('1m', 1000);
         krakenData.priceHistory1m = chart1m.candles;
-      }
-
-      if (cvbData && cvbData.candles.length > 0) {
-        krakenData.priceHistoryCvb = cvbData.candles;
-        if (krakenData.priceHistories) {
-          krakenData.priceHistories = { ...krakenData.priceHistories, cvb: cvbData.candles };
-        }
       }
 
       const binanceEntryDetails = (binanceData as any)?.strategyStatus?.entryDetails;
@@ -125,17 +117,6 @@ function ProfessionalDashboard() {
             updatedHistories[tf] = updatedCandles;
           }
         });
-        // CVB forming candle: update close/high/low with live price
-        const cvbCandles = updatedHistories['cvb'];
-        if (cvbCandles && cvbCandles.length > 0) {
-          const updatedCvb = [...cvbCandles];
-          const last = { ...updatedCvb[updatedCvb.length - 1] };
-          last.close = price;
-          last.high = Math.max(last.high, price);
-          last.low = Math.min(last.low, price);
-          updatedCvb[updatedCvb.length - 1] = last;
-          updatedHistories['cvb'] = updatedCvb;
-        }
         updated.priceHistories = updatedHistories;
       }
       tfs.forEach(tf => {
@@ -151,17 +132,6 @@ function ProfessionalDashboard() {
           (updated as any)[key] = updatedCandles;
         }
       });
-      // Also update priceHistoryCvb
-      const cvbDirect = prevData.priceHistoryCvb as Candle[] | undefined;
-      if (cvbDirect && cvbDirect.length > 0) {
-        const updatedCvb = [...cvbDirect];
-        const last = { ...updatedCvb[updatedCvb.length - 1] };
-        last.close = price;
-        last.high = Math.max(last.high, price);
-        last.low = Math.min(last.low, price);
-        updatedCvb[updatedCvb.length - 1] = last;
-        (updated as any).priceHistoryCvb = updatedCvb;
-      }
       return updated;
     };
 
@@ -306,55 +276,11 @@ function ProfessionalDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
-    // Subscribe to price_update for real-time price (same source as 1m chart)
-    const handlePriceUpdate = (priceData: any) => {
-      if (!priceData?.currentPrice) return;
-      const price = Number(priceData.currentPrice);
-      if (isNaN(price) || price <= 0) return;
-      setData(prev => {
-        if (!prev) return prev;
-        return applyPriceToCandles(prev, price);
-      });
-    };
-    websocketService.on('price_update', handlePriceUpdate);
-
-    // Also subscribe to bf_price_tick (same price, different event name)
-    const handleBfPriceTick = (priceData: any) => {
-      if (!priceData?.price) return;
-      const price = Number(priceData.price);
-      if (isNaN(price) || price <= 0) return;
-      setData(prev => {
-        if (!prev) return prev;
-        return applyPriceToCandles(prev, price);
-      });
-    };
-    websocketService.on('bf_price_tick', handleBfPriceTick);
-
-    // CVB candle polling every 3 seconds for forming bar updates
-    const cvbPollInterval = setInterval(async () => {
-      try {
-        const cvbData = await fetchCvbChartData(200);
-        if (cvbData && cvbData.candles.length > 0) {
-          setData(prev => {
-            if (!prev) return prev;
-            const updated = { ...prev, priceHistoryCvb: cvbData.candles };
-            if (prev.priceHistories) {
-              updated.priceHistories = { ...prev.priceHistories, cvb: cvbData.candles };
-            }
-            return updated;
-          });
-        }
-      } catch {}
-    }, 3000);
-
     return () => {
       clearInterval(interval);
-      clearInterval(cvbPollInterval);
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);
-      websocketService.off('price_update', handlePriceUpdate);
-      websocketService.off('bf_price_tick', handleBfPriceTick);
     };
   }, [selectedTimeframe]);
 
