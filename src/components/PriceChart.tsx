@@ -173,7 +173,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       : 590;
 
   const macdChartHeight = Math.floor(baseHeight * 0.16);
-  const volumeChartHeight = volumeHeight;
+  const volumeChartHeight = timeframe === 'cvb' ? 0 : volumeHeight;
   const fixedHeight = macdChartHeight + 32;
   const priceChartHeight = Math.floor(baseHeight - fixedHeight - volumeChartHeight);
   const chartHeight = priceChartHeight + volumeChartHeight + macdChartHeight + 44;
@@ -1498,6 +1498,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const bodyHeight = Math.abs(closeY - openY);
               const wickHeight = lowY - highY;
               const isHovered = hoveredCandleIndex === idx;
+              const isCvbForming = timeframe === 'cvb' && candle.is_forming === true;
+              const isCvbSignal = timeframe === 'cvb' && candle.is_signal === true;
 
               return (
                 <div
@@ -1529,6 +1531,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       top: `${highY}px`,
                       height: `${wickHeight}px`,
                       width: '1px',
+                      opacity: isCvbForming ? 0.4 : 1,
                       filter: isHovered ? 'drop-shadow(0 0 2px currentColor)' : 'none',
                     }}
                   />
@@ -1547,9 +1550,22 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       height: `${Math.max(bodyHeight, 1)}px`,
                       width: '100%',
                       borderWidth: '0',
+                      opacity: isCvbForming ? 0.4 : undefined,
                       filter: isHovered ? 'brightness(1.2)' : 'none',
                     }}
                   />
+                  {isCvbSignal && (
+                    <div
+                      className={`absolute text-[7px] font-bold ${candle.signal_dir === 'SHORT' ? 'text-rose-400' : 'text-emerald-400'}`}
+                      style={{
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        top: candle.signal_dir === 'SHORT' ? `${lowY + 4}px` : `${highY - 12}px`,
+                      }}
+                    >
+                      {candle.signal_dir === 'SHORT' ? '\u25BC' : '\u25B2'}
+                    </div>
+                  )}
                 </div>
               );
             })}

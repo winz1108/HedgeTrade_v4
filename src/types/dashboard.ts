@@ -30,6 +30,16 @@ export interface Candle {
   rsi?: number;
   swing_high?: boolean;
   swing_low?: boolean;
+  is_forming?: boolean;
+  is_final?: boolean;
+  is_signal?: boolean;
+  signal_dir?: 'LONG' | 'SHORT';
+  volume_pct?: number;
+  range_pct?: number;
+  open_time_ms?: number;
+  time?: number;
+  indicators?: Record<string, any>;
+  [key: string]: any;
 }
 
 export interface TradeEvent {
