@@ -447,8 +447,8 @@ function App() {
                 <h1 className="text-lg lg:text-2xl font-bold text-slate-800">HedgeTrade</h1>
                 <span className="text-[11px] font-semibold text-slate-500 tracking-wide">Binance</span>
               </div>
-              {data.strategy?.version && (
-                <span className="text-[10px] text-amber-600 font-mono">{data.strategy.version}</span>
+              {((data as any).strategyVersion || data.strategy?.version) && (
+                <span className="text-[10px] text-amber-600 font-mono">{(data as any).strategyVersion || data.strategy?.version}</span>
               )}
               {data.position?.inPosition && (
                 <div className={`relative px-4 py-2 bg-white rounded-lg border ${
