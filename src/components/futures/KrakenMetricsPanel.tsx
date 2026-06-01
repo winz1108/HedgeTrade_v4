@@ -257,6 +257,13 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
               })() }
             } : undefined}
             dark={true}
+            candidateSide={(() => {
+              const candles = data.priceHistoryCvb || data.priceHistories?.['cvb'];
+              if (!candles || candles.length < 2) return 'LONG';
+              const completed = candles.filter((c: any) => !c.is_forming);
+              const last = completed[completed.length - 1];
+              return last && last.close >= last.open ? 'LONG' : 'SHORT';
+            })()}
           />
         </div>
 

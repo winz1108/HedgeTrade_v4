@@ -281,6 +281,13 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
           <CvbEntryPanel
             entryPanel={cvbStatus?.entry_panel}
             dark={false}
+            candidateSide={(() => {
+              const slope = cvbStatus?.entry_panel?.ema_slope?.current;
+              if (slope != null) return slope >= 0 ? 'LONG' : 'SHORT';
+              const forming = cvbStatus?.entry_panel?.forming_bar;
+              if (forming?.close != null && forming?.open != null) return forming.close >= forming.open ? 'LONG' : 'SHORT';
+              return 'LONG';
+            })()}
           />
         </div>
 

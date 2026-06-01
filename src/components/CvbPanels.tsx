@@ -1,6 +1,7 @@
 interface CvbEntryPanelProps {
   entryPanel: any;
   dark?: boolean;
+  candidateSide?: 'LONG' | 'SHORT';
 }
 
 interface CvbExitPanelProps {
@@ -20,6 +21,7 @@ function ProgressBar({
   dark,
   leftLabel,
   rightLabel,
+  side,
 }: {
   pct: number;
   fillFrom?: 'left' | 'right' | 'center';
@@ -32,34 +34,37 @@ function ProgressBar({
   dark: boolean;
   leftLabel?: string;
   rightLabel?: string;
+  side?: 'LONG' | 'SHORT';
 }) {
   const clampedPct = Math.max(0, Math.min(100, pct));
   const trackBg = active || met
     ? (dark ? 'bg-slate-700/50' : 'bg-stone-200/70')
     : (dark ? 'bg-slate-800/40' : 'bg-stone-100/60');
 
+  const isLong = side !== 'SHORT';
+
   const fillColor = met
-    ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+    ? (isLong ? 'bg-gradient-to-r from-cyan-500 to-cyan-400' : 'bg-gradient-to-r from-orange-500 to-orange-400')
     : active
-      ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+      ? (isLong ? 'bg-gradient-to-r from-cyan-500/80 to-cyan-400/80' : 'bg-gradient-to-r from-orange-500/80 to-orange-400/80')
       : dark ? 'bg-slate-600/30' : 'bg-stone-300/40';
 
   const fillColorReverse = met
-    ? 'bg-gradient-to-l from-emerald-500 to-emerald-400'
+    ? (isLong ? 'bg-gradient-to-l from-cyan-500 to-cyan-400' : 'bg-gradient-to-l from-orange-500 to-orange-400')
     : active
-      ? 'bg-gradient-to-l from-cyan-500 to-cyan-400'
+      ? (isLong ? 'bg-gradient-to-l from-cyan-500/80 to-cyan-400/80' : 'bg-gradient-to-l from-orange-500/80 to-orange-400/80')
       : dark ? 'bg-slate-600/30' : 'bg-stone-300/40';
 
   const glow = met
-    ? 'shadow-[0_0_8px_rgba(52,211,153,0.4)]'
+    ? (isLong ? 'shadow-[0_0_8px_rgba(34,211,238,0.4)]' : 'shadow-[0_0_8px_rgba(251,146,60,0.4)]')
     : active
-      ? 'shadow-[0_0_6px_rgba(34,211,238,0.3)]'
+      ? (isLong ? 'shadow-[0_0_6px_rgba(34,211,238,0.3)]' : 'shadow-[0_0_6px_rgba(251,146,60,0.3)]')
       : '';
 
   const textColor = met
-    ? (dark ? 'text-emerald-300' : 'text-emerald-700')
+    ? (isLong ? (dark ? 'text-cyan-300' : 'text-cyan-700') : (dark ? 'text-orange-300' : 'text-orange-700'))
     : active
-      ? (dark ? 'text-cyan-300' : 'text-cyan-700')
+      ? (isLong ? (dark ? 'text-cyan-300' : 'text-cyan-700') : (dark ? 'text-orange-300' : 'text-orange-700'))
       : (dark ? 'text-slate-500' : 'text-stone-400');
 
   let barStyle: React.CSSProperties;
@@ -195,7 +200,7 @@ function ExitBar({
   );
 }
 
-export function CvbEntryPanel({ entryPanel, dark = true }: CvbEntryPanelProps) {
+export function CvbEntryPanel({ entryPanel, dark = true, candidateSide }: CvbEntryPanelProps) {
   const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
   const titleCls = dark ? 'text-slate-100' : 'text-slate-800';
   const dimText = dark ? 'text-slate-500' : 'text-stone-400';
@@ -214,6 +219,7 @@ export function CvbEntryPanel({ entryPanel, dark = true }: CvbEntryPanelProps) {
   const re = entryPanel.range_expansion;
   const emaSlope = entryPanel.ema_slope;
   const forming = entryPanel.forming_bar;
+  const side = candidateSide || 'LONG';
 
   // Range Expansion: left-fill, threshold line at 1.5/max position
   const reMin = re?.min ?? 0;
@@ -239,11 +245,9 @@ export function CvbEntryPanel({ entryPanel, dark = true }: CvbEntryPanelProps) {
     <div className={`${panelBg} border rounded-lg shadow-sm p-2.5 space-y-2`}>
       <div className="flex items-center justify-between">
         <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>CVB Entry</h3>
-        {re?.description && !re.met && (
-          <span className={`text-[8px] ${dark ? 'text-amber-400/80' : 'text-amber-600'}`}>
-            {re.description}
-          </span>
-        )}
+        <span className={`text-[9px] font-bold ${side === 'LONG' ? (dark ? 'text-cyan-400' : 'text-cyan-600') : (dark ? 'text-orange-400' : 'text-orange-600')}`}>
+          {side}
+        </span>
       </div>
 
       {re && (
@@ -258,6 +262,7 @@ export function CvbEntryPanel({ entryPanel, dark = true }: CvbEntryPanelProps) {
           dark={dark}
           leftLabel={`${reMin}`}
           rightLabel={`${reMax}x`}
+          side={side}
         />
       )}
 
@@ -271,8 +276,9 @@ export function CvbEntryPanel({ entryPanel, dark = true }: CvbEntryPanelProps) {
           met={emaSlope.met}
           active={emaSlope.active !== false}
           dark={dark}
-          leftLabel={emaSlope.slope_dir === 'DOWN' ? 'Bearish' : ''}
-          rightLabel={emaSlope.slope_dir === 'UP' ? 'Bullish' : ''}
+          leftLabel="Bearish"
+          rightLabel="Bullish"
+          side={side}
         />
       )}
 
@@ -286,6 +292,7 @@ export function CvbEntryPanel({ entryPanel, dark = true }: CvbEntryPanelProps) {
           dark={dark}
           leftLabel="0"
           rightLabel={forming.max ? `$${(forming.max / 1e6).toFixed(1)}M` : ''}
+          side={side}
         />
       )}
 
