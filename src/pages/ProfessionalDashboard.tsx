@@ -368,7 +368,7 @@ function ProfessionalDashboard() {
                 <span className="text-[11px] font-semibold text-cyan-400 tracking-wide">Professional</span>
               </div>
               {(data.version || true) && (
-                <span className="text-[10px] text-cyan-400 font-mono">{(data as any).strategyVersion || 'CVB v1.0'}</span>
+                <span className="text-[10px] text-cyan-400 font-mono">{(data as any).strategyVersion || 'CVB-RE v2.0'}</span>
               )}
               {data.position.in_position && (
                 <div className={`relative px-4 py-2 backdrop-blur-sm rounded-lg border overflow-hidden ${
