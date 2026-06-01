@@ -239,11 +239,12 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones: _z
             entryPanel={cvbStatus?.entry_panel}
             dark={true}
             candidateSide={(() => {
-              const candles = data.priceHistoryCvb || data.priceHistories?.['cvb'];
-              if (!candles || candles.length < 2) return 'LONG';
-              const completed = candles.filter((c: any) => !c.is_forming);
-              const last = completed[completed.length - 1];
-              return last && last.close >= last.open ? 'LONG' : 'SHORT';
+              const slopeDir = cvbStatus?.entry_panel?.ema_slope?.slope_dir;
+              if (slopeDir === 'UP') return 'LONG';
+              if (slopeDir === 'DOWN') return 'SHORT';
+              const slope = cvbStatus?.entry_panel?.ema_slope?.current;
+              if (slope != null) return slope >= 0 ? 'LONG' : 'SHORT';
+              return 'LONG';
             })()}
           />
         </div>

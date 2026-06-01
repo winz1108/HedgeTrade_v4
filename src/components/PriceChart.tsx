@@ -17,6 +17,7 @@ interface PriceChartProps {
   zoneData?: ZoneData | null;
   predHistory?: number[] | null;
   bosLevels?: BosLevel[] | null;
+  binancePrice?: number | null;
 }
 
 type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d' | 'cvb';
@@ -84,7 +85,7 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
   return aggregated.sort((a, b) => a.timestamp - b.timestamp);
 }
 
-export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false, v10Strategy, zbZones, zbStatus, zoneData, predHistory, bosLevels }: PriceChartProps) => {
+export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false, v10Strategy, zbZones, zbStatus, zoneData, predHistory, bosLevels, binancePrice }: PriceChartProps) => {
   const data = useMemo(() => {
     return rawData;
   }, [rawData]);
@@ -122,6 +123,9 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const maxCandleWidth = 30;
   const candleGap = 2;
   const pricePadding = 20;
+
+  // CVB chart uses Binance price as current price (CVB candles are Binance-sourced)
+  const effectiveCurrentPrice = (timeframe === 'cvb' && binancePrice) ? binancePrice : rawData.currentPrice;
 
   const colors = darkMode ? {
     chartBg: 'bg-slate-800/95',
@@ -576,13 +580,13 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             <div className={`space-y-1.5 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
               <div className="flex justify-between gap-6">
                 <span className={colors.textSecondary}>현재가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${typeof data.currentPrice === 'number' ? data.currentPrice.toFixed(2) : '-'}</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${typeof effectiveCurrentPrice === 'number' ? effectiveCurrentPrice.toFixed(2) : '-'}</span>
               </div>
               <div className="flex justify-between gap-6">
                 <span className={colors.textSecondary}>수익률</span>
                 {(() => {
                   const ep = data.holding.buyPrice || trade.price;
-                  const pct = calcCurrentProfit(ep, data.currentPrice, trade.side);
+                  const pct = calcCurrentProfit(ep, effectiveCurrentPrice, trade.side);
                   return <span className={`font-semibold ${pct >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>{pct >= 0 ? '+' : ''}{pct.toFixed(2)}%</span>;
                 })()}
               </div>
@@ -650,12 +654,12 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               </div>
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <span className={colors.textSecondary}>현재가</span>
-                <span className={`${colors.textPrimary} font-semibold`}>${typeof data.currentPrice === 'number' ? data.currentPrice.toFixed(2) : '-'}</span>
+                <span className={`${colors.textPrimary} font-semibold`}>${typeof effectiveCurrentPrice === 'number' ? effectiveCurrentPrice.toFixed(2) : '-'}</span>
               </div>
               <div className={`flex justify-between gap-6 ${colors.panelBg} border ${colors.panelBorder} p-2 rounded`}>
                 <span className={colors.textSecondary}>수익률</span>
                 {(() => {
-                  const pct = v10Strategy?.currentPnl ?? calcCurrentProfit(trade.price, data.currentPrice, trade.side);
+                  const pct = v10Strategy?.currentPnl ?? calcCurrentProfit(trade.price, effectiveCurrentPrice, trade.side);
                   return <span className={`font-bold ${pct >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>{pct >= 0 ? '+' : ''}{pct.toFixed(2)}%</span>;
                 })()}
               </div>

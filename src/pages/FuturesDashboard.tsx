@@ -13,6 +13,7 @@ function FuturesDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
+  const [binancePrice, setBinancePrice] = useState<number | null>(null);
 
   const loadData = async () => {
     try {
@@ -106,10 +107,10 @@ function FuturesDashboard() {
           const p = Number(priceData.price);
           if (!isNaN(p) && p > 0) {
             updated.currentPrice = p;
-            // Update forming candle close on all timeframes
+            // Update forming candle close on all timeframes EXCEPT cvb (cvb uses Binance price)
             if (updated.priceHistories) {
               const updatedHistories = { ...updated.priceHistories };
-              ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'].forEach(tf => {
+              ['1m', '5m', '15m', '30m', '1h', '4h', '1d'].forEach(tf => {
                 const candles = updatedHistories[tf];
                 if (candles && candles.length > 0) {
                   const updatedCandles = [...candles];
@@ -303,12 +304,35 @@ function FuturesDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
+    // Subscribe to Binance price for CVB chart current price
+    const unsubBinancePrice = websocketService.onPriceUpdate((priceData) => {
+      if (!priceData?.currentPrice) return;
+      const p = Number(priceData.currentPrice);
+      if (isNaN(p) || p <= 0) return;
+      setBinancePrice(p);
+      setData(prevData => {
+        if (!prevData?.priceHistories?.cvb) return prevData;
+        const cvbCandles = [...prevData.priceHistories.cvb];
+        if (cvbCandles.length === 0) return prevData;
+        const last = { ...cvbCandles[cvbCandles.length - 1] };
+        last.close = p;
+        last.high = Math.max(last.high, p);
+        last.low = Math.min(last.low, p);
+        cvbCandles[cvbCandles.length - 1] = last;
+        return {
+          ...prevData,
+          priceHistories: { ...prevData.priceHistories, cvb: cvbCandles },
+        };
+      });
+    });
+
     return () => {
       clearInterval(wsHealthCheck);
       stopFallback();
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);
+      unsubBinancePrice();
     };
   }, [selectedTimeframe]);
 
@@ -440,7 +464,7 @@ function FuturesDashboard() {
             <KrakenMetricsPanel data={data} position="left" zbStatus={zbData.status} zbZones={zbData.zones} />
           </div>
           <div ref={chartColRef} className="w-full min-w-0 order-1 lg:order-2">
-            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} />
+            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} binancePrice={binancePrice} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-1.5">
             <div className="w-full flex-shrink-0">

@@ -8,9 +8,10 @@ interface Props {
   onTimeframeChange?: (timeframe: string) => void;
   zbZones?: ZBZones | null;
   zbStatus?: ZBStatus | null;
+  binancePrice?: number | null;
 }
 
-export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus }: Props) {
+export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus, binancePrice }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
     const toMs = (v: number): number => {
       if (!v) return 0;
@@ -316,6 +317,7 @@ export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus }:
       zoneData={data.zoneData}
       predHistory={swingMl?.pred_history ?? null}
       bosLevels={bosLevels}
+      binancePrice={binancePrice}
     />
   );
 }
