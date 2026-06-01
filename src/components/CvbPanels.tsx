@@ -11,6 +11,7 @@ interface CvbExitPanelProps {
 function ProgressBar({
   pct,
   fillFrom,
+  centerDirection,
   threshold,
   label,
   valueDisplay,
@@ -22,6 +23,7 @@ function ProgressBar({
 }: {
   pct: number;
   fillFrom?: 'left' | 'right' | 'center';
+  centerDirection?: 'left' | 'right';
   threshold?: number | null;
   label: string;
   valueDisplay: string;
@@ -67,9 +69,16 @@ function ProgressBar({
     barStyle = { right: 0, width: `${clampedPct}%` };
     barClass = fillColorReverse;
   } else if (fillFrom === 'center') {
-    const halfWidth = clampedPct / 2;
-    barStyle = { left: `${50 - halfWidth}%`, width: `${clampedPct}%` };
-    barClass = fillColor;
+    // Center-fill: positive = right of center, negative = left of center
+    // pct here represents distance from center (0-50% of full width)
+    const halfPct = clampedPct / 2;
+    if (centerDirection === 'right') {
+      barStyle = { left: '50%', width: `${halfPct}%` };
+      barClass = fillColor;
+    } else {
+      barStyle = { right: '50%', width: `${halfPct}%` };
+      barClass = fillColorReverse;
+    }
   } else {
     barStyle = { left: 0, width: `${clampedPct}%` };
     barClass = fillColor;
@@ -215,13 +224,12 @@ export function CvbEntryPanel({ entryPanel, dark = true }: CvbEntryPanelProps) {
   const rePct = reRange > 0 ? ((Math.min(reMax, Math.max(reMin, reCurrent)) - reMin) / reRange) * 100 : 0;
   const reThPct = reRange > 0 ? ((reThreshold - reMin) / reRange) * 100 : 50;
 
-  // EMA Slope: center-fill bidirectional
-  const slopeMin = emaSlope?.min ?? -1;
+  // EMA Slope: center-fill, one direction from center based on sign
   const slopeMax = emaSlope?.max ?? 1;
-  const slopeRange = slopeMax - slopeMin;
   const slopeCurrent = emaSlope?.current ?? 0;
-  const slopePct = slopeRange > 0
-    ? (Math.abs(slopeCurrent - 0) / (slopeMax - 0)) * 100
+  const slopeDir: 'left' | 'right' = slopeCurrent >= 0 ? 'right' : 'left';
+  const slopePct = slopeMax > 0
+    ? (Math.abs(slopeCurrent) / slopeMax) * 100
     : 0;
 
   // Forming bar: left-fill 0-100%
@@ -257,6 +265,7 @@ export function CvbEntryPanel({ entryPanel, dark = true }: CvbEntryPanelProps) {
         <ProgressBar
           pct={slopePct}
           fillFrom="center"
+          centerDirection={slopeDir}
           label="EMA20 Slope"
           valueDisplay={`${slopeCurrent > 0 ? '+' : ''}${slopeCurrent.toFixed(3)}%`}
           met={emaSlope.met}
