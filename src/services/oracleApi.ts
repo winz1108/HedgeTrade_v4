@@ -654,6 +654,12 @@ export const fetchKrakenCvbChartData = async (limit: number = 200) => {
         histogram: c.histogram,
         adx: c.adx,
         isComplete: c.is_forming !== true,
+        is_forming: c.is_forming,
+        is_final: c.is_final,
+        is_signal: c.is_signal,
+        signal_dir: c.signal_dir,
+        volume_pct: c.volume_pct,
+        range_pct: c.range_pct,
       } as any;
     });
 
@@ -704,6 +710,12 @@ export const fetchCvbChartData = async (limit: number = 200) => {
       histogram: c.histogram,
       adx: c.adx,
       isComplete: c.is_forming !== true,
+      is_forming: c.is_forming,
+      is_final: c.is_final,
+      is_signal: c.is_signal,
+      signal_dir: c.signal_dir,
+      volume_pct: c.volume_pct,
+      range_pct: c.range_pct,
     }));
 
     return {

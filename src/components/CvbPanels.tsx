@@ -296,6 +296,34 @@ export function CvbEntryPanel({ entryPanel, dark = true, candidateSide }: CvbEnt
         />
       )}
 
+      {entryPanel.duration && (
+        <div className="flex items-center justify-between">
+          <span className={`text-[9px] font-semibold ${
+            entryPanel.duration.met
+              ? (side === 'SHORT' ? (dark ? 'text-orange-300' : 'text-orange-700') : (dark ? 'text-cyan-300' : 'text-cyan-700'))
+              : (dark ? 'text-slate-500' : 'text-stone-400')
+          }`}>
+            Bar Speed
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-[9px] tabular-nums font-bold ${
+              entryPanel.duration.met
+                ? (side === 'SHORT' ? (dark ? 'text-orange-300' : 'text-orange-700') : (dark ? 'text-cyan-300' : 'text-cyan-700'))
+                : (dark ? 'text-slate-400' : 'text-stone-500')
+            }`}>
+              {entryPanel.duration.current}m
+            </span>
+            <span className={`text-[8px] px-1 py-0.5 rounded font-semibold ${
+              entryPanel.duration.met
+                ? (dark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700')
+                : (dark ? 'bg-slate-700/50 text-slate-500' : 'bg-stone-100 text-stone-400')
+            }`}>
+              {entryPanel.duration.met ? `< ${entryPanel.duration.threshold}m` : `>= ${entryPanel.duration.threshold}m`}
+            </span>
+          </div>
+        </div>
+      )}
+
       {(entryPanel.avg_r || entryPanel.ema20) && (
         <div className={`flex justify-between text-[9px] ${dimText} border-t ${dark ? 'border-slate-700/50' : 'border-stone-200'} pt-1`}>
           {entryPanel.avg_r && <span>Avg R: <span className={dark ? 'text-slate-300' : 'text-slate-600'}>{entryPanel.avg_r.value?.toFixed(3)}%</span></span>}

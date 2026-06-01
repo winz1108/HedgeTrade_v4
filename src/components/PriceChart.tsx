@@ -173,7 +173,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       : 590;
 
   const macdChartHeight = Math.floor(baseHeight * 0.16);
-  const volumeChartHeight = timeframe === 'cvb' ? 0 : volumeHeight;
+  const volumeChartHeight = volumeHeight;
   const fixedHeight = macdChartHeight + 32;
   const priceChartHeight = Math.floor(baseHeight - fixedHeight - volumeChartHeight);
   const chartHeight = priceChartHeight + volumeChartHeight + macdChartHeight + 44;
