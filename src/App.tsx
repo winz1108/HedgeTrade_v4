@@ -388,8 +388,45 @@ function App() {
     websocketService.on('bf_live_status', handleLiveStatus);
     websocketService.on('bf_price_tick', handlePriceTick);
 
+    const cvbPollInterval = setInterval(() => {
+      fetchCvbChartData(5).then(result => {
+        const freshCandles = result?.candles;
+        if (!freshCandles || freshCandles.length === 0) return;
+        const freshLast = freshCandles[freshCandles.length - 1];
+        setData(prev => {
+          if (!prev?.priceHistories?.cvb) return prev;
+          const cvbCandles = [...prev.priceHistories.cvb];
+          if (cvbCandles.length === 0) return prev;
+          const lastCandle = cvbCandles[cvbCandles.length - 1];
+          const lastSeq = (lastCandle as any).seq;
+          const freshSeq = (freshLast as any).seq;
+          if (freshSeq != null && lastSeq != null && freshSeq > lastSeq) {
+            cvbCandles.push(freshLast);
+            if (cvbCandles.length > 250) cvbCandles.shift();
+          } else {
+            cvbCandles[cvbCandles.length - 1] = {
+              ...lastCandle,
+              high: Math.max(lastCandle.high, freshLast.high),
+              low: Math.min(lastCandle.low, freshLast.low),
+              close: freshLast.close,
+              volume: freshLast.volume ?? lastCandle.volume,
+              volume_pct: (freshLast as any).volume_pct ?? (lastCandle as any).volume_pct,
+              duration: (freshLast as any).duration ?? (lastCandle as any).duration,
+              poc: (freshLast as any).poc ?? (lastCandle as any).poc,
+            };
+          }
+          return {
+            ...prev,
+            priceHistories: { ...prev.priceHistories, cvb: cvbCandles },
+          };
+        });
+        if (result.fp60_history) setFp60History(result.fp60_history);
+      }).catch(() => {});
+    }, 5000);
+
     return () => {
       clearInterval(wsHealthCheck);
+      clearInterval(cvbPollInterval);
       stopFallback();
       websocketService.off('realtime_candle_update', handleRealtimeCandle);
       websocketService.off('bf_live_status', handleLiveStatus);
