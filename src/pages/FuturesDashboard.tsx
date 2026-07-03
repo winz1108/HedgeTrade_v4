@@ -223,7 +223,7 @@ function FuturesDashboard() {
               if (freshCandles?.length > 0) {
                 setData(prev => {
                   if (!prev || !prev.priceHistories) return prev;
-                  return { ...prev, priceHistories: { ...prev.priceHistories, cvb: freshCandles } };
+                  return { ...prev, priceHistoryCvb: freshCandles, priceHistories: { ...prev.priceHistories, cvb: freshCandles } };
                 });
               }
               if (result.fp60_panel) setFp60Panel(result.fp60_panel);
@@ -269,7 +269,7 @@ function FuturesDashboard() {
               poc: candleData.poc ?? (lastCandle as any).poc,
             };
           }
-          return { ...prevData, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
+          return { ...prevData, priceHistoryCvb: updatedCandles, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
         });
         return;
       }
@@ -364,6 +364,7 @@ function FuturesDashboard() {
         cvbCandles[cvbCandles.length - 1] = last;
         return {
           ...prevData,
+          priceHistoryCvb: cvbCandles,
           priceHistories: { ...prevData.priceHistories, cvb: cvbCandles },
         };
       });

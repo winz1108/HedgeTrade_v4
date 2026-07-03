@@ -215,7 +215,7 @@ function ProfessionalDashboard() {
               if (!freshCandles || freshCandles.length === 0) return;
               setData(prev => {
                 if (!prev || !prev.priceHistories) return prev;
-                return { ...prev, priceHistories: { ...prev.priceHistories, cvb: freshCandles } };
+                return { ...prev, priceHistoryCvb: freshCandles, priceHistories: { ...prev.priceHistories, cvb: freshCandles } };
               });
             }).catch(() => {});
             return prevData;
@@ -254,7 +254,7 @@ function ProfessionalDashboard() {
               ...(candleData.poc !== undefined ? { poc: candleData.poc } : {}),
             };
           }
-          return { ...prevData, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
+          return { ...prevData, priceHistoryCvb: updatedCandles, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
         });
         return;
       }
@@ -329,6 +329,7 @@ function ProfessionalDashboard() {
         cvbCandles[cvbCandles.length - 1] = last;
         return {
           ...prevData,
+          priceHistoryCvb: cvbCandles,
           priceHistories: { ...prevData.priceHistories, cvb: cvbCandles },
         };
       });
