@@ -228,6 +228,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       if (c.bb_upper) vals.push(c.bb_upper);
       if (c.bb_mid) vals.push(c.bb_mid);
       if (c.bb_lower) vals.push(c.bb_lower);
+      if ((c as any).poc) vals.push((c as any).poc);
       return vals;
     });
 
@@ -1506,6 +1507,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const pocPoints: string[] = [];
               let prevPocY: number | null = null;
               let lastPocPrice: number | null = null;
+              let lastPocX = 0;
 
               visibleCandles.forEach((candle, idx) => {
                 const poc = (candle as any).poc as number | undefined;
@@ -1514,8 +1516,8 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
                 const xLeft = idx * (candleWidth + candleGap);
                 const xRight = xLeft + candleWidth + candleGap;
-                const rawY = priceToY(poc);
-                const y = Math.max(0, Math.min(priceChartHeight, rawY));
+                const y = priceToY(poc);
+                lastPocX = xRight;
 
                 if (prevPocY !== null && prevPocY !== y) {
                   pocPoints.push(`${xLeft},${prevPocY}`);
@@ -1528,11 +1530,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
               if (pocPoints.length < 2 || lastPocPrice == null) return null;
 
-              const pocY = priceToY(lastPocPrice);
-              const isBelow = pocY > priceChartHeight;
-              const isAbove = pocY < 0;
-              const clampedY = Math.max(4, Math.min(priceChartHeight - 4, pocY));
-              const chartRight = visibleCandles.length * (candleWidth + candleGap);
+              const lastY = priceToY(lastPocPrice);
 
               return (
                 <>
@@ -1542,31 +1540,29 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                     stroke="#f59e0b"
                     strokeWidth="2"
                     opacity="0.9"
-                    strokeDasharray={isBelow || isAbove ? '6 3' : 'none'}
                     style={{ pointerEvents: 'none' }}
                   />
-                  {/* POC price label on right edge */}
                   <rect
-                    x={chartRight - 80}
-                    y={clampedY - 8}
-                    width="78"
+                    x={lastPocX + 4}
+                    y={lastY - 8}
+                    width="68"
                     height="16"
                     rx="3"
-                    fill="rgba(245, 158, 11, 0.2)"
+                    fill="rgba(245, 158, 11, 0.15)"
                     stroke="#f59e0b"
                     strokeWidth="0.5"
                     style={{ pointerEvents: 'none' }}
                   />
                   <text
-                    x={chartRight - 41}
-                    y={clampedY + 4}
+                    x={lastPocX + 38}
+                    y={lastY + 4}
                     textAnchor="middle"
                     fontSize="9"
                     fontWeight="bold"
                     fill="#f59e0b"
                     style={{ pointerEvents: 'none' }}
                   >
-                    POC {lastPocPrice.toFixed(0)}{isBelow ? ' \u2193' : isAbove ? ' \u2191' : ''}
+                    POC {lastPocPrice.toFixed(0)}
                   </text>
                 </>
               );
