@@ -226,6 +226,10 @@ function ProfessionalDashboard() {
             high: Math.max(lastCandle.high, candleData.high),
             low: Math.min(lastCandle.low, candleData.low),
             close: candleData.close,
+            ...(candleData.volume !== undefined ? { volume: candleData.volume } : {}),
+            ...(candleData.volume_pct !== undefined ? { volume_pct: candleData.volume_pct } : {}),
+            ...(candleData.duration !== undefined ? { duration: candleData.duration } : {}),
+            ...(candleData.poc !== undefined ? { poc: candleData.poc } : {}),
           };
           return { ...prevData, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
         });

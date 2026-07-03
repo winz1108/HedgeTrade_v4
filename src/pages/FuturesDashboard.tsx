@@ -250,6 +250,9 @@ function FuturesDashboard() {
               low: Math.min(prevClose, candleData.low || prevClose),
               close: candleData.close || prevClose,
               volume: candleData.volume || 0,
+              volume_pct: candleData.volume_pct ?? 0,
+              duration: candleData.duration ?? 0,
+              poc: candleData.poc ?? (lastCandle as any).poc,
               is_forming: true,
             } as any);
             if (updatedCandles.length > 250) updatedCandles.shift();
@@ -263,6 +266,7 @@ function FuturesDashboard() {
               volume: candleData.volume ?? lastCandle.volume,
               volume_pct: candleData.volume_pct ?? (lastCandle as any).volume_pct,
               duration: candleData.duration ?? (lastCandle as any).duration,
+              poc: candleData.poc ?? (lastCandle as any).poc,
             };
           }
           return { ...prevData, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };

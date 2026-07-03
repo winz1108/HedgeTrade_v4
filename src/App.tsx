@@ -292,6 +292,7 @@ function App() {
             ...(candleData.volume_pct !== undefined ? { volume_pct: candleData.volume_pct } : {}),
             ...(candleData.duration !== undefined ? { duration: candleData.duration } : {}),
             ...(candleData.volume !== undefined ? { volume: candleData.volume } : {}),
+            ...(candleData.poc !== undefined ? { poc: candleData.poc } : {}),
           };
           return { ...prev, priceHistories: { ...prev.priceHistories, cvb: updatedCandles } };
         });

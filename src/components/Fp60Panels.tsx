@@ -250,13 +250,8 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
       <div className="space-y-0.5">
         <div className={`relative ${dark ? 'bg-slate-700/50' : 'bg-stone-200/70'} rounded-full h-3 overflow-hidden`}>
           <div
-            className={`absolute inset-y-0 rounded-full transition-all duration-500 ease-out ${fillColor}`}
+            className={`absolute inset-y-0 transition-all duration-500 ease-out ${fillColor}`}
             style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
-          />
-          {/* Entry center line */}
-          <div
-            className={`absolute top-0 h-full w-[1.5px] z-20 ${dark ? 'bg-slate-300/60' : 'bg-slate-600/60'}`}
-            style={{ left: '50%' }}
           />
         </div>
 
