@@ -347,7 +347,45 @@ function FuturesDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
-    // Subscribe to Binance price for CVB chart current price
+    const cvbPollInterval = setInterval(() => {
+      fetchKrakenCvbChartData(5).then(result => {
+        const freshCandles = result?.candles;
+        if (!freshCandles || freshCandles.length === 0) return;
+        const freshLast = freshCandles[freshCandles.length - 1];
+        setData(prev => {
+          if (!prev?.priceHistories?.cvb) return prev;
+          const cvbCandles = [...prev.priceHistories.cvb];
+          if (cvbCandles.length === 0) return prev;
+          const lastCandle = cvbCandles[cvbCandles.length - 1];
+          const lastSeq = (lastCandle as any).seq;
+          const freshSeq = (freshLast as any).seq;
+          if (freshSeq != null && lastSeq != null && freshSeq > lastSeq) {
+            cvbCandles.push(freshLast);
+            if (cvbCandles.length > 250) cvbCandles.shift();
+          } else {
+            cvbCandles[cvbCandles.length - 1] = {
+              ...lastCandle,
+              high: Math.max(lastCandle.high, freshLast.high),
+              low: Math.min(lastCandle.low, freshLast.low),
+              close: freshLast.close,
+              volume: freshLast.volume ?? lastCandle.volume,
+              volume_pct: (freshLast as any).volume_pct ?? (lastCandle as any).volume_pct,
+              duration: (freshLast as any).duration ?? (lastCandle as any).duration,
+              poc: (freshLast as any).poc ?? (lastCandle as any).poc,
+            };
+          }
+          return {
+            ...prev,
+            priceHistoryCvb: cvbCandles,
+            priceHistories: { ...prev.priceHistories, cvb: cvbCandles },
+          };
+        });
+        if (result.fp60_panel) setFp60Panel(result.fp60_panel);
+        if (result.fp60_history) setFp60History(result.fp60_history);
+        if (result.position) setFp60Position(result.position);
+      }).catch(() => {});
+    }, 5000);
+
     const unsubBinancePrice = websocketService.onPriceUpdate((priceData) => {
       if (!priceData?.currentPrice) return;
       const p = Number(priceData.currentPrice);
@@ -372,6 +410,7 @@ function FuturesDashboard() {
 
     return () => {
       clearInterval(wsHealthCheck);
+      clearInterval(cvbPollInterval);
       stopFallback();
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);

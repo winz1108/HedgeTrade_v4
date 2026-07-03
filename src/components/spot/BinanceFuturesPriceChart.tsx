@@ -146,13 +146,6 @@ export function BinanceFuturesPriceChart({ data, onTimeframeChange, zbZones, zbS
   const swingMl = (data as any).swing_ml;
   const bosLevels: BosLevel[] | null = swingMl?.bos?.levels_15m ?? (data as any).bos_levels ?? (data as any).bosLevels ?? null;
 
-  if (!bosLevels && swingMl) {
-    console.log('[BOS Debug] swing_ml exists but no levels_15m. swing_ml.bos:', swingMl?.bos);
-  }
-  if (bosLevels) {
-    console.log('[BOS Debug] Binance bosLevels count:', bosLevels.length, 'sample:', bosLevels[0]);
-  }
-
   return (
     <PriceChart
       data={transformedData}
