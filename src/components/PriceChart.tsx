@@ -1010,13 +1010,15 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           )}
         </div>
 
-        {/* Volume Y-Axis */}
+        {/* Volume / Duration Y-Axis */}
         <div className="absolute" style={{ top: `${priceChartHeight + 28}px`, height: `${volumeChartHeight}px`, width: '100%' }}>
           {(() => {
-            const maxVal = Math.max(...visibleCandles.map(c => c.volume || 0));
+            const isCvbAxis = timeframe === 'cvb';
+            const maxVal = Math.max(...visibleCandles.map(c => isCvbAxis ? ((c as any).duration || c.volume || 0) : (c.volume || 0)));
             if (maxVal <= 0) return null;
             const steps = 4;
-            const formatVol = (v: number) => {
+            const formatLabel = (v: number) => {
+              if (isCvbAxis) return `${v.toFixed(0)}m`;
               if (v >= 1e9) return `${(v / 1e9).toFixed(1)}B`;
               if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;
               if (v >= 1e3) return `${(v / 1e3).toFixed(0)}K`;
@@ -1033,7 +1035,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
                   style={{ top: `${y - 6}px` }}
                 >
-                  {formatVol(val)}
+                  {formatLabel(val)}
                 </div>
               );
             });
