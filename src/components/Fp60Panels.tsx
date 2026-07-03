@@ -154,7 +154,7 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
   const titleCls = dark ? 'text-slate-100' : 'text-slate-800';
   const dimText = dark ? 'text-slate-500' : 'text-stone-400';
 
-  if (!position) return null;
+  if (!position || !position.side || position.entry_price == null || position.tp_price == null || position.sl_price == null) return null;
 
   const { side, entry_price, tp_price, sl_price, leverage, pnl_pct, hold_minutes, bars_held } = position;
   const isLong = side === 'LONG';

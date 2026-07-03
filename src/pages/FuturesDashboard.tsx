@@ -262,6 +262,7 @@ function FuturesDashboard() {
               close: candleData.close,
               volume: candleData.volume ?? lastCandle.volume,
               volume_pct: candleData.volume_pct ?? (lastCandle as any).volume_pct,
+              duration: candleData.duration ?? (lastCandle as any).duration,
             };
           }
           return { ...prevData, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
