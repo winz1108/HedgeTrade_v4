@@ -31,18 +31,20 @@ interface Fp60ExitPanelProps {
 }
 
 const GAUGE_MAX = 0.75;
+const BAR_H = 'h-[6px]';
 
 export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryPanelProps) {
-  const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
-  const titleCls = dark ? 'text-slate-100' : 'text-slate-800';
-  const dimText = dark ? 'text-slate-500' : 'text-stone-400';
+  const bg = dark ? 'bg-slate-800/95 border-slate-700/80' : 'bg-white border-stone-200';
+  const label = dark ? 'text-slate-400' : 'text-stone-500';
+  const val = dark ? 'text-slate-200' : 'text-slate-700';
+  const trackBg = dark ? 'bg-slate-700/50' : 'bg-stone-200/70';
 
   if (!fp60Panel) {
     return (
-      <div className={`${panelBg} border rounded-lg shadow-sm p-2.5`}>
-        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>FP60 Entry</h3>
+      <div className={`${bg} border rounded-lg p-2.5`}>
+        <h3 className={`text-[10px] font-semibold tracking-wide uppercase ${label}`}>FP60 Entry</h3>
         <div className="text-center py-2">
-          <span className={`text-[10px] ${dimText}`}>Waiting...</span>
+          <span className={`text-[10px] ${label}`}>Waiting...</span>
         </div>
       </div>
     );
@@ -52,93 +54,85 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
   const pS = fp60Panel.pS ?? 0;
   const thrL = fp60Panel.thrL ?? 0.636;
   const thrS = fp60Panel.thrS ?? 0.644;
-  const pLClamped = Math.min(pL, GAUGE_MAX);
-  const pSClamped = Math.min(pS, GAUGE_MAX);
-  const pLPct = (pLClamped / GAUGE_MAX) * 50;
-  const pSPct = (pSClamped / GAUGE_MAX) * 50;
+  const pLPct = (Math.min(pL, GAUGE_MAX) / GAUGE_MAX) * 50;
+  const pSPct = (Math.min(pS, GAUGE_MAX) / GAUGE_MAX) * 50;
   const thrLPct = (thrL / GAUGE_MAX) * 50;
   const thrSPct = (thrS / GAUGE_MAX) * 50;
 
   const longActive = pL >= thrL;
   const shortActive = pS >= thrS;
-
   const formPct = Math.max(0, Math.min(100, volumePct ?? 0));
 
+  const sColor = dark
+    ? (shortActive ? 'text-amber-400' : 'text-amber-500/60')
+    : (shortActive ? 'text-amber-600' : 'text-amber-500/60');
+  const lColor = dark
+    ? (longActive ? 'text-teal-400' : 'text-teal-500/60')
+    : (longActive ? 'text-teal-600' : 'text-teal-500/60');
+
+  const sFill = shortActive
+    ? (dark ? 'bg-amber-400' : 'bg-amber-500')
+    : (dark ? 'bg-amber-500/40' : 'bg-amber-400/50');
+  const lFill = longActive
+    ? (dark ? 'bg-teal-400' : 'bg-teal-500')
+    : (dark ? 'bg-teal-500/40' : 'bg-teal-400/50');
+
   return (
-    <div className={`${panelBg} border rounded-lg shadow-sm p-2.5 space-y-2`}>
+    <div className={`${bg} border rounded-lg p-2.5 space-y-2.5`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>FP60 Entry</h3>
+        <h3 className={`text-[10px] font-semibold tracking-wide uppercase ${label}`}>FP60 Entry</h3>
         {(longActive || shortActive) && (
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
             longActive
-              ? (dark ? 'bg-cyan-500/20 text-cyan-300' : 'bg-cyan-100 text-cyan-700')
-              : (dark ? 'bg-orange-500/20 text-orange-300' : 'bg-orange-100 text-orange-700')
+              ? (dark ? 'bg-teal-500/15 text-teal-400' : 'bg-teal-50 text-teal-600')
+              : (dark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600')
           }`}>
             {longActive && shortActive ? (pL >= pS ? 'LONG' : 'SHORT') : longActive ? 'LONG' : 'SHORT'}
           </span>
         )}
       </div>
 
-      {/* Mirror gauge: pS (left) | pL (right), no center gap */}
+      {/* Mirror gauge */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <span className={`text-[9px] tabular-nums font-bold ${
-            shortActive ? (dark ? 'text-orange-300' : 'text-orange-700') : (dark ? 'text-orange-400/70' : 'text-orange-600')
-          }`}>
+          <span className={`text-[9px] tabular-nums font-medium ${sColor}`}>
             pS {pS.toFixed(3)}
           </span>
-          <span className={`text-[9px] tabular-nums font-bold ${
-            longActive ? (dark ? 'text-cyan-300' : 'text-cyan-700') : (dark ? 'text-cyan-400/70' : 'text-cyan-600')
-          }`}>
-            pL {pL.toFixed(3)}
+          <span className={`text-[9px] tabular-nums font-medium ${lColor}`}>
+            {pL.toFixed(3)} pL
           </span>
         </div>
 
-        <div className={`relative ${dark ? 'bg-slate-700/40' : 'bg-stone-200/60'} rounded-full h-3 overflow-hidden`}>
-          {/* pS fill: grows from center toward left */}
+        <div className={`relative ${trackBg} rounded ${BAR_H} overflow-hidden`}>
           <div
-            className={`absolute inset-y-0 rounded-l-full transition-all duration-500 ease-out ${
-              shortActive
-                ? 'bg-gradient-to-l from-orange-500 to-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.4)]'
-                : 'bg-gradient-to-l from-orange-500/60 to-orange-400/50'
-            }`}
+            className={`absolute inset-y-0 rounded-l transition-all duration-500 ease-out ${sFill}`}
             style={{ right: '50%', width: `${pSPct}%` }}
           />
-          {/* pL fill: grows from center toward right */}
           <div
-            className={`absolute inset-y-0 rounded-r-full transition-all duration-500 ease-out ${
-              longActive
-                ? 'bg-gradient-to-r from-cyan-500 to-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.4)]'
-                : 'bg-gradient-to-r from-cyan-500/60 to-cyan-400/50'
-            }`}
+            className={`absolute inset-y-0 rounded-r transition-all duration-500 ease-out ${lFill}`}
             style={{ left: '50%', width: `${pLPct}%` }}
           />
-          {/* Threshold markers */}
-          <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-orange-300/50' : 'bg-orange-500/50'}`}
+          <div
+            className={`absolute top-0 h-full w-px ${dark ? 'bg-amber-400/40' : 'bg-amber-500/40'}`}
             style={{ left: `${50 - thrSPct}%` }}
           />
-          <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-cyan-300/50' : 'bg-cyan-500/50'}`}
+          <div
+            className={`absolute top-0 h-full w-px ${dark ? 'bg-teal-400/40' : 'bg-teal-500/40'}`}
             style={{ left: `${50 + thrLPct}%` }}
           />
-        </div>
-
-        <div className={`flex justify-between text-[8px] ${dark ? 'text-slate-600' : 'text-stone-400'}`}>
-          <span>0.75</span>
-          <span>0</span>
-          <span>0.75</span>
         </div>
       </div>
 
       {/* Forming bar */}
-      <div className="space-y-0.5">
+      <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <span className={`text-[9px] font-semibold ${dark ? 'text-slate-400' : 'text-stone-500'}`}>Forming</span>
-          <span className={`text-[9px] tabular-nums font-bold ${dark ? 'text-slate-300' : 'text-slate-600'}`}>{formPct.toFixed(0)}%</span>
+          <span className={`text-[9px] font-medium ${label}`}>Forming</span>
+          <span className={`text-[9px] tabular-nums font-medium ${val}`}>{formPct.toFixed(0)}%</span>
         </div>
-        <div className={`relative ${dark ? 'bg-slate-700/40' : 'bg-stone-200/60'} rounded-full h-2 overflow-hidden`}>
+        <div className={`relative ${trackBg} rounded ${BAR_H} overflow-hidden`}>
           <div
-            className={`absolute inset-y-0 left-0 rounded-full transition-all duration-300 ease-out ${
-              dark ? 'bg-gradient-to-r from-slate-400 to-slate-300' : 'bg-gradient-to-r from-stone-400 to-stone-300'
+            className={`absolute inset-y-0 left-0 rounded transition-all duration-300 ease-out ${
+              dark ? 'bg-slate-400/70' : 'bg-stone-400/70'
             }`}
             style={{ width: `${formPct}%` }}
           />
@@ -150,9 +144,9 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
 
 
 export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitPanelProps) {
-  const panelBg = dark ? 'bg-slate-800/95 border-slate-700' : 'bg-white border-stone-200';
-  const titleCls = dark ? 'text-slate-100' : 'text-slate-800';
-  const dimText = dark ? 'text-slate-500' : 'text-stone-400';
+  const bg = dark ? 'bg-slate-800/95 border-slate-700/80' : 'bg-white border-stone-200';
+  const label = dark ? 'text-slate-400' : 'text-stone-500';
+  const trackBg = dark ? 'bg-slate-700/50' : 'bg-stone-200/70';
 
   if (!position || !position.side || position.entry_price == null) return null;
 
@@ -162,7 +156,10 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
 
   const inProfit = isLong ? currentPrice > entry_price : currentPrice < entry_price;
   const pnl = pnl_pct ?? 0;
-  const dirColor = isLong ? (dark ? 'text-cyan-400' : 'text-cyan-600') : (dark ? 'text-orange-400' : 'text-orange-600');
+
+  const sideColor = isLong
+    ? (dark ? 'text-teal-400' : 'text-teal-600')
+    : (dark ? 'text-amber-400' : 'text-amber-600');
 
   const formatDuration = (min: number) => {
     if (min >= 1440) {
@@ -181,7 +178,6 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
   let fillWidth = 0;
   let leftLabel = '';
   let rightLabel = '';
-  let centerLabel = `Entry $${entry_price.toFixed(0)}`;
 
   if (hasTpSl) {
     const leftPrice = isLong ? sl_price : tp_price;
@@ -208,64 +204,59 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
   }
 
   const fillColor = inProfit
-    ? (isLong ? 'bg-gradient-to-r from-cyan-500/70 to-cyan-400/70' : 'bg-gradient-to-r from-orange-500/70 to-orange-400/70')
-    : 'bg-gradient-to-r from-rose-500/50 to-rose-400/50';
+    ? (dark ? 'bg-teal-500/60' : 'bg-teal-400/60')
+    : (dark ? 'bg-rose-500/40' : 'bg-rose-400/40');
+
+  const pnlColor = pnl >= 0
+    ? (dark ? 'text-teal-400' : 'text-teal-600')
+    : (dark ? 'text-rose-400' : 'text-rose-600');
 
   return (
-    <div className={`${panelBg} border rounded-lg shadow-sm p-2.5 space-y-2 transition-colors duration-300`}>
+    <div className={`${bg} border rounded-lg p-2.5 space-y-2.5`}>
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>Position</h3>
+        <h3 className={`text-[10px] font-semibold tracking-wide uppercase ${label}`}>Position</h3>
         <div className="flex items-center gap-1.5">
-          <span className={`text-[9px] font-bold ${dirColor}`}>{side}</span>
+          <span className={`text-[9px] font-bold ${sideColor}`}>{side}</span>
           {leverage != null && leverage > 0 && (
-            <span className={`text-[9px] ${dimText}`}>{leverage}x</span>
+            <span className={`text-[9px] ${label}`}>{leverage}x</span>
           )}
         </div>
       </div>
 
-      {/* Price axis bar */}
-      <div className="space-y-0.5">
-        <div className={`relative ${dark ? 'bg-slate-700/50' : 'bg-stone-200/70'} rounded-full h-4 overflow-hidden`}>
+      {/* Price bar */}
+      <div className="space-y-1">
+        <div className={`relative ${trackBg} rounded ${BAR_H} overflow-hidden`}>
           <div
-            className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${fillColor}`}
+            className={`absolute inset-y-0 rounded transition-all duration-500 ease-out ${fillColor}`}
             style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
           />
+          {/* Entry marker */}
           <div
-            className={`absolute top-0 h-full w-[2px] z-20 ${dark ? 'bg-slate-200' : 'bg-slate-700'}`}
+            className={`absolute top-0 h-full w-px z-20 ${dark ? 'bg-slate-300/70' : 'bg-slate-500/70'}`}
             style={{ left: `${entryPct}%` }}
           />
+          {/* Current price dot */}
           <div
-            className={`absolute z-20 w-2 h-2 rounded-full border ${
-              dark ? 'border-white bg-white' : 'border-slate-800 bg-slate-800'
-            }`}
+            className={`absolute z-20 w-1.5 h-1.5 rounded-full ${dark ? 'bg-white' : 'bg-slate-800'}`}
             style={{ left: `${clampedCurrentPct}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
           />
-          {hasTpSl && (
-            <>
-              <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-rose-500/50' : 'bg-rose-400/50'}`}
-                style={{ left: isLong ? '0%' : '100%' }}
-              />
-              <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-emerald-500/50' : 'bg-emerald-400/50'}`}
-                style={{ left: isLong ? '100%' : '0%' }}
-              />
-            </>
-          )}
         </div>
 
-        <div className={`flex justify-between text-[8px] ${dark ? 'text-slate-600' : 'text-stone-400'}`}>
+        <div className={`flex justify-between text-[8px] ${label}`}>
           <span>{leftLabel}</span>
-          <span className={`${dark ? 'text-slate-400' : 'text-stone-500'}`}>{centerLabel}</span>
+          <span className={dark ? 'text-slate-300' : 'text-stone-600'}>Entry ${entry_price.toFixed(0)}</span>
           <span>{rightLabel}</span>
         </div>
       </div>
 
-      {/* Bottom info line */}
-      <div className={`flex items-center justify-between text-[9px] ${dimText} border-t ${dark ? 'border-slate-700/50' : 'border-stone-200'} pt-1`}>
+      {/* Info row */}
+      <div className={`flex items-center justify-between text-[9px] ${label} border-t ${dark ? 'border-slate-700/50' : 'border-stone-200'} pt-1.5`}>
         <div className="flex items-center gap-2">
-          <span className={`font-bold tabular-nums ${pnl >= 0 ? (dark ? 'text-emerald-300' : 'text-emerald-700') : (dark ? 'text-rose-300' : 'text-rose-700')}`}>
+          <span className={`font-bold tabular-nums ${pnlColor}`}>
             {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}%
           </span>
-          <span className={`tabular-nums ${dark ? 'text-slate-400' : 'text-stone-500'}`}>${currentPrice.toFixed(0)}</span>
+          <span className={`tabular-nums ${dark ? 'text-slate-500' : 'text-stone-400'}`}>${currentPrice.toFixed(0)}</span>
         </div>
         <div className="flex items-center gap-2">
           {bars_held != null && <span>{bars_held} bars</span>}
