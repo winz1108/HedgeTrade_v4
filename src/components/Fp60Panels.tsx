@@ -49,12 +49,10 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
   }
 
   const { pL, pS, thrL, thrS } = fp60Panel;
-  const pLClamped = Math.min(pL, GAUGE_MAX);
-  const pSClamped = Math.min(pS, GAUGE_MAX);
-  const pLPct = (pLClamped / GAUGE_MAX) * 50;
-  const pSPct = (pSClamped / GAUGE_MAX) * 50;
-  const thrLPct = (thrL / GAUGE_MAX) * 50;
-  const thrSPct = (thrS / GAUGE_MAX) * 50;
+  const pLPct = (Math.min(pL, GAUGE_MAX) / GAUGE_MAX) * 100;
+  const pSPct = (Math.min(pS, GAUGE_MAX) / GAUGE_MAX) * 100;
+  const thrLPct = (thrL / GAUGE_MAX) * 100;
+  const thrSPct = (thrS / GAUGE_MAX) * 100;
 
   const longActive = pL >= thrL;
   const shortActive = pS >= thrS;
@@ -62,7 +60,7 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
   const formPct = Math.max(0, Math.min(100, volumePct ?? 0));
 
   return (
-    <div className={`${panelBg} border rounded-lg shadow-sm p-2.5 space-y-2.5`}>
+    <div className={`${panelBg} border rounded-lg shadow-sm p-2.5 space-y-2`}>
       <div className="flex items-center justify-between">
         <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>FP60 Entry</h3>
         {(longActive || shortActive) && (
@@ -76,70 +74,68 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
         )}
       </div>
 
-      {/* Mirror gauge */}
-      <div className="space-y-1">
+      {/* pL bar */}
+      <div className="space-y-0.5">
         <div className="flex items-center justify-between">
-          <span className={`text-[9px] tabular-nums font-bold ${
-            shortActive ? (dark ? 'text-orange-300' : 'text-orange-700') : (dark ? 'text-orange-400' : 'text-orange-600')
-          }`}>
-            pS {pS.toFixed(3)}
+          <span className={`text-[9px] font-bold ${longActive ? (dark ? 'text-cyan-300' : 'text-cyan-700') : (dark ? 'text-cyan-400/70' : 'text-cyan-600')}`}>
+            pL
           </span>
-          <span className={`text-[9px] tabular-nums font-bold ${
-            longActive ? (dark ? 'text-cyan-300' : 'text-cyan-700') : (dark ? 'text-cyan-400' : 'text-cyan-600')
-          }`}>
-            pL {pL.toFixed(3)}
+          <span className={`text-[9px] tabular-nums font-bold ${longActive ? (dark ? 'text-cyan-300' : 'text-cyan-700') : (dark ? 'text-cyan-400/70' : 'text-cyan-600')}`}>
+            {pL.toFixed(3)}
           </span>
         </div>
-
-        <div className={`relative ${dark ? 'bg-slate-700/50' : 'bg-stone-200/70'} rounded-full h-3.5 overflow-hidden`}>
-          {/* pS fill: center to left (orange) */}
+        <div className={`relative ${dark ? 'bg-slate-700/40' : 'bg-stone-200/60'} rounded-full h-2.5 overflow-hidden`}>
           <div
-            className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${
-              shortActive
-                ? 'bg-gradient-to-l from-orange-500 to-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.4)]'
-                : 'bg-gradient-to-l from-orange-500/80 to-orange-400/70'
-            }`}
-            style={{ right: '50%', width: `${pSPct}%` }}
-          />
-          {/* pL fill: center to right (cyan) */}
-          <div
-            className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${
+            className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out ${
               longActive
                 ? 'bg-gradient-to-r from-cyan-500 to-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.4)]'
-                : 'bg-gradient-to-r from-cyan-500/80 to-cyan-400/70'
+                : 'bg-gradient-to-r from-cyan-500/60 to-cyan-400/50'
             }`}
-            style={{ left: '50%', width: `${pLPct}%` }}
+            style={{ width: `${pLPct}%` }}
           />
-          {/* Center line */}
-          <div className={`absolute top-0 h-full w-[1px] z-10 ${dark ? 'bg-slate-400/50' : 'bg-stone-500/50'}`} style={{ left: '50%' }} />
-          {/* Threshold lines */}
-          <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-orange-400/70' : 'bg-orange-600/70'}`}
-            style={{ left: `${50 - thrSPct}%` }}
+          <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-cyan-300/60' : 'bg-cyan-600/60'}`}
+            style={{ left: `${thrLPct}%` }}
           />
-          <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-cyan-400/70' : 'bg-cyan-600/70'}`}
-            style={{ left: `${50 + thrLPct}%` }}
-          />
-        </div>
-
-        <div className={`flex justify-between text-[8px] ${dark ? 'text-slate-600' : 'text-stone-400'}`}>
-          <span>0.75</span>
-          <span>0</span>
-          <span>0.75</span>
         </div>
       </div>
 
-      {/* Volume progress bar */}
+      {/* pS bar */}
       <div className="space-y-0.5">
         <div className="flex items-center justify-between">
-          <span className={`text-[9px] font-semibold ${dark ? 'text-slate-400' : 'text-stone-500'}`}>Forming Bar</span>
-          <span className={`text-[9px] tabular-nums font-bold ${dark ? 'text-slate-300' : 'text-slate-600'}`}>{formPct.toFixed(1)}%</span>
+          <span className={`text-[9px] font-bold ${shortActive ? (dark ? 'text-orange-300' : 'text-orange-700') : (dark ? 'text-orange-400/70' : 'text-orange-600')}`}>
+            pS
+          </span>
+          <span className={`text-[9px] tabular-nums font-bold ${shortActive ? (dark ? 'text-orange-300' : 'text-orange-700') : (dark ? 'text-orange-400/70' : 'text-orange-600')}`}>
+            {pS.toFixed(3)}
+          </span>
         </div>
-        <div className={`relative ${dark ? 'bg-slate-700/50' : 'bg-stone-200/70'} rounded-full h-3 overflow-hidden`}>
+        <div className={`relative ${dark ? 'bg-slate-700/40' : 'bg-stone-200/60'} rounded-full h-2.5 overflow-hidden`}>
           <div
-            className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-300 ease-out ${
-              dark ? 'bg-gradient-to-r from-teal-500/70 to-teal-400/60' : 'bg-gradient-to-r from-teal-500 to-teal-400'
+            className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out ${
+              shortActive
+                ? 'bg-gradient-to-r from-orange-500 to-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.4)]'
+                : 'bg-gradient-to-r from-orange-500/60 to-orange-400/50'
             }`}
-            style={{ left: 0, width: `${formPct}%` }}
+            style={{ width: `${pSPct}%` }}
+          />
+          <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-orange-300/60' : 'bg-orange-600/60'}`}
+            style={{ left: `${thrSPct}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Forming bar */}
+      <div className="space-y-0.5">
+        <div className="flex items-center justify-between">
+          <span className={`text-[9px] font-semibold ${dark ? 'text-slate-400' : 'text-stone-500'}`}>Forming</span>
+          <span className={`text-[9px] tabular-nums font-bold ${dark ? 'text-slate-300' : 'text-slate-600'}`}>{formPct.toFixed(0)}%</span>
+        </div>
+        <div className={`relative ${dark ? 'bg-slate-700/40' : 'bg-stone-200/60'} rounded-full h-2 overflow-hidden`}>
+          <div
+            className={`absolute inset-y-0 left-0 rounded-full transition-all duration-300 ease-out ${
+              dark ? 'bg-gradient-to-r from-slate-400 to-slate-300' : 'bg-gradient-to-r from-stone-400 to-stone-300'
+            }`}
+            style={{ width: `${formPct}%` }}
           />
         </div>
       </div>

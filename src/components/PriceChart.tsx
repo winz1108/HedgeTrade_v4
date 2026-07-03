@@ -2238,10 +2238,11 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           >
             <div className="absolute left-0 flex pointer-events-none overflow-hidden" style={{ top: 0, height: '100%', width: '100%' }}>
               {visibleCandles.map((candle, idx) => {
-                const barValues = visibleCandles.map(c => c.volume || 0);
+                const isCvbBar = timeframe === 'cvb';
+                const barValues = visibleCandles.map(c => isCvbBar ? ((c as any).duration || c.volume || 0) : (c.volume || 0));
                 const maxVal = Math.max(...barValues, 0.001);
                 const topPadding = Math.max(5, volumeChartHeight * 0.15);
-                const candleVal = candle.volume || 0;
+                const candleVal = isCvbBar ? ((candle as any).duration || candle.volume || 0) : (candle.volume || 0);
                 const barHeight = (candleVal / maxVal) * (volumeChartHeight - topPadding - 10);
                 const isGreen = candle.close >= candle.open;
 
@@ -2339,7 +2340,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       />
                     );
                   })}
-                  {/* pL/pS polylines + dot markers */}
+                  {/* pL/pS polylines */}
                   {(() => {
                     const pLCoords: { x: number; y: number }[] = [];
                     const pSCoords: { x: number; y: number }[] = [];
@@ -2360,12 +2361,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                         {pSCoords.length > 1 && (
                           <polyline points={pSCoords.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="#fb923c" strokeWidth="1.8" opacity="0.95" />
                         )}
-                        {pLCoords.map((p, i) => (
-                          <circle key={`pL-${i}`} cx={p.x} cy={p.y} r="3" fill="#22d3ee" opacity="0.9" />
-                        ))}
-                        {pSCoords.map((p, i) => (
-                          <circle key={`pS-${i}`} cx={p.x} cy={p.y} r="3" fill="#fb923c" opacity="0.9" />
-                        ))}
                       </>
                     );
                   })()}
