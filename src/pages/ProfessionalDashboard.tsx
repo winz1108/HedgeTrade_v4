@@ -94,7 +94,7 @@ function ProfessionalDashboard() {
             updated.currentPrice = p;
             if (updated.priceHistories) {
               const updatedHistories = { ...updated.priceHistories };
-              ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'].forEach(tf => {
+              ['1m', '5m', '15m', '30m', '1h', '4h', '1d'].forEach(tf => {
                 const candles = updatedHistories[tf];
                 if (candles && candles.length > 0) {
                   const updatedCandles = [...candles];
@@ -133,7 +133,7 @@ function ProfessionalDashboard() {
             updated.currentPrice = p;
             if (updated.priceHistories) {
               const updatedHistories = { ...updated.priceHistories };
-              ['1m', '5m', '15m', '30m', '1h', '4h', '1d', 'cvb'].forEach(tf => {
+              ['1m', '5m', '15m', '30m', '1h', '4h', '1d'].forEach(tf => {
                 const candles = updatedHistories[tf];
                 if (candles && candles.length > 0) {
                   const updatedCandles = [...candles];
@@ -314,12 +314,33 @@ function ProfessionalDashboard() {
     websocketService.on('kraken_price_update', handleKrakenPriceUpdate);
     websocketService.on('kraken_status_update', handleStatusUpdate);
 
+    const unsubBinancePrice = websocketService.onPriceUpdate((priceData) => {
+      if (!priceData?.currentPrice) return;
+      const p = Number(priceData.currentPrice);
+      if (isNaN(p) || p <= 0) return;
+      setData(prevData => {
+        if (!prevData?.priceHistories?.cvb) return prevData;
+        const cvbCandles = [...prevData.priceHistories.cvb];
+        if (cvbCandles.length === 0) return prevData;
+        const last = { ...cvbCandles[cvbCandles.length - 1] };
+        last.close = p;
+        last.high = Math.max(last.high, p);
+        last.low = Math.min(last.low, p);
+        cvbCandles[cvbCandles.length - 1] = last;
+        return {
+          ...prevData,
+          priceHistories: { ...prevData.priceHistories, cvb: cvbCandles },
+        };
+      });
+    });
+
     return () => {
       clearInterval(wsHealthCheck);
       stopFallback();
       websocketService.off('kraken_candle_update', handleKrakenCandleUpdate);
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);
+      unsubBinancePrice();
     };
   }, [selectedTimeframe]);
 
