@@ -228,6 +228,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       if (c.bb_upper) vals.push(c.bb_upper);
       if (c.bb_mid) vals.push(c.bb_mid);
       if (c.bb_lower) vals.push(c.bb_lower);
+      if ((c as any).poc) vals.push((c as any).poc);
       return vals;
     });
 
