@@ -221,16 +221,39 @@ function ProfessionalDashboard() {
             return prevData;
           }
 
-          updatedCandles[updatedCandles.length - 1] = {
-            ...lastCandle,
-            high: Math.max(lastCandle.high, candleData.high),
-            low: Math.min(lastCandle.low, candleData.low),
-            close: candleData.close,
-            ...(candleData.volume !== undefined ? { volume: candleData.volume } : {}),
-            ...(candleData.volume_pct !== undefined ? { volume_pct: candleData.volume_pct } : {}),
-            ...(candleData.duration !== undefined ? { duration: candleData.duration } : {}),
-            ...(candleData.poc !== undefined ? { poc: candleData.poc } : {}),
-          };
+          const wsSeq = candleData.seq;
+          const lastSeq = (lastCandle as any).seq;
+
+          if (wsSeq != null && lastSeq != null && wsSeq > lastSeq) {
+            const prevClose = lastCandle.close;
+            updatedCandles.push({
+              ...candleData,
+              open_time_ms: candleData.time ? candleData.time * 1000 : Date.now(),
+              timestamp: candleData.time ? candleData.time * 1000 : Date.now(),
+              seq: wsSeq,
+              open: prevClose,
+              high: Math.max(prevClose, candleData.high || prevClose),
+              low: Math.min(prevClose, candleData.low || prevClose),
+              close: candleData.close || prevClose,
+              volume: candleData.volume || 0,
+              volume_pct: candleData.volume_pct ?? 0,
+              duration: candleData.duration ?? 0,
+              poc: candleData.poc ?? (lastCandle as any).poc,
+              is_forming: true,
+            } as any);
+            if (updatedCandles.length > 250) updatedCandles.shift();
+          } else {
+            updatedCandles[updatedCandles.length - 1] = {
+              ...lastCandle,
+              high: Math.max(lastCandle.high, candleData.high),
+              low: Math.min(lastCandle.low, candleData.low),
+              close: candleData.close,
+              ...(candleData.volume !== undefined ? { volume: candleData.volume } : {}),
+              ...(candleData.volume_pct !== undefined ? { volume_pct: candleData.volume_pct } : {}),
+              ...(candleData.duration !== undefined ? { duration: candleData.duration } : {}),
+              ...(candleData.poc !== undefined ? { poc: candleData.poc } : {}),
+            };
+          }
           return { ...prevData, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
         });
         return;
