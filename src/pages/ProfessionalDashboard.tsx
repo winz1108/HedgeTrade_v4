@@ -200,6 +200,7 @@ function ProfessionalDashboard() {
       if (!candleData) return;
       lastWsMessage = Date.now();
       const tf = candleData.timeframe as string;
+      console.log('[WS] kraken_candle_update', tf, tf === 'cvb' ? { seq: candleData.seq, volume_pct: candleData.volume_pct, close: candleData.close, is_final: candleData.is_final } : '');
 
       if (tf === 'cvb') {
         setData(prevData => {
