@@ -154,44 +154,67 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
   const titleCls = dark ? 'text-slate-100' : 'text-slate-800';
   const dimText = dark ? 'text-slate-500' : 'text-stone-400';
 
-  if (!position || !position.side || position.entry_price == null || position.tp_price == null || position.sl_price == null) return null;
+  if (!position || !position.side || position.entry_price == null) return null;
 
   const { side, entry_price, tp_price, sl_price, leverage, pnl_pct, hold_minutes, bars_held } = position;
   const isLong = side === 'LONG';
+  const hasTpSl = tp_price != null && sl_price != null;
 
-  // Price axis: always left < right (ascending)
-  // LONG: [SL ... Entry ... TP]  |  SHORT: [TP ... Entry ... SL]
-  const leftPrice = isLong ? sl_price : tp_price;
-  const rightPrice = isLong ? tp_price : sl_price;
-  const totalRange = rightPrice - leftPrice;
-
-  const entryPct = totalRange > 0 ? ((entry_price - leftPrice) / totalRange) * 100 : 50;
-  const currentPct = totalRange > 0 ? ((currentPrice - leftPrice) / totalRange) * 100 : 50;
-  const clampedCurrentPct = Math.max(0, Math.min(100, currentPct));
-
-  // Fill from entry to current price
-  const fillLeft = Math.min(entryPct, clampedCurrentPct);
-  const fillWidth = Math.abs(clampedCurrentPct - entryPct);
-
-  // Determine if in profit
   const inProfit = isLong ? currentPrice > entry_price : currentPrice < entry_price;
-  const fillColor = inProfit
-    ? (isLong ? 'bg-gradient-to-r from-cyan-500/70 to-cyan-400/70' : 'bg-gradient-to-r from-orange-500/70 to-orange-400/70')
-    : 'bg-gradient-to-r from-rose-500/50 to-rose-400/50';
-
   const pnl = pnl_pct ?? 0;
   const dirColor = isLong ? (dark ? 'text-cyan-400' : 'text-cyan-600') : (dark ? 'text-orange-400' : 'text-orange-600');
 
   const formatDuration = (min: number) => {
+    if (min >= 1440) {
+      const d = Math.floor(min / 1440);
+      const h = Math.floor((min % 1440) / 60);
+      return `${d}d ${h}h`;
+    }
     const h = Math.floor(min / 60);
     const m = Math.round(min % 60);
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
+  let entryPct = 50;
+  let clampedCurrentPct = 50;
+  let fillLeft = 50;
+  let fillWidth = 0;
+  let leftLabel = '';
+  let rightLabel = '';
+  let centerLabel = `Entry $${entry_price.toFixed(0)}`;
+
+  if (hasTpSl) {
+    const leftPrice = isLong ? sl_price : tp_price;
+    const rightPrice = isLong ? tp_price : sl_price;
+    const totalRange = rightPrice - leftPrice;
+    entryPct = totalRange > 0 ? ((entry_price - leftPrice) / totalRange) * 100 : 50;
+    const currentPct = totalRange > 0 ? ((currentPrice - leftPrice) / totalRange) * 100 : 50;
+    clampedCurrentPct = Math.max(0, Math.min(100, currentPct));
+    fillLeft = Math.min(entryPct, clampedCurrentPct);
+    fillWidth = Math.abs(clampedCurrentPct - entryPct);
+    leftLabel = `${isLong ? 'SL' : 'TP'} $${leftPrice.toFixed(0)}`;
+    rightLabel = `${isLong ? 'TP' : 'SL'} $${rightPrice.toFixed(0)}`;
+  } else {
+    const spread = Math.abs(currentPrice - entry_price) || entry_price * 0.05;
+    const lo = Math.min(entry_price, currentPrice) - spread * 0.3;
+    const hi = Math.max(entry_price, currentPrice) + spread * 0.3;
+    const range = hi - lo;
+    entryPct = range > 0 ? ((entry_price - lo) / range) * 100 : 50;
+    clampedCurrentPct = range > 0 ? Math.max(0, Math.min(100, ((currentPrice - lo) / range) * 100)) : 50;
+    fillLeft = Math.min(entryPct, clampedCurrentPct);
+    fillWidth = Math.abs(clampedCurrentPct - entryPct);
+    leftLabel = `$${Math.round(Math.min(entry_price, currentPrice) - spread * 0.3)}`;
+    rightLabel = `$${Math.round(Math.max(entry_price, currentPrice) + spread * 0.3)}`;
+  }
+
+  const fillColor = inProfit
+    ? (isLong ? 'bg-gradient-to-r from-cyan-500/70 to-cyan-400/70' : 'bg-gradient-to-r from-orange-500/70 to-orange-400/70')
+    : 'bg-gradient-to-r from-rose-500/50 to-rose-400/50';
+
   return (
     <div className={`${panelBg} border rounded-lg shadow-sm p-2.5 space-y-2 transition-colors duration-300`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>Exit</h3>
+        <h3 className={`text-[10px] font-bold tracking-wide uppercase ${titleCls}`}>Position</h3>
         <div className="flex items-center gap-1.5">
           <span className={`text-[9px] font-bold ${dirColor}`}>{side}</span>
           {leverage != null && leverage > 0 && (
@@ -203,47 +226,46 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
       {/* Price axis bar */}
       <div className="space-y-0.5">
         <div className={`relative ${dark ? 'bg-slate-700/50' : 'bg-stone-200/70'} rounded-full h-4 overflow-hidden`}>
-          {/* Fill from entry to current */}
           <div
             className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${fillColor}`}
             style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
           />
-          {/* Entry marker (center) */}
           <div
             className={`absolute top-0 h-full w-[2px] z-20 ${dark ? 'bg-slate-200' : 'bg-slate-700'}`}
             style={{ left: `${entryPct}%` }}
           />
-          {/* Current price marker */}
           <div
             className={`absolute z-20 w-2 h-2 rounded-full border ${
               dark ? 'border-white bg-white' : 'border-slate-800 bg-slate-800'
             }`}
             style={{ left: `${clampedCurrentPct}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
           />
-          {/* SL/TP zone hints */}
-          <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-rose-500/50' : 'bg-rose-400/50'}`}
-            style={{ left: isLong ? '0%' : '100%' }}
-          />
-          <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-emerald-500/50' : 'bg-emerald-400/50'}`}
-            style={{ left: isLong ? '100%' : '0%' }}
-          />
+          {hasTpSl && (
+            <>
+              <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-rose-500/50' : 'bg-rose-400/50'}`}
+                style={{ left: isLong ? '0%' : '100%' }}
+              />
+              <div className={`absolute top-0 h-full w-[1.5px] z-10 ${dark ? 'bg-emerald-500/50' : 'bg-emerald-400/50'}`}
+                style={{ left: isLong ? '100%' : '0%' }}
+              />
+            </>
+          )}
         </div>
 
-        {/* Axis labels */}
         <div className={`flex justify-between text-[8px] ${dark ? 'text-slate-600' : 'text-stone-400'}`}>
-          <span>{isLong ? 'SL' : 'TP'} ${leftPrice.toFixed(0)}</span>
-          <span className={`${dark ? 'text-slate-400' : 'text-stone-500'}`}>Entry ${entry_price.toFixed(0)}</span>
-          <span>{isLong ? 'TP' : 'SL'} ${rightPrice.toFixed(0)}</span>
+          <span>{leftLabel}</span>
+          <span className={`${dark ? 'text-slate-400' : 'text-stone-500'}`}>{centerLabel}</span>
+          <span>{rightLabel}</span>
         </div>
       </div>
 
       {/* Bottom info line */}
       <div className={`flex items-center justify-between text-[9px] ${dimText} border-t ${dark ? 'border-slate-700/50' : 'border-stone-200'} pt-1`}>
         <div className="flex items-center gap-2">
-          <span className={`font-bold ${dirColor}`}>{side}</span>
           <span className={`font-bold tabular-nums ${pnl >= 0 ? (dark ? 'text-emerald-300' : 'text-emerald-700') : (dark ? 'text-rose-300' : 'text-rose-700')}`}>
             {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}%
           </span>
+          <span className={`tabular-nums ${dark ? 'text-slate-400' : 'text-stone-500'}`}>${currentPrice.toFixed(0)}</span>
         </div>
         <div className="flex items-center gap-2">
           {bars_held != null && <span>{bars_held} bars</span>}
