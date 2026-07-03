@@ -32,8 +32,7 @@ export interface Candle {
   swing_low?: boolean;
   is_forming?: boolean;
   is_final?: boolean;
-  is_signal?: boolean;
-  signal_dir?: 'LONG' | 'SHORT';
+  seq?: number;
   volume_pct?: number;
   range_pct?: number;
   open_time_ms?: number;

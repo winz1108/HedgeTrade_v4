@@ -13,6 +13,7 @@ function ProfessionalDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
+  const [fp60History, setFp60History] = useState<any[]>([]);
 
   const loadData = async () => {
     try {
@@ -44,6 +45,8 @@ function ProfessionalDashboard() {
           entryDetails: binanceEntryDetails,
         } as any;
       }
+
+      if (cvbData?.fp60_history) setFp60History(cvbData.fp60_history);
 
       setData(krakenData);
       setLoading(false);
@@ -368,7 +371,7 @@ function ProfessionalDashboard() {
                 <span className="text-[11px] font-semibold text-cyan-400 tracking-wide">Professional</span>
               </div>
               {(data.version || true) && (
-                <span className="text-[10px] text-cyan-400 font-mono">{(data as any).strategyVersion || 'CVB-RE v2.0'}</span>
+                <span className="text-[10px] text-cyan-400 font-mono">{(data as any).strategyVersion || 'FP60-vmatch v1.0'}</span>
               )}
               {data.position.in_position && (
                 <div className={`relative px-4 py-2 backdrop-blur-sm rounded-lg border overflow-hidden ${
@@ -412,7 +415,7 @@ function ProfessionalDashboard() {
             <ProfessionalMetricsPanel data={data} position="left" zbStatus={zbData.status} zbZones={zbData.zones} />
           </div>
           <div ref={chartColRef} className="w-full min-w-0 order-1 lg:order-2">
-            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} />
+            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} fp60History={fp60History} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-1.5">
             <div className="w-full flex-shrink-0">

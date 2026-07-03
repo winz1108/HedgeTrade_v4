@@ -14,6 +14,9 @@ function FuturesDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
   const [binancePrice, setBinancePrice] = useState<number | null>(null);
+  const [fp60Panel, setFp60Panel] = useState<any>(null);
+  const [fp60History, setFp60History] = useState<any[]>([]);
+  const [fp60Position, setFp60Position] = useState<any>(null);
 
   const loadData = async () => {
     try {
@@ -44,6 +47,12 @@ function FuturesDashboard() {
           ...(krakenData.strategyStatus as any),
           entryDetails: binanceEntryDetails,
         } as any;
+      }
+
+      if (cvbData) {
+        if (cvbData.fp60_panel) setFp60Panel(cvbData.fp60_panel);
+        if (cvbData.fp60_history) setFp60History(cvbData.fp60_history);
+        if (cvbData.position) setFp60Position(cvbData.position);
       }
 
       setData(krakenData);
@@ -414,7 +423,7 @@ function FuturesDashboard() {
                 <span className="text-[11px] font-semibold text-slate-400 tracking-wide">Kraken</span>
               </div>
               {(data.version || true) && (
-                <span className="text-[10px] text-cyan-400 font-mono">{(data as any).strategyVersion || 'CVB-RE v2.0'}</span>
+                <span className="text-[10px] text-cyan-400 font-mono">{(data as any).strategyVersion || 'FP60-vmatch v1.0'}</span>
               )}
               {data.position.in_position && (
                 <div className={`relative px-4 py-2 backdrop-blur-sm rounded-lg border overflow-hidden ${
@@ -461,10 +470,10 @@ function FuturesDashboard() {
 
         <div className="flex flex-col lg:grid lg:grid-cols-[280px,1fr,280px] gap-2 lg:items-start">
           <div className="w-full lg:w-auto flex flex-col gap-1 order-2 lg:order-1">
-            <KrakenMetricsPanel data={data} position="left" zbStatus={zbData.status} zbZones={zbData.zones} />
+            <KrakenMetricsPanel data={data} position="left" zbStatus={zbData.status} zbZones={zbData.zones} fp60Panel={fp60Panel} fp60Position={fp60Position} />
           </div>
           <div ref={chartColRef} className="w-full min-w-0 order-1 lg:order-2">
-            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} binancePrice={binancePrice} />
+            <KrakenPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} binancePrice={binancePrice} fp60History={fp60History} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-1.5">
             <div className="w-full flex-shrink-0">

@@ -14,6 +14,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m');
+  const [fp60History, setFp60History] = useState<any[]>([]);
 
   const loadData = async () => {
     try {
@@ -27,6 +28,7 @@ function App() {
         if (cvbData && cvbData.candles.length > 0 && incoming.priceHistories) {
           incoming.priceHistories = { ...incoming.priceHistories, cvb: cvbData.candles };
         }
+        if (cvbData?.fp60_history) setFp60History(cvbData.fp60_history);
         setData(incoming);
       } else {
         throw new Error('No data in API response');
@@ -495,7 +497,7 @@ function App() {
             <BinanceFuturesMetricsPanel data={data} position="left" currentTime={currentTime} zbStatus={zbData.status} zbZones={zbData.zones} />
           </div>
           <div ref={chartColRef} className="w-full min-w-0 order-1 lg:order-2">
-            <BinanceFuturesPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} />
+            <BinanceFuturesPriceChart data={data} onTimeframeChange={setSelectedTimeframe} zbZones={zbData.zones} zbStatus={zbData.status} fp60History={fp60History} />
           </div>
           <div className="w-full lg:w-[280px] order-3 lg:order-3 flex flex-col gap-1.5">
             <div className="w-full flex-shrink-0">

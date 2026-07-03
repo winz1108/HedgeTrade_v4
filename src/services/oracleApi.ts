@@ -637,6 +637,7 @@ export const fetchKrakenCvbChartData = async (limit: number = 200) => {
       return {
         open_time_ms: ts,
         timestamp: ts,
+        seq: c.seq,
         open: c.open,
         high: c.high,
         low: c.low,
@@ -656,8 +657,6 @@ export const fetchKrakenCvbChartData = async (limit: number = 200) => {
         isComplete: c.is_forming !== true,
         is_forming: c.is_forming,
         is_final: c.is_final,
-        is_signal: c.is_signal,
-        signal_dir: c.signal_dir,
         volume_pct: c.volume_pct,
         range_pct: c.range_pct,
       } as any;
@@ -667,6 +666,10 @@ export const fetchKrakenCvbChartData = async (limit: number = 200) => {
       timeframe: 'cvb',
       candles: mapCandles(candles),
       count: candles.length,
+      fp60_panel: chartResponse.fp60_panel || null,
+      fp60_history: chartResponse.fp60_history || [],
+      position: chartResponse.position || null,
+      strategy: chartResponse.strategy || null,
     };
   } catch (error) {
     throw error;
@@ -693,6 +696,7 @@ export const fetchCvbChartData = async (limit: number = 200) => {
 
     const mapCandles = (raw: any[]): Candle[] => raw.map(c => ({
       timestamp: c.open_time_ms ?? (c.time ? c.time * 1000 : 0),
+      seq: c.seq,
       open: c.open,
       high: c.high,
       low: c.low,
@@ -712,8 +716,6 @@ export const fetchCvbChartData = async (limit: number = 200) => {
       isComplete: c.is_forming !== true,
       is_forming: c.is_forming,
       is_final: c.is_final,
-      is_signal: c.is_signal,
-      signal_dir: c.signal_dir,
       volume_pct: c.volume_pct,
       range_pct: c.range_pct,
     }));
@@ -722,35 +724,13 @@ export const fetchCvbChartData = async (limit: number = 200) => {
       timeframe: 'cvb',
       candles: mapCandles(candles),
       count: candles.length,
+      fp60_panel: chartResponse.fp60_panel || null,
+      fp60_history: chartResponse.fp60_history || [],
+      position: chartResponse.position || null,
+      strategy: chartResponse.strategy || null,
     };
   } catch (error) {
     throw error;
-  }
-};
-
-export const fetchCvbStrategyStatus = async (): Promise<any> => {
-  const baseUrl = getApiUrl();
-  const url = `${baseUrl}/api/cvb/strategy-status`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
-  }
-};
-
-export const fetchBinanceStrategyStatus = async (): Promise<any> => {
-  const baseUrl = getApiUrl();
-  const url = `${baseUrl}/api/binance/strategy-status`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
   }
 };
 

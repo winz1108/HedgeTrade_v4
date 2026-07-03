@@ -18,6 +18,7 @@ interface PriceChartProps {
   predHistory?: number[] | null;
   bosLevels?: BosLevel[] | null;
   binancePrice?: number | null;
+  fp60History?: { seq: number; pL: number; pS: number }[] | null;
 }
 
 type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d' | 'cvb';
@@ -85,7 +86,7 @@ function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): 
   return aggregated.sort((a, b) => a.timestamp - b.timestamp);
 }
 
-export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false, v10Strategy, zbZones, zbStatus, zoneData, predHistory, bosLevels, binancePrice }: PriceChartProps) => {
+export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, darkMode = false, v10Strategy, zbZones, zbStatus, zoneData, predHistory, bosLevels, binancePrice, fp60History }: PriceChartProps) => {
   const data = useMemo(() => {
     return rawData;
   }, [rawData]);
@@ -408,6 +409,26 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const macdToY = (value: number) => {
     const plotHeight = macdChartHeight - (macdPadding * 2);
     return macdPadding + ((macdData.max - value) / (macdData.max - macdData.min)) * plotHeight;
+  };
+
+  const isFp60 = timeframe === 'cvb' && fp60History && fp60History.length > 0;
+
+  const fp60Map = useMemo(() => {
+    if (!fp60History || fp60History.length === 0) return new Map<number, { pL: number; pS: number }>();
+    const map = new Map<number, { pL: number; pS: number }>();
+    for (const h of fp60History) {
+      map.set(h.seq, { pL: h.pL, pS: h.pS });
+    }
+    return map;
+  }, [fp60History]);
+
+  const FP60_MAX = 0.75;
+  const FP60_THR_L = 0.636;
+  const FP60_THR_S = 0.644;
+
+  const fp60ToY = (value: number) => {
+    const plotHeight = macdChartHeight - (macdPadding * 2);
+    return macdPadding + ((FP60_MAX - Math.min(value, FP60_MAX)) / FP60_MAX) * plotHeight;
   };
 
   const handleZoomIn = () => {
@@ -1010,21 +1031,36 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           })()}
         </div>
 
-        {/* MACD Y-Axis */}
+        {/* MACD / FP60 Y-Axis */}
         <div className="absolute" style={{ top: `${priceChartHeight + volumeChartHeight + 36}px`, height: `${macdChartHeight}px`, width: '100%' }}>
-          {[macdData.max, 0, macdData.min].map((value, i) => {
-            const y = macdToY(value);
-            const displayValue = value === 0 ? 0 : Math.floor(value / 100) * 100;
-            return (
-              <div
-                key={i}
-                className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
-                style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
-              >
-                {displayValue}
-              </div>
-            );
-          })}
+          {isFp60 ? (
+            [FP60_MAX, FP60_THR_L, 0].map((value, i) => {
+              const y = fp60ToY(value);
+              return (
+                <div
+                  key={i}
+                  className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
+                  style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
+                >
+                  {value.toFixed(2)}
+                </div>
+              );
+            })
+          ) : (
+            [macdData.max, 0, macdData.min].map((value, i) => {
+              const y = macdToY(value);
+              const displayValue = value === 0 ? 0 : Math.floor(value / 100) * 100;
+              return (
+                <div
+                  key={i}
+                  className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
+                  style={{ top: `${Math.max(0, Math.min(macdChartHeight - 12, y - 6))}px` }}
+                >
+                  {displayValue}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -1503,7 +1539,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const wickHeight = lowY - highY;
               const isHovered = hoveredCandleIndex === idx;
               const isCvbForming = timeframe === 'cvb' && candle.is_forming === true;
-              const isCvbSignal = timeframe === 'cvb' && candle.is_signal === true;
 
               return (
                 <div
@@ -1558,18 +1593,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       filter: isHovered ? 'brightness(1.2)' : 'none',
                     }}
                   />
-                  {isCvbSignal && (
-                    <div
-                      className={`absolute text-[7px] font-bold ${candle.signal_dir === 'SHORT' ? 'text-rose-400' : 'text-emerald-400'}`}
-                      style={{
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        top: candle.signal_dir === 'SHORT' ? `${lowY + 4}px` : `${highY - 12}px`,
-                      }}
-                    >
-                      {candle.signal_dir === 'SHORT' ? '\u25BC' : '\u25B2'}
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -2259,7 +2282,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             })()}
           </div>
 
-          {/* MACD Chart Background */}
+          {/* Indicator Chart Background */}
           <div
             className="absolute left-0 rounded pointer-events-none"
             style={{
@@ -2271,7 +2294,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             }}
           />
 
-          {/* Separator Line Above MACD */}
+          {/* Separator Line */}
           <div
             className="absolute left-0 pointer-events-none"
             style={{
@@ -2292,117 +2315,116 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             }}
           >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
-              {(() => {
-                const svgWidth = containerWidth || 1200;
-                return [macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
-                  const y = macdToY(value);
-                  const isZero = value === 0;
-                  return (
-                    <line
-                      key={i}
-                      x1="0"
-                      y1={y}
-                      x2="100%"
-                      y2={y}
-                      stroke={isZero ? 'rgba(251, 191, 36, 0.2)' : 'rgba(71, 85, 105, 0.08)'}
-                      strokeWidth={isZero ? '1.5' : '1'}
-                    />
-                  );
-                });
-              })()}
-
-              {visibleCandles.map((candle, idx) => {
-                const hist = candle.histogram ?? candle.macd_hist;
-                if (hist === undefined) return null;
-                const x = idx * (candleWidth + candleGap) + candleWidth / 2;
-                const zeroY = macdToY(0);
-                const histY = macdToY(hist);
-                const height = Math.abs(zeroY - histY);
-                const isPositive = hist >= 0;
-
-                return (
-                  <rect
-                    key={idx}
-                    x={x - candleWidth / 2}
-                    y={isPositive ? histY : zeroY}
-                    width={candleWidth}
-                    height={height}
-                    fill={isPositive ? 'rgba(45, 212, 191, 0.6)' : 'rgba(251, 146, 60, 0.6)'}
-                  />
-                );
-              })}
-
-              {(() => {
-                const macdPoints: string[] = [];
-                const signalPoints: string[] = [];
-                const MACD_HOVER_THRESHOLD = 8;
-                const mouseY = crosshairPosition?.y ?? null;
-                const macdPanelTop = priceChartHeight + volumeChartHeight + 36;
-                const localMouseY = mouseY !== null ? mouseY - macdPanelTop : null;
-
-                const isMacdHovered = (() => {
-                  if (localMouseY === null || hoveredCandleIndex === null) return false;
-                  const candle = visibleCandles[hoveredCandleIndex];
-                  if (!candle) return false;
-                  const macdVal = candle.macd ?? candle.macd_line;
-                  if (macdVal === undefined) return false;
-                  return Math.abs(localMouseY - macdToY(macdVal)) < MACD_HOVER_THRESHOLD;
-                })();
-
-                const isSignalHovered = (() => {
-                  if (localMouseY === null || hoveredCandleIndex === null) return false;
-                  const candle = visibleCandles[hoveredCandleIndex];
-                  if (!candle) return false;
-                  const signalVal = candle.signal ?? candle.macd_signal;
-                  if (signalVal === undefined) return false;
-                  return Math.abs(localMouseY - macdToY(signalVal)) < MACD_HOVER_THRESHOLD;
-                })();
-
-                visibleCandles.forEach((candle, idx) => {
-                  const x = idx * (candleWidth + candleGap) + candleWidth / 2;
-                  const macdVal = candle.macd ?? candle.macd_line;
-                  const signalVal = candle.signal ?? candle.macd_signal;
-
-                  if (macdVal !== undefined) {
-                    const y = macdToY(macdVal);
-                    macdPoints.push(`${x},${y}`);
-                  }
-
-                  if (signalVal !== undefined) {
-                    const y = macdToY(signalVal);
-                    signalPoints.push(`${x},${y}`);
-                  }
-                });
-
-                return (
-                  <>
-                    {macdPoints.length > 1 && (
-                      <polyline
-                        points={macdPoints.join(' ')}
-                        fill="none"
-                        stroke="#2dd4bf"
-                        strokeWidth={isMacdHovered ? '2.5' : '1.5'}
-                        opacity={isMacdHovered ? '1' : '0.95'}
-                        style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
+              {isFp60 ? (
+                <>
+                  {/* FP60 grid lines */}
+                  {[FP60_MAX, FP60_THR_L, FP60_THR_S, 0].map((value, i) => {
+                    const y = fp60ToY(value);
+                    const isThreshold = value === FP60_THR_L || value === FP60_THR_S;
+                    return (
+                      <line
+                        key={i}
+                        x1="0" y1={y} x2="100%" y2={y}
+                        stroke={value === FP60_THR_L ? 'rgba(34, 211, 238, 0.3)' : value === FP60_THR_S ? 'rgba(251, 146, 60, 0.3)' : 'rgba(71, 85, 105, 0.08)'}
+                        strokeWidth={isThreshold ? '1.5' : '1'}
+                        strokeDasharray={isThreshold ? '4 3' : undefined}
                       />
-                    )}
-                    {signalPoints.length > 1 && (
-                      <polyline
-                        points={signalPoints.join(' ')}
-                        fill="none"
-                        stroke="#fb923c"
-                        strokeWidth={isSignalHovered ? '2.5' : '1.5'}
-                        opacity={isSignalHovered ? '1' : '0.95'}
-                        style={{ transition: 'stroke-width 0.15s, opacity 0.15s' }}
+                    );
+                  })}
+                  {/* pL polyline (cyan) */}
+                  {(() => {
+                    const pLPoints: string[] = [];
+                    const pSPoints: string[] = [];
+                    visibleCandles.forEach((candle, idx) => {
+                      const seq = (candle as any).seq;
+                      const fp = seq != null ? fp60Map.get(seq) : null;
+                      if (fp) {
+                        const x = idx * (candleWidth + candleGap) + candleWidth / 2;
+                        pLPoints.push(`${x},${fp60ToY(fp.pL)}`);
+                        pSPoints.push(`${x},${fp60ToY(fp.pS)}`);
+                      }
+                    });
+                    return (
+                      <>
+                        {pLPoints.length > 1 && (
+                          <polyline points={pLPoints.join(' ')} fill="none" stroke="#22d3ee" strokeWidth="1.8" opacity="0.95" />
+                        )}
+                        {pSPoints.length > 1 && (
+                          <polyline points={pSPoints.join(' ')} fill="none" stroke="#fb923c" strokeWidth="1.8" opacity="0.95" />
+                        )}
+                      </>
+                    );
+                  })()}
+                </>
+              ) : (
+                <>
+                  {/* MACD grid lines */}
+                  {[macdData.max, macdData.max / 2, 0, macdData.min / 2, macdData.min].map((value, i) => {
+                    const y = macdToY(value);
+                    const isZero = value === 0;
+                    return (
+                      <line key={i} x1="0" y1={y} x2="100%" y2={y}
+                        stroke={isZero ? 'rgba(251, 191, 36, 0.2)' : 'rgba(71, 85, 105, 0.08)'}
+                        strokeWidth={isZero ? '1.5' : '1'}
                       />
-                    )}
-                  </>
-                );
-              })()}
+                    );
+                  })}
+                  {/* MACD histogram */}
+                  {visibleCandles.map((candle, idx) => {
+                    const hist = candle.histogram ?? candle.macd_hist;
+                    if (hist === undefined) return null;
+                    const x = idx * (candleWidth + candleGap) + candleWidth / 2;
+                    const zeroY = macdToY(0);
+                    const histY = macdToY(hist);
+                    const height = Math.abs(zeroY - histY);
+                    const isPositive = hist >= 0;
+                    return (
+                      <rect key={idx} x={x - candleWidth / 2} y={isPositive ? histY : zeroY}
+                        width={candleWidth} height={height}
+                        fill={isPositive ? 'rgba(45, 212, 191, 0.6)' : 'rgba(251, 146, 60, 0.6)'}
+                      />
+                    );
+                  })}
+                  {/* MACD / Signal lines */}
+                  {(() => {
+                    const macdPoints: string[] = [];
+                    const signalPoints: string[] = [];
+                    visibleCandles.forEach((candle, idx) => {
+                      const x = idx * (candleWidth + candleGap) + candleWidth / 2;
+                      const macdVal = candle.macd ?? candle.macd_line;
+                      const signalVal = candle.signal ?? candle.macd_signal;
+                      if (macdVal !== undefined) macdPoints.push(`${x},${macdToY(macdVal)}`);
+                      if (signalVal !== undefined) signalPoints.push(`${x},${macdToY(signalVal)}`);
+                    });
+                    return (
+                      <>
+                        {macdPoints.length > 1 && (
+                          <polyline points={macdPoints.join(' ')} fill="none" stroke="#2dd4bf" strokeWidth="1.5" opacity="0.95" />
+                        )}
+                        {signalPoints.length > 1 && (
+                          <polyline points={signalPoints.join(' ')} fill="none" stroke="#fb923c" strokeWidth="1.5" opacity="0.95" />
+                        )}
+                      </>
+                    );
+                  })()}
+                </>
+              )}
             </svg>
             {hoveredCandleIndex !== null && (() => {
               const candle = visibleCandles[hoveredCandleIndex];
               if (!candle) return null;
+              if (isFp60) {
+                const seq = (candle as any).seq;
+                const fp = seq != null ? fp60Map.get(seq) : null;
+                if (!fp) return null;
+                return (
+                  <div className={`absolute left-2 top-2 text-xs ${darkMode ? 'bg-slate-800/90' : 'bg-white/90'} px-2 py-1 rounded-md flex items-center gap-2 pointer-events-none border ${darkMode ? 'border-slate-700/60' : 'border-stone-200'}`}>
+                    <span className={`${colors.textSecondary} font-mono text-[10px]`}>seq {seq}</span>
+                    <span className="text-cyan-400 font-bold tabular-nums">pL {fp.pL.toFixed(3)}</span>
+                    <span className="text-orange-400 font-bold tabular-nums">pS {fp.pS.toFixed(3)}</span>
+                  </div>
+                );
+              }
               const macdVal = candle.macd ?? candle.macd_line;
               const signalVal = candle.signal ?? candle.macd_signal;
               const histVal = candle.histogram ?? candle.macd_hist;

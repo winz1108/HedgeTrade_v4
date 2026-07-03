@@ -9,9 +9,10 @@ interface Props {
   zbZones?: ZBZones | null;
   zbStatus?: ZBStatus | null;
   binancePrice?: number | null;
+  fp60History?: { seq: number; pL: number; pS: number }[] | null;
 }
 
-export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus, binancePrice }: Props) {
+export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus, binancePrice, fp60History }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
     const toMs = (v: number): number => {
       if (!v) return 0;
@@ -318,6 +319,7 @@ export function KrakenPriceChart({ data, onTimeframeChange, zbZones, zbStatus, b
       predHistory={swingMl?.pred_history ?? null}
       bosLevels={bosLevels}
       binancePrice={binancePrice}
+      fp60History={fp60History}
     />
   );
 }

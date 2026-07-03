@@ -1,16 +1,17 @@
 import { KrakenDashboardData } from '../../types/dashboard';
 import { DollarSign, Activity, Target, History } from 'lucide-react';
 import { formatLocalDateTime } from '../../utils/time';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
-import { CvbEntryPanel, CvbExitPanel } from '../CvbPanels';
-import { fetchCvbStrategyStatus } from '../../services/oracleApi';
+import { Fp60EntryPanel, Fp60ExitPanel } from '../Fp60Panels';
 
 interface Props {
   data: KrakenDashboardData;
   position: 'left' | 'right' | 'trades';
   zbStatus?: ZBStatus | null;
   zbZones?: ZBZones | null;
+  fp60Panel?: any;
+  fp60Position?: any;
 }
 
 const normalizeToMs = (ts: number): number => ts < 1e12 ? ts * 1000 : ts;
@@ -48,19 +49,7 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
   return { bg: 'bg-rose-900/30', text: 'text-rose-400', border: 'border-rose-700' };
 };
 
-export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones }: Props) {
-  const [cvbStatus, setCvbStatus] = useState<any>(null);
-
-  useEffect(() => {
-    const loadCvb = async () => {
-      const status = await fetchCvbStrategyStatus();
-      if (status) setCvbStatus(status);
-    };
-    loadCvb();
-    const interval = setInterval(loadCvb, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
+export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones, fp60Panel, fp60Position }: Props) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -247,33 +236,27 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
         </div>
 
         <div className="flex-shrink-0">
-          <CvbEntryPanel
-            entryPanel={cvbStatus?.entry_panel ? {
-              ...cvbStatus.entry_panel,
-              ema20: { value: (() => {
-                const candles = data.priceHistoryCvb || data.priceHistories?.['cvb'];
-                const last = candles?.[candles.length - 1];
-                return last?.ema20 ?? cvbStatus.entry_panel.ema20?.value;
-              })() }
-            } : undefined}
-            dark={true}
-            candidateSide={(() => {
-              const slopeDir = cvbStatus?.entry_panel?.ema_slope?.slope_dir;
-              if (slopeDir === 'UP') return 'LONG';
-              if (slopeDir === 'DOWN') return 'SHORT';
-              const slope = cvbStatus?.entry_panel?.ema_slope?.current;
-              if (slope != null) return slope >= 0 ? 'LONG' : 'SHORT';
-              return 'LONG';
+          <Fp60EntryPanel
+            fp60Panel={fp60Panel}
+            volumePct={(() => {
+              const candles = data.priceHistoryCvb || data.priceHistories?.['cvb'];
+              if (!candles || candles.length === 0) return 0;
+              const last = candles[candles.length - 1];
+              return (last as any)?.volume_pct ?? 0;
             })()}
+            dark={true}
           />
         </div>
 
-        <div className="flex-shrink-0">
-          <CvbExitPanel
-            exitPanel={cvbStatus?.exit_panel}
-            dark={true}
-          />
-        </div>
+        {fp60Position && (
+          <div className="flex-shrink-0">
+            <Fp60ExitPanel
+              position={fp60Position}
+              currentPrice={data.currentPrice}
+              dark={true}
+            />
+          </div>
+        )}
       </div>
     );
   }

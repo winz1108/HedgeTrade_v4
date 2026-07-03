@@ -4,8 +4,8 @@ import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect, useState } from 'react';
 import { ManualOrderPanel } from './ManualOrderPanel';
 import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
-import { CvbEntryPanel, CvbExitPanel } from '../CvbPanels';
-import { fetchCvbStrategyStatus } from '../../services/oracleApi';
+import { Fp60EntryPanel, Fp60ExitPanel } from '../Fp60Panels';
+import { fetchCvbChartData } from '../../services/oracleApi';
 
 interface Props {
   data: KrakenDashboardData;
@@ -49,15 +49,19 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
 };
 
 export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones: _zbZones }: Props) {
-  const [cvbStatus, setCvbStatus] = useState<any>(null);
+  const [fp60Panel, setFp60Panel] = useState<any>(null);
+  const [fp60Position, setFp60Position] = useState<any>(null);
 
   useEffect(() => {
-    const loadCvb = async () => {
-      const status = await fetchCvbStrategyStatus();
-      if (status) setCvbStatus(status);
+    const load = async () => {
+      try {
+        const cvbData = await fetchCvbChartData(10);
+        if (cvbData.fp60_panel) setFp60Panel(cvbData.fp60_panel);
+        if (cvbData.position) setFp60Position(cvbData.position);
+      } catch {}
     };
-    loadCvb();
-    const interval = setInterval(loadCvb, 5000);
+    load();
+    const interval = setInterval(load, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -235,26 +239,27 @@ export function ProfessionalMetricsPanel({ data, position, zbStatus, zbZones: _z
         />
 
         <div className="flex-shrink-0">
-          <CvbEntryPanel
-            entryPanel={cvbStatus?.entry_panel}
-            dark={true}
-            candidateSide={(() => {
-              const slopeDir = cvbStatus?.entry_panel?.ema_slope?.slope_dir;
-              if (slopeDir === 'UP') return 'LONG';
-              if (slopeDir === 'DOWN') return 'SHORT';
-              const slope = cvbStatus?.entry_panel?.ema_slope?.current;
-              if (slope != null) return slope >= 0 ? 'LONG' : 'SHORT';
-              return 'LONG';
+          <Fp60EntryPanel
+            fp60Panel={fp60Panel}
+            volumePct={(() => {
+              const candles = data.priceHistoryCvb || data.priceHistories?.['cvb'];
+              if (!candles || candles.length === 0) return 0;
+              const last = candles[candles.length - 1];
+              return (last as any)?.volume_pct ?? 0;
             })()}
+            dark={true}
           />
         </div>
 
-        <div className="flex-shrink-0">
-          <CvbExitPanel
-            exitPanel={cvbStatus?.exit_panel}
-            dark={true}
-          />
-        </div>
+        {fp60Position && (
+          <div className="flex-shrink-0">
+            <Fp60ExitPanel
+              position={fp60Position}
+              currentPrice={data.currentPrice}
+              dark={true}
+            />
+          </div>
+        )}
       </div>
     );
   }

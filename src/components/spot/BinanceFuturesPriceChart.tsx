@@ -8,9 +8,10 @@ interface Props {
   onTimeframeChange?: (timeframe: string) => void;
   zbZones?: ZBZones | null;
   zbStatus?: ZBStatus | null;
+  fp60History?: { seq: number; pL: number; pS: number }[] | null;
 }
 
-export function BinanceFuturesPriceChart({ data, onTimeframeChange, zbZones, zbStatus }: Props) {
+export function BinanceFuturesPriceChart({ data, onTimeframeChange, zbZones, zbStatus, fp60History }: Props) {
   const transformedData = useMemo((): DashboardData | null => {
     const toMs = (v: number): number => {
       if (!v) return 0;
@@ -164,6 +165,7 @@ export function BinanceFuturesPriceChart({ data, onTimeframeChange, zbZones, zbS
       zoneData={data.zoneData}
       predHistory={swingMl?.pred_history ?? null}
       bosLevels={bosLevels}
+      fp60History={fp60History}
     />
   );
 }

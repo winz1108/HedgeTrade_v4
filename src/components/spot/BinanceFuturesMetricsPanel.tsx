@@ -3,8 +3,8 @@ import { formatLocalDateTime } from '../../utils/time';
 import { useRef, useEffect, useState } from 'react';
 import type { BFDashboardData } from '../../types/dashboard';
 import type { ZBStatus, ZBZones } from '../../types/zoneBounce';
-import { CvbEntryPanel, CvbExitPanel } from '../CvbPanels';
-import { fetchCvbStrategyStatus, fetchBinanceStrategyStatus } from '../../services/oracleApi';
+import { Fp60EntryPanel, Fp60ExitPanel } from '../Fp60Panels';
+import { fetchCvbChartData } from '../../services/oracleApi';
 
 interface Props {
   data: BFDashboardData;
@@ -42,17 +42,16 @@ const getExitReasonColor = (profit: number | undefined): { bg: string; text: str
 };
 
 export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStatus, zbZones: _zbZones }: Props) {
-  const [cvbStatus, setCvbStatus] = useState<any>(null);
-  const [binanceStatus, setBinanceStatus] = useState<any>(null);
+  const [fp60Panel, setFp60Panel] = useState<any>(null);
+  const [fp60Position, setFp60Position] = useState<any>(null);
 
   useEffect(() => {
     const load = async () => {
-      const [cvb, binance] = await Promise.all([
-        fetchCvbStrategyStatus(),
-        fetchBinanceStrategyStatus(),
-      ]);
-      if (cvb) setCvbStatus(cvb);
-      if (binance) setBinanceStatus(binance);
+      try {
+        const cvbData = await fetchCvbChartData(10);
+        if (cvbData.fp60_panel) setFp60Panel(cvbData.fp60_panel);
+        if (cvbData.position) setFp60Position(cvbData.position);
+      } catch {}
     };
     load();
     const interval = setInterval(load, 5000);
@@ -278,26 +277,27 @@ export function BinanceFuturesMetricsPanel({ data, position, currentTime, zbStat
         </div>
 
         <div className="flex-shrink-0">
-          <CvbEntryPanel
-            entryPanel={cvbStatus?.entry_panel}
-            dark={false}
-            candidateSide={(() => {
-              const slopeDir = cvbStatus?.entry_panel?.ema_slope?.slope_dir;
-              if (slopeDir === 'UP') return 'LONG';
-              if (slopeDir === 'DOWN') return 'SHORT';
-              const slope = cvbStatus?.entry_panel?.ema_slope?.current;
-              if (slope != null) return slope >= 0 ? 'LONG' : 'SHORT';
-              return 'LONG';
+          <Fp60EntryPanel
+            fp60Panel={fp60Panel}
+            volumePct={(() => {
+              const candles = data.priceHistories?.['cvb'];
+              if (!candles || candles.length === 0) return 0;
+              const last = candles[candles.length - 1];
+              return (last as any)?.volume_pct ?? 0;
             })()}
+            dark={false}
           />
         </div>
 
-        <div className="flex-shrink-0">
-          <CvbExitPanel
-            exitPanel={binanceStatus?.exit_panel}
-            dark={false}
-          />
-        </div>
+        {fp60Position && (
+          <div className="flex-shrink-0">
+            <Fp60ExitPanel
+              position={fp60Position}
+              currentPrice={data.currentPrice}
+              dark={false}
+            />
+          </div>
+        )}
       </div>
     );
   }
