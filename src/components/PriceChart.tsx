@@ -1619,8 +1619,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               const bodyHeight = Math.abs(closeY - openY);
               const wickHeight = lowY - highY;
               const isHovered = hoveredCandleIndex === idx;
-              const isCvbForming = timeframe === 'cvb' && candle.is_forming === true;
-
               return (
                 <div
                   key={idx}
@@ -1651,7 +1649,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       top: `${highY}px`,
                       height: `${wickHeight}px`,
                       width: '1px',
-                      opacity: isCvbForming ? 0.4 : 1,
                       filter: isHovered ? 'drop-shadow(0 0 2px currentColor)' : 'none',
                     }}
                   />
@@ -1670,7 +1667,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       height: `${Math.max(bodyHeight, 1)}px`,
                       width: '100%',
                       borderWidth: '0',
-                      opacity: isCvbForming ? 0.4 : undefined,
                       filter: isHovered ? 'brightness(1.2)' : 'none',
                     }}
                   />
