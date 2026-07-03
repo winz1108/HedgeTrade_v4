@@ -31,14 +31,33 @@ interface Fp60ExitPanelProps {
 }
 
 const GAUGE_MAX = 0.75;
-const BAR_H = 'h-2';
+const BAR_H = 'h-2.5';
+
+function Bar3dTrack({ dark, children }: { dark: boolean; children: React.ReactNode }) {
+  return (
+    <div className={`relative rounded-full ${BAR_H} overflow-hidden ${
+      dark
+        ? 'bg-[#1a2236] shadow-[inset_0_2px_4px_rgba(0,0,0,0.6),inset_0_-1px_0_rgba(255,255,255,0.04)]'
+        : 'bg-[#e2ddd5] shadow-[inset_0_2px_4px_rgba(0,0,0,0.15),inset_0_-1px_0_rgba(255,255,255,0.5)]'
+    }`}>
+      {children}
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-white/[0.06] rounded-t-full" />
+      <div className="absolute inset-x-0 bottom-0 h-[1px] bg-white/[0.03] rounded-b-full" />
+    </div>
+  );
+}
+
+function BarFill({ className, style }: { className: string; style: React.CSSProperties }) {
+  return (
+    <div className={`absolute inset-y-0 transition-all duration-500 ease-out ${className}`} style={style}>
+      <div className="absolute inset-x-0 top-0 h-[40%] bg-white/20 rounded-t-full" />
+    </div>
+  );
+}
 
 export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryPanelProps) {
   const bg = dark ? 'bg-slate-800/95 border-slate-700/80' : 'bg-white border-stone-200';
   const label = dark ? 'text-slate-400' : 'text-stone-500';
-  const trackCls = dark
-    ? 'bg-gradient-to-b from-slate-700/80 to-slate-800/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]'
-    : 'bg-gradient-to-b from-stone-200 to-stone-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]';
 
   if (!fp60Panel) {
     return (
@@ -64,19 +83,19 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
   const shortActive = pS >= thrS;
   const formPct = Math.max(0, Math.min(100, volumePct ?? 0));
 
-  const sColor = dark
-    ? (shortActive ? 'text-orange-300' : 'text-orange-400/60')
-    : (shortActive ? 'text-orange-600' : 'text-orange-500/60');
-  const lColor = dark
-    ? (longActive ? 'text-cyan-300' : 'text-cyan-400/60')
-    : (longActive ? 'text-cyan-600' : 'text-cyan-500/60');
+  const sColor = shortActive
+    ? (dark ? 'text-orange-300' : 'text-orange-600')
+    : (dark ? 'text-orange-500/60' : 'text-orange-400/60');
+  const lColor = longActive
+    ? (dark ? 'text-cyan-300' : 'text-cyan-600')
+    : (dark ? 'text-cyan-500/60' : 'text-cyan-400/60');
 
-  const sFill = shortActive
-    ? 'bg-gradient-to-l from-orange-400 to-orange-500 shadow-[0_1px_3px_rgba(251,146,60,0.5)]'
-    : 'bg-gradient-to-l from-orange-500/50 to-orange-600/40';
-  const lFill = longActive
-    ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-[0_1px_3px_rgba(34,211,238,0.5)]'
-    : 'bg-gradient-to-r from-cyan-500/50 to-cyan-600/40';
+  const sFillCls = shortActive
+    ? 'rounded-l-full bg-gradient-to-l from-orange-400 via-orange-500 to-orange-600 shadow-[0_0_6px_rgba(251,146,60,0.6)]'
+    : 'rounded-l-full bg-gradient-to-l from-orange-500/40 to-orange-600/30';
+  const lFillCls = longActive
+    ? 'rounded-r-full bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 shadow-[0_0_6px_rgba(34,211,238,0.6)]'
+    : 'rounded-r-full bg-gradient-to-r from-cyan-500/40 to-cyan-600/30';
 
   return (
     <div className={`${bg} border rounded-lg p-2.5 space-y-2.5`}>
@@ -104,29 +123,17 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
           </span>
         </div>
 
-        <div className={`relative ${trackCls} rounded-sm ${BAR_H} overflow-hidden`}>
-          {/* pS fill: center to left */}
-          <div
-            className={`absolute inset-y-0 rounded-l-sm transition-all duration-500 ease-out ${sFill}`}
-            style={{ right: '50%', width: `${pSPct}%` }}
-          />
-          {/* pL fill: center to right */}
-          <div
-            className={`absolute inset-y-0 rounded-r-sm transition-all duration-500 ease-out ${lFill}`}
-            style={{ left: '50%', width: `${pLPct}%` }}
-          />
+        <Bar3dTrack dark={dark}>
+          <BarFill className={sFillCls} style={{ right: '50%', width: `${pSPct}%` }} />
+          <BarFill className={lFillCls} style={{ left: '50%', width: `${pLPct}%` }} />
           {/* Threshold markers */}
-          <div
-            className={`absolute top-0 h-full w-px ${dark ? 'bg-orange-300/50' : 'bg-orange-500/50'}`}
+          <div className={`absolute top-0 h-full w-px ${dark ? 'bg-orange-300/40' : 'bg-orange-500/40'}`}
             style={{ left: `${50 - thrSPct}%` }}
           />
-          <div
-            className={`absolute top-0 h-full w-px ${dark ? 'bg-cyan-300/50' : 'bg-cyan-500/50'}`}
+          <div className={`absolute top-0 h-full w-px ${dark ? 'bg-cyan-300/40' : 'bg-cyan-500/40'}`}
             style={{ left: `${50 + thrLPct}%` }}
           />
-          {/* Top highlight for 3D */}
-          <div className="absolute inset-x-0 top-0 h-px bg-white/10 rounded-t-sm" />
-        </div>
+        </Bar3dTrack>
       </div>
 
       {/* Forming bar */}
@@ -135,17 +142,16 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
           <span className={`text-[9px] font-medium ${label}`}>Forming</span>
           <span className={`text-[9px] tabular-nums font-medium ${dark ? 'text-slate-200' : 'text-slate-700'}`}>{formPct.toFixed(0)}%</span>
         </div>
-        <div className={`relative ${trackCls} rounded-sm ${BAR_H} overflow-hidden`}>
-          <div
-            className={`absolute inset-y-0 left-0 rounded-sm transition-all duration-300 ease-out ${
+        <Bar3dTrack dark={dark}>
+          <BarFill
+            className={`rounded-full ${
               dark
-                ? 'bg-gradient-to-r from-blue-500/80 to-blue-400/70 shadow-[0_1px_3px_rgba(59,130,246,0.3)]'
-                : 'bg-gradient-to-r from-blue-500/70 to-blue-400/60'
+                ? 'bg-gradient-to-r from-sky-500 via-sky-400 to-sky-500 shadow-[0_0_5px_rgba(56,189,248,0.4)]'
+                : 'bg-gradient-to-r from-sky-500 via-sky-400 to-sky-500'
             }`}
-            style={{ width: `${formPct}%` }}
+            style={{ left: 0, width: `${formPct}%` }}
           />
-          <div className="absolute inset-x-0 top-0 h-px bg-white/10 rounded-t-sm" />
-        </div>
+        </Bar3dTrack>
       </div>
     </div>
   );
@@ -155,9 +161,6 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
 export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitPanelProps) {
   const bg = dark ? 'bg-slate-800/95 border-slate-700/80' : 'bg-white border-stone-200';
   const label = dark ? 'text-slate-400' : 'text-stone-500';
-  const trackCls = dark
-    ? 'bg-gradient-to-b from-slate-700/80 to-slate-800/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]'
-    : 'bg-gradient-to-b from-stone-200 to-stone-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]';
 
   if (!position || !position.side || position.entry_price == null) return null;
 
@@ -183,7 +186,6 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
-  // Calculate positions on the bar
   let entryPct = 50;
   let clampedCurrentPct = 50;
   let leftLabel = '';
@@ -209,13 +211,13 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
     rightLabel = `$${Math.round(Math.max(entry_price, currentPrice) + spread * 0.3)}`;
   }
 
-  // Fill goes FROM entry TO current price
+  // Fill starts exactly at entry and extends to current price
   const fillLeft = Math.min(entryPct, clampedCurrentPct);
   const fillWidth = Math.abs(clampedCurrentPct - entryPct);
 
-  const fillColor = inProfit
-    ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_1px_4px_rgba(16,185,129,0.5)]'
-    : 'bg-gradient-to-r from-red-500 to-red-400 shadow-[0_1px_4px_rgba(239,68,68,0.4)]';
+  const fillCls = inProfit
+    ? 'rounded-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]'
+    : 'rounded-full bg-gradient-to-r from-red-500 via-red-400 to-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]';
 
   const pnlColor = pnl >= 0
     ? (dark ? 'text-emerald-400' : 'text-emerald-600')
@@ -236,27 +238,9 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
 
       {/* Price bar */}
       <div className="space-y-1">
-        <div className={`relative ${trackCls} rounded-sm ${BAR_H} overflow-hidden`}>
-          {/* Fill from entry to current */}
-          <div
-            className={`absolute inset-y-0 rounded-sm transition-all duration-500 ease-out ${fillColor}`}
-            style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
-          />
-          {/* Entry marker line */}
-          <div
-            className={`absolute top-0 h-full w-[1.5px] z-20 ${dark ? 'bg-white/80' : 'bg-slate-700/80'}`}
-            style={{ left: `${entryPct}%` }}
-          />
-          {/* Current price dot */}
-          <div
-            className={`absolute z-20 w-2 h-2 rounded-full border-[1.5px] ${
-              dark ? 'border-white bg-white/90' : 'border-slate-800 bg-slate-800'
-            } shadow-sm`}
-            style={{ left: `${clampedCurrentPct}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
-          />
-          {/* Top highlight for 3D */}
-          <div className="absolute inset-x-0 top-0 h-px bg-white/10 rounded-t-sm" />
-        </div>
+        <Bar3dTrack dark={dark}>
+          <BarFill className={fillCls} style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }} />
+        </Bar3dTrack>
 
         <div className={`flex justify-between text-[8px] ${label}`}>
           <span>{leftLabel}</span>

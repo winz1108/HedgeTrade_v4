@@ -1501,6 +1501,42 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
               );
             })()}
 
+            {/* POC step-after line */}
+            {(() => {
+              const pocPoints: string[] = [];
+              let prevPocY: number | null = null;
+
+              visibleCandles.forEach((candle, idx) => {
+                const poc = candle.poc as number | undefined;
+                if (poc == null) return;
+
+                const xLeft = idx * (candleWidth + candleGap);
+                const xRight = xLeft + candleWidth + candleGap;
+                const y = priceToY(poc);
+
+                if (prevPocY !== null && prevPocY !== y) {
+                  pocPoints.push(`${xLeft},${prevPocY}`);
+                  pocPoints.push(`${xLeft},${y}`);
+                }
+                pocPoints.push(`${xLeft},${y}`);
+                pocPoints.push(`${xRight},${y}`);
+                prevPocY = y;
+              });
+
+              if (pocPoints.length < 2) return null;
+
+              return (
+                <polyline
+                  points={pocPoints.join(' ')}
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth="1.6"
+                  opacity="0.85"
+                  style={{ pointerEvents: 'none' }}
+                />
+              );
+            })()}
+
             {/* Crosshair */}
             {crosshairPosition && hoveredCandleIndex !== null && (
               <>
