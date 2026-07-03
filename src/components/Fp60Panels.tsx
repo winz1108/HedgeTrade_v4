@@ -80,12 +80,12 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <span className={`text-[9px] tabular-nums font-bold ${
-            shortActive ? (dark ? 'text-orange-300' : 'text-orange-700') : (dark ? 'text-orange-400/60' : 'text-orange-600/60')
+            shortActive ? (dark ? 'text-orange-300' : 'text-orange-700') : (dark ? 'text-orange-400' : 'text-orange-600')
           }`}>
             pS {pS.toFixed(3)}
           </span>
           <span className={`text-[9px] tabular-nums font-bold ${
-            longActive ? (dark ? 'text-cyan-300' : 'text-cyan-700') : (dark ? 'text-cyan-400/60' : 'text-cyan-600/60')
+            longActive ? (dark ? 'text-cyan-300' : 'text-cyan-700') : (dark ? 'text-cyan-400' : 'text-cyan-600')
           }`}>
             pL {pL.toFixed(3)}
           </span>
@@ -97,7 +97,7 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
             className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${
               shortActive
                 ? 'bg-gradient-to-l from-orange-500 to-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.4)]'
-                : 'bg-gradient-to-l from-orange-500/50 to-orange-400/40'
+                : 'bg-gradient-to-l from-orange-500/80 to-orange-400/70'
             }`}
             style={{ right: '50%', width: `${pSPct}%` }}
           />
@@ -106,7 +106,7 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
             className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-500 ease-out ${
               longActive
                 ? 'bg-gradient-to-r from-cyan-500 to-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.4)]'
-                : 'bg-gradient-to-r from-cyan-500/50 to-cyan-400/40'
+                : 'bg-gradient-to-r from-cyan-500/80 to-cyan-400/70'
             }`}
             style={{ left: '50%', width: `${pLPct}%` }}
           />
@@ -134,10 +134,10 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
           <span className={`text-[9px] font-semibold ${dark ? 'text-slate-400' : 'text-stone-500'}`}>Forming Bar</span>
           <span className={`text-[9px] tabular-nums font-bold ${dark ? 'text-slate-300' : 'text-slate-600'}`}>{formPct.toFixed(1)}%</span>
         </div>
-        <div className={`relative ${dark ? 'bg-slate-700/50' : 'bg-stone-200/70'} rounded-full h-2 overflow-hidden`}>
+        <div className={`relative ${dark ? 'bg-slate-700/50' : 'bg-stone-200/70'} rounded-full h-3 overflow-hidden`}>
           <div
             className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-300 ease-out ${
-              dark ? 'bg-gradient-to-r from-slate-500 to-slate-400' : 'bg-gradient-to-r from-stone-400 to-stone-300'
+              dark ? 'bg-gradient-to-r from-teal-500/70 to-teal-400/60' : 'bg-gradient-to-r from-teal-500 to-teal-400'
             }`}
             style={{ left: 0, width: `${formPct}%` }}
           />

@@ -216,25 +216,54 @@ function FuturesDashboard() {
           const lastCandle = updatedCandles[updatedCandles.length - 1];
 
           if (candleData.is_final === true) {
-            // CVB candle completed -> fetch fresh REST data
+            // CVB candle completed -> fetch fresh REST data + fp60
             fetchKrakenCvbChartData(200).then(result => {
-              const freshCandles = result?.candles;
-              if (!freshCandles || freshCandles.length === 0) return;
-              setData(prev => {
-                if (!prev || !prev.priceHistories) return prev;
-                return { ...prev, priceHistories: { ...prev.priceHistories, cvb: freshCandles } };
-              });
+              if (!result) return;
+              const freshCandles = result.candles;
+              if (freshCandles?.length > 0) {
+                setData(prev => {
+                  if (!prev || !prev.priceHistories) return prev;
+                  return { ...prev, priceHistories: { ...prev.priceHistories, cvb: freshCandles } };
+                });
+              }
+              if (result.fp60_panel) setFp60Panel(result.fp60_panel);
+              if (result.fp60_history) setFp60History(result.fp60_history);
+              if (result.position) setFp60Position(result.position);
             }).catch(() => {});
             return prevData;
           }
 
           // Forming CVB candle: update OHLC on last candle
-          updatedCandles[updatedCandles.length - 1] = {
-            ...lastCandle,
-            high: Math.max(lastCandle.high, candleData.high),
-            low: Math.min(lastCandle.low, candleData.low),
-            close: candleData.close,
-          };
+          const wsSeq = candleData.seq;
+          const lastSeq = (lastCandle as any).seq;
+
+          if (wsSeq != null && lastSeq != null && wsSeq > lastSeq) {
+            // New candle started: finalize previous, push new forming candle
+            const prevClose = lastCandle.close;
+            updatedCandles.push({
+              ...candleData,
+              open_time_ms: candleData.time ? candleData.time * 1000 : Date.now(),
+              timestamp: candleData.time ? candleData.time * 1000 : Date.now(),
+              seq: wsSeq,
+              open: prevClose,
+              high: Math.max(prevClose, candleData.high || prevClose),
+              low: Math.min(prevClose, candleData.low || prevClose),
+              close: candleData.close || prevClose,
+              volume: candleData.volume || 0,
+              is_forming: true,
+            } as any);
+            if (updatedCandles.length > 250) updatedCandles.shift();
+          } else {
+            // Same candle: update OHLC
+            updatedCandles[updatedCandles.length - 1] = {
+              ...lastCandle,
+              high: Math.max(lastCandle.high, candleData.high),
+              low: Math.min(lastCandle.low, candleData.low),
+              close: candleData.close,
+              volume: candleData.volume ?? lastCandle.volume,
+              volume_pct: candleData.volume_pct ?? (lastCandle as any).volume_pct,
+            };
+          }
           return { ...prevData, priceHistories: { ...prevData.priceHistories, cvb: updatedCandles } };
         });
         return;

@@ -170,12 +170,14 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const minVolumeHeight = 80;
   const maxVolumeHeight = 300;
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const baseHeight = isMaximized
-    ? window.innerHeight - 120
-    : isMobile
-      ? Math.min(window.innerHeight * 0.6, 450)
-      : 590;
+  const baseHeight = useMemo(() => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    return isMaximized
+      ? window.innerHeight - 120
+      : isMobile
+        ? Math.min(window.innerHeight * 0.6, 450)
+        : 590;
+  }, [isMaximized]);
 
   const macdChartHeight = Math.floor(baseHeight * 0.16);
   const volumeChartHeight = volumeHeight;
@@ -1010,9 +1012,15 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
         {/* Volume Y-Axis */}
         <div className="absolute" style={{ top: `${priceChartHeight + 28}px`, height: `${volumeChartHeight}px`, width: '100%' }}>
           {(() => {
-            const isCvb = timeframe === 'cvb';
-            const maxVal = Math.max(...visibleCandles.map(c => isCvb ? (c.duration || 0) : c.volume));
+            const maxVal = Math.max(...visibleCandles.map(c => c.volume || 0));
+            if (maxVal <= 0) return null;
             const steps = 4;
+            const formatVol = (v: number) => {
+              if (v >= 1e9) return `${(v / 1e9).toFixed(1)}B`;
+              if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;
+              if (v >= 1e3) return `${(v / 1e3).toFixed(0)}K`;
+              return v.toFixed(0);
+            };
             return Array.from({ length: steps }).map((_, i) => {
               const val = (maxVal / (steps - 1)) * (steps - 1 - i);
               const percentage = i / (steps - 1);
@@ -1024,7 +1032,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                   className={`absolute right-0 w-full text-left pl-2 ${colors.textPrimary} text-[10px]`}
                   style={{ top: `${y - 6}px` }}
                 >
-                  {isCvb ? `${val.toFixed(0)}m` : (val >= 1000 ? `${(val / 1000).toFixed(1)}K` : val.toFixed(0))}
+                  {formatVol(val)}
                 </div>
               );
             });
@@ -2229,11 +2237,10 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
           >
             <div className="absolute left-0 flex pointer-events-none overflow-hidden" style={{ top: 0, height: '100%', width: '100%' }}>
               {visibleCandles.map((candle, idx) => {
-                const isCvb = timeframe === 'cvb';
-                const barValues = visibleCandles.map(c => isCvb ? (c.duration || 0) : (c.volume || 0));
+                const barValues = visibleCandles.map(c => c.volume || 0);
                 const maxVal = Math.max(...barValues, 0.001);
                 const topPadding = Math.max(5, volumeChartHeight * 0.15);
-                const candleVal = isCvb ? (candle.duration || 0) : (candle.volume || 0);
+                const candleVal = candle.volume || 0;
                 const barHeight = (candleVal / maxVal) * (volumeChartHeight - topPadding - 10);
                 const isGreen = candle.close >= candle.open;
 
@@ -2331,27 +2338,33 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                       />
                     );
                   })}
-                  {/* pL polyline (cyan) */}
+                  {/* pL/pS polylines + dot markers */}
                   {(() => {
-                    const pLPoints: string[] = [];
-                    const pSPoints: string[] = [];
+                    const pLCoords: { x: number; y: number }[] = [];
+                    const pSCoords: { x: number; y: number }[] = [];
                     visibleCandles.forEach((candle, idx) => {
                       const seq = (candle as any).seq;
                       const fp = seq != null ? fp60Map.get(seq) : null;
                       if (fp) {
                         const x = idx * (candleWidth + candleGap) + candleWidth / 2;
-                        pLPoints.push(`${x},${fp60ToY(fp.pL)}`);
-                        pSPoints.push(`${x},${fp60ToY(fp.pS)}`);
+                        pLCoords.push({ x, y: fp60ToY(fp.pL) });
+                        pSCoords.push({ x, y: fp60ToY(fp.pS) });
                       }
                     });
                     return (
                       <>
-                        {pLPoints.length > 1 && (
-                          <polyline points={pLPoints.join(' ')} fill="none" stroke="#22d3ee" strokeWidth="1.8" opacity="0.95" />
+                        {pLCoords.length > 1 && (
+                          <polyline points={pLCoords.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="#22d3ee" strokeWidth="1.8" opacity="0.95" />
                         )}
-                        {pSPoints.length > 1 && (
-                          <polyline points={pSPoints.join(' ')} fill="none" stroke="#fb923c" strokeWidth="1.8" opacity="0.95" />
+                        {pSCoords.length > 1 && (
+                          <polyline points={pSCoords.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="#fb923c" strokeWidth="1.8" opacity="0.95" />
                         )}
+                        {pLCoords.map((p, i) => (
+                          <circle key={`pL-${i}`} cx={p.x} cy={p.y} r="3" fill="#22d3ee" opacity="0.9" />
+                        ))}
+                        {pSCoords.map((p, i) => (
+                          <circle key={`pS-${i}`} cx={p.x} cy={p.y} r="3" fill="#fb923c" opacity="0.9" />
+                        ))}
                       </>
                     );
                   })()}
