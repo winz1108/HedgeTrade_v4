@@ -31,13 +31,14 @@ interface Fp60ExitPanelProps {
 }
 
 const GAUGE_MAX = 0.75;
-const BAR_H = 'h-[6px]';
+const BAR_H = 'h-2';
 
 export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryPanelProps) {
   const bg = dark ? 'bg-slate-800/95 border-slate-700/80' : 'bg-white border-stone-200';
   const label = dark ? 'text-slate-400' : 'text-stone-500';
-  const val = dark ? 'text-slate-200' : 'text-slate-700';
-  const trackBg = dark ? 'bg-slate-700/50' : 'bg-stone-200/70';
+  const trackCls = dark
+    ? 'bg-gradient-to-b from-slate-700/80 to-slate-800/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]'
+    : 'bg-gradient-to-b from-stone-200 to-stone-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]';
 
   if (!fp60Panel) {
     return (
@@ -64,18 +65,18 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
   const formPct = Math.max(0, Math.min(100, volumePct ?? 0));
 
   const sColor = dark
-    ? (shortActive ? 'text-amber-400' : 'text-amber-500/60')
-    : (shortActive ? 'text-amber-600' : 'text-amber-500/60');
+    ? (shortActive ? 'text-orange-300' : 'text-orange-400/60')
+    : (shortActive ? 'text-orange-600' : 'text-orange-500/60');
   const lColor = dark
-    ? (longActive ? 'text-teal-400' : 'text-teal-500/60')
-    : (longActive ? 'text-teal-600' : 'text-teal-500/60');
+    ? (longActive ? 'text-cyan-300' : 'text-cyan-400/60')
+    : (longActive ? 'text-cyan-600' : 'text-cyan-500/60');
 
   const sFill = shortActive
-    ? (dark ? 'bg-amber-400' : 'bg-amber-500')
-    : (dark ? 'bg-amber-500/40' : 'bg-amber-400/50');
+    ? 'bg-gradient-to-l from-orange-400 to-orange-500 shadow-[0_1px_3px_rgba(251,146,60,0.5)]'
+    : 'bg-gradient-to-l from-orange-500/50 to-orange-600/40';
   const lFill = longActive
-    ? (dark ? 'bg-teal-400' : 'bg-teal-500')
-    : (dark ? 'bg-teal-500/40' : 'bg-teal-400/50');
+    ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-[0_1px_3px_rgba(34,211,238,0.5)]'
+    : 'bg-gradient-to-r from-cyan-500/50 to-cyan-600/40';
 
   return (
     <div className={`${bg} border rounded-lg p-2.5 space-y-2.5`}>
@@ -84,8 +85,8 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
         {(longActive || shortActive) && (
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
             longActive
-              ? (dark ? 'bg-teal-500/15 text-teal-400' : 'bg-teal-50 text-teal-600')
-              : (dark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600')
+              ? (dark ? 'bg-cyan-500/15 text-cyan-300' : 'bg-cyan-50 text-cyan-700')
+              : (dark ? 'bg-orange-500/15 text-orange-300' : 'bg-orange-50 text-orange-700')
           }`}>
             {longActive && shortActive ? (pL >= pS ? 'LONG' : 'SHORT') : longActive ? 'LONG' : 'SHORT'}
           </span>
@@ -103,23 +104,28 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
           </span>
         </div>
 
-        <div className={`relative ${trackBg} rounded ${BAR_H} overflow-hidden`}>
+        <div className={`relative ${trackCls} rounded-sm ${BAR_H} overflow-hidden`}>
+          {/* pS fill: center to left */}
           <div
-            className={`absolute inset-y-0 rounded-l transition-all duration-500 ease-out ${sFill}`}
+            className={`absolute inset-y-0 rounded-l-sm transition-all duration-500 ease-out ${sFill}`}
             style={{ right: '50%', width: `${pSPct}%` }}
           />
+          {/* pL fill: center to right */}
           <div
-            className={`absolute inset-y-0 rounded-r transition-all duration-500 ease-out ${lFill}`}
+            className={`absolute inset-y-0 rounded-r-sm transition-all duration-500 ease-out ${lFill}`}
             style={{ left: '50%', width: `${pLPct}%` }}
           />
+          {/* Threshold markers */}
           <div
-            className={`absolute top-0 h-full w-px ${dark ? 'bg-amber-400/40' : 'bg-amber-500/40'}`}
+            className={`absolute top-0 h-full w-px ${dark ? 'bg-orange-300/50' : 'bg-orange-500/50'}`}
             style={{ left: `${50 - thrSPct}%` }}
           />
           <div
-            className={`absolute top-0 h-full w-px ${dark ? 'bg-teal-400/40' : 'bg-teal-500/40'}`}
+            className={`absolute top-0 h-full w-px ${dark ? 'bg-cyan-300/50' : 'bg-cyan-500/50'}`}
             style={{ left: `${50 + thrLPct}%` }}
           />
+          {/* Top highlight for 3D */}
+          <div className="absolute inset-x-0 top-0 h-px bg-white/10 rounded-t-sm" />
         </div>
       </div>
 
@@ -127,15 +133,18 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <span className={`text-[9px] font-medium ${label}`}>Forming</span>
-          <span className={`text-[9px] tabular-nums font-medium ${val}`}>{formPct.toFixed(0)}%</span>
+          <span className={`text-[9px] tabular-nums font-medium ${dark ? 'text-slate-200' : 'text-slate-700'}`}>{formPct.toFixed(0)}%</span>
         </div>
-        <div className={`relative ${trackBg} rounded ${BAR_H} overflow-hidden`}>
+        <div className={`relative ${trackCls} rounded-sm ${BAR_H} overflow-hidden`}>
           <div
-            className={`absolute inset-y-0 left-0 rounded transition-all duration-300 ease-out ${
-              dark ? 'bg-slate-400/70' : 'bg-stone-400/70'
+            className={`absolute inset-y-0 left-0 rounded-sm transition-all duration-300 ease-out ${
+              dark
+                ? 'bg-gradient-to-r from-blue-500/80 to-blue-400/70 shadow-[0_1px_3px_rgba(59,130,246,0.3)]'
+                : 'bg-gradient-to-r from-blue-500/70 to-blue-400/60'
             }`}
             style={{ width: `${formPct}%` }}
           />
+          <div className="absolute inset-x-0 top-0 h-px bg-white/10 rounded-t-sm" />
         </div>
       </div>
     </div>
@@ -146,7 +155,9 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
 export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitPanelProps) {
   const bg = dark ? 'bg-slate-800/95 border-slate-700/80' : 'bg-white border-stone-200';
   const label = dark ? 'text-slate-400' : 'text-stone-500';
-  const trackBg = dark ? 'bg-slate-700/50' : 'bg-stone-200/70';
+  const trackCls = dark
+    ? 'bg-gradient-to-b from-slate-700/80 to-slate-800/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]'
+    : 'bg-gradient-to-b from-stone-200 to-stone-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]';
 
   if (!position || !position.side || position.entry_price == null) return null;
 
@@ -158,8 +169,8 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
   const pnl = pnl_pct ?? 0;
 
   const sideColor = isLong
-    ? (dark ? 'text-teal-400' : 'text-teal-600')
-    : (dark ? 'text-amber-400' : 'text-amber-600');
+    ? (dark ? 'text-cyan-400' : 'text-cyan-600')
+    : (dark ? 'text-orange-400' : 'text-orange-600');
 
   const formatDuration = (min: number) => {
     if (min >= 1440) {
@@ -172,10 +183,9 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
+  // Calculate positions on the bar
   let entryPct = 50;
   let clampedCurrentPct = 50;
-  let fillLeft = 50;
-  let fillWidth = 0;
   let leftLabel = '';
   let rightLabel = '';
 
@@ -186,8 +196,6 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
     entryPct = totalRange > 0 ? ((entry_price - leftPrice) / totalRange) * 100 : 50;
     const currentPct = totalRange > 0 ? ((currentPrice - leftPrice) / totalRange) * 100 : 50;
     clampedCurrentPct = Math.max(0, Math.min(100, currentPct));
-    fillLeft = Math.min(entryPct, clampedCurrentPct);
-    fillWidth = Math.abs(clampedCurrentPct - entryPct);
     leftLabel = `${isLong ? 'SL' : 'TP'} $${leftPrice.toFixed(0)}`;
     rightLabel = `${isLong ? 'TP' : 'SL'} $${rightPrice.toFixed(0)}`;
   } else {
@@ -197,19 +205,21 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
     const range = hi - lo;
     entryPct = range > 0 ? ((entry_price - lo) / range) * 100 : 50;
     clampedCurrentPct = range > 0 ? Math.max(0, Math.min(100, ((currentPrice - lo) / range) * 100)) : 50;
-    fillLeft = Math.min(entryPct, clampedCurrentPct);
-    fillWidth = Math.abs(clampedCurrentPct - entryPct);
     leftLabel = `$${Math.round(Math.min(entry_price, currentPrice) - spread * 0.3)}`;
     rightLabel = `$${Math.round(Math.max(entry_price, currentPrice) + spread * 0.3)}`;
   }
 
+  // Fill goes FROM entry TO current price
+  const fillLeft = Math.min(entryPct, clampedCurrentPct);
+  const fillWidth = Math.abs(clampedCurrentPct - entryPct);
+
   const fillColor = inProfit
-    ? (dark ? 'bg-teal-500/60' : 'bg-teal-400/60')
-    : (dark ? 'bg-rose-500/40' : 'bg-rose-400/40');
+    ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_1px_4px_rgba(16,185,129,0.5)]'
+    : 'bg-gradient-to-r from-red-500 to-red-400 shadow-[0_1px_4px_rgba(239,68,68,0.4)]';
 
   const pnlColor = pnl >= 0
-    ? (dark ? 'text-teal-400' : 'text-teal-600')
-    : (dark ? 'text-rose-400' : 'text-rose-600');
+    ? (dark ? 'text-emerald-400' : 'text-emerald-600')
+    : (dark ? 'text-red-400' : 'text-red-600');
 
   return (
     <div className={`${bg} border rounded-lg p-2.5 space-y-2.5`}>
@@ -226,21 +236,26 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
 
       {/* Price bar */}
       <div className="space-y-1">
-        <div className={`relative ${trackBg} rounded ${BAR_H} overflow-hidden`}>
+        <div className={`relative ${trackCls} rounded-sm ${BAR_H} overflow-hidden`}>
+          {/* Fill from entry to current */}
           <div
-            className={`absolute inset-y-0 rounded transition-all duration-500 ease-out ${fillColor}`}
+            className={`absolute inset-y-0 rounded-sm transition-all duration-500 ease-out ${fillColor}`}
             style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
           />
-          {/* Entry marker */}
+          {/* Entry marker line */}
           <div
-            className={`absolute top-0 h-full w-px z-20 ${dark ? 'bg-slate-300/70' : 'bg-slate-500/70'}`}
+            className={`absolute top-0 h-full w-[1.5px] z-20 ${dark ? 'bg-white/80' : 'bg-slate-700/80'}`}
             style={{ left: `${entryPct}%` }}
           />
           {/* Current price dot */}
           <div
-            className={`absolute z-20 w-1.5 h-1.5 rounded-full ${dark ? 'bg-white' : 'bg-slate-800'}`}
+            className={`absolute z-20 w-2 h-2 rounded-full border-[1.5px] ${
+              dark ? 'border-white bg-white/90' : 'border-slate-800 bg-slate-800'
+            } shadow-sm`}
             style={{ left: `${clampedCurrentPct}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
           />
+          {/* Top highlight for 3D */}
+          <div className="absolute inset-x-0 top-0 h-px bg-white/10 rounded-t-sm" />
         </div>
 
         <div className={`flex justify-between text-[8px] ${label}`}>
