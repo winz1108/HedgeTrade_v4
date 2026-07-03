@@ -48,7 +48,10 @@ export function Fp60EntryPanel({ fp60Panel, volumePct, dark = true }: Fp60EntryP
     );
   }
 
-  const { pL, pS, thrL, thrS } = fp60Panel;
+  const pL = fp60Panel.pL ?? 0;
+  const pS = fp60Panel.pS ?? 0;
+  const thrL = fp60Panel.thrL ?? 0.636;
+  const thrS = fp60Panel.thrS ?? 0.644;
   const pLPct = (Math.min(pL, GAUGE_MAX) / GAUGE_MAX) * 100;
   const pSPct = (Math.min(pS, GAUGE_MAX) / GAUGE_MAX) * 100;
   const thrLPct = (thrL / GAUGE_MAX) * 100;
