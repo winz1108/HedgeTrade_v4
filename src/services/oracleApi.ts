@@ -659,6 +659,7 @@ export const fetchKrakenCvbChartData = async (limit: number = 200) => {
         is_final: c.is_final,
         volume_pct: c.volume_pct,
         range_pct: c.range_pct,
+        poc: c.poc,
       } as any;
     });
 
@@ -718,6 +719,7 @@ export const fetchCvbChartData = async (limit: number = 200) => {
       is_final: c.is_final,
       volume_pct: c.volume_pct,
       range_pct: c.range_pct,
+      poc: c.poc,
     }));
 
     return {

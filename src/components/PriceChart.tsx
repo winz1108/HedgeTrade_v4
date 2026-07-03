@@ -228,7 +228,6 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       if (c.bb_upper) vals.push(c.bb_upper);
       if (c.bb_mid) vals.push(c.bb_mid);
       if (c.bb_lower) vals.push(c.bb_lower);
-      if ((c as any).poc) vals.push((c as any).poc);
       return vals;
     });
 
@@ -1506,14 +1505,17 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
             {(() => {
               const pocPoints: string[] = [];
               let prevPocY: number | null = null;
+              let lastPocPrice: number | null = null;
 
               visibleCandles.forEach((candle, idx) => {
-                const poc = candle.poc as number | undefined;
+                const poc = (candle as any).poc as number | undefined;
                 if (poc == null) return;
+                lastPocPrice = poc;
 
                 const xLeft = idx * (candleWidth + candleGap);
                 const xRight = xLeft + candleWidth + candleGap;
-                const y = priceToY(poc);
+                const rawY = priceToY(poc);
+                const y = Math.max(0, Math.min(priceChartHeight, rawY));
 
                 if (prevPocY !== null && prevPocY !== y) {
                   pocPoints.push(`${xLeft},${prevPocY}`);
@@ -1524,17 +1526,49 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 prevPocY = y;
               });
 
-              if (pocPoints.length < 2) return null;
+              if (pocPoints.length < 2 || lastPocPrice == null) return null;
+
+              const pocY = priceToY(lastPocPrice);
+              const isBelow = pocY > priceChartHeight;
+              const isAbove = pocY < 0;
+              const clampedY = Math.max(4, Math.min(priceChartHeight - 4, pocY));
+              const chartRight = visibleCandles.length * (candleWidth + candleGap);
 
               return (
-                <polyline
-                  points={pocPoints.join(' ')}
-                  fill="none"
-                  stroke="#f59e0b"
-                  strokeWidth="1.6"
-                  opacity="0.85"
-                  style={{ pointerEvents: 'none' }}
-                />
+                <>
+                  <polyline
+                    points={pocPoints.join(' ')}
+                    fill="none"
+                    stroke="#f59e0b"
+                    strokeWidth="2"
+                    opacity="0.9"
+                    strokeDasharray={isBelow || isAbove ? '6 3' : 'none'}
+                    style={{ pointerEvents: 'none' }}
+                  />
+                  {/* POC price label on right edge */}
+                  <rect
+                    x={chartRight - 80}
+                    y={clampedY - 8}
+                    width="78"
+                    height="16"
+                    rx="3"
+                    fill="rgba(245, 158, 11, 0.2)"
+                    stroke="#f59e0b"
+                    strokeWidth="0.5"
+                    style={{ pointerEvents: 'none' }}
+                  />
+                  <text
+                    x={chartRight - 41}
+                    y={clampedY + 4}
+                    textAnchor="middle"
+                    fontSize="9"
+                    fontWeight="bold"
+                    fill="#f59e0b"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    POC {lastPocPrice.toFixed(0)}{isBelow ? ' \u2193' : isAbove ? ' \u2191' : ''}
+                  </text>
+                </>
               );
             })()}
 
