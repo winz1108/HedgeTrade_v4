@@ -170,14 +170,15 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
   const minVolumeHeight = 80;
   const maxVolumeHeight = 300;
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   const baseHeight = useMemo(() => {
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     return isMaximized
       ? window.innerHeight - 120
       : isMobile
         ? Math.min(window.innerHeight * 0.6, 450)
         : 590;
-  }, [isMaximized]);
+  }, [isMaximized, isMobile]);
 
   const macdChartHeight = Math.floor(baseHeight * 0.16);
   const volumeChartHeight = volumeHeight;
