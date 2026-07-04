@@ -424,6 +424,43 @@ function App() {
       }).catch(() => {});
     }, 5000);
 
+    const handleTradeEvent = (tradeData: any) => {
+      if (!tradeData) return;
+      lastWsMessage = Date.now();
+      setData(prev => {
+        if (!prev) return prev;
+        const updated = { ...prev };
+        if (tradeData.trades && Array.isArray(tradeData.trades)) {
+          updated.recentTrades = tradeData.trades;
+        } else if (tradeData.trade) {
+          const existing = [...(prev.recentTrades || [])];
+          const tradeTs = tradeData.trade.timestamp || tradeData.trade.time;
+          const isDuplicate = existing.some(t =>
+            (t.timestamp || (t as any).time) === tradeTs && t.type === tradeData.trade.type
+          );
+          if (!isDuplicate) {
+            existing.push(tradeData.trade);
+            if (existing.length > 50) existing.shift();
+          }
+          updated.recentTrades = existing;
+        }
+        return updated;
+      });
+    };
+
+    const handleDashboardUpdate = (dashData: any) => {
+      if (!dashData) return;
+      lastWsMessage = Date.now();
+      setData(prev => {
+        if (!prev) return prev;
+        if (!dashData.trades || !Array.isArray(dashData.trades)) return prev;
+        return { ...prev, recentTrades: dashData.trades };
+      });
+    };
+
+    const unsubTradeEvent = websocketService.onTradeEvent(handleTradeEvent);
+    const unsubDashboard = websocketService.onDashboardUpdate(handleDashboardUpdate);
+
     return () => {
       clearInterval(wsHealthCheck);
       clearInterval(cvbPollInterval);
@@ -431,6 +468,8 @@ function App() {
       websocketService.off('realtime_candle_update', handleRealtimeCandle);
       websocketService.off('bf_live_status', handleLiveStatus);
       websocketService.off('bf_price_tick', handlePriceTick);
+      unsubTradeEvent();
+      unsubDashboard();
     };
   }, [selectedTimeframe]);
 

@@ -386,6 +386,55 @@ function FuturesDashboard() {
       }).catch(() => {});
     }, 5000);
 
+    const handleTradeEvent = (tradeData: any) => {
+      if (!tradeData) return;
+      lastWsMessage = Date.now();
+      setData(prev => {
+        if (!prev) return prev;
+        const updated = { ...prev };
+        if (tradeData.trades && Array.isArray(tradeData.trades)) {
+          updated.recentTrades = tradeData.trades;
+        } else if (tradeData.trade) {
+          const existing = [...(prev.recentTrades || [])];
+          const tradeTs = tradeData.trade.timestamp || tradeData.trade.time;
+          const isDuplicate = existing.some(t =>
+            (t.timestamp || (t as any).time) === tradeTs && t.type === tradeData.trade.type
+          );
+          if (!isDuplicate) {
+            existing.push(tradeData.trade);
+            if (existing.length > 50) existing.shift();
+          }
+          updated.recentTrades = existing;
+        }
+        if (tradeData.holding !== undefined) {
+          updated.position = { ...updated.position, ...tradeData.holding };
+        }
+        return updated;
+      });
+    };
+
+    const handleDashboardUpdate = (dashData: any) => {
+      if (!dashData) return;
+      lastWsMessage = Date.now();
+      setData(prev => {
+        if (!prev) return prev;
+        const updated = { ...prev };
+        if (dashData.trades && Array.isArray(dashData.trades)) {
+          updated.recentTrades = dashData.trades;
+        }
+        if (dashData.holding !== undefined) {
+          updated.position = { ...updated.position, ...dashData.holding };
+        }
+        if (dashData.strategyStatus) {
+          updated.strategyStatus = { ...(updated.strategyStatus as any), ...dashData.strategyStatus } as any;
+        }
+        return updated;
+      });
+    };
+
+    const unsubTradeEvent = websocketService.onTradeEvent(handleTradeEvent);
+    const unsubDashboard = websocketService.onDashboardUpdate(handleDashboardUpdate);
+
     const unsubBinancePrice = websocketService.onPriceUpdate((priceData) => {
       if (!priceData?.currentPrice) return;
       const p = Number(priceData.currentPrice);
@@ -416,6 +465,8 @@ function FuturesDashboard() {
       websocketService.off('kraken_price_update', handleKrakenPriceUpdate);
       websocketService.off('kraken_status_update', handleStatusUpdate);
       unsubBinancePrice();
+      unsubTradeEvent();
+      unsubDashboard();
     };
   }, [selectedTimeframe]);
 
