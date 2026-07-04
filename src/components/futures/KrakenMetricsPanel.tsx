@@ -70,7 +70,8 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
       entryPrice && livePrice && entryPrice > 0
         ? ((livePrice - entryPrice) / entryPrice) * 100 * (positionSide === 'SHORT' ? -1 : 1)
         : undefined;
-    const currentPnl = liveComputedPnl ?? data.strategyA?.current_pnl;
+    const rawPnl = liveComputedPnl ?? data.strategyA?.current_pnl;
+    const currentPnl = rawPnl != null && leverage != null ? rawPnl * leverage : rawPnl;
     const zbPos = zbStatus?.position;
 
     let liquidationPrice: number | null = null;

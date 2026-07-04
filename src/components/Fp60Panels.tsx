@@ -161,7 +161,10 @@ export function Fp60ExitPanel({ position, currentPrice, dark = true }: Fp60ExitP
   const hasTpSl = tp_price != null && sl_price != null;
 
   const inProfit = isLong ? currentPrice > entry_price : currentPrice < entry_price;
-  const pnl = pnl_pct ?? 0;
+  const rawPnl = entry_price > 0
+    ? ((currentPrice - entry_price) / entry_price) * 100 * (isLong ? 1 : -1)
+    : (pnl_pct ?? 0);
+  const pnl = rawPnl;
   const dirColor = isLong ? (dark ? 'text-cyan-400' : 'text-cyan-600') : (dark ? 'text-orange-400' : 'text-orange-600');
 
   const formatDuration = (min: number) => {

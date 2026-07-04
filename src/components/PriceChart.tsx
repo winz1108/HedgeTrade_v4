@@ -50,6 +50,17 @@ function deduplicateCandles(candles: Candle[]): Candle[] {
   return Array.from(candleMap.values()).sort((a, b) => a.timestamp - b.timestamp);
 }
 
+function deduplicateCvbCandles(candles: Candle[]): Candle[] {
+  const seen = new Map<number, Candle>();
+  for (const candle of candles) {
+    const seq = (candle as any).seq;
+    const key = seq != null ? seq : normalizeTimestamp(candle.timestamp);
+    const normalized = candle.timestamp < 1e12 ? { ...candle, timestamp: candle.timestamp * 1000 } : candle;
+    seen.set(key, normalized);
+  }
+  return Array.from(seen.values()).sort((a, b) => a.timestamp - b.timestamp);
+}
+
 function aggregateCandlesToTimeframe(sourceCandles: Candle[], minutes: number): Candle[] {
   if (minutes === 1) {
     return sourceCandles;
@@ -199,7 +210,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       '1h': data.priceHistory1h ? deduplicateCandles([...data.priceHistory1h]) : aggregateCandlesToTimeframe(base1m, 60),
       '4h': data.priceHistory4h ? deduplicateCandles([...data.priceHistory4h]) : aggregateCandlesToTimeframe(base1m, 240),
       '1d': data.priceHistory1d ? deduplicateCandles([...data.priceHistory1d]) : aggregateCandlesToTimeframe(base1m, 1440),
-      'cvb': data.priceHistoryCvb ? deduplicateCandles([...data.priceHistoryCvb]) : [],
+      'cvb': data.priceHistoryCvb ? deduplicateCvbCandles([...data.priceHistoryCvb]) : [],
     };
 
     return result;
