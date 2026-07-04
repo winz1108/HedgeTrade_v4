@@ -769,6 +769,7 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
       case '1h': return 60;
       case '4h': return 240;
       case '1d': return 1440;
+      case 'cvb': return 1;
     }
   };
 
@@ -1761,13 +1762,29 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
               if (sellTrade.type !== 'sell' || buyTrade.type !== 'buy') return null;
 
-              const timeframeMinutes = getTimeframeMinutes(timeframe);
+              const isCvbTf = timeframe === 'cvb';
+              const timeframeMinutes = isCvbTf ? 1 : getTimeframeMinutes(timeframe);
               const timeframeMs = timeframeMinutes * 60000;
 
               let buyCandleIndexInAll = -1;
               let sellCandleIndexInAll = -1;
 
-              if (timeframeMinutes === 1) {
+              const findCvbCandleIndex = (candles: typeof selectedCandles, tradeTs: number) => {
+                for (let i = 0; i < candles.length; i++) {
+                  const cStart = candles[i].timestamp;
+                  const cEnd = i < candles.length - 1 ? candles[i + 1].timestamp : Date.now();
+                  if (tradeTs >= cStart && tradeTs < cEnd) return i;
+                }
+                return candles.reduce((best, c, idx) => {
+                  const diff = Math.abs(c.timestamp - tradeTs);
+                  return diff < best.diff ? { idx, diff } : best;
+                }, { idx: -1, diff: Infinity }).idx;
+              };
+
+              if (isCvbTf) {
+                buyCandleIndexInAll = findCvbCandleIndex(selectedCandles, buyTrade.timestamp);
+                sellCandleIndexInAll = findCvbCandleIndex(selectedCandles, sellTrade.timestamp);
+              } else if (timeframeMinutes === 1) {
                 buyCandleIndexInAll = selectedCandles.findIndex(c => Math.abs(c.timestamp - buyTrade.timestamp) < 60000);
                 sellCandleIndexInAll = selectedCandles.findIndex(c => Math.abs(c.timestamp - sellTrade.timestamp) < 60000);
               } else {
@@ -1838,8 +1855,21 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 style={{ width: '100%', height: `${priceChartHeight}px`, zIndex: 12 }}
               >
                 {(() => {
-                const timeframeMinutes = getTimeframeMinutes(timeframe);
+                const isCvbTf2 = timeframe === 'cvb';
+                const timeframeMinutes = isCvbTf2 ? 1 : getTimeframeMinutes(timeframe);
                 const timeframeMs = timeframeMinutes * 60000;
+
+                const findCvbIdx = (candles: typeof selectedCandles, tradeTs: number) => {
+                  for (let i = 0; i < candles.length; i++) {
+                    const cStart = candles[i].timestamp;
+                    const cEnd = i < candles.length - 1 ? candles[i + 1].timestamp : Date.now();
+                    if (tradeTs >= cStart && tradeTs < cEnd) return i;
+                  }
+                  return candles.reduce((best, c, idx) => {
+                    const diff = Math.abs(c.timestamp - tradeTs);
+                    return diff < best.diff ? { idx, diff } : best;
+                  }, { idx: -1, diff: Infinity }).idx;
+                };
 
                 const pairedGroups: Array<{ buy: TradeEvent; sell: TradeEvent }> = [];
                 const processedPairs = new Set<string>();
@@ -1865,11 +1895,13 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 return pairedGroups.map((pair, index) => {
                   const { buy, sell } = pair;
 
-                  // 캔들 인덱스 찾기
                   let buyCandleIndexInAll = -1;
                   let sellCandleIndexInAll = -1;
 
-                  if (timeframeMinutes === 1) {
+                  if (isCvbTf2) {
+                    buyCandleIndexInAll = findCvbIdx(selectedCandles, buy.timestamp);
+                    sellCandleIndexInAll = findCvbIdx(selectedCandles, sell.timestamp);
+                  } else if (timeframeMinutes === 1) {
                     buyCandleIndexInAll = selectedCandles.findIndex(c => Math.abs(c.timestamp - buy.timestamp) < 60000);
                     sellCandleIndexInAll = selectedCandles.findIndex(c => Math.abs(c.timestamp - sell.timestamp) < 60000);
                   } else {
@@ -2065,10 +2097,13 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
                 });
               });
 
-              const timeframeMinutes = getTimeframeMinutes(timeframe);
+              const isCvb = timeframe === 'cvb';
+              const timeframeMinutes = isCvb ? 1 : getTimeframeMinutes(timeframe);
               const timeframeMs = timeframeMinutes * 60000;
               const visibleTimeRangeStart = visibleCandles.length > 0 ? visibleCandles[0].timestamp : 0;
-              const visibleTimeRangeEnd = visibleCandles.length > 0 ? visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs : 0;
+              const visibleTimeRangeEnd = visibleCandles.length > 0
+                ? (isCvb ? Date.now() : visibleCandles[visibleCandles.length - 1].timestamp + timeframeMs)
+                : 0;
 
               const lastSellTrade = [...allTrades].reverse().find(t => t.type === 'sell');
               const lastSellTimestamp = lastSellTrade ? lastSellTrade.timestamp : 0;
@@ -2105,7 +2140,23 @@ export const PriceChart = ({ data: rawData, onTradeHover, onTimeframeChange, dar
 
                 let candleIndex = -1;
 
-                if (timeframeMinutes === 1) {
+                if (isCvb) {
+                  for (let i = 0; i < visibleCandles.length; i++) {
+                    const cStart = visibleCandles[i].timestamp;
+                    const cEnd = i < visibleCandles.length - 1 ? visibleCandles[i + 1].timestamp : Date.now();
+                    if (trade.timestamp >= cStart && trade.timestamp < cEnd) {
+                      candleIndex = i;
+                      break;
+                    }
+                  }
+                  if (candleIndex === -1) {
+                    const closest = visibleCandles.reduce((best, c, idx) => {
+                      const diff = Math.abs(c.timestamp - trade.timestamp);
+                      return diff < best.diff ? { idx, diff } : best;
+                    }, { idx: -1, diff: Infinity });
+                    if (closest.diff < 600000) candleIndex = closest.idx;
+                  }
+                } else if (timeframeMinutes === 1) {
                   candleIndex = visibleCandles.findIndex(c => Math.abs(c.timestamp - trade.timestamp) < 60000);
                 } else {
                   const tradePeriod = Math.floor(trade.timestamp / timeframeMs) * timeframeMs;
