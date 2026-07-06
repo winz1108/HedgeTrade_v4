@@ -312,7 +312,6 @@ function FuturesDashboard() {
         const wsIndicators = candleData.indicators && Object.keys(candleData.indicators).length > 0 ? candleData.indicators : undefined;
 
         if (openTimeMs === lastTs || Math.floor(openTimeMs / 1000) === Math.floor(lastTs / 1000)) {
-          // Update existing forming candle
           updatedCandles[updatedCandles.length - 1] = {
             ...lastCandle,
             high: Math.max(lastCandle.high, candleData.high),
@@ -322,7 +321,6 @@ function FuturesDashboard() {
             ...(wsIndicators ? { indicators: { ...lastCandle.indicators, ...wsIndicators } } : {}),
           };
         } else if (openTimeMs > lastTs) {
-          // New forming candle started
           updatedCandles.push({
             open_time_ms: openTimeMs,
             timestamp: openTimeMs,
@@ -334,11 +332,29 @@ function FuturesDashboard() {
             volume: candleData.volume || 0,
             ...(wsIndicators ? { indicators: wsIndicators } : {}),
           } as any);
-          // Trim to max 200 candles
           if (updatedCandles.length > 200) updatedCandles.shift();
         }
 
         updatedHistories[tf] = updatedCandles;
+
+        // Propagate 1m close price to all higher timeframes' forming candle
+        if (tf === '1m' && candleData.close != null) {
+          const p = candleData.close;
+          ['5m', '15m', '30m', '1h', '4h', '1d'].forEach(htf => {
+            const htfCandles = updatedHistories[htf];
+            if (!htfCandles || htfCandles.length === 0) return;
+            const htfUpdated = [...htfCandles];
+            const last = { ...htfUpdated[htfUpdated.length - 1] };
+            last.close = p;
+            last.high = Math.max(last.high, p);
+            last.low = Math.min(last.low, p);
+            htfUpdated[htfUpdated.length - 1] = last;
+            updatedHistories[htf] = htfUpdated;
+          });
+          // Also update currentPrice from kraken 1m candle
+          return { ...prevData, currentPrice: candleData.close, priceHistories: updatedHistories };
+        }
+
         return { ...prevData, priceHistories: updatedHistories };
       });
     };

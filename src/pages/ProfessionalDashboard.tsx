@@ -305,6 +305,23 @@ function ProfessionalDashboard() {
         }
 
         updatedHistories[tf] = updatedCandles;
+
+        if (tf === '1m' && candleData.close != null) {
+          const p = candleData.close;
+          ['5m', '15m', '30m', '1h', '4h', '1d'].forEach(htf => {
+            const htfCandles = updatedHistories[htf];
+            if (!htfCandles || htfCandles.length === 0) return;
+            const htfUpdated = [...htfCandles];
+            const last = { ...htfUpdated[htfUpdated.length - 1] };
+            last.close = p;
+            last.high = Math.max(last.high, p);
+            last.low = Math.min(last.low, p);
+            htfUpdated[htfUpdated.length - 1] = last;
+            updatedHistories[htf] = htfUpdated;
+          });
+          return { ...prevData, currentPrice: candleData.close, priceHistories: updatedHistories };
+        }
+
         return { ...prevData, priceHistories: updatedHistories };
       });
     };
