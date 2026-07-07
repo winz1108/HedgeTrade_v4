@@ -456,6 +456,7 @@ const normalizeStrategyStatus = (raw: any): any => {
     rideMfePct: raw.rideMfePct ?? raw.ride_mfe_pct,
     strategy_version: raw.strategy_version ?? raw.strategyVersion,
     strategyParams: raw.strategyParams ?? raw.strategy_params,
+    entryLeverage: raw.entryLeverage ?? raw.entry_leverage ?? null,
     v32: raw.v32,
   };
 };
@@ -510,6 +511,14 @@ export const fetchKrakenDashboard = async (): Promise<KrakenDashboardData> => {
     const rawData: any = await response.json();
 
     const ssRaw = normalizeStrategyStatus(rawData.strategyStatus || rawData.strategy_status || null);
+
+    if (rawData.position) {
+      const p = rawData.position;
+      rawData.position = {
+        ...p,
+        entryLeverage: p.entryLeverage ?? p.entry_leverage ?? null,
+      };
+    }
 
     const data: KrakenDashboardData = {
       ...rawData,

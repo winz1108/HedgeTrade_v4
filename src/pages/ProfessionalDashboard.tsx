@@ -48,7 +48,15 @@ function ProfessionalDashboard() {
 
       if (cvbData?.fp60_history) setFp60History(cvbData.fp60_history);
 
-      setData(krakenData);
+      setData(prev => {
+        if (!prev) return krakenData;
+        const prevLeverage = (prev.position as any)?.entryLeverage ?? (prev.position as any)?.entry_leverage;
+        const newLeverage = (krakenData.position as any)?.entryLeverage ?? (krakenData.position as any)?.entry_leverage;
+        if (prevLeverage && !newLeverage && krakenData.position?.in_position) {
+          krakenData.position = { ...krakenData.position, entryLeverage: prevLeverage } as any;
+        }
+        return krakenData;
+      });
       setLoading(false);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
@@ -388,7 +396,11 @@ function ProfessionalDashboard() {
           updated.recentTrades = existing;
         }
         if (tradeData.holding !== undefined) {
+          const prevLev = (updated.position as any)?.entryLeverage ?? (updated.position as any)?.entry_leverage;
           updated.position = { ...updated.position, ...tradeData.holding };
+          if (prevLev && !(tradeData.holding as any)?.entryLeverage && !(tradeData.holding as any)?.entry_leverage) {
+            (updated.position as any).entryLeverage = prevLev;
+          }
         }
         return updated;
       });
@@ -404,7 +416,11 @@ function ProfessionalDashboard() {
           updated.recentTrades = dashData.trades;
         }
         if (dashData.holding !== undefined) {
+          const prevLev = (updated.position as any)?.entryLeverage ?? (updated.position as any)?.entry_leverage;
           updated.position = { ...updated.position, ...dashData.holding };
+          if (prevLev && !(dashData.holding as any)?.entryLeverage && !(dashData.holding as any)?.entry_leverage) {
+            (updated.position as any).entryLeverage = prevLev;
+          }
         }
         if (dashData.strategyStatus) {
           updated.strategyStatus = { ...(updated.strategyStatus as any), ...dashData.strategyStatus } as any;

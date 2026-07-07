@@ -61,8 +61,12 @@ export function KrakenMetricsPanel({ data, position, zbStatus, zbZones: _zbZones
 
   if (position === 'left') {
     const hasPosition = data.position?.in_position;
-    const rawLeverage = (data.position as any)?.entryLeverage ?? (data.position as any)?.entry_leverage ?? null;
-    const leverage = hasPosition ? (rawLeverage ?? 1) : null;
+    const rawLeverage = (data.position as any)?.entryLeverage
+      ?? (data.position as any)?.entry_leverage
+      ?? (data.strategyStatus as any)?.entryLeverage
+      ?? (data.strategyStatus as any)?.entry_leverage
+      ?? null;
+    const leverage = hasPosition ? (rawLeverage != null && rawLeverage > 0 ? rawLeverage : 1) : null;
     const positionSide = data.position?.position_side;
     const entryPrice = data.strategyA?.entry_price;
     const livePrice = (data as any)?.currentPrice as number | undefined;
